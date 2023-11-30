@@ -22,6 +22,7 @@ body:
     id: target
     attributes:
       label: "What target were you compiling to?"
+      placeholder: "Windows (X64)"
     validations:
       required: true
 
