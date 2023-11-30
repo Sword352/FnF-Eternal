@@ -22,7 +22,7 @@
 - Add a `close` function to the `HScript` class
 - ModState and ModSubState error handling
 
-- Continue README.md and complete the wiki stuff
+- Continue README.me, complete the wiki stuff, move it to proper git wiki and add a "documentation" issue template
 
 - Add Credits menu
 - Continue the chart editor

@@ -1,0 +1,44 @@
+name: Bug report
+description: A bug has been found? Make sure to report it here!
+labels: [bug]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe the bug here."
+    validations:
+      required: true
+
+  - type: textarea
+    id: terminal
+    attributes:
+      label: "Command Prompt/Terminal logs (if existing)"
+      render: bash
+    validations:
+      required: false
+
+  - type: dropdown
+    id: modding
+    attributes:
+      label: "Are you modding a build from source or from mods folder?"
+      options:
+        - Mods Folder
+        - Source
+    validations:
+      required: true
+
+  - type: textarea
+    id: target
+    attributes:
+      label: "What is your build target?"
+    validations:
+      required: true
+
+  - type: input
+    id: source_edits
+    attributes:
+      label: "If you use source, did you edit anything?"
+      placeholder: "Yes, I edited Settings.hx to add a new option"
+    validations:
+      required: false

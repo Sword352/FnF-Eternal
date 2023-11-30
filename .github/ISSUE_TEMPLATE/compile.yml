@@ -1,0 +1,34 @@
+name: Compiling Problems
+description: Ask for help with compiling errors/problems
+labels: [compiling issue]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe the issue here."
+    validations:
+      required: true
+
+  - type: textarea
+    id: terminal
+    attributes:
+      label: "Command Prompt/Terminal logs (if existing)"
+      render: bash
+    validations:
+      required: false
+
+  - type: textarea
+    id: target
+    attributes:
+      label: "What target are you compiling to?"
+    validations:
+      required: true
+
+  - type: input
+    id: source_edits
+    attributes:
+      label: "Did you edit anything?"
+      placeholder: "Yes, I edited Settings.hx to add a new option"
+    validations:
+      required: false
