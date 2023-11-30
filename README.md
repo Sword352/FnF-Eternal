@@ -26,7 +26,7 @@ In it's current state, Eternal is in alpha and some features such as dialogue is
 - Swordcube: Helper Coder
 - SMB: Wiki Writer
 
-> Special Thanks:
+> Special Thanks
 - Maru: Alphabet Bold Numbers Artist
 - RapperGF: `FlxTiledSprite` scale patch
 - Superpowers04: In-Game Crash Handler Concept
