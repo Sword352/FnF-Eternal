@@ -14,20 +14,24 @@ In it's current state, Eternal is in alpha and some features such as dialogue is
 
 ### Credits
 > Developers
-- Sword: Director and lead coder
-- Glade: Composer and minor coding
+- Sword: Director and Lead Coder
+- Glade: Composer and Minor Coding
 - S0ulstive: Artist
 - MemeHoovy: Coder
 
 > Contributors
-- Meloomazy: FNF modpack port and debug UI assets
-- PlankDev: chart editor metronome sound
-- CrowPlexus: helper, inspiration
-- EyeDaleHim: helper, inspiration
-- Maru: Bold numbers in alphabet
-- Tinki: Animated few assets
-- Swordcube: helper coder
-- SMB: wiki writer
+- Meloomazy: FNF Modpack Porter and Debug UI Artist
+- PlankDev: Metronome Sound Composer
+- SquidBowl: Animated Few Assets
+- Swordcube: Helper Coder
+- SMB: Wiki Writer
+
+> Special Thanks:
+- Maru: Alphabet Bold Numbers Artist
+- RapperGF: `FlxTiledSprite` scale patch
+- Superpowers04: In-Game Crash Handler Concept
+- CrowPlexus: Helper, Inspiration
+- EyeDaleHim: Helper, Inspiration
 
 > Testers
 - Crazyb3ndy
