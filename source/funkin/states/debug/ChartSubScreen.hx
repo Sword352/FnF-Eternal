@@ -216,6 +216,8 @@ class ChartSubScreen extends FlxSubState {
         description.customStyle.textAlign = "right";
 
         var eventDropdown:DropDown = new DropDown();
+        eventDropdown.width = FlxG.width * 0.15;
+
         eventDropdown.onChange = (_) -> {
             var event:EventDetails = parent.eventList.get(eventDropdown.value);
 
