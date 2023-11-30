@@ -1,5 +1,5 @@
 name: Bug report
-description: A bug has been found? Make sure to report it here!
+description: Report bugs found within the engine
 labels: [bug]
 
 body:
