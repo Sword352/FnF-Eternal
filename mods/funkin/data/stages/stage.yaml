@@ -1,0 +1,30 @@
+cameraZoom: 0.9
+
+opponentPosition: [175, 525]
+playerPosition: [700, 450]
+spectatorPosition: [250, 100]
+ratingPosition: [500, 500]
+
+playerCameraOffset: [-150]
+opponentCameraOffset: [0, -50]
+
+objects:
+- {
+    image: "stages/stage/stageback",
+    scrollFactor: [0.9, 0.9],
+    position: [-600, -200]
+  }
+- {
+    image: "stages/stage/stagefront",
+    scale: [1.1, 1.1],
+    position: [-650, 600],
+    scrollFactor: [0.9, 0.9],
+    antialiasing: true
+  }
+- {
+    image: "stages/stage/stagecurtains",
+    scale: [0.9, 0.9],
+    position: [-500, -300],
+    scrollFactor: [1.3, 1.3],
+    antialiasing: true
+  }

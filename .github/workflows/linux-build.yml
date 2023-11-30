@@ -1,0 +1,36 @@
+name: Linux Build
+
+on:
+  # push:
+  # pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          submodules: true
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: latest
+
+      - name: Installing Libraries
+        run: |
+          chmod +x ./setup.sh
+          sh ./setup.sh
+
+      - name: Building
+        run: haxelib run lime build linux
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: EternalEngine-Linux
+          path: export/release/linux/bin
+          if-no-files-found: error

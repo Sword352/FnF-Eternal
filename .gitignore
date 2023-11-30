@@ -1,0 +1,4 @@
+.vscode/
+.haxelib/
+export/
+exclude/

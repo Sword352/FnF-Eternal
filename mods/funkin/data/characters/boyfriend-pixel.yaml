@@ -1,0 +1,18 @@
+image: "characters/bfPixel"
+
+animations:
+  - { name: "idle",          prefix: "BF IDLE",        fps: 24, loop: false }
+  - { name: "singLEFT",      prefix: "BF RIGHT NOTE",  fps: 24, loop: false }
+  - { name: "singDOWN",      prefix: "BF DOWN NOTE",   fps: 24, loop: false }
+  - { name: "singUP",        prefix: "BF UP NOTE",     fps: 24, loop: false }
+  - { name: "singRIGHT",     prefix: "BF LEFT NOTE",   fps: 24, loop: false }
+
+playerFlip: true
+
+scale: [6, 6]
+flip: [true, false]
+antialiasing: false
+
+icon: "bf-pixel"
+cameraOffsets: [0, -150]
+healthBarColor: [0, 255, 255]

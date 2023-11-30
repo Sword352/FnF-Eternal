@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="receptors.png">
+	<!-- Created with Adobe Flash CS6 version 12.0.0.481 -->
+	<!-- http://www.adobe.com/products/flash.html -->
+	<SubTexture name="down confirm0000" x="5" y="5" width="239" height="237"/>
+	<SubTexture name="down confirm0001" x="5" y="247" width="239" height="237"/>
+	<SubTexture name="down confirm0002" x="715" y="5" width="221" height="219" frameX="-9" frameY="-9" frameWidth="239" frameHeight="237"/>
+	<SubTexture name="down confirm0003" x="715" y="5" width="221" height="219" frameX="-9" frameY="-9" frameWidth="239" frameHeight="237"/>
+	<SubTexture name="down press0000" x="1086" y="223" width="143" height="140" frameX="-3" frameY="-3" frameWidth="149" frameHeight="146"/>
+	<SubTexture name="down press0001" x="1086" y="223" width="143" height="140" frameX="-3" frameY="-3" frameWidth="149" frameHeight="146"/>
+	<SubTexture name="down press0002" x="873" y="467" width="149" height="146"/>
+	<SubTexture name="down press0003" x="873" y="467" width="149" height="146"/>
+	<SubTexture name="down static0000" x="165" y="729" width="157" height="155"/>
+	<SubTexture name="left confirm0000" x="249" y="5" width="229" height="233"/>
+	<SubTexture name="left confirm0001" x="713" y="239" width="219" height="223" frameX="-5" frameY="-5" frameWidth="229" frameHeight="233"/>
+	<SubTexture name="left confirm0002" x="483" y="5" width="227" height="229" frameX="-1" frameY="-2" frameWidth="229" frameHeight="233"/>
+	<SubTexture name="left confirm0003" x="483" y="5" width="227" height="229" frameX="-1" frameY="-2" frameWidth="229" frameHeight="233"/>
+	<SubTexture name="left press0000" x="1086" y="368" width="139" height="143" frameX="-4" frameY="-3" frameWidth="147" frameHeight="149"/>
+	<SubTexture name="left press0001" x="1086" y="368" width="139" height="143" frameX="-4" frameY="-3" frameWidth="147" frameHeight="149"/>
+	<SubTexture name="left press0002" x="808" y="623" width="147" height="149"/>
+	<SubTexture name="left press0003" x="808" y="623" width="147" height="149"/>
+	<SubTexture name="left static0000" x="5" y="729" width="155" height="157"/>
+	<SubTexture name="right confirm0000" x="483" y="239" width="225" height="229" frameX="-2" frameY="-1" frameWidth="229" frameHeight="231"/>
+	<SubTexture name="right confirm0001" x="489" y="473" width="225" height="229" frameX="-2" frameY="-1" frameWidth="229" frameHeight="231"/>
+	<SubTexture name="right confirm0002" x="249" y="243" width="229" height="231"/>
+	<SubTexture name="right confirm0003" x="249" y="243" width="229" height="231"/>
+	<SubTexture name="right press0000" x="1027" y="516" width="139" height="141" frameX="-5" frameY="-5" frameWidth="149" frameHeight="151"/>
+	<SubTexture name="right press0001" x="1027" y="516" width="139" height="141" frameX="-5" frameY="-5" frameWidth="149" frameHeight="151"/>
+	<SubTexture name="right press0002" x="719" y="467" width="149" height="151"/>
+	<SubTexture name="right press0003" x="719" y="467" width="149" height="151"/>
+	<SubTexture name="right static0000" x="489" y="707" width="155" height="157"/>
+	<SubTexture name="up confirm0000" x="5" y="489" width="237" height="235"/>
+	<SubTexture name="up confirm0001" x="247" y="489" width="237" height="235"/>
+	<SubTexture name="up confirm0002" x="941" y="5" width="215" height="213" frameX="-11" frameY="-11" frameWidth="237" frameHeight="235"/>
+	<SubTexture name="up confirm0003" x="941" y="5" width="215" height="213" frameX="-11" frameY="-11" frameWidth="237" frameHeight="235"/>
+	<SubTexture name="up press0000" x="937" y="229" width="144" height="142" frameX="-5" frameY="-4" frameWidth="154" frameHeight="150"/>
+	<SubTexture name="up press0001" x="937" y="229" width="144" height="142" frameX="-5" frameY="-4" frameWidth="154" frameHeight="150"/>
+	<SubTexture name="up press0002" x="649" y="707" width="154" height="150"/>
+	<SubTexture name="up press0003" x="649" y="707" width="154" height="150"/>
+	<SubTexture name="up static0000" x="327" y="729" width="157" height="155"/>
+</TextureAtlas>

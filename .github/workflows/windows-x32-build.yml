@@ -1,0 +1,36 @@
+name: Windows x32 Build
+
+on:
+  # push:
+  # pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          submodules: true
+          
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: latest
+
+      - name: Installing Libraries
+        shell: cmd
+        run: |
+          .\setup.bat
+
+      - name: Building
+        run: haxelib run lime build windows -32 -release -D 32bits -D HXCPP_M32
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: EternalEngine-Windows-32
+          path: export/32bit release/windows/bin
+          if-no-files-found: error

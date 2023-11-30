@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="options.png">
+	<!-- Created with Adobe Animate version 20.0.0.17400 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="basic0000" x="5" y="496" width="487" height="111" />
+	<SubTexture name="basic0001" x="5" y="496" width="487" height="111" />
+	<SubTexture name="basic0002" x="5" y="496" width="487" height="111" />
+	<SubTexture name="basic0003" x="5" y="612" width="487" height="111" />
+	<SubTexture name="basic0004" x="5" y="612" width="487" height="111" />
+	<SubTexture name="basic0005" x="5" y="612" width="487" height="111" />
+	<SubTexture name="basic0006" x="5" y="728" width="487" height="111" />
+	<SubTexture name="basic0007" x="5" y="728" width="487" height="111" />
+	<SubTexture name="basic0008" x="5" y="728" width="487" height="111" />
+	<SubTexture name="white0000" x="5" y="336" width="606" height="155" frameX="-2" frameY="-1" frameWidth="610" frameHeight="163" />
+	<SubTexture name="white0001" x="5" y="173" width="607" height="158" frameX="-3" frameY="-1" frameWidth="610" frameHeight="163" />
+	<SubTexture name="white0002" x="5" y="5" width="610" height="163" />
+</TextureAtlas>

@@ -1,0 +1,5 @@
+animations:
+- { name: "idle", prefix: "M BF Idle", fps: 24, loop: false }
+- { name: "hey",  prefix: "M bf HEY",  fps: 24, loop: false }
+
+scale: 0.8

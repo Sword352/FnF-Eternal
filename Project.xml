@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project >
+	<!-- [[ Custom Nodes ]] -->
+
+	<!-- Comment this out to disable support for runtime assets -->
+	<define name="ENGINE_RUNTIME_ASSETS" unless="html5" />
+	
+	<!-- Comment this out to disable mods support -->
+	<define name="ENGINE_MODDING" unless="html5" />
+	
+	<!-- Comment this out to disable the crash handler -->
+	<define name="ENGINE_CRASH_HANDLER" if="desktop" />
+	
+	<!-- Comment this out to disable the Discord Rich Presence -->
+	<define name="ENGINE_DISCORD_RPC" if="cpp" />
+	
+	<!-- Comment this out to disable cutscenes (ALL cutscenes including dialogues, comment VIDEO_CUTSCENES to disable video cutscenes only!) -->
+	<define name="ENGINE_CUTSCENES" />
+	<define name="VIDEO_CUTSCENES" if="ENGINE_CUTSCENES cpp" />
+	
+	<!-- Comment this out to disable scripting -->
+	<define name="ENGINE_SCRIPTING" />
+
+	<icon path="app-icons/icon16.png"  size='16' />
+	<icon path="app-icons/icon32.png"  size='32' />
+	<icon path="app-icons/icon64.png"  size='64' />
+	<icon path="app-icons/icon128.png" size='128' />
+	<icon path="app-icons/icon256.png" size='256' />
+	<icon path="app-icons/icon512.png" size='512' />
+	<icon path="app-icons/iconDefault.png" />
+
+	<!-- [[ Application Settings ]] -->
+
+	<app title="Friday Night Funkin': Eternal Engine" file="FunkinEternal" main="Main" version="0.1.0" company="Sword352" packageName="com.sword.EternalEngine" />
+	<app preloader="flixel.system.FlxPreloader" />
+
+	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" allow-high-dpi="true" />
+	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
+	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
+
+	<set name="SWF_VERSION" value="11.8" />
+
+	<set name="BUILD_DIR" value="export/debug"       if="debug" />
+	<set name="BUILD_DIR" value="export/release"     unless="debug" />
+	<set name="BUILD_DIR" value="export/x32-debug"   if="32bits debug" />
+	<set name="BUILD_DIR" value="export/x32"         if="32bits" unless="debug" />
+
+	<source path="source" />
+	<assets path="assets" />
+	<assets path="mods" if="ENGINE_MODDING" />
+
+	<!-- [[ Librairies ]] -->
+
+	<haxelib name="flixel" />
+	<haxelib name="flixel-addons" />
+
+	<haxelib name="hxdiscord_rpc" if="ENGINE_DISCORD_RPC" />
+	<haxelib name="hxCodec" if="VIDEO_CUTSCENES" />
+
+	<haxelib name="yaml" />
+	<haxelib name="tjson" />
+
+	<haxelib name="hscript" unless="ENGINE_SCRIPTING" />
+	<haxelib name="hscript-improved" rename="hscript" if="ENGINE_SCRIPTING" />
+
+	<haxelib name="hxcpp-debug-server" if="cpp debug" />
+
+	<haxelib name="haxeui-core" />
+	<haxelib name="haxeui-flixel" />
+
+	<!-- [[ Defines ]] -->
+
+	<!-- Prevents the Discord API from making a second thread -->
+	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="ENGINE_DISCORD_RPC" />
+
+	<section if="ENGINE_SCRIPTING" >
+		<!-- Allow HScript error reporting at parse time -->
+		<define name="hscriptPos" />
+
+		<!-- Disable dead code elimination to compile unused stuff, at the cost of compile time -->
+		<!-- Comment this out if you wish to disable that! -->
+		<haxeflag name="-dce" value="no" unless="hl" /> <!-- A problem with Haxe itself makes DCE impossible to disable on HL -->
+
+		<!-- Run the import macro that will compile some additional classes -->
+		<!-- Comment this out if you wish to disable that! -->
+		<haxeflag name="--macro" value='eternal.core.scripting.HScriptInclude.addAdditionalClasses()' />
+	</section>
+
+	<!-- Optimise inputs, be careful you will get null errors if you don't use conditionals in your game -->
+	<haxedef name="FLX_NO_MOUSE" if="mobile" />
+	<haxedef name="FLX_NO_KEYBOARD" if="mobile" />
+	<haxedef name="FLX_NO_TOUCH" if="desktop" />
+
+	<!-- Disable the Flixel core focus lost screen -->
+	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
+
+	<section unless="debug" >
+	    <!-- Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode! -->
+	    <haxedef name="FLX_NO_DEBUG" />
+
+	    <!-- Enable this for Nape release builds for a serious peformance improvement -->
+	    <haxedef name="NAPE_RELEASE_BUILD" />
+
+	    <!-- Allow crashes to be traced on release builds -->
+	    <haxedef name="HXCPP_CHECK_POINTER" if="ENGINE_CRASH_HANDLER" />
+	    <haxedef name="HXCPP_STACK_LINE"    if="ENGINE_CRASH_HANDLER" />
+	</section>
+
+	<!-- Disable the deprecation warnings -->
+	<haxedef name="no-deprecation-warnings" />
+	
+</project>
