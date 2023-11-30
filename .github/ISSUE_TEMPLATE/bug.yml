@@ -28,10 +28,10 @@ body:
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: target
     attributes:
-      label: "What is your build target?"
+      label: "What target were you compiling to?"
     validations:
       required: true
 

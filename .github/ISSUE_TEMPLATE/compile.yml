@@ -18,10 +18,10 @@ body:
     validations:
       required: false
 
-  - type: textarea
+  - type: input
     id: target
     attributes:
-      label: "What target are you compiling to?"
+      label: "What target were you compiling to?"
     validations:
       required: true
 
