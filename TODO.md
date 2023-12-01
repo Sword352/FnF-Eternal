@@ -46,5 +46,6 @@
   * In-game traces overlay
 
 ### Bugs to Fix
+- Fix sustain tail clipping (the tail goes up before being actually clipped)
 - Fix little position snap when calling `obj.centerToObject(base, Y)`, where `base`'s position is get via `FlxMath#lerp` (the snap happens when `base` is in it's intended position)
 - Fix the press enter sprite's frames on TitleScreen

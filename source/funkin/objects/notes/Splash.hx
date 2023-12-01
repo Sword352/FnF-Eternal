@@ -1,6 +1,8 @@
 package funkin.objects.notes;
 
 class Splash extends OffsetSprite {
+    public var timeScale:Float = 1;
+
     public function new():Void {
         super();
 
@@ -23,8 +25,9 @@ class Splash extends OffsetSprite {
     }
 
     public function pop(direction:Int):Void {
-        playAnimation('${Note.directions[direction]}-${FlxG.random.int(1, 2)}', true);
-        animation.curAnim.frameRate += FlxG.random.float(-2, 2);
+        var anim:String = '${Note.directions[direction]}-${FlxG.random.int(1, 2)}';
+        animation.getByName(anim).timeScale = timeScale * FlxG.random.float(0.8, 1.2);
+        playAnimation(anim, true);
     }
 
     override function update(elapsed:Float):Void {

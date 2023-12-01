@@ -67,15 +67,15 @@ class HScript {
         "Type" => Type,
 	];
 
+    public var state(default, null):ScriptStatus = NONE;
+    
     public var parser(default, null):Parser;
     public var interp(default, null):Interp;
 
     public var script(default, null):String;
     public var path(default, null):String;
 
-    public var state(default, null):ScriptStatus = NONE;
     public var object(get, set):Dynamic;
-
     public var parent:IScriptable;
 
     public function new(path:String, checkPath:Bool = true):Void {
