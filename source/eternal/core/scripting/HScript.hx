@@ -3,6 +3,7 @@ package eternal.core.scripting;
 #if ENGINE_SCRIPTING
 import hscript.Parser;
 import hscript.Interp;
+import eternal.core.scripting.ScriptableState.IScriptable;
 
 enum ScriptStatus {
     NONE;
@@ -75,6 +76,8 @@ class HScript {
     public var state(default, null):ScriptStatus = NONE;
     public var object(get, set):Dynamic;
 
+    public var parent:IScriptable;
+
     public function new(path:String, checkPath:Bool = true):Void {
         if (!checkPath)
             this.path = path;
@@ -140,6 +143,11 @@ class HScript {
     public function destroy():Void {
         if (interp != null)
             call("onDestroy");
+
+        if (parent != null) {
+            parent.scriptPack.remove(this);
+            parent = null;
+        }
         
         state = DEAD;
         parser = null;

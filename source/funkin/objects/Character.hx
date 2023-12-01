@@ -61,6 +61,10 @@ class Character extends DancingSprite {
     public var animEndTime:Float = 0;
     public var holdTime:Float = 0;
 
+    #if ENGINE_SCRIPTING
+    private var lastScriptRef:HScript;
+    #end
+
     private function set_character(v:String):String {
         character = v;
 
@@ -81,6 +85,8 @@ class Character extends DancingSprite {
                 setup(data);
 
                 #if ENGINE_SCRIPTING
+                destroyScript();
+
                 if (type != DEBUG && FlxG.state is ScriptableState) {
                     var scriptPath:String = AssetHelper.getPath('data/characters/${v}', SCRIPT);
                     if (FileTools.exists(scriptPath)) {
@@ -88,6 +94,8 @@ class Character extends DancingSprite {
                         cast(FlxG.state, ScriptableState).addScript(scr);
                         scr.set("this", this);
                         scr.call("onInit");
+
+                        lastScriptRef = scr;
                     }
                 }
                 #end
@@ -238,7 +246,18 @@ class Character extends DancingSprite {
         holdTime = 0;
     }
 
+    #if ENGINE_SCRIPTING
+    inline function destroyScript():Void {
+        lastScriptRef?.destroy();
+        lastScriptRef = null;
+    }
+    #end
+
     override function destroy():Void {
+        #if ENGINE_SCRIPTING
+        destroyScript();
+        #end
+
         super.destroy();
 
         cameraDisplace = FlxDestroyUtil.put(cameraDisplace);

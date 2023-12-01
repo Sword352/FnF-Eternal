@@ -28,7 +28,7 @@ In it's current state, Eternal is in alpha and some features such as dialogue is
 
 > Special Thanks
 - Maru: Alphabet Bold Numbers Artist
-- RapperGF: `FlxTiledSprite` scale patch
+- RapperGF: `FlxTiledSprite` Scale Patch
 - Superpowers04: In-Game Crash Handler Concept
 - CrowPlexus: Helper, Inspiration
 - EyeDaleHim: Helper, Inspiration

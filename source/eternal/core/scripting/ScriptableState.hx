@@ -69,7 +69,7 @@ import flixel.FlxSubState;
     }
 }
 
-class ScriptableState extends TransitionState {
+class ScriptableState extends TransitionState implements IScriptable {
     public var scriptPack:Array<HScript>;
     public var imports:Map<String, Dynamic>;
 
@@ -107,7 +107,9 @@ class ScriptableState extends TransitionState {
     }
 
     public function addScript(script:HScript):HScript {
+        script.parent = this;
         script.object = this;
+
         for (i in imports.keys())
             script.set(i, imports.get(i));
         scriptPack.push(script);
@@ -193,7 +195,7 @@ class ScriptableState extends TransitionState {
     }
 }
 
-class ScriptableSubState extends FlxSubState {
+class ScriptableSubState extends FlxSubState implements IScriptable {
     public var scriptPack:Array<HScript>;
     public var imports:Map<String, Dynamic>;
 
@@ -231,7 +233,9 @@ class ScriptableSubState extends FlxSubState {
     }
 
     public function addScript(script:HScript):HScript {
+        script.parent = this;
         script.object = this;
+        
         for (i in imports.keys())
             script.set(i, imports.get(i));
         scriptPack.push(script);
@@ -307,5 +311,9 @@ class ScriptableSubState extends FlxSubState {
         
         super.destroy();
     }
+}
+
+interface IScriptable {
+    public var scriptPack:Array<HScript>;
 }
 #end
