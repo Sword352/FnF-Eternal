@@ -18,7 +18,7 @@ class ArrayOptionItem<V> extends BaseOptionItem<Array<V>> {
     }
 
     override function updateText():Void {
-        valueText.text = Std.string(list[currentSelection]);
+        valueText.text = Tools.capitalize(Std.string(list[currentSelection]));
         repositionValueText();
     }
 

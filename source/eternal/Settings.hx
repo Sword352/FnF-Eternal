@@ -24,6 +24,7 @@ class Settings {
         "simplify combo number" => new Setting<Bool>(false),
         "hide user interface" => new Setting<Bool>(false),
         "smooth health bar" => new Setting<Bool>(true),
+        "timer type" => new Setting<String>("none"),
 
         // General settings
         "framerate" => new Setting<Int>(60, (v) -> Tools.changeFramerateCap(v)),

@@ -269,7 +269,12 @@ class PlayState extends MusicBeatState {
       if (Settings.get("judgements on user interface")) {
          ratingSprites.cameras = comboSprites.cameras = [camHUD];
          ratingSprites.setPosition(FlxG.width * 0.5 - 100, FlxG.height * 0.5 - 100);
-         comboSprites.setPosition(ratingSprites.x + 25, ratingSprites.y + 105);
+         comboSprites.setPosition(ratingSprites.x + 60, ratingSprites.y + 140);
+
+         for (group in [ratingSprites, comboSprites]) {
+            remove(group);
+            insert(members.indexOf(strumLines), group);
+         }
       }
 
       cache();
@@ -571,6 +576,9 @@ class PlayState extends MusicBeatState {
 
       music.play(time);
       stage.onSongStart();
+
+      if (hud.timer.visible)
+         hud.tweenTimer();
 
       #if ENGINE_SCRIPTING
       hxsCall("onSongStartPost");

@@ -4,6 +4,8 @@ import flixel.ui.FlxBar;
 import flixel.text.FlxText;
 import flixel.group.FlxSpriteGroup;
 
+import flixel.util.FlxStringUtil;
+
 class GameplayUI extends FlxSpriteGroup {
     public var scoreText:FlxText;
     public var botplayText:FlxText;
@@ -13,6 +15,8 @@ class GameplayUI extends FlxSpriteGroup {
 
     public var iconPlayer:HealthIcon;
     public var iconOpponent:HealthIcon;
+
+    public var timer:FlxText;
 
     public var smoothHealthBar:Bool = Settings.get("smooth health bar");
     public var healthDisplay:Float = 1;
@@ -63,6 +67,12 @@ class GameplayUI extends FlxSpriteGroup {
         botplayText.screenCenter(X);
         botplayText.visible = false;
         add(botplayText);
+
+        timer = new FlxText();
+        timer.setFormat(scoreText.font, 30, FlxColor.WHITE);
+        timer.setBorderStyle(OUTLINE, FlxColor.BLACK, 1);
+        timer.visible = (Settings.get("timer type") != "none");
+        add(timer);
         
 	    repositionElements(Settings.get("downscroll"));
     }
@@ -84,6 +94,16 @@ class GameplayUI extends FlxSpriteGroup {
         iconPlayer.health = multHealth;
         healthBar.percent = multHealth;
 
+        var music = PlayState.current.music.instrumental;
+
+        if (timer.visible && music.playing) {
+            timer.text = switch (Settings.get("timer type")) {
+                case "full": FlxStringUtil.formatTime(music.time * 0.001) + " / " + FlxStringUtil.formatTime(music.length * 0.001);
+                default: FlxStringUtil.formatTime((music.length - music.time) * 0.001);
+            }
+            timer.screenCenter(X);
+        }
+
         if (botplayText.visible) {
             botplayAlpha += elapsed;
             botplayText.alpha = 1 - Math.sin(botplayAlpha * Math.PI);
@@ -100,16 +120,22 @@ class GameplayUI extends FlxSpriteGroup {
         scoreText.text = text;
         scoreText.screenCenter(X);
     }
+
+    public function tweenTimer():Void {
+        timer.alpha = 0;
+        flixel.tweens.FlxTween.tween(timer, {alpha: 0.7}, 0.35);
+    }
     
     public function repositionElements(downscroll:Bool = false):Void {
-	    healthBarBG.y = FlxG.height * (downscroll ? 0.1 : 0.9);
+	    healthBarBG.y = FlxG.height * ((downscroll) ? 0.1 : 0.9);
 	    healthBarBG.screenCenter(X);
 	    healthBar.setPosition(healthBarBG.x + 4, healthBarBG.y + 4);
 	    
 	    scoreText.y = healthBarBG.y + 25;
 	    scoreText.screenCenter(X);
 
-        botplayText.y = FlxG.height * (downscroll ? 0.9 : 0.1);
+        botplayText.y = FlxG.height * ((downscroll) ? 0.9 : 0.1);
+        timer.y = FlxG.height * ((downscroll) ? 0.95 : 0.05);
 	    
 	    iconPlayer.y = healthBar.y - iconPlayer.frameHeight / 2;
 	    iconOpponent.y = healthBar.y - iconOpponent.frameHeight / 2;
