@@ -81,6 +81,8 @@ class GameplayUI extends FlxSpriteGroup {
     }
     
     override function update(elapsed:Float):Void {
+        super.update(elapsed);
+        
         // update health bar
 	    if (smoothHealth)
             healthLerp = FlxMath.lerp(healthLerp, healthDisplay, FlxMath.bound(elapsed * 12, 0, 1));
@@ -112,8 +114,6 @@ class GameplayUI extends FlxSpriteGroup {
             botplayAlpha += elapsed;
             botplayMark.alpha = 1 - Math.sin(botplayAlpha * Math.PI);
         }
-
-        super.update(elapsed);
     }
 
     inline public function updateScoreText():Void {
