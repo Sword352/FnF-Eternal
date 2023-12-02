@@ -163,7 +163,7 @@ class Character extends DancingSprite {
         if (config.gameOverCharacter == null && type == PLAYER)
             config.gameOverCharacter = "bf-dead";
 
-        if (type == GAMEOVER)
+        if (type == GAMEOVER && config.gameOverProperties != null)
             config.gameOverProperties = GameOverScreen.formatProperties(config.gameOverProperties);
 
         forceDance(true);

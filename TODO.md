@@ -1,7 +1,6 @@
 ### High Priority
 - Proper noteskins (and asset style?) system
 - Finish Alphabet (character offsets + symbols)
-- (Move game over properties from CharacterConfig to SongMetadata?)
 
 ### Medium Priority
 - Finish the key formatting in `KeybindItem#formatKey`

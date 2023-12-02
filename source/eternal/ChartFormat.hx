@@ -1,5 +1,7 @@
 package eternal;
 
+import funkin.states.substates.GameOverScreen.GameOverProperties;
+
 @:structInit class Chart {
    public var meta:SongMetadata;
 
@@ -14,13 +16,15 @@ typedef SongMetadata = {
    var name:String;
    var rawName:String;
 
+   var instFile:String;
+   var voiceFiles:Array<String>;
+
    var ?player:String;
    var ?opponent:String;
    var ?spectator:String;
    var ?stage:String;
 
-   var instFile:String;
-   var voiceFiles:Array<String>;
+   var ?gameOverProperties:GameOverProperties;
 }
 
 typedef ChartEvent = {
