@@ -92,7 +92,7 @@ class Settings {
         "CHART_pitch" => new Setting<Float>(1)
     ];
 
-    #if ENGINE_SCRIPTING
+    #if ENGINE_MODDING
     public static final modSettings:Array<ModSetting> = [];
     static var setterScript:HScript;
     #end
