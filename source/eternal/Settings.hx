@@ -1,5 +1,26 @@
 package eternal;
 
+#if ENGINE_MODDING
+import eternal.core.scripting.HScript;
+
+typedef ModSetting = {
+    var id:String;
+
+    var ?name:String;
+    var ?description:String;
+    var ?backendKey:String;
+
+    var ?type:String;
+    var ?defaultVal:Dynamic;
+    
+    var ?min:Float;
+    var ?max:Float;
+    var ?step:Float;
+    var ?precision:Int;
+    var ?valueList:Array<String>;
+}
+#end
+
 class Settings {
     /**
      * Setting format:
@@ -71,6 +92,11 @@ class Settings {
         "CHART_pitch" => new Setting<Float>(1)
     ];
 
+    #if ENGINE_SCRIPTING
+    public static final modSettings:Array<ModSetting> = [];
+    static var setterScript:HScript;
+    #end
+
     public static function load():Void {
         Tools.invokeTempSave((save) -> {
             var data:Map<String, Any> = save.data.settings;
@@ -93,8 +119,56 @@ class Settings {
         }, "settings");
     }
 
-    inline public static function get(key:String):Dynamic
+    #if ENGINE_MODDING
+    public static function reloadModSettings():Void {
+        setterScript?.destroy();
+        setterScript = null;
+
+        while (modSettings.length > 0)
+            settings.remove(modSettings.shift().backendKey);
+
+        var settingConfig:String = AssetHelper.yaml("pack/settings");
+        if (!FileTools.exists(settingConfig))
+            return;
+
+        var setters:String = AssetHelper.getPath("pack/settings", SCRIPT);
+        if (FileTools.exists(setters))
+            setterScript = new HScript(setters, false);
+
+        var customSettings:Array<ModSetting> = Tools.parseYAML(FileTools.getContent(settingConfig));
+
+        for (setting in customSettings) {
+            var id:String = setting.id;
+            if (id == null)
+                continue;
+
+            var instance:Setting<Dynamic> = switch ((setting.type ?? "").toLowerCase().trim()) {
+                case "string": new Setting<String>(setting.defaultVal ?? "");
+                case "float": new Setting<Float>(setting.defaultVal ?? 0);
+                case "int": new Setting<Int>(setting.defaultVal ?? 0);
+                default: new Setting<Bool>(setting.defaultVal ?? false);
+            }
+            instance.onChange = (val) -> setterScript?.call('onChange_${id}', [val]);
+
+            setting.backendKey = Mods.currentMod.folder + "_" + id;
+            modSettings.push(setting);
+            settings.set(setting.backendKey, instance);
+        }
+
+        load();
+        save();
+    }
+    #end
+
+    inline public static function get(key:String):Dynamic {
+        #if ENGINE_MODDING
+        var modKey:String = Mods.currentMod.folder + "_" + key;
+        if (settings.exists(modKey))
+            return settings.get(modKey).value;
+        #end
+
         return settings.get(key).value;
+    }
 }
 
 // setting wrapper used to call `onChange` when the setting's value gets changed.

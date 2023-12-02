@@ -58,6 +58,11 @@ class OptionsMenu extends MusicBeatState {
             {name: "Exit", action: exit, skipOutro: true},
         ];
 
+        #if ENGINE_MODDING
+        if (Settings.modSettings.length > 0)
+            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.folder), action: goToModOptions});
+        #end
+
         AssetHelper.clearAssets = !toPlayState;
 
         #if ENGINE_DISCORD_RPC
@@ -196,27 +201,33 @@ class OptionsMenu extends MusicBeatState {
         #end
     }
 
-    inline private function goToGeneral():Void {
+    inline function goToGeneral():Void {
         openSubState(new GeneralOptionSubState());
     }
 
-    inline private function goToGameplay():Void {
+    inline function goToGameplay():Void {
         openSubState(new GameplayOptionSubState());
     }
 
-    inline private function goToKeybind():Void {
+    inline function goToKeybind():Void {
         openSubState(new KeybindSubState());
     }
 
-    inline private function goToOffset():Void {
+    inline function goToOffset():Void {
         openSubState(new OffsetSubState());
     }
 
-    inline private function goToDebug():Void {
+    #if ENGINE_MODDING
+    inline function goToModOptions():Void {
+        openSubState(new ModOptionSubState());
+    }
+    #end
+
+    inline function goToDebug():Void {
         openSubState(new DebugOptionSubState());
     }
 
-    inline private function exit():Void {
+    inline function exit():Void {
         FlxG.sound.play(AssetHelper.sound("cancelMenu"));
         FlxG.switchState((toPlayState) ? new PlayState() : new MainMenu());
     }

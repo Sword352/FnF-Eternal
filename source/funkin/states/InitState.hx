@@ -44,16 +44,18 @@ class InitState extends FlxState {
         @:privateAccess FlxG.keys._nativeCorrection.set("0_43", FlxKey.PLUS);
         #end
 
+        #if ENGINE_MODDING
+        // Load mods
+        Mods.init();
+        #end
+
         // Load options
         Settings.load();
 
         // Load scores
         HighScore.load();
         
-        #if ENGINE_MODDING
-        // Load mods
-        Mods.init();
-        
+        #if ENGINE_MODDING        
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen
         if (Mods.mods.length < 1)
             return;

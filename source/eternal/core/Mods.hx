@@ -174,6 +174,7 @@ class Mods {
         currentMod = mod;
 
         AssetHelper.currentDirectory = (currentMod == null) ? AssetHelper.defaultDirectory : '${MODS_PATH}${currentMod.folder}/';
+        Settings.reloadModSettings();
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.reconnect(currentMod?.discordClient ?? DiscordPresence.DEFAULT_ID);

@@ -5,7 +5,6 @@
 ### Medium Priority
 - Finish the key formatting in `KeybindItem#formatKey`
 - Finish the built-in events
-- Add mod options support
 - Dialogue cutscenes implementation
 
 ### Low Priority
