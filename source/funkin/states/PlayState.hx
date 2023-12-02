@@ -300,26 +300,23 @@ class PlayState extends MusicBeatState {
       eventManager.runEvent(cameraEvent);
       snapCamera();
 
-      #if ENGINE_SCRIPTING
-      hxsCall("onCreatePost");
-
       if (startTime <= 0) {
+         #if ENGINE_SCRIPTING
          if (!cancellableCall("onStartCountdown"))
+         #end
             startCountdown();
       }
       else
          setTime(startTime);
-      #else
-      if (startTime <= 0)
-         startCountdown();
-      else
-         setTime(startTime);
-      #end
 
       persistentUpdate = true;
 
       if (gameMode != DEBUG)
          trace('${song.meta.name} - Took ${((Lib.getTimer() - timeToLoad) / 1000)}s to load');
+
+      #if ENGINE_SCRIPTING
+      hxsCall("onCreatePost");
+      #end
    }
 
    override public function update(elapsed:Float):Void {
