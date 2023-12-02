@@ -372,7 +372,7 @@ class PlayState extends MusicBeatState {
          if (controls.justPressed("autoplay")) {
             validScore = false;
             playerStrumline.cpu = !playerStrumline.cpu;
-            hud.botplayText.visible = playerStrumline.cpu;
+            hud.showBotplayMark(playerStrumline.cpu);
             hud.updateScoreText();
          }
       }

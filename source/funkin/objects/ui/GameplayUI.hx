@@ -7,8 +7,13 @@ import flixel.group.FlxSpriteGroup;
 import flixel.util.FlxStringUtil;
 
 class GameplayUI extends FlxSpriteGroup {
+    public var smoothHealth:Bool = Settings.get("smooth health bar");
+    public var scoreDivider:String = " / ";
+    public var iconSpacing:Float = 26;
+    public var healthDisplay:Float = 1;
+
     public var scoreText:FlxText;
-    public var botplayText:FlxText;
+    public var botplayMark:FlxText;
 
     public var healthBar:FlxBar;
     public var healthBarBG:FlxSprite;
@@ -17,9 +22,6 @@ class GameplayUI extends FlxSpriteGroup {
     public var iconOpponent:HealthIcon;
 
     public var timer:FlxText;
-
-    public var smoothHealthBar:Bool = Settings.get("smooth health bar");
-    public var healthDisplay:Float = 1;
 
     var botplayAlpha:Float = 0;
     var healthLerp:Float = 1;
@@ -30,12 +32,13 @@ class GameplayUI extends FlxSpriteGroup {
 
         healthBarBG = new FlxSprite();
 	    healthBarBG.loadGraphic(AssetHelper.image('ui/gameplay/healthBar'));
+        healthBarBG.screenCenter(X);
 	    add(healthBarBG);
 
         var opponentHealthColor:FlxColor = (PlayState.current.opponent == null) ? 0xFFFF0000: Tools.getColor(PlayState.current.opponent.data.healthBarColor);
         var playerHealthColor:FlxColor = (PlayState.current.player == null) ? 0xFF66FF33 : Tools.getColor(PlayState.current.player.data.healthBarColor);
 
-        healthBar = new FlxBar(0, 0, RIGHT_TO_LEFT, Std.int(healthBarBG.width - 8), Std.int(healthBarBG.height - 8));
+        healthBar = new FlxBar(healthBarBG.x + 4, 0, RIGHT_TO_LEFT, Std.int(healthBarBG.width - 8), Std.int(healthBarBG.height - 8));
 	    healthBar.createFilledBar(opponentHealthColor, playerHealthColor);
         healthBar.setRange(0, 100);
 	    add(healthBar);
@@ -56,17 +59,17 @@ class GameplayUI extends FlxSpriteGroup {
         scoreText = new FlxText();
         scoreText.setFormat(AssetHelper.font("vcr"), 20, FlxColor.WHITE, CENTER);
 	    scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
-        scoreText.text = 'Score: ? / Misses: 0 / Accuracy: N/A';
+        scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
         scoreText.screenCenter(X);
         add(scoreText);
 
-        botplayText = new FlxText();
-        botplayText.setFormat(scoreText.font, 34, FlxColor.WHITE, CENTER);
-        botplayText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
-        botplayText.text = "BOTPLAY";
-        botplayText.screenCenter(X);
-        botplayText.visible = false;
-        add(botplayText);
+        botplayMark = new FlxText();
+        botplayMark.setFormat(scoreText.font, 34, FlxColor.WHITE, CENTER);
+        botplayMark.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
+        botplayMark.text = "BOTPLAY";
+        botplayMark.screenCenter(X);
+        botplayMark.visible = false;
+        add(botplayMark);
 
         timer = new FlxText();
         timer.setFormat(scoreText.font, 30, FlxColor.WHITE);
@@ -78,22 +81,22 @@ class GameplayUI extends FlxSpriteGroup {
     }
     
     override function update(elapsed:Float):Void {
-        super.update(elapsed);
-
-	    if (smoothHealthBar)
+        // update health bar
+	    if (smoothHealth)
             healthLerp = FlxMath.lerp(healthLerp, healthDisplay, FlxMath.bound(elapsed * 12, 0, 1));
 	    else
             healthLerp = healthDisplay;
-
-        var healthBarPos:Float = healthBar.x + (healthBar.width * (1 - healthLerp * 0.5));
-        iconOpponent.x = healthBarPos - iconOpponent.width + 13;
-        iconPlayer.x = healthBarPos - 26;
 
         var multHealth:Float = healthDisplay * 50;
         iconOpponent.health = 100 - multHealth;
         iconPlayer.health = multHealth;
         healthBar.percent = multHealth;
 
+        var healthBarPos:Float = healthBar.x + healthBar.width * (1 - healthLerp * 0.5);
+        iconOpponent.x = healthBarPos - (iconOpponent.width - iconSpacing);
+        iconPlayer.x = healthBarPos - iconSpacing;
+
+        // update timer
         var music = PlayState.current.music.instrumental;
 
         if (timer.visible && music.playing) {
@@ -104,45 +107,62 @@ class GameplayUI extends FlxSpriteGroup {
             timer.screenCenter(X);
         }
 
-        if (botplayText.visible) {
+        // update botplay mark
+        if (botplayMark.visible) {
             botplayAlpha += elapsed;
-            botplayText.alpha = 1 - Math.sin(botplayAlpha * Math.PI);
+            botplayMark.alpha = 1 - Math.sin(botplayAlpha * Math.PI);
         }
+
+        super.update(elapsed);
     }
 
-    public function updateScoreText():Void {
-        var text:String = 'Score: ${PlayState.current.score} / Misses: ${PlayState.current.misses} / Accuracy: ${PlayState.current.accuracyDisplay}%';
+    inline public function updateScoreText():Void {
+        var text:String =
+            'Score: ${PlayState.current.score}' + scoreDivider
+            + 'Misses: ${PlayState.current.misses}' + scoreDivider
+            + 'Accuracy: ${PlayState.current.accuracyDisplay}%'
+        ;
+
         var rank:String = PlayState.getRank(PlayState.current);
 
         if (rank != null && rank.length > 0)
-            text += ' / ${rank}';
+            text += scoreDivider + rank;
 
         scoreText.text = text;
         scoreText.screenCenter(X);
     }
 
-    public function tweenTimer():Void {
+    inline public function showBotplayMark(show:Bool = true):Void {
+        if (!show)
+            botplayAlpha = 1;
+        botplayMark.visible = show;
+    }
+
+    inline public function tweenTimer():Void {
         timer.alpha = 0;
         flixel.tweens.FlxTween.tween(timer, {alpha: 0.7}, 0.35);
     }
     
-    public function repositionElements(downscroll:Bool = false):Void {
-	    healthBarBG.y = FlxG.height * ((downscroll) ? 0.1 : 0.9);
-	    healthBarBG.screenCenter(X);
-	    healthBar.setPosition(healthBarBG.x + 4, healthBarBG.y + 4);
+    inline public function repositionElements(downscroll:Bool = false):Void {
+	    healthBarBG.y = FlxG.height * ((downscroll) ? 0.075 : 0.875);
+	    healthBar.y = healthBarBG.y + 4;
 	    
-	    scoreText.y = healthBarBG.y + 25;
-	    scoreText.screenCenter(X);
+	    scoreText.y = healthBarBG.y + 50;
 
-        botplayText.y = FlxG.height * ((downscroll) ? 0.9 : 0.1);
+        botplayMark.y = FlxG.height * ((downscroll) ? 0.9 : 0.1);
         timer.y = FlxG.height * ((downscroll) ? 0.95 : 0.05);
 	    
 	    iconPlayer.y = healthBar.y - iconPlayer.frameHeight / 2;
 	    iconOpponent.y = healthBar.y - iconOpponent.frameHeight / 2;
     }
 
-    public function beatHit():Void {
+    inline public function beatHit():Void {
 	    iconPlayer.bop();
 	    iconOpponent.bop();
+    }
+
+    override function destroy():Void {
+        scoreDivider = null;
+        super.destroy();
     }
 }

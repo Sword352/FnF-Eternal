@@ -1,8 +1,10 @@
 package funkin.states.debug;
 
 import flixel.FlxSubState;
+
 import haxe.ui.components.*;
 import haxe.ui.containers.*;
+import haxe.ui.styles.StyleSheet;
 
 import funkin.music.EventManager.EventDetails;
 import tjson.TJSON as Json;
@@ -29,7 +31,7 @@ class ChartSubScreen extends FlxSubState {
         menu.color = FlxColor.PURPLE;
         menu.screenCenter();
 
-        menu.styleSheet = new haxe.ui.styles.StyleSheet();
+        menu.styleSheet = new StyleSheet();
         menu.styleSheet.parse('
         .tabbar-button {
             color: #000000;
@@ -224,6 +226,16 @@ class ChartSubScreen extends FlxSubState {
 
         var eventDropdown:DropDown = new DropDown();
         eventDropdown.width = FlxG.width * 0.15;
+
+        /*
+        eventDropdown.styleSheet = new StyleSheet();
+        eventDropdown.styleSheet.parse('
+        .eventDropDown .listview .item-renderer:selected {
+            font-name: ${AssetHelper.font("vcr")};
+        }
+        ');
+        eventDropdown.handlerStyleNames = "eventDropDown";
+        */
 
         eventDropdown.onChange = (_) -> {
             var event:EventDetails = parent.eventList.get(eventDropdown.value);
