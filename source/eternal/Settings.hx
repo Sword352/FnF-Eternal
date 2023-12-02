@@ -65,6 +65,7 @@ class Settings {
         "CHART_measureText" => new Setting<Bool>(true),
         "CHART_timeOverlay" => new Setting<Bool>(true),
         "CHART_receptors" => new Setting<Bool>(false),
+        "CHART_rStaticGlow" => new Setting<Bool>(false),
         "CHART_lateAlpha" => new Setting<Bool>(true),
         "CHART_pitch" => new Setting<Float>(1)
     ];
@@ -91,9 +92,6 @@ class Settings {
         }, "settings");
     }
 
-    /**
-     * Return the value of setting `key`
-     */
     inline public static function get(key:String):Dynamic
         return settings.get(key).value;
 }

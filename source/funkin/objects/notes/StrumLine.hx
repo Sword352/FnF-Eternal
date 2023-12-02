@@ -96,12 +96,8 @@ class StrumLine extends FlxGroup {
             hitNote(note);
          }
 
-         if (!cpu && note.late && !note.missed && !note.goodHit) {
-            if (note.isSustainNote)
-               holdMiss(note);
-            else
-               miss(note);
-         }
+         if (!cpu && note.late && !note.missed && !note.goodHit)
+            miss(note);
 
          if (note.missed && !note.isSustainNote && ((mult > 0 && note.y < -note.height) || (mult < 0 && note.y > FlxG.height)))
             notesToRemove.push(note);
@@ -159,16 +155,15 @@ class StrumLine extends FlxGroup {
          notesToRemove.push(note);
    }
 
-   function miss(note:Note):Void {
-      note.missed = true;
-      note.alpha = 0.3;
-      onMiss.dispatch(note);
-   }
+   inline function miss(note:Note):Void {
+      if (note.isSustainNote) {
+         note.baseVisible = false;
+         note.sustain.length += note.time - Conductor.position;
+      }
+      else 
+         note.alpha = 0.3;
 
-   function holdMiss(note:Note):Void {
       note.missed = true;
-      note.baseVisible = false;
-      note.sustain.length += note.time - Conductor.position;
       onMiss.dispatch(note);
    }
 

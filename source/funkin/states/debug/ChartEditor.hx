@@ -10,6 +10,7 @@ import flixel.addons.display.FlxTiledSprite;
 
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
 import flixel.util.FlxGradient;
 import flixel.util.FlxStringUtil;
@@ -20,6 +21,7 @@ import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
 import funkin.objects.ui.HealthIcon;
+import funkin.objects.notes.Receptor;
 import haxe.ui.components.HorizontalSlider;
 
 import eternal.ChartFormat.Chart;
@@ -51,7 +53,7 @@ class ChartEditor extends MusicBeatState {
     public var selectedNote(default, set):DebugNote;
     public var selectedEvent(default, set):EventSprite;
 
-    public var receptors:FlxSpriteGroup;
+    public var receptors:FlxTypedSpriteGroup<Receptor>;
     public var mouseCursor:FlxSprite;
 
     public var overlay:FlxSprite;
@@ -65,6 +67,8 @@ class ChartEditor extends MusicBeatState {
 
     var startTime:Float = 0;
     var lastPosition:Float;
+
+    var holdTmr:Float = 0;
 
     public function new(chart:Chart, difficulty:String = "normal", startTime:Float = 0):Void {
         super();
@@ -195,6 +199,13 @@ class ChartEditor extends MusicBeatState {
         if (receptors.visible) {
             for (receptor in receptors)
                 receptor.y = line.y - (receptor.height * 0.5);
+
+            if (music.playing) {
+                if (holdTmr >= Conductor.stepCrochet)
+                    holdTmr = 0;
+                else
+                    holdTmr += elapsed * 1000;
+            }
         }
 
         super.update(elapsed);
@@ -208,17 +219,19 @@ class ChartEditor extends MusicBeatState {
         if (music.playing) {
             var hitsoundVolume:Float = Settings.get("CHART_hitsoundVolume");
             notes.forEachAlive((note) -> {
-                var hit:Bool = (note.data.time <= Conductor.position && note.data.time > lastPosition);
+                var late:Bool = (note.data.time <= Conductor.position);
+                var hit:Bool = (late && note.data.time > lastPosition);
 
                 if (hit && hitsoundVolume > 0)
                     FlxG.sound.play(hitsound, hitsoundVolume);
 
-                if (receptors.visible && (hit || (note.data.time <= Conductor.position && note.data.time + Conductor.stepCrochet * note.length > Conductor.position))) {
+                if (receptors.visible && (hit || (late && note.length > 0 && note.data.time + Conductor.stepCrochet * note.length > Conductor.position
+                    && (Settings.get("CHART_rStaticGlow") || holdTmr >= Conductor.stepCrochet)))) {
                     var rec:Int = note.data.direction;
                     if (note.data.strumline > 0)
                         rec += 4;
 
-                    receptors.members[rec].animation.play("confirm", true);
+                    receptors.members[rec].playAnimation("confirm", true);
                 }
             });
         }
@@ -470,27 +483,18 @@ class ChartEditor extends MusicBeatState {
         //
 
         // create receptors
-        var receptorGraphic = AssetHelper.image("ui/debug/receptors");
-        var receptorW:Int = Std.int(receptorGraphic.width / 4);
-        var receptorH:Int = Std.int(receptorGraphic.height / 3);
-
-        receptors = new FlxSpriteGroup(checkerboard.x);
+        receptors = new FlxTypedSpriteGroup<Receptor>(checkerboard.x);
         receptors.visible = Settings.get("CHART_receptors");
         receptors.moves = false;
 
         for (i in 0...8) {
-            var index:Int = Std.int(i % 4);
+            var receptor:Receptor = new Receptor(Std.int(i % 4));
+            receptor.x = checkerSize * i;
 
-            var receptor:FlxSprite = new FlxSprite(checkerSize * i, 0);
-            receptor.loadGraphic(receptorGraphic, true, receptorW, receptorH);
-
-            receptor.animation.add("static", [index], 0);
-            receptor.animation.add("confirm", [for (i in 0...2) index + 4 * (i + 1)], 15, false);
             receptor.animation.finishCallback = (name) -> {
                 if (name == "confirm")
-                    receptor.animation.play("static", true);
+                    receptor.playAnimation("static", true);
             };
-            receptor.animation.play("static");
 
             receptor.setGraphicSize(checkerSize, checkerSize);
             receptor.updateHitbox();
@@ -666,6 +670,7 @@ class ChartEditor extends MusicBeatState {
     }
 }
 
+// TODO: perhaps find a smarter way to draw debug sustains
 class DebugNote extends FlxSprite {
     public var data:ChartNote = null;
     public var length:Int = 0;
@@ -674,14 +679,11 @@ class DebugNote extends FlxSprite {
         super();
 
         loadGraphic(AssetHelper.image("ui/debug/NoteGrid"), true, 161, 161);
-        animation.add('note', [0, 1, 2, 3], 0);
-        animation.add('hold', [4, 5, 6, 7], 0);
-        animation.add('end', [8, 9, 10, 11], 0);
+        animation.add('note', [for (i in 0...12) i], 0);
         animation.play('note', true);
 
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
-
         moves = false;
     }
 
@@ -693,7 +695,7 @@ class DebugNote extends FlxSprite {
     override function draw():Void {
         if (length > 0) {
             if (length > 1)
-                drawHolder();
+                drawSustainPiece(0.65);
 
             for (i in 0...length) {
                 if (i == (length - 1))
@@ -701,8 +703,6 @@ class DebugNote extends FlxSprite {
                 else
                     drawSustainPiece(i + 1);
             }
-
-            animation.play("note", true);
         }
 
         if (animation.curAnim.curFrame != data.direction)
@@ -711,37 +711,26 @@ class DebugNote extends FlxSprite {
         super.draw();
     }
 
-    // ran out of function name
-    function drawHolder():Void {
-        animation.play('hold', true);
-        animation.curAnim.curFrame = data.direction;
-
-        y += ChartEditor.checkerSize * 0.5;
-        super.draw();
-        y -= ChartEditor.checkerSize * 0.5;
-    }
-
-    function drawSustainPiece(index:Int):Void {
+    function drawSustainPiece(spacing:Float):Void {
         var baseY:Float = y;
 
-        animation.play('hold', true);
-        animation.curAnim.curFrame = data.direction;
+        animation.curAnim.curFrame = data.direction + 4;
 
-        y += ChartEditor.checkerSize * index;
+        y += ChartEditor.checkerSize * spacing;
         scale.y *= 4;
+
         super.draw();
 
         scale.y *= 0.25;
         y = baseY;
     }
 
-    function drawSustainEnd(index:Int):Void {
+    function drawSustainEnd(spacing:Float):Void {
         var baseY:Float = y;
 
-        animation.play('end', true);
-        animation.curAnim.curFrame = data.direction;
+        animation.curAnim.curFrame = data.direction + 8;
 
-        y += ChartEditor.checkerSize * index - ChartEditor.checkerSize * 0.5;
+        y += ChartEditor.checkerSize * spacing - ChartEditor.checkerSize * 0.5;
         super.draw();
 
         y = baseY;

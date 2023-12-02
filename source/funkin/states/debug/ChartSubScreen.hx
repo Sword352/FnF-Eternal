@@ -203,10 +203,17 @@ class ChartSubScreen extends FlxSubState {
             parent.receptors.visible = showReceptors.selected;
         }
 
+        var staticGlow:CheckBox = createCheckbox("Receptors Hold Static Glow");
+        staticGlow.selected = Settings.get("CHART_rStaticGlow");
+        staticGlow.top = 100;
+
+        staticGlow.onChange = (_) -> Settings.settings["CHART_rStaticGlow"].value = staticGlow.selected;
+
         page.addComponent(lateAlpha);
         page.addComponent(showMeasures);
         page.addComponent(timeOverlay);
         page.addComponent(showReceptors);
+        page.addComponent(staticGlow);
     }
 
     inline function createEventPage():Void {
