@@ -173,16 +173,11 @@ class PauseScreen extends MusicBeatSubState {
             items.remove(items.members[0], true).destroy();
 
         for (i in 0...currentList.length) {
-            var item:Alphabet = items.recycle(Alphabet);
-            item.setPosition(0, 0);
-            item.text = currentList[i];
+            var item:Alphabet = new Alphabet(0, 0, currentList[i]);
             item.menuItem = true;
-
             item.target = i;
             item.ID = i;
             item.doIntro();
-
-            items.remove(item);
             items.add(item);
         }
 
