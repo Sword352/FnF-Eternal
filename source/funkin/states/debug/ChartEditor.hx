@@ -41,6 +41,7 @@ class ChartEditor extends MusicBeatState {
 
     public var eventList:Map<String, EventDetails>;
     public var currentEvent:EventDetails;
+    public var defaultArgs:Array<Any>;
 
     public var uiCamera:FlxCamera;
 
@@ -67,8 +68,7 @@ class ChartEditor extends MusicBeatState {
 
     var startTime:Float = 0;
     var lastPosition:Float;
-
-    var holdTmr:Float = 0;
+    var lastStep:Int;
 
     public function new(chart:Chart, difficulty:String = "normal", startTime:Float = 0):Void {
         super();
@@ -128,7 +128,7 @@ class ChartEditor extends MusicBeatState {
             for (eventData in chart.events) {
                 var event:EventSprite = new EventSprite();
                 event.setPosition(checkerboard.x - checkerSize, getYFromTime(eventData.time));
-                event.updateText(eventKeys.get(eventData.event), eventData.arguments);
+                event.display = eventKeys.get(eventData.event);
                 event.data = eventData;
                 events.add(event);
             }
@@ -199,13 +199,6 @@ class ChartEditor extends MusicBeatState {
         if (receptors.visible) {
             for (receptor in receptors)
                 receptor.y = line.y - (receptor.height * 0.5);
-
-            if (music.playing) {
-                if (holdTmr >= Conductor.stepCrochet)
-                    holdTmr = 0;
-                else
-                    holdTmr += elapsed * 1000;
-            }
         }
 
         super.update(elapsed);
@@ -226,17 +219,13 @@ class ChartEditor extends MusicBeatState {
                     FlxG.sound.play(hitsound, hitsoundVolume);
 
                 if (receptors.visible && (hit || (late && note.length > 0 && note.data.time + Conductor.stepCrochet * note.length > Conductor.position
-                    && (Settings.get("CHART_rStaticGlow") || holdTmr >= Conductor.stepCrochet)))) {
-                    var rec:Int = note.data.direction;
-                    if (note.data.strumline > 0)
-                        rec += 4;
-
-                    receptors.members[rec].playAnimation("confirm", true);
-                }
+                    && (Settings.get("CHART_rStaticGlow") || lastStep != Conductor.currentStep))))
+                    receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
             });
         }
 
         lastPosition = Conductor.position;
+        lastStep = Conductor.currentStep;
     }
 
     override function stepHit(currentStep:Int):Void {
@@ -290,8 +279,8 @@ class ChartEditor extends MusicBeatState {
         if (existingEvent == null) {
             var event:EventSprite = events.recycle(EventSprite);
             event.setPosition(checkerboard.x - checkerSize, getMouseY());
-            event.data = { time: getTimeFromY(event.y), event: currentEvent.name, arguments: [0] };
-            event.updateText(currentEvent.display ?? currentEvent.name, event.data.arguments);
+            event.data = { time: getTimeFromY(event.y), event: currentEvent.name, arguments: defaultArgs };
+            event.display = (currentEvent.display ?? currentEvent.name);
             chart.events.push(event.data);
 
             selectedEvent = event;
@@ -428,6 +417,7 @@ class ChartEditor extends MusicBeatState {
     inline function loadEvents():Void {
         eventList = EventManager.getEventList();
         currentEvent = EventManager.defaultEvents[0];
+        defaultArgs = [for (arg in currentEvent.arguments) arg.defaultValue];
     }
 
     inline function createGrid():Void {
@@ -743,7 +733,9 @@ class DebugNote extends FlxSprite {
 }
 
 class EventSprite extends FlxSprite {
+    public var display:String;
     public var data:ChartEvent;
+
     public var rect:FlxSprite;
     public var text:FlxText;
 
@@ -768,25 +760,21 @@ class EventSprite extends FlxSprite {
         alpha = (data.time < Conductor.position && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
         color = (FlxG.mouse.overlaps(this)) ? ChartEditor.hoverColor : FlxColor.WHITE;
 
-        text.y = y;
         text.alpha = alpha;
         text.color = color;
 
         super.update(elapsed);
     }
 
-    public function updateText(event:String, arguments:Array<Any>):Void {
-        text.text = '${event}\nArguments: ${arguments.join(", ")}';
-        text.x = x - text.width;
-
-        rect.scale.x = text.width + width;
-        rect.updateHitbox();
-        rect.x = text.x;
-    }
-
     override function draw():Void {
+        text.text = '${display ?? data.event}\nArguments: ${data.arguments.join(", ")}';
+        text.setPosition(x - text.width, y);
+
         if (rect.visible) {
-            rect.y = y;
+            rect.scale.x = text.width + width;
+            rect.updateHitbox();
+
+            rect.setPosition(text.x, y);
             rect.draw();
         }
 
@@ -797,6 +785,7 @@ class EventSprite extends FlxSprite {
     override function destroy():Void {
         rect = FlxDestroyUtil.destroy(rect);
         text = FlxDestroyUtil.destroy(text);
+        display = null;
         data = null;
 
         super.destroy();

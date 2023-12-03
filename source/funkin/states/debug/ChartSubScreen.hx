@@ -4,6 +4,7 @@ import flixel.FlxSubState;
 
 import haxe.ui.components.*;
 import haxe.ui.containers.*;
+import haxe.ui.containers.properties.*;
 import haxe.ui.styles.StyleSheet;
 
 import funkin.music.EventManager.EventDetails;
@@ -219,6 +220,8 @@ class ChartSubScreen extends FlxSubState {
     }
 
     inline function createEventPage():Void {
+        var propStorage:Array<Property> = [];
+
         var page:Box = createPage("Events");
 
         var description:Label = createText("");
@@ -237,18 +240,71 @@ class ChartSubScreen extends FlxSubState {
         eventDropdown.handlerStyleNames = "eventDropDown";
         */
 
+        var grid:PropertyGrid = new PropertyGrid();
+        grid.width = 300;
+        grid.height = 250;
+        grid.includeInLayout = false;
+        grid.left = menu.width - 325;
+        grid.top = menu.height - 300;
+
+        var argumentsEditor:PropertyGroup = new PropertyGroup();
+        argumentsEditor.text = "Arguments";
+        grid.addComponent(argumentsEditor);
+
         eventDropdown.onChange = (_) -> {
             var event:EventDetails = parent.eventList.get(eventDropdown.value);
 
-            if (parent.selectedEvent != null) {
-                parent.selectedEvent.data.event = event.name;
-                parent.selectedEvent.updateText(event.display ?? event.name, []);
+            var selectedEvent = parent.selectedEvent;
+            if (selectedEvent != null && selectedEvent.data.event != event.name) {
+                selectedEvent.data.event = event.name;
+                selectedEvent.display = (event.display ?? event.name);
+                selectedEvent.data.arguments = [for (a in event.arguments) a.defaultValue];
             }
 
             description.text = event.description ?? "No description.";
             description.validateNow();
             description.left = menu.width - description.width - 15;
+            
+            // rebuild the arguments editor
+            while (propStorage.length > 0)
+                argumentsEditor.removeComponent(propStorage.shift());
 
+            for (arg in event.arguments) {
+                var propIndex:Int = event.arguments.indexOf(arg);
+
+                var prop:Property = new Property();
+                prop.label = arg.name;
+                prop.type = switch (arg.type.toLowerCase()) {
+                    case "string": "text";
+                    case "array": "list";
+                    case "bool": "boolean";
+                    default: arg.type.toLowerCase();
+                };
+
+                if (prop.type == "list")
+                    for (entry in arg.valueList)
+                        prop.dataSource.add(entry);
+
+                prop.onChange = (_) -> {
+                    var val:Dynamic = prop.value;
+                    if (prop.type == "text" && cast(prop.value, String).length < 1)
+                        val = null;
+
+                    if (selectedEvent != null)
+                        selectedEvent.data.arguments[propIndex] = val;
+                    parent.defaultArgs[propIndex] = val;
+                }
+
+                if (parent.currentEvent.name == event.name)
+                    prop.value = parent.defaultArgs[propIndex];
+                else
+                    prop.value = event.arguments[propIndex].defaultValue;
+
+                argumentsEditor.addComponent(prop);
+                propStorage.push(prop);
+            }
+
+            parent.defaultArgs = [for (args in event.arguments) args.defaultValue];
             parent.currentEvent = event;
         }
 
@@ -259,6 +315,7 @@ class ChartSubScreen extends FlxSubState {
 
         page.addComponent(eventDropdown);
         page.addComponent(description);
+        page.addComponent(grid);
     }
 
     inline function createSavePage():Void {

@@ -23,8 +23,8 @@ class EventManager extends FlxBasic {
             display: "Play Hey Anim",
             description: "Make a character play the \"hey\" animation",
             arguments: [
-                {name: "whos", type: "Int", defaultValue: 0},
-                {name: "beat duration", type: "Float", defaultValue: 1}
+                {name: "Whos", type: "Int", defaultValue: 0},
+                {name: "Beat Duration", type: "Float", defaultValue: 1}
             ]
         },
         {
@@ -32,8 +32,8 @@ class EventManager extends FlxBasic {
             display: "Change Character",
             description: "Change a character to another",
             arguments: [
-                {name: "whos", type: "Int", defaultValue: 0},
-                {name: "to", type: "String", defaultValue: "?"}
+                {name: "Whos", type: "Int", defaultValue: 0},
+                {name: "To", type: "String", defaultValue: "?"}
             ]
         },
         {
@@ -41,34 +41,23 @@ class EventManager extends FlxBasic {
             display: "Change Scroll Speed",
             description: "Change the strumlines note scroll speed to another",
             arguments: [
-                {name: "new speed", type: "Float", defaultValue: 1},
-                {name: "ease duration", type: "Float", defaultValue: null},
-                {name: "ease", type: "String", defaultValue: null}
+                {name: "New Speed", type: "Float", defaultValue: 1},
+                {name: "Ease Duration", type: "Float", defaultValue: null},
+                {name: "Ease", type: "String", defaultValue: null}
             ]
         },
         {
             name: "change camera target",
             display: "Change Camera Target",
             description: "Change the character that the camera focus on",
-            arguments: [{name: "whos", type: "Int", defaultValue: 0}]
+            arguments: [{name: "Whos", type: "Int", defaultValue: 0}]
         },
         {
             name: "change bpm",
             display: "Change BPM",
             description: "Change the song's beat per minutes",
-            arguments: [{name: "new bpm", type: "Float", defaultValue: 100}]
-        } // ,
-        /*
-        {
-            name: "custom event",
-            display: "Custom Event",
-            description: "Trigger a custom scripted event",
-            arguments: [
-                {name: "script", type: "String", defaultValue: null},
-                {name: "arguments", type: "Array", defaultValue: []}
-            ]
+            arguments: [{name: "New BPM", type: "Float", defaultValue: 100}]
         }
-        */
     ];
 
     public var charactersMap(default, null):Map<String, Character> = [];
@@ -296,5 +285,5 @@ typedef EventDetails = {
     var name:String;
     var ?display:String;
     var ?description:String;
-    var ?arguments:Array<{name:String, type:String, defaultValue:Dynamic}>;
+    var ?arguments:Array<{name:String, type:String, defaultValue:Dynamic, ?valueList:Array<String>}>;
 }
