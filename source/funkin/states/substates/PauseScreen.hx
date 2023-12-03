@@ -121,11 +121,9 @@ class PauseScreen extends MusicBeatSubState {
 
         currentSelection = FlxMath.wrap(currentSelection + i, 0, currentList.length - 1);
         
-        if (items != null) {
-            for (i in items) {
-                i.target = items.members.indexOf(i) - currentSelection;
-                i.alpha = (i.ID == currentSelection) ? 1 : 0.6;
-            }
+        for (i in items) {
+            i.target = items.members.indexOf(i) - currentSelection;
+            i.alpha = (i.ID == currentSelection) ? 1 : 0.6;
         }
 
         if (i != 0)
