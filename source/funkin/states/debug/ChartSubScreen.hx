@@ -271,14 +271,15 @@ class ChartSubScreen extends FlxSubState {
 
             for (arg in event.arguments) {
                 var propIndex:Int = event.arguments.indexOf(arg);
+                var typeLower:String = arg.type.toLowerCase();
 
                 var prop:Property = new Property();
                 prop.label = arg.name;
-                prop.type = switch (arg.type.toLowerCase()) {
+                prop.type = switch (typeLower) {
                     case "string": "text";
                     case "array": "list";
                     case "bool": "boolean";
-                    default: arg.type.toLowerCase();
+                    default: typeLower;
                 };
 
                 if (prop.type == "list")
@@ -289,6 +290,8 @@ class ChartSubScreen extends FlxSubState {
                     var val:Dynamic = prop.value;
                     if (prop.type == "text" && cast(prop.value, String).length < 1)
                         val = null;
+                    else if (typeLower == "int" && prop.value is Float && !(prop.value is Int))
+                        val = prop.value = Math.floor(prop.value);
 
                     if (selectedEvent != null)
                         selectedEvent.data.arguments[propIndex] = val;
