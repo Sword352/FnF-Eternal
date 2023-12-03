@@ -125,11 +125,13 @@ class EventManager extends FlxBasic {
                 var duration:Null<Float> = event.arguments[1];
 
                 for (strumline in game.strumLines) {
-                    if (duration != null)
+                    if (duration != null && duration > 0)
                         FlxTween.tween(strumline, {scrollSpeed: newSpeed}, duration, {ease: getEaseFromString(event.arguments[2])});
                     else
                         strumline.scrollSpeed = newSpeed;
                 }
+
+                game.noteSpawnTime = 1800 / newSpeed;
             case "change camera target":
                 game.changeCameraTarget(event.arguments[0]);
             case "change bpm":
