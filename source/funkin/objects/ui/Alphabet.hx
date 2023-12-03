@@ -178,30 +178,12 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
     }
 }
 
-class AlphabetCharacter extends OffsetSprite {
-    public static final globalOffsets:Map<String, Array<Float>> = [
-        "a lowercase" => [0, -13.5], "c lowercase" => [0, -17], "d lowercase" => [0, 2],
-        "e lowercase" => [0, -15], "x lowercase" => [0, -20], "y lowercase" => [0, -20],
-        "f lowercase" => [0, -6], "g lowercase" => [0, -10], "h lowercase" => [0, -7],
-        "i lowercase" => [0, -8], "j lowercase" => [0, -7], "k lowercase" => [0, -7],
-        "l lowercase" => [0, -7], "m lowercase" => [0, -25], "n lowercase" => [0, -25],
-        "o lowercase" => [0, -25], "p lowercase" => [0, -22], "q lowercase" => [0, -22],
-        "r lowercase" => [0, -22.5], "s lowercase" => [0, -20], "t lowercase" => [0, -15],
-        "u lowercase" => [0, -20], "v lowercase" => [0, -20], "w lowercase" => [0, -20],
-        "z lowercase" => [0, -20]
-    ];
-
+class AlphabetCharacter extends FlxSprite {
     public var character(default, null):String = "";
 
     public function new(x:Float, y:Float, character:String, bold:Bool = false):Void {
         super(x, y);
         frames = AssetHelper.getSparrowAtlas("ui/alphabet");
-
-        for (offset in globalOffsets.keys()) {
-            var arr:Array<Float> = globalOffsets.get(offset);
-            addOffset(offset, arr[0], arr[1]);
-        }
-
         setup(character, bold);
     }
 
@@ -232,16 +214,15 @@ class AlphabetCharacter extends OffsetSprite {
         if (!animation.exists(prefix))
             animation.addByPrefix(prefix, prefix, 24);
 
-        playAnimation(prefix);
+        animation.play(prefix, true);
         updateHitbox();
 
         this.character = letter;
     }
 
     override function updateHitbox():Void {
-        width = Math.abs(scale.x) * frameWidth;
-		height = Math.abs(scale.y) * frameHeight;
-		centerOrigin();
+        super.updateHitbox();
+        centerOffsets(true);
     }
 
     override function destroy():Void {
