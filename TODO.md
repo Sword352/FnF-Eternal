@@ -15,11 +15,9 @@
 - (Add critical error handling? NOTE: critical error handler gets called on YAML parsing warnings)
 
 - Gameplay UI tweaks
-- (Use [hxVlc](https://github.com/MAJigsaw77/hxvlc) instead of hxCodec?)
-
-- Add a `close` function to the `HScript` class
 - ModState and ModSubState error handling
 
+- (Use [hxVlc](https://github.com/MAJigsaw77/hxvlc) instead of hxCodec?)
 - Continue README.me, complete the wiki stuff, move it to proper git wiki and add a "documentation" issue template
 
 - Add Credits menu
