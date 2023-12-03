@@ -51,8 +51,7 @@ class CrashHandler {
           "um hi i'm the friendly crash quote",
           // sword
           "https://www.youtube.com/watch?v=4kEO7VjKRB8",
-
-          // discord quotes
+          
           #if ENGINE_DISCORD_RPC
           "#DISCORD Looks like ${user} crashed the game!",
           "#DISCORD ${user} should really take a break"
@@ -83,8 +82,7 @@ class CrashHandler {
           #end
      }
 
-     @:allow(eternal.core.crash.FNFGame)
-     private static function processCrash(event:Dynamic):String {
+     public static function processCrash(event:Dynamic):String {
           var exception:String = processError(event);
 
           var fullStack:String = "";
