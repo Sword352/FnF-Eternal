@@ -96,6 +96,7 @@ class HScript {
             for (i in defaultImports.keys())
                 set(i, defaultImports.get(i));
 
+            set("closeSCR", destroy);
             state = ALIVE;
         }
         catch (e) {
