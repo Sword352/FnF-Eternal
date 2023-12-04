@@ -17,6 +17,8 @@ class Note extends OffsetSprite {
 
    public var isSustainNote(get, never):Bool;
    public var sustain(default, null):Sustain;
+
+   public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
    public var baseVisible:Bool = true;
 
    public var followX:Bool = true;
@@ -72,7 +74,7 @@ class Note extends OffsetSprite {
    }
 
    override function draw():Void {
-      if (isSustainNote && sustain.exists && sustain.visible)
+      if (isSustainNote && sustain.exists && sustain.visible && !holdBehindStrum)
          sustain.draw();
 
       if (baseVisible)
@@ -111,7 +113,7 @@ class Note extends OffsetSprite {
          }
 
          sustain.length = v;
-         sustain.update(0);
+         sustain.updateSustain();
       }
       else if (isSustainNote) {
          sustain.destroy();
@@ -150,18 +152,7 @@ class Sustain extends TiledSprite {
    }
 
    override function update(elapsed:Float):Void {      
-      len = (length - Conductor.stepCrochet) * scrollSpeed;
-      height = Math.max(0, len);
-
-      if (parent != null) {
-         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
-         if (downscroll)
-            y -= len;
-      }
-
-      tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + len));
-      if (len <= 0 && parent?.baseVisible)
-         tail.y += tail.height * _facingVerticalMult;
+      updateSustain();
 
       if (tail.exists && tail.active)
          tail.update(elapsed);
@@ -182,6 +173,21 @@ class Sustain extends TiledSprite {
       parent = null;
 
       super.destroy();
+   }
+
+   public function updateSustain():Void {
+      len = (length - Conductor.stepCrochet) * scrollSpeed;
+      height = Math.max(0, len);
+
+      if (parent != null) {
+         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
+         if (downscroll)
+            y -= len;
+      }
+
+      tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + len));
+      if (len <= 0 && parent?.baseVisible)
+         tail.y += tail.height * _facingVerticalMult;
    }
 
    public function reloadGraphic():Void {

@@ -39,6 +39,7 @@ class Settings {
         "centered strumline" => new Setting<Bool>(false),
         "disable hold stutter" => new Setting<Bool>(false),
 
+        "hold notes behind receptors" => new Setting<Bool>(false),
         "disable combo stacking" => new Setting<Bool>(false),
         "disable note splashes" => new Setting<Bool>(false),
         "judgements on user interface" => new Setting<Bool>(false),

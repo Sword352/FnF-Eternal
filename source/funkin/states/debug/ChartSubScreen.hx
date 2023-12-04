@@ -276,8 +276,7 @@ class ChartSubScreen extends FlxSubState {
                 var prop:Property = new Property();
                 prop.label = arg.name;
                 prop.type = switch (typeLower) {
-                    case "string": "text";
-                    case "array": "list";
+                    case "string": (arg.valueList == null) ? "text" : "list";
                     case "bool": "boolean";
                     default: typeLower;
                 };
@@ -299,7 +298,7 @@ class ChartSubScreen extends FlxSubState {
                 }
 
                 if (parent.currentEvent.name == event.name)
-                    prop.value = parent.defaultArgs[propIndex];
+                    prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.defaultArgs[propIndex];
                 else
                     prop.value = event.arguments[propIndex].defaultValue;
 
@@ -307,14 +306,26 @@ class ChartSubScreen extends FlxSubState {
                 propStorage.push(prop);
             }
 
-            parent.defaultArgs = [for (args in event.arguments) args.defaultValue];
-            parent.currentEvent = event;
+            if (selectedEvent == null) {
+                parent.defaultArgs = [for (prop in propStorage) prop.value];
+                parent.currentEvent = event;
+            }
         }
 
         for (event in parent.eventList)
             eventDropdown.dataSource.add(event.display ?? event.name);
 
-        eventDropdown.value = parent.currentEvent.display ?? parent.currentEvent.name;
+        var currentEvent:EventDetails = parent.currentEvent;
+        if (parent.selectedEvent != null) {
+            for (event in parent.eventList) {
+                if (event.name == parent.selectedEvent.data.event) {
+                    currentEvent = event;
+                    break;
+                }
+            }
+        }
+
+        eventDropdown.value = currentEvent.display ?? currentEvent.name;
 
         page.addComponent(eventDropdown);
         page.addComponent(description);

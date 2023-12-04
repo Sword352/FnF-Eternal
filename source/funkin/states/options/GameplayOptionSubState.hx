@@ -16,6 +16,10 @@ class GameplayOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, pressing the keys with no notes on screen won't count as a miss.";
         addOption(option);
 
+        var option = new BoolOptionItem("hold notes behind receptors");
+        option.description = "If enabled, hold notes goes behind receptors.";
+        addOption(option);
+
         var option = new BoolOptionItem("disable hold stutter");
         option.description = "If enabled, disable character animation stuttering from hold notes.";
         addOption(option);

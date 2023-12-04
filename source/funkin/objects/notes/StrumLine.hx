@@ -134,6 +134,15 @@ class StrumLine extends FlxGroup {
       }
    }
 
+   override function draw():Void {
+      notes.forEachExists((note) -> {
+         if (note.isSustainNote && note.sustain.exists && note.sustain.visible && note.holdBehindStrum)
+            note.sustain.draw();
+      });
+
+      super.draw();
+   }
+
    public function addNote(note:Note):Void {      
       notes.add(note);
       if (notes.members.length > 1)
