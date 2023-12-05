@@ -85,9 +85,12 @@ class ChartSubScreen extends FlxSubState {
         metronomeSlider.min = 0;
         metronomeSlider.max = 100;
         metronomeSlider.step = 1;
-        metronomeSlider.pos = Settings.get("CHART_metronomeVolume") * 100;
         metronomeSlider.includeInLayout = false;
         metronomeSlider.top = 20;
+
+        // apparently cpp cannot do math from "dynamic" values??
+        var vol:Float = Settings.get("CHART_metronomeVolume");
+        metronomeSlider.pos = vol * 100;
 
         var metroText:Label = createText('Metronome Volume (${metronomeSlider.pos}%)');
         metroText.left = 5;
@@ -106,9 +109,11 @@ class ChartSubScreen extends FlxSubState {
         hitsoundSlider.min = 0;
         hitsoundSlider.max = 100;
         hitsoundSlider.step = 1;
-        hitsoundSlider.pos = Settings.get("CHART_hitsoundVolume") * 100;
         hitsoundSlider.includeInLayout = false;
         hitsoundSlider.top = 60;
+
+        var vol:Float = Settings.get("CHART_hitsoundVolume");
+        hitsoundSlider.pos = vol * 100;
 
         var hitsoundText:Label = createText('Hitsound Volume (${hitsoundSlider.pos}%)');
         hitsoundText.left = 5;
