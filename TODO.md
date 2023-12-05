@@ -8,6 +8,8 @@
 - Dialogue cutscenes implementation
 
 ### Low Priority
+- Reduce PlayState loading time
+
 - Replace the placeholders BF and GF story menu character spritesheets
 - (Better error handling for FreeplayMenu and StoryMenu?)
 
