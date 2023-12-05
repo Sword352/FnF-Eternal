@@ -68,6 +68,9 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
+        if (FlxG.sound.music?.playing)
+            updateConductor(elapsed);
+
         #if ENGINE_SCRIPTING
         hxsCall("onUpdate", [elapsed]);
         super.update(elapsed);
@@ -79,9 +82,6 @@ class GameOverScreen extends MusicBeatSubState {
         #else
         super.update(elapsed);
         #end
-
-        if (FlxG.sound.music != null && FlxG.sound.music.playing)
-            Conductor.update(elapsed);
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
             if (character.animation.curAnim.curFrame >= 12 && camera.target == null)

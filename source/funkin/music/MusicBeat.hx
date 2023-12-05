@@ -90,6 +90,19 @@ class MusicBeatSubState extends SubState {
         Conductor.onMeasure.add(measureHit);
     }
 
+    public function updateConductor(elapsed:Float):Void {
+        #if ENGINE_SCRIPTING
+        if (cancellableCall("onConductorUpdate", [elapsed]))
+            return;
+        #end
+
+        Conductor.update(elapsed);
+        
+        #if ENGINE_SCRIPTING
+        hxsCall("onConductorUpdatePost", [elapsed]);
+        #end
+    }
+
     #if ENGINE_SCRIPTING
     public function stepHit(currentStep:Int):Void
         hxsCall("onStepHit", [currentStep]);
