@@ -345,7 +345,7 @@ class ChartEditor extends MusicBeatState {
 
         persistentUpdate = false;
         FlxG.mouse.visible = false;
-        AssetHelper.clearAssets = false;
+        AssetHelper.clearAssets = Settings.get("reload assets");
 
         PlayState.song = chart;
         PlayState.currentDifficulty = difficulty;

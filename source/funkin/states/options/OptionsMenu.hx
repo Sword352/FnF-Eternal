@@ -63,15 +63,15 @@ class OptionsMenu extends MusicBeatState {
             categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.folder), action: goToModOptions});
         #end
 
-        AssetHelper.clearAssets = !toPlayState;
+        AssetHelper.clearAssets = !toPlayState || Settings.get("reload assets");
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "In the options";
         #end
 
-        Tools.playMusicCheck(toPlayState ? "chillFresh" : "freakyMenu");
-        Conductor.bpm = 102;
+        Tools.playMusicCheck((toPlayState) ? "chillFresh" : "freakyMenu");
+        Conductor.bpm = (toPlayState) ? 117 : 102;
 
 		bg = new FlxSprite(0, 0, AssetHelper.image('menus/menuDesat'));
         bg.scale.set(1.15, 1.15);

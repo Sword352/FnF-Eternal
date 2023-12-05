@@ -80,6 +80,7 @@ class Settings {
         // Debug settings
         "editor access" => new Setting<Bool>(false),
         #if sys "overwrite chart files" => new Setting<Bool>(true), #end
+        "reload assets" => new Setting<Bool>(false),
 
         // Chart editor preferences
         "CHART_metronomeVolume" => new Setting<Float>(0),

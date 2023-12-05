@@ -454,7 +454,7 @@ class PlayState extends MusicBeatState {
    }
 
    inline public function openChartEditor():Void {
-      AssetHelper.clearAssets = false;
+      AssetHelper.clearAssets = Settings.get("reload assets");
       FlxG.switchState(new ChartEditor(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.position, 0) : 0));
    }
 
