@@ -51,7 +51,7 @@ class Mods {
             if (!FileTools.isDirectory(path))
                 continue;
 
-            var pack:String = AssetHelper.filterPath(path + "/pack/pack", YAML);
+            var pack:String = AssetHelper.filterPath(path + "/pack", YAML);
             if (!FileTools.exists(pack)) {
                 trace('${folder}: Missing pack configuration file!');
                 continue;

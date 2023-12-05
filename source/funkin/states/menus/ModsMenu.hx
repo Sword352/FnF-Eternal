@@ -354,9 +354,9 @@ class ModItem extends FlxSprite {
 
         target = Mods.mods.indexOf(mod);
 
-        var possibleIcon:String = AssetHelper.getPath("pack/icon", IMAGE);
+        var possibleIcon:String = AssetHelper.getPath("pack", IMAGE);
         if (FileTools.exists(possibleIcon))
-            loadGraphic(AssetHelper.getGraphic('pack/icon', null, 'icon${target}'));
+            loadGraphic(AssetHelper.getGraphic('pack', null, 'icon${target}'));
         else
             loadGraphic(AssetHelper.image('menus/questionMark'));
 

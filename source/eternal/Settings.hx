@@ -129,11 +129,11 @@ class Settings {
         while (modSettings.length > 0)
             settings.remove(modSettings.shift().backendKey);
 
-        var settingConfig:String = AssetHelper.yaml("pack/settings");
+        var settingConfig:String = AssetHelper.yaml("data/settings");
         if (!FileTools.exists(settingConfig))
             return;
 
-        var setters:String = AssetHelper.getPath("pack/settings", SCRIPT);
+        var setters:String = AssetHelper.getPath("data/settings", SCRIPT);
         if (FileTools.exists(setters))
             setterScript = new HScript(setters, false);
 
