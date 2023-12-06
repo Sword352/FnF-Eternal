@@ -272,7 +272,7 @@ class PlayState extends MusicBeatState {
          comboSprites.setPosition(ratingSprites.x + 60, ratingSprites.y + 140);
 
          for (group in [ratingSprites, comboSprites]) {
-            remove(group);
+            remove(group, true);
             insert(members.indexOf(strumLines), group);
          }
       }
@@ -512,7 +512,7 @@ class PlayState extends MusicBeatState {
       // Actually starts the countdown
       new FlxTimer().start(timing, tmr -> {
          var currentLoop:Int = tmr.elapsedLoops - 1;
-         var isDone:Bool = tmr.loopsLeft == 0;
+         var isDone:Bool = (tmr.loopsLeft == 0);
 
          stage.onCountdownTick(currentLoop);
          beatHit(currentLoop);
@@ -871,7 +871,7 @@ class PlayState extends MusicBeatState {
          sprite.velocity.y *= 0.4;
       }
 
-      ratingSprites.remove(sprite);
+      ratingSprites.remove(sprite, true);
       ratingSprites.insert(ratingSprites.length + 1, sprite);
 
       FlxTween.tween(sprite, {alpha: 0}, 0.2, {
@@ -920,7 +920,7 @@ class PlayState extends MusicBeatState {
             sprite.velocity.y *= 0.4;
          }
 
-         comboSprites.remove(sprite);
+         comboSprites.remove(sprite, true);
          comboSprites.insert(comboSprites.length + 1, sprite);
          
          FlxTween.tween(sprite, {alpha: 0}, 0.2, {

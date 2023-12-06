@@ -70,6 +70,9 @@
 
 	<!-- [[ Defines ]] -->
 
+	<!-- Disable the HaxeUI custom cursors -->
+	<haxedef name="haxeui_flixel_no_custom_cursors" />
+
 	<!-- Prevents the Discord API from making a second thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="ENGINE_DISCORD_RPC" />
 

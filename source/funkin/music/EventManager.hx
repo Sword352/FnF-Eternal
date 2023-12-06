@@ -159,8 +159,6 @@ class EventManager extends FlxBasic {
     }
 
     public function runPreload(event:ChartEvent):Void {
-        event.time -= Conductor.offset;
-
         game.stage.onEventPreload(event);
 
         #if ENGINE_SCRIPTING

@@ -114,7 +114,7 @@ class OffsetSubState extends MusicBeatSubState {
     }
 
     private function refreshText():Void {
-        offsetText.text = '< Offset: ${Conductor.offset}ms (${Conductor.offset > 0 ? "LATE" : (Conductor.offset == 0 ? "DEFAULT" : "EARLY")}) >';
+        offsetText.text = '< Offset: ${Conductor.offset}ms (${(Conductor.offset > 0) ? "LATE" : ((Conductor.offset == 0) ? "DEFAULT" : "EARLY")}) >';
         offsetText.screenCenter(X);
     }
 

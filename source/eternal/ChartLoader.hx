@@ -124,9 +124,7 @@ class ChartLoader {
         var i:Int = 0;
 
         for (noteData in chart.notes) {
-            var noteTime:Float = noteData.time - Conductor.offset;
-
-            var note:Note = new Note(noteTime, noteData.direction);
+            var note:Note = new Note(noteData.time, noteData.direction);
             note.strumline = noteData.strumline;
             note.type = noteData.type;
             note.length = noteData.length;

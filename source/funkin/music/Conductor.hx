@@ -8,20 +8,21 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 class Conductor {
     public static final MEASURE_LENGTH:Int = 16;
 
-    public static var active:Bool = true;
-    public static var music:FlxSound;
-  
     public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
-    public static var position:Float = 0;
+    public static var active:Bool = true;
+    public static var music:FlxSound;
+
+    public static var position(get, set):Float;
+    public static var rawPosition:Float = 0;
     public static var offset:Float = 0;
-    // public static var playbackRate(default, set):Float = 1;
     
     public static var bpm(default, set):Float = 100;
     public static var crochet(default, null):Float = 0;
     public static var stepCrochet(default, null):Float = 0;
+    // public static var playbackRate(default, set):Float = 1;
 
     public static var currentStep(default, null):Int;
     public static var currentBeat(default, null):Int;
@@ -40,9 +41,9 @@ class Conductor {
             return;
 
         if (music != null)
-            position = music.time - offset;
+            position = music.time;
         else
-            position += elapsed * 1000;
+            rawPosition += elapsed * 1000;
 
         decimalStep = position / stepCrochet;
         currentStep = Math.floor(decimalStep);
@@ -72,7 +73,7 @@ class Conductor {
     public static function reset():Void {
         resetPosition();
         resetCallbacks();
-        
+
         music = null;
         bpm = 100;
         // playbackRate = 1;
@@ -102,7 +103,7 @@ class Conductor {
     }
 
     public static function timeToStep(time:Float, ?bpm:Float):Int {
-        return Math.floor(time / (bpm == null ? stepCrochet : calculateStepCrochet(bpm)));
+        return Math.floor(time / ((bpm == null) ? stepCrochet : calculateStepCrochet(bpm)));
     }
 
     public static function timeToBeat(time:Float, ?bpm:Float):Int {
@@ -134,6 +135,11 @@ class Conductor {
         stepCrochet = crochet / 4;
         return bpm = b;
     }
+
+    static function set_position(v:Float):Float
+        return rawPosition = v;
+    static function get_position():Float
+        return rawPosition - offset;
 
     /*
     static function set_playbackRate(v:Float):Float {

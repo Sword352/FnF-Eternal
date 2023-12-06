@@ -3,9 +3,10 @@
 - Finish Alphabet (character offsets + symbols)
 
 ### Medium Priority
-- Finish the key formatting in `KeybindItem#formatKey`
+- Finish the audio offset support
 - Finish the built-in events
 - Dialogue cutscenes implementation
+- Finish the key formatting in `KeybindItem#formatKey`
 
 ### Low Priority
 - Reduce PlayState loading time

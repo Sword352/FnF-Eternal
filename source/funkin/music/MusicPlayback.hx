@@ -78,7 +78,7 @@ class MusicPlayback extends FlxBasic {
 
         for (voice in vocals) {
             if (voice.playing)
-                voice.time = Conductor.position;
+                voice.time = instrumental.time;
         }
     }
 
