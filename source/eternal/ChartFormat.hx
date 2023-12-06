@@ -19,6 +19,9 @@ typedef SongMetadata = {
    var instFile:String;
    var voiceFiles:Array<String>;
 
+   var ?stepsPerBeat:Int;
+   var ?beatsPerMeasure:Int;
+
    var ?player:String;
    var ?opponent:String;
    var ?spectator:String;

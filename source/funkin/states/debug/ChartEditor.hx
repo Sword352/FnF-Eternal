@@ -202,6 +202,8 @@ class ChartEditor extends MusicBeatState {
         }
 
         super.update(elapsed);
+
+        timeBar.disabled = !timeBar.visible;
         updateMusicText();
 
         if (measures.visible) {
@@ -384,7 +386,9 @@ class ChartEditor extends MusicBeatState {
         musicText.text = '${currentTime} / ${maxTime}\n\n'
         + 'STEP: ${Conductor.currentStep}\n'
         + 'BEAT: ${Conductor.currentBeat}\n'
-        + 'MEASURE: ${Conductor.currentMeasure}';
+        + 'MEASURE: ${Conductor.currentMeasure}\n'
+        + 'TIME S.: ${Conductor.timeSignatureSTR}';
+
         musicText.x = FlxG.width - musicText.width;
 
         overlay.scale.x = musicText.width + 15;
@@ -410,7 +414,10 @@ class ChartEditor extends MusicBeatState {
         music.instrumental.volume = (Settings.get("CHART_muteInst")) ? 0 : 1;
         music.pitch = Settings.get("CHART_pitch");
 
+        Conductor.stepsPerBeat = chart.meta.stepsPerBeat ?? 4;
+        Conductor.beatsPerMeasure = chart.meta.beatsPerMeasure ?? 4;
         Conductor.bpm = chart.bpm;
+
         Conductor.music = music.instrumental;
     }
 
@@ -459,7 +466,7 @@ class ChartEditor extends MusicBeatState {
         while ((measureTime * measureIndex) < music.instrumental.length) {
             var text:FlxText = new FlxText();
             text.x = checkerboard.x + checkerboard.width + checkerSize * 0.5;
-            text.y = checkerSize * Conductor.MEASURE_LENGTH * measureIndex;
+            text.y = checkerSize * Conductor.measureLength * measureIndex;
 
             text.text = Std.string(measureIndex);
             text.setFormat(measureFnt, 32);
@@ -551,8 +558,8 @@ class ChartEditor extends MusicBeatState {
 
         timeBar = new HorizontalSlider();
         timeBar.top = overlay.y + overlay.height;
-        timeBar.left = FlxG.width - 130;
-        timeBar.width = 125;
+        timeBar.left = FlxG.width - 155;
+        timeBar.width = 150;
         timeBar.cameras = [uiCamera];
         timeBar.visible = Settings.get("CHART_timeOverlay");
         timeBar.moves = false;

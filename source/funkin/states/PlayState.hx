@@ -194,7 +194,10 @@ class PlayState extends MusicBeatState {
       music.onSongEnd.add(endSong);
       add(music);
 
+      Conductor.stepsPerBeat = song.meta.stepsPerBeat ?? 4;
+      Conductor.beatsPerMeasure = song.meta.beatsPerMeasure ?? 4;
       Conductor.bpm = song.bpm;
+      
       notes = ChartLoader.generateNotes(song);
       
       eventManager = new EventManager(this);
@@ -712,7 +715,7 @@ class PlayState extends MusicBeatState {
       health += healthIncrement;
 
       // Calculate the rating
-      var noteDiff:Float = Math.abs(Conductor.position - note.time);
+      var noteDiff:Float = Math.abs(music.instrumental.time - note.time);
       var rating:Rating = ratings[0];
 
       for (possibleRating in ratings)

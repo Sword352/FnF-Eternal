@@ -21,11 +21,12 @@ class MusicBeatState extends State {
         #if debug
         // for debugging
         FlxG.watch.add(Conductor, "position", "C. Position");
-        // FlxG.watch.add(Conductor, "playbackRate", "Playback Rate");
         FlxG.watch.add(Conductor, "bpm", "BPM");
+        FlxG.watch.add(Conductor, "timeSignatureSTR", "Time Signature");
         FlxG.watch.add(Conductor, "currentStep", "Current Step");
         FlxG.watch.add(Conductor, "currentBeat", "Current Beat");
         FlxG.watch.add(Conductor, "currentMeasure", "Current Measure");
+        // FlxG.watch.add(Conductor, "playbackRate", "Playback Rate");
         #end
     }
 
