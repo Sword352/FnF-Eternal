@@ -137,6 +137,8 @@ class EventManager extends FlxBasic {
             case "change bpm":
                 Conductor.bpm = event.arguments[0];
                 Conductor.resetPreviousPosition();
+            case "change time signature":
+                // TODO
             #if ENGINE_SCRIPTING
             case "custom event":
                 var name:String = event.arguments[0];

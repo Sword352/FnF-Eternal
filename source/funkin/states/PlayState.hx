@@ -199,6 +199,8 @@ class PlayState extends MusicBeatState {
       Conductor.bpm = song.bpm;
       
       notes = ChartLoader.generateNotes(song);
+
+      cameraZoomBeat = Conductor.beatsPerMeasure;
       
       eventManager = new EventManager(this);
       add(eventManager);

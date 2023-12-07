@@ -64,12 +64,12 @@ class Conductor {
             onStep.dispatch(currentStep);
         }
 
-        if (currentStep % 4 == 0 && currentBeat > previousBeat) {
+        if (currentStep % stepsPerBeat == 0 && currentBeat > previousBeat) {
             previousBeat = currentBeat;
             onBeat.dispatch(currentBeat);
         }
 
-        if (currentBeat % 4 == 0 && currentMeasure > previousMeasure) {
+        if (currentBeat % beatsPerMeasure == 0 && currentMeasure > previousMeasure) {
             previousMeasure = currentMeasure;
             onMeasure.dispatch(currentMeasure);
         }
@@ -135,7 +135,7 @@ class Conductor {
     }
 
     static function set_bpm(b:Float):Float {
-        crochet = calculateCrochet(b) * timeSignature;
+        crochet = calculateCrochet(b);
         stepCrochet = crochet / stepsPerBeat;
         return bpm = b;
     }
@@ -149,10 +149,10 @@ class Conductor {
         return stepsPerBeat * beatsPerMeasure;
 
     static function get_timeSignature():Float
-        return stepsPerBeat / beatsPerMeasure;
+        return beatsPerMeasure / stepsPerBeat;
 
     static function get_timeSignatureSTR():String
-        return '${stepsPerBeat} / ${beatsPerMeasure}';
+        return '${beatsPerMeasure} / ${stepsPerBeat}';
 
     /*
     static function set_playbackRate(v:Float):Float {
