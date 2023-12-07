@@ -64,7 +64,6 @@ class Conductor {
             onStep.dispatch(currentStep);
         }
 
-        // TODO: perhaps add intervals for those instead of always using 4?
         if (currentStep % 4 == 0 && currentBeat > previousBeat) {
             previousBeat = currentBeat;
             onBeat.dispatch(currentBeat);
@@ -136,7 +135,7 @@ class Conductor {
     }
 
     static function set_bpm(b:Float):Float {
-        crochet = calculateCrochet(b);
+        crochet = calculateCrochet(b) * timeSignature;
         stepCrochet = crochet / stepsPerBeat;
         return bpm = b;
     }
