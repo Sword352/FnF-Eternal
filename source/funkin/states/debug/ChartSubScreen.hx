@@ -62,6 +62,7 @@ class ChartSubScreen extends FlxSubState {
         createVisualPage();
         createEventPage();
         createSavePage();
+        createSavePrefs();
     }
 
     override function update(elapsed:Float):Void {
@@ -74,8 +75,8 @@ class ChartSubScreen extends FlxSubState {
     }
 
     override function destroy():Void {
-        Settings.save();
-        super.destroy();
+        if (Settings.get("CHART_autoSave"))
+            Settings.save();
 
         if (stepsChanged)
             parent.reloadGrid(!beatsChanged);
@@ -84,6 +85,8 @@ class ChartSubScreen extends FlxSubState {
             parent.reloadMeasureMarks();
 
         parent = null;
+
+        super.destroy();
     }
 
     inline function createAudioPage():Void {
@@ -164,6 +167,8 @@ class ChartSubScreen extends FlxSubState {
             parent.music.instrumental.volume = (muteInst.selected) ? 0 : 1;
         }
 
+        var lastVoiceY:Float = 0;
+
         for (i in 0...parent.music.vocals.length) {
             var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.meta.voiceFiles[i]}"');
             muteVoice.top = muteInst.top + 25 * (i + 1);
@@ -172,6 +177,8 @@ class ChartSubScreen extends FlxSubState {
             muteVoice.onChange = (_) -> parent.music.vocals[i].volume = (muteVoice.selected) ? 0 : 1;
             muteVoice.selected = (parent.music.vocals[i].volume < 1);
             page.addComponent(muteVoice);
+
+            lastVoiceY = muteVoice.top;
         }
 
         // time signature
@@ -179,15 +186,15 @@ class ChartSubScreen extends FlxSubState {
         var oldSteps:Int = Conductor.stepsPerBeat;
 
         var signature:Label = createText('Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)');
-        signature.top = 135;
+        signature.top = Math.max(135, lastVoiceY);
         signature.left = 5;
 
         var beatsPerMeasure:NumberStepper = createNumStepper();
-        beatsPerMeasure.top = 150;
+        beatsPerMeasure.top = signature.top + 15;
         beatsPerMeasure.left = 5;
 
         var stepsPerBeat:NumberStepper = createNumStepper();
-        stepsPerBeat.top = 150;
+        stepsPerBeat.top = beatsPerMeasure.top;
         stepsPerBeat.left = 95;
 
         beatsPerMeasure.value = oldBeats;
@@ -437,6 +444,32 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(saveChart);
         page.addComponent(saveMeta);
         page.addComponent(saveEvents);
+    }
+
+    inline function createSavePrefs():Void {
+        var savePrefs:Button = createButton("Save Preferences");
+        savePrefs.includeInLayout = false;
+        savePrefs.top = menu.top + menu.height + 5;
+        savePrefs.left = menu.left;
+
+        var autoSave:CheckBox = createCheckbox("Auto Save Preferences");
+        autoSave.includeInLayout = false;
+        autoSave.top = savePrefs.top + 2.5;
+        autoSave.left = menu.left + 155;
+
+        savePrefs.disabled = Settings.get("CHART_autoSave");
+        savePrefs.alpha = (savePrefs.disabled) ? 0.5 : 1;
+        autoSave.selected = savePrefs.disabled;
+
+        autoSave.onChange = (_) -> {
+            savePrefs.disabled = autoSave.selected;
+            savePrefs.alpha = (savePrefs.disabled) ? 0.5 : 1;
+            Settings.settings["CHART_autoSave"].value = autoSave.selected;
+        }
+        savePrefs.onClick = (_) -> Settings.save();
+
+        add(savePrefs);
+        add(autoSave);
     }
 
     // TODO: seperate those into classes, this should do it for now

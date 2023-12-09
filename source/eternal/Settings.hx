@@ -83,6 +83,7 @@ class Settings {
         "reload assets" => new Setting<Bool>(false),
 
         // Chart editor preferences
+        "CHART_autoSave" => new Setting<Bool>(true),
         "CHART_metronomeVolume" => new Setting<Float>(0),
         "CHART_hitsoundVolume" => new Setting<Float>(0),
         "CHART_muteInst" => new Setting<Bool>(false),
