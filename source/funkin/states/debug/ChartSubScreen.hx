@@ -273,11 +273,38 @@ class ChartSubScreen extends FlxSubState {
 
         staticGlow.onChange = (_) -> Settings.settings["CHART_rStaticGlow"].value = staticGlow.selected;
 
+        // checker alpha
+        var checkerAlpha:HorizontalSlider = new HorizontalSlider();
+        checkerAlpha.includeInLayout = false;
+        checkerAlpha.left = 250;
+        checkerAlpha.top = 10;
+
+        checkerAlpha.min = 0;
+        checkerAlpha.max = 100;
+        checkerAlpha.step = 1;
+
+        var val:Float = Settings.get("CHART_checkerAlpha");
+        checkerAlpha.value = val * 100;
+
+        var cAlphaText:Label = createText('Checkerboard Opacity (${checkerAlpha.pos}%)');
+        cAlphaText.left = 255;
+
+        checkerAlpha.onChange = (_) -> {
+            var alpha:Float = checkerAlpha.pos / 100;
+
+            cAlphaText.text = 'Checkerboard Opacity (${checkerAlpha.pos}%)';
+
+            Settings.settings["CHART_checkerAlpha"].value = alpha;
+            parent.checkerboard.alpha = alpha;
+        };
+
         page.addComponent(lateAlpha);
         page.addComponent(showMeasures);
         page.addComponent(timeOverlay);
         page.addComponent(showReceptors);
         page.addComponent(staticGlow);
+        page.addComponent(checkerAlpha);
+        page.addComponent(cAlphaText);
     }
 
     inline function createEventPage():Void {

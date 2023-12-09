@@ -471,6 +471,7 @@ class ChartEditor extends MusicBeatState {
         var checkerBitmap = FlxGridOverlay.createGrid(checkerSize, checkerSize, checkerSize * 2, checkerSize * 2, true, 0xFFD6D6D6, 0xFFBBBBBB);
 
         checkerboard = new FlxTiledSprite(checkerBitmap, checkerSize * 8, getYFromTime(music.instrumental.length));
+        checkerboard.alpha = Settings.get("CHART_checkerAlpha");
         checkerboard.screenCenter(X);
         checkerboard.moves = false;
         add(checkerboard);

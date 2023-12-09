@@ -91,6 +91,7 @@ class Settings {
         "CHART_receptors" => new Setting<Bool>(false),
         "CHART_rStaticGlow" => new Setting<Bool>(false),
         "CHART_lateAlpha" => new Setting<Bool>(true),
+        "CHART_checkerAlpha" => new Setting<Float>(1),
         "CHART_pitch" => new Setting<Float>(1)
     ];
 
