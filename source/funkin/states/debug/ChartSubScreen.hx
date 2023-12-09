@@ -14,6 +14,9 @@ class ChartSubScreen extends FlxSubState {
     var parent:ChartEditor;
     var menu:TabView;
 
+    var beatsChanged:Bool = false;
+    var stepsChanged:Bool = false;
+
     public function new(parent:ChartEditor):Void {
         super();
         this.parent = parent;
@@ -72,9 +75,15 @@ class ChartSubScreen extends FlxSubState {
 
     override function destroy():Void {
         Settings.save();
-        parent = null;
-
         super.destroy();
+
+        if (stepsChanged)
+            parent.reloadGrid(!beatsChanged);
+        
+        if (beatsChanged)
+            parent.reloadMeasureMarks();
+
+        parent = null;
     }
 
     inline function createAudioPage():Void {
@@ -165,6 +174,50 @@ class ChartSubScreen extends FlxSubState {
             page.addComponent(muteVoice);
         }
 
+        // time signature
+        var oldBeats:Int = Conductor.beatsPerMeasure;
+        var oldSteps:Int = Conductor.stepsPerBeat;
+
+        var signature:Label = createText('Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)');
+        signature.top = 135;
+        signature.left = 5;
+
+        var beatsPerMeasure:NumberStepper = createNumStepper();
+        beatsPerMeasure.top = 150;
+        beatsPerMeasure.left = 5;
+
+        var stepsPerBeat:NumberStepper = createNumStepper();
+        stepsPerBeat.top = 150;
+        stepsPerBeat.left = 95;
+
+        beatsPerMeasure.value = oldBeats;
+        beatsPerMeasure.onChange = (_) -> {
+            var val:Float = beatsPerMeasure.value;
+            if (val is Float && !(val is Int))
+                beatsPerMeasure.value = Math.floor(val);
+
+            Conductor.beatsPerMeasure = beatsPerMeasure.value;
+            parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
+            beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
+
+            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)';
+        };
+
+        stepsPerBeat.value = oldSteps;
+        stepsPerBeat.onChange = (_) -> {
+            var val:Float = stepsPerBeat.value;
+            if (val is Float && !(val is Int))
+                stepsPerBeat.value = Math.floor(val);
+
+            Conductor.stepsPerBeat = stepsPerBeat.value;
+            Conductor.stepCrochet = Conductor.crochet / Conductor.stepsPerBeat;
+
+            parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
+            stepsChanged = (Conductor.stepsPerBeat != oldSteps);
+
+            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)';
+        };
+
         page.addComponent(metroText);
         page.addComponent(metronomeSlider);
         page.addComponent(hitsoundText);
@@ -172,6 +225,9 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(pitchText);
         page.addComponent(pitchSlider);
         page.addComponent(muteInst);
+        page.addComponent(signature);
+        page.addComponent(beatsPerMeasure);
+        page.addComponent(stepsPerBeat);
     }
 
     inline function createVisualPage():Void {
@@ -356,6 +412,8 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(saveEvents);
     }
 
+    // TODO: seperate those into classes, this should do it for now
+
     inline function createPage(text:String):Box {
         var page:Box = new Box();
         page.text = text;
@@ -385,6 +443,15 @@ class ChartSubScreen extends FlxSubState {
         button.includeInLayout = false;
         button.text = text;
         return button;
+    }
+
+    inline function createNumStepper():NumberStepper {
+        var stepper:NumberStepper = new NumberStepper();
+        applyStyle(stepper.customStyle, FlxColor.BLACK);
+        stepper.includeInLayout = false;
+        stepper.autoCorrect = true;
+        stepper.min = 1;
+        return stepper;
     }
 
     inline static function applyStyle(s:haxe.ui.styles.Style, color:FlxColor = FlxColor.WHITE):Void {

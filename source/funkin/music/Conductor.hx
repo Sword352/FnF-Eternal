@@ -18,8 +18,8 @@ class Conductor {
     public static var offset:Float = 0;
     
     public static var bpm(default, set):Float = 100;
-    public static var crochet(default, null):Float = 0;
-    public static var stepCrochet(default, null):Float = 0;
+    public static var crochet:Float = 0;
+    public static var stepCrochet:Float = 0;
     // public static var playbackRate(default, set):Float = 1;
 
     public static var measureLength(get, never):Int;

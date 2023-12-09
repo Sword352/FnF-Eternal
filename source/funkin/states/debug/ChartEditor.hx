@@ -188,6 +188,8 @@ class ChartEditor extends MusicBeatState {
         if (FlxG.mouse.wheel != 0)
             updateMusicTime();
 
+        super.update(elapsed);
+
         // reposition the follow line
         line.y = getYFromTime(music.instrumental.time);
 
@@ -195,13 +197,11 @@ class ChartEditor extends MusicBeatState {
             music.instrumental.time = 0;
             line.y = 0;
         }
-
+        
         if (receptors.visible) {
             for (receptor in receptors)
                 receptor.y = line.y - (receptor.height * 0.5);
         }
-
-        super.update(elapsed);
 
         timeBar.disabled = !timeBar.visible;
         updateMusicText();
@@ -399,6 +399,46 @@ class ChartEditor extends MusicBeatState {
             timeBar.pos = music.instrumental.time;
     }
 
+    inline public function reloadGrid(updateMeasures:Bool = true):Void {
+        checkerboard.height = getYFromTime(music.instrumental.length);
+
+        notes.forEachAlive((note) -> {
+            note.y = getYFromTime(note.data.time);
+            if (note.data.length != null && note.data.length >= 100)
+                note.length = Math.floor(note.data.length / Conductor.stepCrochet);
+        });
+
+        events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
+
+        if (updateMeasures)
+            measures.forEachAlive((measure) -> measure.y = checkerSize * Conductor.measureLength * measure.ID);
+
+        Conductor.resetPreviousPosition();
+    }
+
+    inline public function reloadMeasureMarks():Void {
+        var measureTime:Float = Conductor.calculateMeasureTime(Conductor.bpm);
+        var measureFnt:String = AssetHelper.font("vcr");
+        var measureIndex:Int = 0;
+
+        measures.forEachAlive((measure) -> measure.kill());
+
+        while ((measureTime * measureIndex) < music.instrumental.length) {
+            var text:FlxText = measures.recycle(FlxText, () -> new FlxText());
+            text.x = checkerboard.x + checkerboard.width + checkerSize * 0.5;
+            text.y = checkerSize * Conductor.measureLength * measureIndex;
+
+            text.text = Std.string(measureIndex);
+            text.setFormat(measureFnt, 32);
+            text.moves = false;
+
+            text.ID = measureIndex;
+            measures.add(text);
+
+            measureIndex++;
+        }
+    }
+
     inline function loadSong():Void {
         music = new MusicPlayback(chart.meta.rawName);
         music.setupInstrumental(chart.meta.instFile);
@@ -455,29 +495,9 @@ class ChartEditor extends MusicBeatState {
         notes = new FlxTypedGroup<DebugNote>();
         events = new FlxTypedGroup<EventSprite>();
 
-        // create measure texts
-        var measureTime:Float = Conductor.calculateMeasureTime(Conductor.bpm);
-        var measureFnt:String = AssetHelper.font("vcr");
-        var measureIndex:Int = 0;
-
         measures = new FlxTypedGroup<FlxText>();
         measures.visible = Settings.get("CHART_measureText");
-
-        while ((measureTime * measureIndex) < music.instrumental.length) {
-            var text:FlxText = new FlxText();
-            text.x = checkerboard.x + checkerboard.width + checkerSize * 0.5;
-            text.y = checkerSize * Conductor.measureLength * measureIndex;
-
-            text.text = Std.string(measureIndex);
-            text.setFormat(measureFnt, 32);
-            text.moves = false;
-
-            text.ID = measureIndex;
-            measures.add(text);
-
-            measureIndex++;
-        }
-        //
+        reloadMeasureMarks();
 
         // create receptors
         receptors = new FlxTypedSpriteGroup<Receptor>(checkerboard.x);
@@ -567,17 +587,19 @@ class ChartEditor extends MusicBeatState {
 
         timeBar.min = 0;
         timeBar.step = 1;
-        timeBar.max = music.instrumental.length; /*/ Conductor.stepCrochet;*/
+        timeBar.max = music.instrumental.length;
 
         timeBar.onChange = (_) -> {
             if (!FlxG.mouse.overlaps(timeBar) || !FlxG.mouse.pressed)
                 return;
 
             pauseMusic();
-            music.instrumental.time = /*Conductor.stepCrochet **/ timeBar.pos;
+            music.instrumental.time = timeBar.pos;
 
             for (vocals in music.vocals)
                 vocals.time = music.instrumental.time;
+
+            Conductor.resetPreviousPosition();
         }
 
         var opponentIcon:HealthIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.meta.opponent));
