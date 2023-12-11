@@ -66,6 +66,8 @@ class ChartEditor extends MusicBeatState {
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
 
+    public var eventBPM:Bool = false;
+
     var startTime:Float = 0;
     var lastPosition:Float;
     var lastStep:Int;
@@ -189,6 +191,7 @@ class ChartEditor extends MusicBeatState {
             updateMusicTime();
 
         super.update(elapsed);
+        updateCurrentBPM();
 
         // reposition the follow line
         line.y = getYFromTime(music.instrumental.time);
@@ -203,13 +206,13 @@ class ChartEditor extends MusicBeatState {
                 receptor.y = line.y - (receptor.height * 0.5);
         }
 
-        timeBar.disabled = !timeBar.visible;
-        updateMusicText();
-
         if (measures.visible) {
             for (measure in measures)
                 measure.alpha = (measure.ID < Conductor.decimalMeasure && Settings.get("CHART_lateAlpha")) ? lateAlpha : 1;
         }
+
+        timeBar.disabled = !timeBar.visible;
+        updateMusicText();
 
         if (music.playing) {
             var hitsoundVolume:Float = Settings.get("CHART_hitsoundVolume");
@@ -383,13 +386,16 @@ class ChartEditor extends MusicBeatState {
         var currentTime:String = FlxStringUtil.formatTime(music.instrumental.time / 1000);
         var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length / 1000);
 
-        musicText.text = '${currentTime} / ${maxTime}\n\n'
-        + 'STEP: ${Conductor.currentStep}\n'
-        + 'BEAT: ${Conductor.currentBeat}\n'
-        + 'MEASURE: ${Conductor.currentMeasure}\n'
-        + 'TIME S.: ${Conductor.timeSignatureSTR}';
+        musicText.text =
+        '${currentTime} / ${maxTime}\n\n'
+        + 'Step: ${Conductor.currentStep}\n'
+        + 'Beat: ${Conductor.currentBeat}\n'
+        + 'Measure: ${Conductor.currentMeasure}\n\n'
+        + 'BPM: ${Conductor.bpm}\n'
+        + 'Time Signature: ${Conductor.timeSignatureSTR}'
+        ;
 
-        musicText.x = FlxG.width - musicText.width;
+        musicText.x = FlxG.width - musicText.width - 5;
 
         overlay.scale.x = musicText.width + 15;
         overlay.x = FlxG.width - overlay.scale.x;
@@ -439,6 +445,31 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
+    inline function updateCurrentBPM():Void {
+        var currentBPM:Float = Conductor.bpm;
+
+        eventBPM = false;
+
+        if (chart.events.length > 0) {
+            for (event in chart.events) {
+                if (event.event == "change bpm" && event.time <= Conductor.position) {
+                    currentBPM = event.arguments[0];
+                    eventBPM = true;
+                }
+            }
+        }
+
+        if (!eventBPM)
+            currentBPM = chart.bpm;
+
+        if (currentBPM != Conductor.bpm) {
+            // trace("changed bpm to " + currentBPM);
+            Conductor.bpm = currentBPM;
+            reloadMeasureMarks();
+            reloadGrid(false);
+        }
+    }
+
     inline function loadSong():Void {
         music = new MusicPlayback(chart.meta.rawName);
         music.setupInstrumental(chart.meta.instFile);
@@ -473,7 +504,7 @@ class ChartEditor extends MusicBeatState {
         checkerboard = new FlxTiledSprite(checkerBitmap, checkerSize * 8, getYFromTime(music.instrumental.length));
         checkerboard.alpha = Settings.get("CHART_checkerAlpha");
         checkerboard.screenCenter(X);
-        checkerboard.moves = false;
+        checkerboard.active = false;
         add(checkerboard);
 
         for (i in 0...3) {
@@ -481,14 +512,14 @@ class ChartEditor extends MusicBeatState {
             separator.makeRect(5, FlxG.height);
             separator.scrollFactor.set();
             separator.x = checkerboard.x + checkerSize * 4 * i;
-            separator.moves = false;
+            separator.active = false;
             add(separator);
         }
 
         line = new FlxSprite();
         line.makeRect(checkerSize * 10, 5);
         line.screenCenter();
-        line.moves = false;
+        line.active = false;
 
         FlxG.camera.follow(line, LOCKON, 1);
         FlxG.camera.targetOffset.y = 125;
@@ -498,6 +529,7 @@ class ChartEditor extends MusicBeatState {
 
         measures = new FlxTypedGroup<FlxText>();
         measures.visible = Settings.get("CHART_measureText");
+        measures.active = false;
         reloadMeasureMarks();
 
         // create receptors
@@ -525,7 +557,7 @@ class ChartEditor extends MusicBeatState {
         mouseCursor = new FlxSprite();
         mouseCursor.makeRect(checkerSize, checkerSize);
         mouseCursor.setPosition(checkerboard.x, checkerboard.y + checkerSize);
-        mouseCursor.moves = false;
+        mouseCursor.active = false;
 
         add(mouseCursor);
         add(events);
@@ -562,27 +594,27 @@ class ChartEditor extends MusicBeatState {
         uiCamera.bgColor.alpha = 0;
         FlxG.cameras.add(uiCamera, false);
 
-        overlay = new FlxSprite();
-        overlay.makeRect(1, 100, FlxColor.BLACK);
-        overlay.alpha = 0.25;
-        overlay.cameras = [uiCamera];
-        overlay.visible = Settings.get("CHART_timeOverlay");
+        overlay = new FlxSprite(0, 10);
+        overlay.makeRect(1, 115, FlxColor.GRAY);
         overlay.moves = false;
+        overlay.alpha = 0.4;
+        overlay.visible = Settings.get("CHART_timeOverlay");
+        overlay.cameras = [uiCamera];
         add(overlay);
 
-        musicText = new FlxText();
-        musicText.setFormat(AssetHelper.font("vcr"), 18, FlxColor.WHITE, RIGHT);
+        musicText = new FlxText(0, overlay.y);
+        musicText.setFormat(AssetHelper.font("vcr"), 14, FlxColor.WHITE, RIGHT);
         musicText.setBorderStyle(OUTLINE, FlxColor.BLACK, 0.5);
-        musicText.cameras = [uiCamera];
         musicText.visible = Settings.get("CHART_timeOverlay");
+        musicText.cameras = [uiCamera];
         add(musicText);
 
         timeBar = new HorizontalSlider();
         timeBar.top = overlay.y + overlay.height;
-        timeBar.left = FlxG.width - 155;
-        timeBar.width = 150;
-        timeBar.cameras = [uiCamera];
+        timeBar.left = FlxG.width - 180;
+        timeBar.width = 175;
         timeBar.visible = Settings.get("CHART_timeOverlay");
+        timeBar.cameras = [uiCamera];
         timeBar.moves = false;
         add(timeBar);
 

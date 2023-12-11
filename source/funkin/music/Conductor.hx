@@ -3,8 +3,6 @@ package funkin.music;
 import flixel.sound.FlxSound;
 import flixel.util.FlxSignal.FlxTypedSignal;
 
-// TODO: maybe bpm-based timing like guitar hero, so it allows for the notes to automatically be conform to the bpm
-// Aka if you are in the chart editor and the user changes the bpm
 class Conductor {
     public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();

@@ -16,6 +16,7 @@ class ChartSubScreen extends FlxSubState {
 
     var beatsChanged:Bool = false;
     var stepsChanged:Bool = false;
+    var bpmChanged:Bool = false;
 
     public function new(parent:ChartEditor):Void {
         super();
@@ -60,6 +61,7 @@ class ChartSubScreen extends FlxSubState {
 
         createAudioPage();
         createVisualPage();
+        createMetaPage();
         createEventPage();
         createSavePage();
         createSavePrefs();
@@ -78,11 +80,13 @@ class ChartSubScreen extends FlxSubState {
         if (Settings.get("CHART_autoSave"))
             Settings.save();
 
-        if (stepsChanged)
-            parent.reloadGrid(!beatsChanged);
-        
-        if (beatsChanged)
-            parent.reloadMeasureMarks();
+        if (!bpmChanged) {
+            if (stepsChanged)
+                parent.reloadGrid(!beatsChanged);
+            
+            if (beatsChanged)
+                parent.reloadMeasureMarks();
+        }
 
         parent = null;
 
@@ -167,8 +171,6 @@ class ChartSubScreen extends FlxSubState {
             parent.music.instrumental.volume = (muteInst.selected) ? 0 : 1;
         }
 
-        var lastVoiceY:Float = 0;
-
         for (i in 0...parent.music.vocals.length) {
             var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.meta.voiceFiles[i]}"');
             muteVoice.top = muteInst.top + 25 * (i + 1);
@@ -177,53 +179,7 @@ class ChartSubScreen extends FlxSubState {
             muteVoice.onChange = (_) -> parent.music.vocals[i].volume = (muteVoice.selected) ? 0 : 1;
             muteVoice.selected = (parent.music.vocals[i].volume < 1);
             page.addComponent(muteVoice);
-
-            lastVoiceY = muteVoice.top;
         }
-
-        // time signature
-        var oldBeats:Int = Conductor.beatsPerMeasure;
-        var oldSteps:Int = Conductor.stepsPerBeat;
-
-        var signature:Label = createText('Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)');
-        signature.top = Math.max(135, lastVoiceY);
-        signature.left = 5;
-
-        var beatsPerMeasure:NumberStepper = createNumStepper();
-        beatsPerMeasure.top = signature.top + 15;
-        beatsPerMeasure.left = 5;
-
-        var stepsPerBeat:NumberStepper = createNumStepper();
-        stepsPerBeat.top = beatsPerMeasure.top;
-        stepsPerBeat.left = 95;
-
-        beatsPerMeasure.value = oldBeats;
-        beatsPerMeasure.onChange = (_) -> {
-            var val:Float = beatsPerMeasure.value;
-            if (val is Float && !(val is Int))
-                beatsPerMeasure.value = Math.floor(val);
-
-            Conductor.beatsPerMeasure = beatsPerMeasure.value;
-            parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
-            beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
-
-            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)';
-        };
-
-        stepsPerBeat.value = oldSteps;
-        stepsPerBeat.onChange = (_) -> {
-            var val:Float = stepsPerBeat.value;
-            if (val is Float && !(val is Int))
-                stepsPerBeat.value = Math.floor(val);
-
-            Conductor.stepsPerBeat = stepsPerBeat.value;
-            Conductor.stepCrochet = Conductor.crochet / Conductor.stepsPerBeat;
-
-            parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
-            stepsChanged = (Conductor.stepsPerBeat != oldSteps);
-
-            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR} (beatsPerMeasure / stepsPerBeat)';
-        };
 
         page.addComponent(metroText);
         page.addComponent(metronomeSlider);
@@ -232,9 +188,6 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(pitchText);
         page.addComponent(pitchSlider);
         page.addComponent(muteInst);
-        page.addComponent(signature);
-        page.addComponent(beatsPerMeasure);
-        page.addComponent(stepsPerBeat);
     }
 
     inline function createVisualPage():Void {
@@ -312,6 +265,76 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(staticGlow);
         page.addComponent(checkerAlpha);
         page.addComponent(cAlphaText);
+    }
+
+    inline function createMetaPage():Void {
+        var oldBeats:Int = Conductor.beatsPerMeasure;
+        var oldSteps:Int = Conductor.stepsPerBeat;
+        var oldBPM:Float = parent.chart.bpm;
+
+        var page:Box = createPage("Meta");
+
+        // time signature
+        var signature:Label = createText('Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)');
+        signature.left = 5;
+        
+        var beatsPerMeasure:NumberStepper = createNumStepper();
+        beatsPerMeasure.left = 5;
+        beatsPerMeasure.top = 25;
+        
+        var stepsPerBeat:NumberStepper = createNumStepper();
+        stepsPerBeat.left = 95;
+        stepsPerBeat.top = 25;
+        
+        beatsPerMeasure.value = oldBeats;
+        beatsPerMeasure.onChange = (_) -> {
+            var val:Float = beatsPerMeasure.value;
+            if (val is Float && !(val is Int))
+                beatsPerMeasure.value = Math.floor(val);
+        
+            Conductor.beatsPerMeasure = beatsPerMeasure.value;
+            parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
+            beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
+        
+            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)';
+        };
+        
+        stepsPerBeat.value = oldSteps;
+        stepsPerBeat.onChange = (_) -> {
+            var val:Float = stepsPerBeat.value;
+            if (val is Float && !(val is Int))
+                stepsPerBeat.value = Math.floor(val);
+        
+            Conductor.stepsPerBeat = stepsPerBeat.value;
+            Conductor.stepCrochet = Conductor.crochet / Conductor.stepsPerBeat;
+        
+            parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
+            stepsChanged = (Conductor.stepsPerBeat != oldSteps);
+        
+            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)';
+        };
+
+        // bpm
+        var bpmText:Label = createText("BPM");
+        bpmText.left = 5;
+        bpmText.top = 65;
+
+        var bpmStepper:NumberStepper = createNumStepper();
+        bpmStepper.left = 5;
+        bpmStepper.top = 80;
+
+        bpmStepper.value = parent.chart.bpm;
+        bpmStepper.onChange = (_) -> {
+            parent.chart.bpm = bpmStepper.pos;
+            bpmChanged = (parent.chart.bpm != oldBPM);
+            trace(bpmChanged);
+        };
+
+        page.addComponent(signature);
+        page.addComponent(beatsPerMeasure);
+        page.addComponent(stepsPerBeat);
+        page.addComponent(bpmText);
+        page.addComponent(bpmStepper);
     }
 
     inline function createEventPage():Void {
