@@ -188,7 +188,9 @@ class ChartEditor extends MusicBeatState {
         }
 
         if (FlxG.mouse.wheel != 0)
-            updateMusicTime();
+            incrementTime(-FlxG.mouse.wheel * 50);
+        if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN)
+            incrementTime(Conductor.stepCrochet / 8 * ((FlxG.keys.pressed.UP) ? -1 : 1));
 
         super.update(elapsed);
         updateCurrentBPM();
@@ -317,11 +319,11 @@ class ChartEditor extends MusicBeatState {
         });
     }
 
-    inline function updateMusicTime():Void {
+    inline function incrementTime(val:Float):Void {
         if (music.playing)
             pauseMusic();
 
-        music.instrumental.time -= (FlxG.mouse.wheel * 50) * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
+        music.instrumental.time += val * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
         music.instrumental.time = FlxMath.bound(music.instrumental.time, -1000, music.instrumental.length);
 
         if (music.instrumental.time < 0) {
