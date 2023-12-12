@@ -68,7 +68,7 @@ class ChartSubScreen extends FlxSubState {
     }
 
     override function update(elapsed:Float):Void {
-        if (FlxG.keys.justPressed.SEVEN) {
+        if (FlxG.keys.justPressed.TAB) {
             close();
             return;
         }
@@ -233,6 +233,13 @@ class ChartSubScreen extends FlxSubState {
 
         staticGlow.onChange = (_) -> Settings.settings["CHART_rStaticGlow"].value = staticGlow.selected;
 
+        // strumline snap
+        var strumlineSnap:CheckBox = createCheckbox("Strumline Scroll Snap");
+        strumlineSnap.selected = Settings.get("CHART_strumlineSnap");
+        strumlineSnap.top = 125;
+
+        strumlineSnap.onChange = (_) -> Settings.settings["CHART_strumlineSnap"].value = strumlineSnap.selected;
+
         // checker alpha
         var checkerAlpha:HorizontalSlider = new HorizontalSlider();
         checkerAlpha.includeInLayout = false;
@@ -263,6 +270,7 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(timeOverlay);
         page.addComponent(showReceptors);
         page.addComponent(staticGlow);
+        page.addComponent(strumlineSnap);
         page.addComponent(checkerAlpha);
         page.addComponent(cAlphaText);
     }
@@ -289,7 +297,7 @@ class ChartSubScreen extends FlxSubState {
         beatsPerMeasure.value = oldBeats;
         beatsPerMeasure.onChange = (_) -> {
             var val:Float = beatsPerMeasure.value;
-            if (val is Float && !(val is Int))
+            if (!(val is Int))
                 beatsPerMeasure.value = Math.floor(val);
         
             Conductor.beatsPerMeasure = beatsPerMeasure.value;
@@ -302,7 +310,7 @@ class ChartSubScreen extends FlxSubState {
         stepsPerBeat.value = oldSteps;
         stepsPerBeat.onChange = (_) -> {
             var val:Float = stepsPerBeat.value;
-            if (val is Float && !(val is Int))
+            if (!(val is Int))
                 stepsPerBeat.value = Math.floor(val);
         
             Conductor.stepsPerBeat = stepsPerBeat.value;

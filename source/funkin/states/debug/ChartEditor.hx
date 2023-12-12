@@ -138,7 +138,7 @@ class ChartEditor extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        if (FlxG.keys.justPressed.SEVEN) {
+        if (FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.SEVEN) {
             openSubState(new ChartSubScreen(this));
             return;
         }
@@ -194,7 +194,10 @@ class ChartEditor extends MusicBeatState {
         updateCurrentBPM();
 
         // reposition the follow line
-        line.y = getYFromTime(music.instrumental.time);
+        if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
+            line.y = getYFromTime(music.instrumental.time);
+        else
+            line.y = FlxMath.lerp(getYFromTime(music.instrumental.time), line.y, FlxMath.bound(1 - elapsed * 12, 0, 1));
 
         if (!music.playing && Conductor.position >= music.instrumental.length) {
             music.instrumental.time = 0;
@@ -321,8 +324,10 @@ class ChartEditor extends MusicBeatState {
         music.instrumental.time -= (FlxG.mouse.wheel * 50) * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
         music.instrumental.time = FlxMath.bound(music.instrumental.time, -1000, music.instrumental.length);
 
-        if (music.instrumental.time < 0)
+        if (music.instrumental.time < 0) {
             music.instrumental.time = music.instrumental.length - 100;
+            line.y = getYFromTime(music.instrumental.time);
+        }
 
         for (vocals in music.vocals)
             vocals.time = music.instrumental.time;
@@ -405,6 +410,7 @@ class ChartEditor extends MusicBeatState {
 
     inline public function reloadGrid(updateMeasures:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
+        line.y = getYFromTime(music.instrumental.time);
 
         notes.forEachAlive((note) -> {
             note.y = getYFromTime(note.data.time);
@@ -475,7 +481,10 @@ class ChartEditor extends MusicBeatState {
             for (voiceFile in chart.meta.voiceFiles)
                music.createVoice(voiceFile);
 
-        music.onSongEnd.add(Conductor.resetPreviousPosition);
+        music.onSongEnd.add(() -> {
+            Conductor.resetPreviousPosition();
+            line.y = 0;
+        });
         music.instrumental.time = startTime;
         add(music);
 
@@ -515,7 +524,8 @@ class ChartEditor extends MusicBeatState {
 
         line = new FlxSprite();
         line.makeRect(checkerSize * 10, 5);
-        line.screenCenter();
+        line.y = getYFromTime(startTime);
+        line.screenCenter(X);
         line.active = false;
 
         FlxG.camera.follow(line, LOCKON, 1);
