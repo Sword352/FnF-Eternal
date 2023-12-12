@@ -206,10 +206,8 @@ class ChartEditor extends MusicBeatState {
                 receptor.y = line.y - (receptor.height * 0.5);
         }
 
-        if (measures.visible) {
-            for (measure in measures)
-                measure.alpha = (measure.ID < Conductor.decimalMeasure && Settings.get("CHART_lateAlpha")) ? lateAlpha : 1;
-        }
+        if (measures.visible)
+            measures.forEachAlive((measure) -> measure.alpha = (measure.ID < Conductor.decimalMeasure && Settings.get("CHART_lateAlpha")) ? lateAlpha : 1);
 
         timeBar.disabled = !timeBar.visible;
         updateMusicText();
@@ -320,7 +318,7 @@ class ChartEditor extends MusicBeatState {
         if (music.playing)
             pauseMusic();
 
-        music.instrumental.time += -(FlxG.mouse.wheel * 50) * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
+        music.instrumental.time -= (FlxG.mouse.wheel * 50) * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
         music.instrumental.time = FlxMath.bound(music.instrumental.time, -1000, music.instrumental.length);
 
         if (music.instrumental.time < 0)
@@ -436,7 +434,6 @@ class ChartEditor extends MusicBeatState {
 
             text.text = Std.string(measureIndex);
             text.setFormat(measureFnt, 32);
-            text.moves = false;
 
             text.ID = measureIndex;
             measures.add(text);
@@ -572,20 +569,20 @@ class ChartEditor extends MusicBeatState {
         backdrop.scrollFactor.set(0.2, 0.2);
         backdrop.color = FlxColor.PURPLE;
         backdrop.alpha = 0.5;
-        backdrop.moves = false;
+        backdrop.active = false;
 		add(backdrop);
 
         var background:FlxSprite = new FlxSprite(0, 0, AssetHelper.image("menus/menuDesat"));
         background.scrollFactor.set();
         background.blend = MULTIPLY;
-        background.moves = false;
+        background.active = false;
         add(background);
 
         var cols:Array<FlxColor> = [FlxColor.PURPLE, 0xFF350D35];
 		var gradient:FlxSprite = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height, cols, 1, 45);
         gradient.scrollFactor.set();
 		gradient.alpha = 0.4;
-        gradient.moves = false;
+        gradient.active = false;
 		add(gradient);
     }
 
@@ -596,7 +593,7 @@ class ChartEditor extends MusicBeatState {
 
         overlay = new FlxSprite(0, 10);
         overlay.makeRect(1, 115, FlxColor.GRAY);
-        overlay.moves = false;
+        overlay.active = false;
         overlay.alpha = 0.4;
         overlay.visible = Settings.get("CHART_timeOverlay");
         overlay.cameras = [uiCamera];
@@ -642,7 +639,7 @@ class ChartEditor extends MusicBeatState {
         opponentIcon.scrollFactor.set();
         opponentIcon.healthAnim = false;
         opponentIcon.cameras = [uiCamera];
-        opponentIcon.moves = false;
+        opponentIcon.active = false;
         add(opponentIcon);
 
         var playerIcon:HealthIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.meta.player));
@@ -652,7 +649,7 @@ class ChartEditor extends MusicBeatState {
         playerIcon.healthAnim = false;
         playerIcon.flipX = true;
         playerIcon.cameras = [uiCamera];
-        playerIcon.moves = false;
+        playerIcon.active = false;
         add(playerIcon);
     }
 
@@ -736,12 +733,11 @@ class DebugNote extends FlxSprite {
 
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
-        moves = false;
     }
 
     override function update(elapsed:Float):Void {
         alpha = (data.time < Conductor.position && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
-        super.update(elapsed);
+        // super.update(elapsed);
     }
 
     override function draw():Void {
@@ -807,12 +803,10 @@ class EventSprite extends FlxSprite {
         loadGraphic(AssetHelper.image("ui/debug/evt_ic"));
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
-        moves = false;
 
         rect = new FlxSprite();
         rect.makeRect(ChartEditor.checkerSize, ChartEditor.checkerSize, 0x860051FF, false, "charteditor_evrect");
         rect.visible = false;
-        rect.moves = false;
 
         text = new FlxText();
         text.setFormat(AssetHelper.font("vcr"), 12, FlxColor.WHITE, RIGHT);
@@ -825,7 +819,7 @@ class EventSprite extends FlxSprite {
         text.alpha = alpha;
         text.color = color;
 
-        super.update(elapsed);
+        // super.update(elapsed);
     }
 
     override function draw():Void {

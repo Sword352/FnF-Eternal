@@ -327,7 +327,6 @@ class ChartSubScreen extends FlxSubState {
         bpmStepper.onChange = (_) -> {
             parent.chart.bpm = bpmStepper.pos;
             bpmChanged = (parent.chart.bpm != oldBPM);
-            trace(bpmChanged);
         };
 
         page.addComponent(signature);
