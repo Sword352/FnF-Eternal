@@ -8,7 +8,6 @@ import flixel.text.FlxText;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxTiledSprite;
 
-import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
@@ -190,7 +189,7 @@ class ChartEditor extends MusicBeatState {
         if (FlxG.mouse.wheel != 0)
             incrementTime(-FlxG.mouse.wheel * 50);
         if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN)
-            incrementTime(Conductor.stepCrochet / 8 * ((FlxG.keys.pressed.UP) ? -1 : 1));
+            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * (1 * (60 / (1 / elapsed))));
 
         super.update(elapsed);
         updateCurrentBPM();
@@ -510,7 +509,6 @@ class ChartEditor extends MusicBeatState {
         var checkerBitmap = FlxGridOverlay.createGrid(checkerSize, checkerSize, checkerSize * 2, checkerSize * 2, true, 0xFFD6D6D6, 0xFFBBBBBB);
 
         checkerboard = new FlxTiledSprite(checkerBitmap, checkerSize * 8, getYFromTime(music.instrumental.length));
-        checkerboard.alpha = Settings.get("CHART_checkerAlpha");
         checkerboard.screenCenter(X);
         checkerboard.active = false;
         add(checkerboard);
@@ -582,7 +580,7 @@ class ChartEditor extends MusicBeatState {
         backdrop.color = FlxColor.PURPLE;
         backdrop.alpha = 0.5;
         backdrop.active = false;
-		add(backdrop);
+        add(backdrop);
 
         var background:FlxSprite = new FlxSprite(0, 0, AssetHelper.image("menus/menuDesat"));
         background.scrollFactor.set();
@@ -595,7 +593,7 @@ class ChartEditor extends MusicBeatState {
         gradient.scrollFactor.set();
 		gradient.alpha = 0.4;
         gradient.active = false;
-		add(gradient);
+        add(gradient);
     }
 
     inline function createUI():Void {
