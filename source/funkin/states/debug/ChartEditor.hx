@@ -19,6 +19,7 @@ import funkin.music.MusicPlayback;
 import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
+import eternal.ui.NoteViewer;
 import funkin.objects.ui.HealthIcon;
 import funkin.objects.notes.Receptor;
 import haxe.ui.components.HorizontalSlider;
@@ -54,6 +55,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var selectedEvent(default, set):EventSprite;
 
     public var receptors:FlxTypedSpriteGroup<Receptor>;
+    public var noteViewer:NoteViewer;
     public var mouseCursor:FlxSprite;
 
     public var overlay:FlxSprite;
@@ -645,6 +647,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         playerIcon.cameras = [uiCamera];
         playerIcon.active = false;
         add(playerIcon);
+
+        /*
+        noteViewer = new NoteViewer(-40, 0);
+        noteViewer.screenCenter(Y);
+        noteViewer.camera = uiCamera;
+        add(noteViewer);
+        */
     }
 
     inline public function loadAutoSave():Void {
@@ -733,6 +742,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (v != null)
             v.color = hoverColor;
 
+        // noteViewer.view(v);
+
         return selectedNote = v;
     }
 
@@ -801,7 +812,6 @@ class DebugNote extends FlxSprite {
 
         sustain = new FlxSprite();
         sustain.makeRect(ChartEditor.checkerSize * 0.25, 1, FlxColor.WHITE, false, "charteditor_susrect");
-        sustain.color = sustainColors[0];
     }
 
     override function update(elapsed:Float):Void {
@@ -810,11 +820,6 @@ class DebugNote extends FlxSprite {
     }
 
     override function draw():Void {
-        if (animation.curAnim.curFrame != data.direction) {
-            animation.curAnim.curFrame = data.direction;
-            sustain.color = sustainColors[data.direction];
-        }
-
         if (length > 0) {
             sustain.scale.y = ChartEditor.checkerSize * ((length <= 1) ? 0.75 : 0.5) + ChartEditor.checkerSize * Math.max(length - 1, 0);
             sustain.updateHitbox();
@@ -822,7 +827,9 @@ class DebugNote extends FlxSprite {
             sustain.x = x + (width - sustain.width) * 0.5; 
             sustain.y = y + height * 0.5;
 
+            sustain.color = sustainColors[data.direction];
             sustain.alpha = alpha;
+
             sustain.draw();
             /*
             if (length > 1)
@@ -837,6 +844,7 @@ class DebugNote extends FlxSprite {
             */
         }
 
+        animation.curAnim.curFrame = data.direction;
         super.draw();
     }
 
