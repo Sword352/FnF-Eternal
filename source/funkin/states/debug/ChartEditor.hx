@@ -816,7 +816,7 @@ class DebugNote extends FlxSprite {
         }
 
         if (length > 0) {
-            sustain.scale.y = ChartEditor.checkerSize * 0.5 + ChartEditor.checkerSize * Math.max(length - 1, 0);
+            sustain.scale.y = ChartEditor.checkerSize * ((length <= 1) ? 0.75 : 0.5) + ChartEditor.checkerSize * Math.max(length - 1, 0);
             sustain.updateHitbox();
 
             sustain.x = x + (width - sustain.width) * 0.5; 
