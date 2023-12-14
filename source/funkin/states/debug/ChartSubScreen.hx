@@ -444,9 +444,14 @@ class ChartSubScreen extends FlxSubState {
         saveEvents.onClick = (_) -> Tools.saveData("events.json", Json.encode(parent.chart.events, null, false));
         saveEvents.top = 50;
 
+        var autoSave:Button = createButton("Load Autosave");
+        autoSave.onClick = (_) -> parent.loadAutoSave();
+        autoSave.top = 75;
+
         page.addComponent(saveChart);
         page.addComponent(saveMeta);
         page.addComponent(saveEvents);
+        page.addComponent(autoSave);
     }
 
     inline function createSavePrefs():Void {

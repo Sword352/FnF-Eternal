@@ -108,6 +108,9 @@ class CrashHandler {
           trace("\n" + msg);
           msg += '\nPlease report this to the github page: ${Tools.githubURL}';
 
+          if (FlxG.state != null && FlxG.state is ICrashListener)
+               cast(FlxG.state, ICrashListener).onCrash();
+
           #if sys
           if (!FileSystem.exists(CRASHLOG_PATH))
               FileSystem.createDirectory(CRASHLOG_PATH);
@@ -153,5 +156,9 @@ class CrashHandler {
           return FlxG.random.getObject(quotes);
           #end
      }
+}
+
+interface ICrashListener {
+     function onCrash():Void;
 }
 #end

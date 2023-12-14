@@ -29,7 +29,7 @@ import eternal.ChartFormat.ChartEvent;
 
 import tjson.TJSON as Json;
 
-class ChartEditor extends MusicBeatState {
+class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements eternal.core.crash.CrashHandler.ICrashListener #end {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
     public static final checkerSize:Int = 40;
@@ -109,31 +109,14 @@ class ChartEditor extends MusicBeatState {
         metronome.volume = Settings.get("CHART_metronomeVolume");
 
         // spawn existing notes
-        if (chart.notes.length > 0) {
-            for (noteData in chart.notes) {
-                var note:DebugNote = new DebugNote();
-                note.setPosition(checkerboard.x + checkerSize * noteData.direction + checkerSize * 4 * noteData.strumline, getYFromTime(noteData.time));
-
-                if (noteData.length != null && noteData.length >= 100)
-                    note.length = Math.floor(noteData.length / Conductor.stepCrochet);
-
-                note.data = noteData;
-                notes.add(note);
-            }
-        }
+        if (chart.notes.length > 0)
+            spawnNotes(chart.notes);
 
         // spawn existing events
-        if (chart.events.length > 0) {
-            var eventKeys:Map<String, String> = [for (ev in eventList) ev.name => (ev.display ?? ev.name)];
+        if (chart.events.length > 0)
+            spawnEvents(chart.events);
 
-            for (eventData in chart.events) {
-                var event:EventSprite = new EventSprite();
-                event.setPosition(checkerboard.x - checkerSize, getYFromTime(eventData.time));
-                event.display = eventKeys.get(eventData.event);
-                event.data = eventData;
-                events.add(event);
-            }
-        }
+        FlxG.stage.window.onClose.add(autoSave);
     }
 
     override function update(elapsed:Float):Void {
@@ -351,6 +334,7 @@ class ChartEditor extends MusicBeatState {
 
     inline function goToPlayState():Void {
         music.stop();
+        autoSave();
 
         persistentUpdate = false;
         FlxG.mouse.visible = false;
@@ -663,7 +647,75 @@ class ChartEditor extends MusicBeatState {
         add(playerIcon);
     }
 
+    inline public function loadAutoSave():Void {
+        var oldChart:Chart = chart;
+
+        Tools.invokeTempSave((save) -> {
+            var saveMap:Map<String, Dynamic> = save.data.charts;
+            if (saveMap != null && saveMap.exists(chart.meta.rawName))
+                chart = eternal.ChartLoader.resolveChart(saveMap.get(chart.meta.rawName));           
+        }, "chart_autosave");
+
+        if (oldChart == chart)
+            return;
+
+        // perhaps it's better to not switch states at all?
+        
+        AssetHelper.clearAssets = false;
+
+        subState.close();
+        FlxG.switchState(new ChartEditor(chart, difficulty));
+    }
+
+    inline public function autoSave():Void {
+        Tools.invokeTempSave((save) -> {
+            var saveMap:Map<String, Dynamic> = save.data.charts;
+            if (saveMap == null)
+                saveMap = [];
+
+            saveMap.set(chart.meta.rawName, {
+                meta: chart.meta,
+                notes: chart.notes,
+                events: chart.events,
+                speed: chart.speed,
+                bpm: chart.bpm
+            });
+            save.data.charts = saveMap;
+        }, "chart_autosave");
+    }
+
+    public function onCrash():Void {
+        autoSave();
+    }
+
+    inline function spawnNotes(noteArray:Array<ChartNote>):Void {
+        for (noteData in noteArray) {
+            var note:DebugNote = new DebugNote();
+            note.setPosition(checkerboard.x + checkerSize * noteData.direction + checkerSize * 4 * noteData.strumline, getYFromTime(noteData.time));
+
+            if (noteData.length != null && noteData.length >= 100)
+                note.length = Math.floor(noteData.length / Conductor.stepCrochet);
+
+            note.data = noteData;
+            notes.add(note);
+        }
+    }
+
+    inline function spawnEvents(eventArray:Array<ChartEvent>):Void {
+        var eventKeys:Map<String, String> = [for (ev in eventList) ev.name => (ev.display ?? ev.name)];
+
+        for (eventData in eventArray) {
+            var event:EventSprite = new EventSprite();
+            event.setPosition(checkerboard.x - checkerSize, getYFromTime(eventData.time));
+            event.display = eventKeys.get(eventData.event);
+            event.data = eventData;
+            events.add(event);
+        }
+    }
+
     override function destroy():Void {
+        FlxG.stage.window.onClose.remove(autoSave);
+
         super.destroy();
 
         // temporary fix for haxeui crash
@@ -729,7 +781,7 @@ class ChartEditor extends MusicBeatState {
     }
 }
 
-// TODO: perhaps find a smarter way to draw debug sustains
+// TODO: perhaps find a smarter way to draw debug sustains + float sustain visual
 class DebugNote extends FlxSprite {
     public var data:ChartNote = null;
     public var length:Int = 0;
