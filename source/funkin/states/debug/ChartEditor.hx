@@ -208,7 +208,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 if (hit && hitsoundVolume > 0)
                     FlxG.sound.play(hitsound, hitsoundVolume);
 
-                if (receptors.visible && (hit || (late && note.length > 0 && note.data.time + Conductor.stepCrochet * note.length > Conductor.position
+                if (receptors.visible && (hit || (late && note.length > 0 && note.data.time + note.data.length > Conductor.position
                     && (Settings.get("CHART_rStaticGlow") || lastStep != Conductor.currentStep))))
                     receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
             });
@@ -400,7 +400,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         notes.forEachAlive((note) -> {
             note.y = getYFromTime(note.data.time);
             if (note.data.length != null && note.data.length >= 100)
-                note.length = Math.floor(note.data.length / Conductor.stepCrochet);
+                note.length = note.data.length / Conductor.stepCrochet;
         });
 
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
@@ -694,7 +694,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             note.setPosition(checkerboard.x + checkerSize * noteData.direction + checkerSize * 4 * noteData.strumline, getYFromTime(noteData.time));
 
             if (noteData.length != null && noteData.length >= 100)
-                note.length = Math.floor(noteData.length / Conductor.stepCrochet);
+                note.length = noteData.length / Conductor.stepCrochet;
 
             note.data = noteData;
             notes.add(note);
@@ -781,20 +781,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 }
 
-// TODO: perhaps find a smarter way to draw debug sustains + float sustain visual
 class DebugNote extends FlxSprite {
+    static final sustainColors:Array<FlxColor> = [0xC24A98, 0x00FEFE, 0x13FB05, 0xF9383E];
+
     public var data:ChartNote = null;
-    public var length:Int = 0;
+    public var length:Float = 0;
+
+    var sustain:FlxSprite;
 
     public function new():Void {
         super();
 
         loadGraphic(AssetHelper.image("ui/debug/NoteGrid"), true, 161, 161);
-        animation.add('note', [for (i in 0...12) i], 0);
+        animation.add('note', [for (i in 0...4) i], 0);
         animation.play('note', true);
 
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
+
+        sustain = new FlxSprite();
+        sustain.makeRect(ChartEditor.checkerSize * 0.25, 1, FlxColor.WHITE, false, "charteditor_susrect");
+        sustain.color = sustainColors[0];
     }
 
     override function update(elapsed:Float):Void {
@@ -803,7 +810,21 @@ class DebugNote extends FlxSprite {
     }
 
     override function draw():Void {
+        if (animation.curAnim.curFrame != data.direction) {
+            animation.curAnim.curFrame = data.direction;
+            sustain.color = sustainColors[data.direction];
+        }
+
         if (length > 0) {
+            sustain.scale.y = ChartEditor.checkerSize * 0.5 + ChartEditor.checkerSize * Math.max(length - 1, 0);
+            sustain.updateHitbox();
+
+            sustain.x = x + (width - sustain.width) * 0.5; 
+            sustain.y = y + height * 0.5;
+
+            sustain.alpha = alpha;
+            sustain.draw();
+            /*
             if (length > 1)
                 drawSustainPiece(0.65);
 
@@ -813,10 +834,8 @@ class DebugNote extends FlxSprite {
                 else
                     drawSustainPiece(i + 1);
             }
+            */
         }
-
-        if (animation.curAnim.curFrame != data.direction)
-            animation.curAnim.curFrame = data.direction;
 
         super.draw();
     }
@@ -847,17 +866,19 @@ class DebugNote extends FlxSprite {
     }
 
     override function destroy():Void {
-        super.destroy();
+        sustain = FlxDestroyUtil.destroy(sustain);
         data = null;
+
+        super.destroy();
     }
 }
 
 class EventSprite extends FlxSprite {
     public var display:String;
-    public var data:ChartEvent;
-
     public var rect:FlxSprite;
     public var text:FlxText;
+
+    public var data:ChartEvent;
 
     public function new():Void {
         super();
