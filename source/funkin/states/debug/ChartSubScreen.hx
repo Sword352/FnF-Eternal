@@ -11,6 +11,8 @@ import funkin.music.EventManager.EventDetails;
 import tjson.TJSON as Json;
 
 class ChartSubScreen extends FlxSubState {
+    static var lastPage:Int = 0;
+
     var parent:ChartEditor;
     var menu:TabView;
 
@@ -57,7 +59,6 @@ class ChartSubScreen extends FlxSubState {
         }
         ');
         menu.styleNames = "rounded-tabs full-width-buttons";
-        add(menu);
 
         createAudioPage();
         createVisualPage();
@@ -65,6 +66,9 @@ class ChartSubScreen extends FlxSubState {
         createEventPage();
         createSavePage();
         createSavePrefs();
+
+        menu.pageIndex = lastPage;
+        add(menu);
     }
 
     override function update(elapsed:Float):Void {
@@ -89,6 +93,8 @@ class ChartSubScreen extends FlxSubState {
         }
 
         parent = null;
+
+        lastPage = menu.pageIndex;
 
         super.destroy();
     }

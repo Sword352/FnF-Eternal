@@ -150,9 +150,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
 
         mouseCursor.x = FlxMath.bound(floorMousePosition(FlxG.mouse.x), checkerboard.x - checkerSize, checkerboard.x + checkerSize * 7);
-        mouseCursor.y = FlxMath.bound(getMouseY(), 0, getYFromTime(music.instrumental.length) - checkerSize);
+        mouseCursor.y = FlxMath.bound(getMouseY(), 0, checkerboard.height - checkerSize);
+        mouseCursor.visible = (isMouseXValid() && isMouseYValid());
 
-        if (isMouseXValid() && isMouseYValid()) {
+        if (mouseCursor.visible) {
             if (FlxG.mouse.justPressed) {
                 if (FlxG.mouse.x > checkerboard.x)
                     checkSpawnNote();
@@ -174,7 +175,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (FlxG.mouse.wheel != 0)
             incrementTime(-FlxG.mouse.wheel * 50);
         if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN)
-            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * (1 * (60 / (1 / elapsed))));
+            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * (60 * elapsed));
 
         super.update(elapsed);
         updateCurrentBPM();
@@ -415,19 +416,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline public function reloadMeasureMarks():Void {
         var measureTime:Float = Conductor.calculateMeasureTime(Conductor.bpm);
-        var measureFnt:String = AssetHelper.font("vcr");
+        var measureFnt:String = AssetHelper.font("vcr"); // avoids 78 file exists calls
         var measureIndex:Int = 0;
 
         measures.forEachAlive((measure) -> measure.kill());
 
         while ((measureTime * measureIndex) < music.instrumental.length) {
-            var text:FlxText = measures.recycle(FlxText, () -> new FlxText());
+            var text:FlxText = measures.recycle(FlxText, () -> new FlxText().setFormat(measureFnt, 32));
             text.x = checkerboard.x + checkerboard.width + checkerSize * 0.5;
             text.y = checkerSize * Conductor.measureLength * measureIndex;
-
             text.text = Std.string(measureIndex);
-            text.setFormat(measureFnt, 32);
-
             text.ID = measureIndex;
             measures.add(text);
 
@@ -761,7 +759,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         return FlxG.mouse.x > checkerboard.x - checkerSize && FlxG.mouse.x < checkerboard.x + checkerboard.width;
 
     inline function isMouseYValid():Bool
-        return FlxG.mouse.y > 0 && FlxG.mouse.y < getYFromTime(music.instrumental.length);
+        return FlxG.mouse.y > 0 && FlxG.mouse.y < checkerboard.height;
 
     inline static function getMouseY():Float {
         return (FlxG.keys.pressed.SHIFT) ? FlxG.mouse.y : floorMousePosition(FlxG.mouse.y);
