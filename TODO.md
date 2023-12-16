@@ -46,6 +46,6 @@
 
 ### Bugs to Fix
 - Fix the objects "repositioning" when using a lerped camera zoom value (like in PlayState with camHUD)
-- Fix sustain tail clipping (the tail goes up before being actually clipped)
+- Fix sustain rendering bugs (sustain drawing and tail clipping)
 - Fix little position snap when calling `obj.centerToObject(base, Y)`, where `base`'s position is get via `FlxMath#lerp` (the snap happens when `base` is in it's intended position)
 - Fix the press enter sprite's frames on TitleScreen

@@ -138,7 +138,6 @@ class Sustain extends TiledSprite {
    public var length:Float = Conductor.stepCrochet;
    public var scrollSpeed:Float = 0.45;
    public var downscroll:Bool = false;
-   public var len:Float;
 
    public var tail(default, null):FlxSprite;
    public var parent(default, set):Note;
@@ -151,9 +150,7 @@ class Sustain extends TiledSprite {
       alpha = 0.6;
    }
 
-   override function update(elapsed:Float):Void {      
-      updateSustain();
-
+   override function update(elapsed:Float):Void {
       if (tail.exists && tail.active)
          tail.update(elapsed);
 
@@ -161,7 +158,9 @@ class Sustain extends TiledSprite {
    }
 
    override function draw():Void {
-      if (len > 0)
+      updateSustain();
+
+      if (height > 0)
          super.draw();
 
       if (tail.exists && tail.visible)
@@ -176,7 +175,7 @@ class Sustain extends TiledSprite {
    }
 
    public function updateSustain():Void {
-      len = (length - Conductor.stepCrochet) * scrollSpeed;
+      var len:Float = length * scrollSpeed - tail.height;
       height = Math.max(0, len);
 
       if (parent != null) {
@@ -186,7 +185,8 @@ class Sustain extends TiledSprite {
       }
 
       tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + len));
-      if (len <= 0 && parent?.baseVisible)
+
+      if (height <= 0 && parent?.baseVisible)
          tail.y += tail.height * _facingVerticalMult;
    }
 
