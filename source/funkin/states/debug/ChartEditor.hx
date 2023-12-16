@@ -895,6 +895,7 @@ class DebugNote extends FlxSprite {
 
         y = baseY;
     }
+    */
 
     override function destroy():Void {
         sustain = FlxDestroyUtil.destroy(sustain);
@@ -902,7 +903,6 @@ class DebugNote extends FlxSprite {
 
         super.destroy();
     }
-    */
 }
 
 class EventSprite extends FlxSprite {
