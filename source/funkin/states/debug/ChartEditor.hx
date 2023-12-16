@@ -8,6 +8,7 @@ import flixel.text.FlxText;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxTiledSprite;
 
+import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
@@ -63,6 +64,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var timeBar:HorizontalSlider;
 
     public var measures:FlxTypedGroup<FlxText>;
+    public var beatIndicators:FlxSpriteGroup;
 
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
@@ -196,6 +198,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 receptor.y = line.y - (receptor.height * 0.5);
         }
 
+        if (beatIndicators.visible) {
+            for (ind in beatIndicators) {
+                ind.color = FlxColor.interpolate(ind.color, FlxColor.RED, FlxMath.bound(elapsed * 6, 0, 1));
+                ind.y = line.y - ((line.height + ind.height) * 0.25);
+            }
+        }
+
         if (measures.visible)
             measures.forEachAlive((measure) -> measure.alpha = (measure.ID < Conductor.decimalMeasure && Settings.get("CHART_lateAlpha")) ? lateAlpha : 1);
 
@@ -229,8 +238,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function beatHit(currentBeat:Int):Void {
-        if (music.playing && metronome.volume > 0)
-            metronome.play(true);
+        if (music.playing) {
+            if (beatIndicators.visible)
+                for (ind in beatIndicators)
+                    ind.color = FlxColor.CYAN;
+
+            if (metronome.volume > 0)
+                metronome.play(true);
+        }
 
         super.beatHit(currentBeat);
     }
@@ -366,6 +381,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function pauseMusic():Void {
+        if (beatIndicators.visible)
+            for (ind in beatIndicators)
+                ind.color = FlxColor.RED;
+
         music.pause();
         metronome.stop();
     }
@@ -416,7 +435,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline public function reloadMeasureMarks():Void {
         var measureTime:Float = Conductor.calculateMeasureTime(Conductor.bpm);
-        var measureFnt:String = AssetHelper.font("vcr"); // avoids 78 file exists calls
+        var measureFnt:String = AssetHelper.font("vcr"); // avoids 78 file exist calls
         var measureIndex:Int = 0;
 
         measures.forEachAlive((measure) -> measure.kill());
@@ -545,6 +564,20 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
         //
 
+        beatIndicators = new FlxSpriteGroup();
+        beatIndicators.visible = Settings.get("CHART_beatIndices");
+        beatIndicators.active = false;
+
+        for (i in 0...2) {
+            var losange:FlxSprite = new FlxSprite();
+            losange.makeRect(checkerSize * 0.35, checkerSize * 0.35, FlxColor.WHITE);
+            losange.x = (line.x - losange.width * 0.5) + ((line.width + losange.width * 0.5) * i);
+            losange.color = FlxColor.RED;
+            losange.angle = 45;
+            losange.active = losange.antialiasing = false;
+            beatIndicators.add(losange);
+        }
+
         mouseCursor = new FlxSprite();
         mouseCursor.makeRect(checkerSize, checkerSize);
         mouseCursor.setPosition(checkerboard.x, checkerboard.y + checkerSize);
@@ -555,6 +588,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(notes);
         add(line);
         add(measures);
+        add(beatIndicators);
         add(receptors);
     }
 

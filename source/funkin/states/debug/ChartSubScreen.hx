@@ -213,10 +213,20 @@ class ChartSubScreen extends FlxSubState {
             parent.measures.visible = showMeasures.selected;
         }
 
+        // beat indicators
+        var beatIndicators:CheckBox = createCheckbox("Show Beat Indicators (flashing!)");
+        beatIndicators.selected = Settings.get("CHART_beatIndices");
+        beatIndicators.top = 50;
+
+        beatIndicators.onChange = (_) -> {
+            Settings.settings["CHART_beatIndices"].value = beatIndicators.selected;
+            parent.beatIndicators.visible = beatIndicators.selected;
+        }
+
         // time overlay
         var timeOverlay:CheckBox = createCheckbox("Show Time Overlay");
         timeOverlay.selected = Settings.get("CHART_timeOverlay");
-        timeOverlay.top = 50;
+        timeOverlay.top = 75;
 
         timeOverlay.onChange = (_) -> {
             Settings.settings["CHART_timeOverlay"].value = timeOverlay.selected;
@@ -226,7 +236,7 @@ class ChartSubScreen extends FlxSubState {
         // receptors
         var showReceptors:CheckBox = createCheckbox("Show Receptors");
         showReceptors.selected = Settings.get("CHART_receptors");
-        showReceptors.top = 75;
+        showReceptors.top = 100;
 
         showReceptors.onChange = (_) -> {
             Settings.settings["CHART_receptors"].value = showReceptors.selected;
@@ -235,19 +245,20 @@ class ChartSubScreen extends FlxSubState {
 
         var staticGlow:CheckBox = createCheckbox("Receptors Hold Static Glow");
         staticGlow.selected = Settings.get("CHART_rStaticGlow");
-        staticGlow.top = 100;
+        staticGlow.top = 125;
 
         staticGlow.onChange = (_) -> Settings.settings["CHART_rStaticGlow"].value = staticGlow.selected;
 
         // strumline snap
         var strumlineSnap:CheckBox = createCheckbox("Strumline Scroll Snap");
         strumlineSnap.selected = Settings.get("CHART_strumlineSnap");
-        strumlineSnap.top = 125;
+        strumlineSnap.top = 150;
 
         strumlineSnap.onChange = (_) -> Settings.settings["CHART_strumlineSnap"].value = strumlineSnap.selected;
 
         page.addComponent(lateAlpha);
         page.addComponent(showMeasures);
+        page.addComponent(beatIndicators);
         page.addComponent(timeOverlay);
         page.addComponent(showReceptors);
         page.addComponent(staticGlow);

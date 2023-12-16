@@ -88,6 +88,7 @@ class Settings {
         "CHART_hitsoundVolume" => new Setting<Float>(0),
         "CHART_muteInst" => new Setting<Bool>(false),
         "CHART_measureText" => new Setting<Bool>(true),
+        "CHART_beatIndices" => new Setting<Bool>(false),
         "CHART_timeOverlay" => new Setting<Bool>(true),
         "CHART_receptors" => new Setting<Bool>(false),
         "CHART_rStaticGlow" => new Setting<Bool>(false),
