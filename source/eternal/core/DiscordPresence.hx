@@ -69,7 +69,7 @@ class DiscordPresence {
 
     private static function onReady(request:cpp.RawConstPointer<DiscordUser>):Void {
         username = cpp.ConstPointer.fromRaw(request).ptr.username;
-        trace('Connection established, welcome ${username}!');
+        trace('Connected as ${username}.');
 
         presence.state = "(in-dev)";
         presence.largeImageKey = "logo";

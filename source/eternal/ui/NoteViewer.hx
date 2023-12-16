@@ -51,8 +51,7 @@ class NoteViewer extends FlxSpriteGroup {
             if (_ignoreStepperCallback)
                 return;
 
-            noteToView.length = lengthStepper.pos;
-            noteToView.data.length = Conductor.stepCrochet * noteToView.length;
+            noteToView.data.length = Conductor.stepCrochet * lengthStepper.pos;
         }
 
         lengthStepper.left = infos.x;
@@ -85,7 +84,7 @@ class NoteViewer extends FlxSpriteGroup {
         this.note.animation.curAnim.curFrame = noteToView.data.direction;
 
         _ignoreStepperCallback = true;
-        lengthStepper.pos = noteToView.length;
+        lengthStepper.pos = (noteToView.data.length / Conductor.stepCrochet);
         _ignoreStepperCallback = false;
     }
 

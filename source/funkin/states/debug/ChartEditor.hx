@@ -167,15 +167,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
 
         if (selectedNote != null && (FlxG.keys.justPressed.Q || FlxG.keys.justPressed.E)) {
-            selectedNote.length += (FlxG.keys.justPressed.Q) ? 1 : -1;
-            selectedNote.data.length = Conductor.stepCrochet * selectedNote.length;
-    
-            if (selectedNote.length < 0)
+            selectedNote.data.length += Conductor.stepCrochet * ((FlxG.keys.justPressed.Q) ? 1 : -1);
+            if (selectedNote.data.length < 0)
                 killNote(selectedNote);
         }
 
         if (FlxG.mouse.wheel != 0)
-            incrementTime(-FlxG.mouse.wheel * 50);
+            incrementTime(-FlxG.mouse.wheel * 50 * (120 * elapsed));
         if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN)
             incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * (60 * elapsed));
 
@@ -186,7 +184,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
             line.y = getYFromTime(music.instrumental.time);
         else
-            line.y = FlxMath.lerp(getYFromTime(music.instrumental.time), line.y, FlxMath.bound(1 - elapsed * 12, 0, 1));
+            line.y = FlxMath.lerp(line.y, getYFromTime(music.instrumental.time), 1 - Math.exp(-elapsed * 12));
 
         if (!music.playing && Conductor.position >= music.instrumental.length) {
             music.instrumental.time = 0;
@@ -200,7 +198,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (beatIndicators.visible) {
             for (ind in beatIndicators) {
-                ind.color = FlxColor.interpolate(ind.color, FlxColor.RED, FlxMath.bound(elapsed * 6, 0, 1));
+                ind.color = FlxColor.interpolate(ind.color, FlxColor.RED, 1 - Math.exp(-elapsed * 6));
                 ind.y = line.y - ((line.height + ind.height) * 0.25);
             }
         }
@@ -220,7 +218,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 if (hit && hitsoundVolume > 0)
                     FlxG.sound.play(hitsound, hitsoundVolume);
 
-                if (receptors.visible && (hit || (late && note.length > 0 && note.data.time + note.data.length > Conductor.position
+                if (receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.position
                     && (Settings.get("CHART_rStaticGlow") || lastStep != Conductor.currentStep))))
                     receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
             });
@@ -260,9 +258,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         // no existing note found, create one
         if (existingNote == null) {
             var note:DebugNote = notes.recycle(DebugNote);
-            note.setPosition(mouseCursor.x, getMouseY());
-
-            note.length = 0;            
+            note.setPosition(mouseCursor.x, getMouseY()); 
             note.data = { time: getTimeFromY(note.y), strumline: strumline, direction: direction, length: 0 };
             chart.notes.push(note.data);
 
@@ -419,12 +415,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         checkerboard.height = getYFromTime(music.instrumental.length);
         line.y = getYFromTime(music.instrumental.time);
 
-        notes.forEachAlive((note) -> {
-            note.y = getYFromTime(note.data.time);
-            if (note.data.length != null && note.data.length >= 100)
-                note.length = note.data.length / Conductor.stepCrochet;
-        });
-
+        notes.forEachAlive((note) -> note.y = getYFromTime(note.data.time));
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
 
         if (updateMeasures)
@@ -733,10 +724,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         for (noteData in noteArray) {
             var note:DebugNote = new DebugNote();
             note.setPosition(checkerboard.x + checkerSize * noteData.direction + checkerSize * 4 * noteData.strumline, getYFromTime(noteData.time));
-
-            if (noteData.length != null && noteData.length >= 100)
-                note.length = noteData.length / Conductor.stepCrochet;
-
             note.data = noteData;
             notes.add(note);
         }
@@ -828,8 +815,6 @@ class DebugNote extends FlxSprite {
     static final sustainColors:Array<FlxColor> = [0xC24A98, 0x00FEFE, 0x13FB05, 0xF9383E];
 
     public var data:ChartNote = null;
-    public var length:Float = 0;
-
     var sustain:FlxSprite;
 
     public function new():Void {
@@ -852,8 +837,13 @@ class DebugNote extends FlxSprite {
     }
 
     override function draw():Void {
-        if (length > 0) {
-            sustain.scale.y = ChartEditor.checkerSize * ((length <= 1) ? 0.75 : 0.5) + ChartEditor.checkerSize * Math.max(length - 1, 0);
+        if (data.length > 0) {
+            var length:Float = (data.length / Conductor.stepCrochet) - 0.5;
+
+            sustain.scale.y = ChartEditor.checkerSize * length;
+            if (sustain.scale.y <= ChartEditor.checkerSize * 0.5)
+                sustain.scale.y += (ChartEditor.checkerSize - sustain.scale.y);
+
             sustain.updateHitbox();
 
             sustain.x = x + (width - sustain.width) * 0.5; 
@@ -861,8 +851,8 @@ class DebugNote extends FlxSprite {
 
             sustain.color = sustainColors[data.direction];
             sustain.alpha = alpha;
-
             sustain.draw();
+
             /*
             if (length > 1)
                 drawSustainPiece(0.65);
@@ -880,6 +870,7 @@ class DebugNote extends FlxSprite {
         super.draw();
     }
 
+    /*
     function drawSustainPiece(spacing:Float):Void {
         var baseY:Float = y;
 
@@ -911,6 +902,7 @@ class DebugNote extends FlxSprite {
 
         super.destroy();
     }
+    */
 }
 
 class EventSprite extends FlxSprite {
