@@ -20,20 +20,6 @@ class Main extends Sprite {
       overlay = new Overlay();
       addChild(overlay);
    }
-
-   override function __enterFrame(delta:Int):Void {
-      if (FlxG.keys.justPressed.F11) {
-         FlxG.fullscreen = !FlxG.fullscreen;
-         FlxG.save.data.fullscreen = FlxG.fullscreen;
-         FlxG.save.flush();
-      }
-
-      #if FLX_DEBUG
-      overlay.visible = !game.debugger.visible;
-      #end
-
-      super.__enterFrame(delta);
-   }
 }
 
 typedef GameInstance = #if ENGINE_CRASH_HANDLER eternal.core.crash.FNFGame #else flixel.FlxGame #end ;

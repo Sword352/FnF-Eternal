@@ -175,16 +175,15 @@ class Sustain extends TiledSprite {
    }
 
    public function updateSustain():Void {
-      var len:Float = length * scrollSpeed - tail.height;
-      height = Math.max(0, len);
+      height = length * scrollSpeed - tail.height;
 
       if (parent != null) {
          setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
          if (downscroll)
-            y -= len;
+            y -= height;
       }
 
-      tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + len));
+      tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + height));
 
       if (height <= 0 && parent?.baseVisible)
          tail.y += tail.height * _facingVerticalMult;
@@ -214,6 +213,11 @@ class Sustain extends TiledSprite {
       parent = v;
       reloadGraphic();
       return v;
+   }
+
+   override function set_height(v:Float):Float {
+      regen = (v != height && v > 0) || regen;
+      return height = v;
    }
 
    override function set_flipX(v:Bool):Bool {

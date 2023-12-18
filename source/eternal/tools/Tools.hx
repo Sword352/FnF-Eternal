@@ -188,6 +188,19 @@ class Tools {
             sprite.animation.play(animations[0].name, true);
     }
 
+    public static inline function lerp(start:Float, goal:Float, speed:Float = 1):Float {
+        return goal + (start - goal) * lerpRatio(speed);
+    }
+
+    public static inline function colorLerp(from:Int, to:Int, speed:Float = 1):FlxColor
+        return FlxColor.interpolate(to, from, lerpRatio(speed));
+
+    public static inline function lerpRatio(speed:Float = 1):Float
+        return Math.exp(-FlxG.elapsed * speed);
+
+    public static inline function framerateMult(framerate:Int = 60)
+        return framerate * FlxG.elapsed;
+
     public static inline function pauseEveryTween():Void
         FlxTween.globalManager.forEach(twn -> twn.active = false);
 

@@ -1,8 +1,8 @@
 package funkin.states.debug;
 
-import flixel.FlxCamera;
 import flixel.FlxSubState;
 import flixel.sound.FlxSound;
+import funkin.objects.Camera;
 
 import flixel.text.FlxText;
 import flixel.addons.display.FlxBackdrop;
@@ -44,7 +44,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var currentEvent:EventDetails;
     public var defaultArgs:Array<Any>;
 
-    public var uiCamera:FlxCamera;
+    public var uiCamera:Camera;
 
     public var notes:FlxTypedGroup<DebugNote>;
     public var events:FlxTypedGroup<EventSprite>;
@@ -95,6 +95,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
         
         super.create();
+
+        FlxG.cameras.reset(new Camera());
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "Charting " + chart.meta.name;
@@ -173,9 +175,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
 
         if (FlxG.mouse.wheel != 0)
-            incrementTime(-FlxG.mouse.wheel * 50 * (120 * elapsed));
+            incrementTime(-FlxG.mouse.wheel * 50 * Tools.framerateMult(120));
         if (FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN)
-            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * (60 * elapsed));
+            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
 
         super.update(elapsed);
         updateCurrentBPM();
@@ -184,7 +186,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
             line.y = getYFromTime(music.instrumental.time);
         else
-            line.y = FlxMath.lerp(line.y, getYFromTime(music.instrumental.time), 1 - Math.exp(-elapsed * 12));
+            line.y = Tools.lerp(line.y, getYFromTime(music.instrumental.time), 12);
 
         if (!music.playing && Conductor.position >= music.instrumental.length) {
             music.instrumental.time = 0;
@@ -198,7 +200,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (beatIndicators.visible) {
             for (ind in beatIndicators) {
-                ind.color = FlxColor.interpolate(ind.color, FlxColor.RED, 1 - Math.exp(-elapsed * 6));
+                ind.color = Tools.colorLerp(ind.color, FlxColor.RED, 6);
                 ind.y = line.y - ((line.height + ind.height) * 0.25);
             }
         }
@@ -522,7 +524,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         line.screenCenter(X);
         line.active = false;
 
-        FlxG.camera.follow(line, LOCKON, 1);
+        FlxG.camera.follow(line, LOCKON);
         FlxG.camera.targetOffset.y = 125;
 
         notes = new FlxTypedGroup<DebugNote>();
@@ -565,7 +567,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             losange.x = (line.x - losange.width * 0.5) + ((line.width + losange.width * 0.5) * i);
             losange.color = FlxColor.RED;
             losange.angle = 45;
-            losange.active = losange.antialiasing = false;
+            losange.active = false;
             beatIndicators.add(losange);
         }
 
@@ -606,7 +608,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function createUI():Void {
-        uiCamera = new FlxCamera();
+        uiCamera = new Camera();
         uiCamera.bgColor.alpha = 0;
         FlxG.cameras.add(uiCamera, false);
 
@@ -838,11 +840,9 @@ class DebugNote extends FlxSprite {
 
     override function draw():Void {
         if (data.length > 0) {
-            var length:Float = (data.length / Conductor.stepCrochet) - 0.5;
-
-            sustain.scale.y = ChartEditor.checkerSize * length;
-            if (sustain.scale.y <= ChartEditor.checkerSize * 0.5)
-                sustain.scale.y += (ChartEditor.checkerSize - sustain.scale.y);
+            sustain.scale.y = ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5);
+            if (sustain.scale.y < ChartEditor.checkerSize)
+                sustain.scale.y = ChartEditor.checkerSize;
 
             sustain.updateHitbox();
 

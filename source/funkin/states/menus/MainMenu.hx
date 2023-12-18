@@ -2,15 +2,19 @@ package funkin.states.menus;
 
 import flixel.FlxObject;
 import flixel.text.FlxText;
+import flixel.math.FlxPoint;
+import flixel.group.FlxSpriteGroup;
 
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.effects.FlxFlicker;
-import flixel.group.FlxSpriteGroup;
 
+import funkin.objects.Camera;
 import funkin.states.options.OptionsMenu;
 
 class MainMenu extends MusicBeatState {
+    static var lastSelection:Int = 0;
+
     var itemList:Array<String> = [
         "story mode",
         "freeplay",
@@ -26,6 +30,8 @@ class MainMenu extends MusicBeatState {
     var currentSelection:Int = 0;
     var allowInputs:Bool = true;
     var itemOrder:Array<FlxSprite>;
+
+    var cameraSpeed:Float = 4.5;
 
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
@@ -50,6 +56,8 @@ class MainMenu extends MusicBeatState {
         #end
         
         Tools.playMusicCheck("freakyMenu");
+        
+        FlxG.cameras.reset(new Camera());
 
         bg = new FlxSprite();
         bg.loadGraphic(AssetHelper.image("menus/menuBG"));
@@ -94,14 +102,21 @@ class MainMenu extends MusicBeatState {
             items.add(item);
         }
 
-        itemOrder = items.members.copy();
+        var midpoint:FlxPoint = items.members[0].getMidpoint();
 
-        cameraTarget = new FlxObject(0, 0, 1, 1);
+        cameraTarget = new FlxObject(midpoint.x, midpoint.y, 1, 1);
         cameraTarget.visible = false;
-        FlxG.camera.follow(cameraTarget, LOCKON);
         add(cameraTarget);
 
+        FlxG.camera.follow(cameraTarget, LOCKON);
+        FlxG.camera.snapToTarget();
+        midpoint.put();
+
+        itemOrder = items.members.copy();
+        currentSelection = lastSelection % itemOrder.length;
         changeSelection();
+
+        persistentUpdate = true;
 
         #if ENGINE_SCRIPTING
         hxsCall("onCreatePost");
@@ -121,7 +136,12 @@ class MainMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        FlxG.camera.followLerp = FlxMath.bound(elapsed * 8, 0, 1);
+        var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
+        cameraTarget.setPosition(
+            Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed),
+            Tools.lerp(cameraTarget.y, itemMidpoint.y, cameraSpeed)
+        );
+        itemMidpoint.put();
 
         if (allowInputs) {
             if (controls.anyJustPressed(["up", "down"]))
@@ -158,14 +178,10 @@ class MainMenu extends MusicBeatState {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, itemList.length - 1);
 
         for (item in itemOrder) {
-            item.animation.play(item.ID == currentSelection ? "selected" : "normal");
+            item.animation.play((item.ID == currentSelection) ? "selected" : "normal");
             item.updateHitbox();
             item.screenCenter(X);
         }
-
-        var itemMidpoint = itemOrder[currentSelection].getMidpoint();
-        cameraTarget.setPosition(itemMidpoint.x, itemMidpoint.y);
-        itemMidpoint.put();
 
         items.members.sort((s1, s2) -> {
             if (s1.ID == currentSelection)
@@ -218,8 +234,9 @@ class MainMenu extends MusicBeatState {
     }
 
     override function destroy():Void {
-        super.destroy();
+        lastSelection = currentSelection;
         itemList = null;
         itemOrder = null;
+        super.destroy();
     }
 }

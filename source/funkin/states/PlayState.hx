@@ -4,6 +4,7 @@ import flixel.*;
 import flixel.util.*;
 import flixel.tweens.*;
 import flixel.math.FlxPoint;
+import funkin.objects.Camera;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
@@ -160,8 +161,9 @@ class PlayState extends MusicBeatState {
       loadScriptsFrom('data/scripts');
       #end
 
-      camGame = FlxG.camera;
+      camGame = new Camera();
       camGame.bgColor.alpha = 0;
+      FlxG.cameras.reset(camGame);
 
       camHUD = new FlxCamera();
       camHUD.bgColor.alpha = 0;
@@ -175,7 +177,7 @@ class PlayState extends MusicBeatState {
 
       cameraObject = new FlxObject(0, 0, 1, 1);
       cameraObject.visible = false;
-      camGame.follow(cameraObject, LOCKON, 1);
+      camGame.follow(cameraObject, LOCKON);
       add(cameraObject);
 
       super.create();
@@ -334,16 +336,18 @@ class PlayState extends MusicBeatState {
       if (health <= minHealth)
          gameOver();
 
-      var ratio:Float = FlxMath.bound(elapsed * cameraSpeed, 0, 1);
-      camGame.zoom = FlxMath.lerp(camGame.zoom, cameraZoom, ratio);
-      camHUD.zoom = FlxMath.lerp(camHUD.zoom, hudZoom, ratio);
+      camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, cameraSpeed);
+      camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, cameraSpeed);
 
       repositionCameraPoint();
-      cameraObject.setPosition(FlxMath.lerp(cameraObject.x, cameraPoint.x, ratio), FlxMath.lerp(cameraObject.y, cameraPoint.y, ratio));
+      cameraObject.setPosition(
+         Tools.lerp(cameraObject.x, cameraPoint.x, cameraSpeed),
+         Tools.lerp(cameraObject.y, cameraPoint.y, cameraSpeed)
+      );
 
       #if ENGINE_DISCORD_RPC
       if (music.playing && Conductor.position >= 0 && Conductor.position <= music.instrumental.length)
-         DiscordPresence.presence.state = '${FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.position * 0.001))}';
+         DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.position * 0.001));
       #end
 
       #if ENGINE_SCRIPTING

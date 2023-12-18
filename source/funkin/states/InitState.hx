@@ -3,6 +3,9 @@ package funkin.states;
 import flixel.FlxState;
 import funkin.states.menus.TitleScreen;
 
+import openfl.ui.Keyboard;
+import openfl.events.KeyboardEvent;
+
 #if ENGINE_CRASH_HANDLER
 import eternal.core.crash.CrashHandler;
 #end
@@ -39,7 +42,11 @@ class InitState extends FlxState {
         FlxG.signals.preStateSwitch.add(AssetHelper.freeMemory);
         FlxG.signals.preStateCreate.add(AssetHelper.freeMemoryPost);
 
+        // To go on/off fullscreen by pressing F11
+        FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyJustPressed);
+
         #if mac
+        // Temporary until next flixel update
         // Fix for the "+" key not working on MacOS
         @:privateAccess FlxG.keys._nativeCorrection.set("0_43", FlxKey.PLUS);
         #end
@@ -64,5 +71,14 @@ class InitState extends FlxState {
         // Go to the titlescreen
         TransitionSubState.skipNextTransOut = true;
         FlxG.switchState(new TitleScreen());
+    }
+
+    private static function onKeyJustPressed(event:KeyboardEvent):Void {
+        switch (event.keyCode) {
+            case Keyboard.F11:
+                FlxG.fullscreen = !FlxG.fullscreen;
+                FlxG.save.data.fullscreen = FlxG.fullscreen;
+                FlxG.save.flush();
+        }
     }
 }

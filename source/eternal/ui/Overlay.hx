@@ -53,6 +53,11 @@ class Overlay extends Sprite {
     }
 
     override function __enterFrame(_):Void {
+        visible = #if FLX_DEBUG !FlxG.game.debugger.visible && #end (showFramerate || showMemory);
+        
+        if (!visible)
+            return;
+
         updateFramerate();
 
         text.text = ""

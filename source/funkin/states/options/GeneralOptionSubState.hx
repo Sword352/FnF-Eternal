@@ -10,7 +10,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
     override function create():Void {
         var option = new IntOptionItem("framerate");
         option.description = "Defines the framerate cap.";
-        option.maxValue = 240;
+        option.maxValue = 480;
         option.minValue = 30;
         addOption(option);
 
@@ -63,7 +63,6 @@ class GeneralOptionSubState extends BaseOptionSubState {
         boyfriend.screenCenter().y += 150;
 
         super.create();
-
         add(boyfriend);
 
         Conductor.music = FlxG.sound.music;
