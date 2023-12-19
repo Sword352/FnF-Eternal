@@ -1,6 +1,7 @@
 package funkin.states.options;
 
 import flixel.FlxSubState;
+import flixel.group.FlxGroup.FlxTypedGroup;
 
 import flixel.text.FlxText;
 import flixel.addons.display.FlxBackdrop;
@@ -8,8 +9,7 @@ import flixel.addons.display.FlxBackdrop;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 
-import flixel.group.FlxGroup.FlxTypedGroup;
-
+import funkin.objects.ui.Alphabet;
 import funkin.states.menus.MainMenu;
 
 typedef OptionCategory = {
@@ -19,8 +19,9 @@ typedef OptionCategory = {
 }
 
 class OptionsMenu extends MusicBeatState {
-    public var bg:FlxSprite;
-    var categoryTexts:FlxTypedGroup<FlxText>;
+    public var background:FlxSprite;
+
+    var categoryTexts:FlxTypedGroup<Alphabet>;
     var checkerBackdrop:FlxBackdrop;
 
     var categories:Array<OptionCategory>;
@@ -72,11 +73,11 @@ class OptionsMenu extends MusicBeatState {
         Tools.playMusicCheck((toPlayState) ? "chillFresh" : "freakyMenu");
         Conductor.bpm = (toPlayState) ? 117 : 102;
 
-		bg = new FlxSprite(0, 0, AssetHelper.image('menus/menuDesat'));
-        bg.scale.set(1.15, 1.15);
-		bg.screenCenter();
-        bg.color = 0x3E3E7A;
-		add(bg);
+		background = new FlxSprite(0, 0, AssetHelper.image('menus/menuDesat'));
+        background.scale.set(1.15, 1.15);
+		background.screenCenter();
+        background.color = 0x3E3E7A;
+		add(background);
 
         checkerBackdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
         checkerBackdrop.color = 0xFF120E7A;
@@ -84,13 +85,13 @@ class OptionsMenu extends MusicBeatState {
         checkerBackdrop.velocity.x = 50;
         add(checkerBackdrop);
 
-        categoryTexts = new FlxTypedGroup<FlxText>();
+        categoryTexts = new FlxTypedGroup<Alphabet>();
         add(categoryTexts);
 
         for (i in 0...categories.length) {
-            var categoryText:FlxText = new FlxText(50, 150 + 100 * i, 0, categories[i].name.toUpperCase());
-            categoryText.setFormat(AssetHelper.font('vcr'), 54);
-            categoryText.setBorderStyle(OUTLINE, FlxColor.BLACK, 4);
+            var categoryText:Alphabet = new Alphabet(50, 150 + 100 * i);
+            categoryText.scale.set(0.7, 0.7);
+            categoryText.text = categories[i].name;
             categoryText.ID = i;
             categoryTexts.add(categoryText);
         }
@@ -118,7 +119,10 @@ class OptionsMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        bg.scale.set(Tools.lerp(bg.scale.x, 1, 6), Tools.lerp(bg.scale.y, 1, 6));
+        background.scale.set(
+            Tools.lerp(background.scale.x, 1, 6),
+            Tools.lerp(background.scale.y, 1, 6)
+        );
 
         for (text in categoryTexts)
             text.y = Tools.lerp(text.y, 150 + 100 * text.ID, 12);
@@ -190,7 +194,7 @@ class OptionsMenu extends MusicBeatState {
         FlxG.sound.play(AssetHelper.sound("confirmMenu"));
 
         for (text in categoryTexts)
-            FlxTween.tween(text, {x: -text.width}, 0.75, {ease: FlxEase.circInOut});
+            FlxTween.tween(text, {x: -(text.width + 15)}, 0.75, {ease: FlxEase.circInOut});
 
         new FlxTimer().start(0.85, (_) -> categories[currentSelection].action());
 

@@ -10,7 +10,8 @@ class OffsetSubState extends MusicBeatSubState {
     var music:FlxSound;
     var logo:FlxSprite;
 
-    var holdLimitation:Float = 0;
+    var holdTime:Float = 0;
+    var lastBPM:Float = 0;
 
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
@@ -48,8 +49,10 @@ class OffsetSubState extends MusicBeatSubState {
         music.onComplete = Conductor.resetPosition;
         FlxG.sound.music.fadeOut(0.5, 0);
 
-        Conductor.resetPosition();
+        lastBPM = Conductor.bpm;
         Conductor.bpm = 80;
+
+        Conductor.resetPosition();
         Conductor.music = music;
 
         var beatDuration:Float = Conductor.crochet / 1000;
@@ -80,14 +83,11 @@ class OffsetSubState extends MusicBeatSubState {
         }
 
         if (controls.anyPressed(["left", "right"])) {
-            holdLimitation += 0.1;
-            if (holdLimitation > (FlxG.keys.pressed.SHIFT ? 0.0015 : 0.5)) {
-                var currentOffset:Float = Settings.settings["audio offset"].value;
-                currentOffset += (controls.lastAction == "left" ? -1 : 1);
-                Settings.settings["audio offset"].value = currentOffset;
-
-                holdLimitation = 0;
+            holdTime += elapsed * 5;
+            if (holdTime > ((FlxG.keys.pressed.SHIFT) ? 0.0015 : 0.5)) {
+                Settings.settings["audio offset"].value += ((controls.lastAction == "left") ? -1 : 1);
                 refreshText();
+                holdTime = 0;
             }
         }
 
@@ -106,13 +106,13 @@ class OffsetSubState extends MusicBeatSubState {
             return;
 
         if (currentBeat > 31 && currentBeat < 112)
-            cast(FlxG.state, OptionsMenu).bg.scale.add(0.05, 0.05);
+            cast(FlxG.state, OptionsMenu).background.scale.add(0.05, 0.05);
 
         logo.scale.add(0.05, 0.05);
         super.beatHit(currentBeat);
     }
 
-    private function refreshText():Void {
+    inline function refreshText():Void {
         offsetText.text = '< Offset: ${Conductor.offset}ms (${(Conductor.offset > 0) ? "LATE" : ((Conductor.offset == 0) ? "DEFAULT" : "EARLY")}) >';
         offsetText.screenCenter(X);
     }
@@ -126,6 +126,7 @@ class OffsetSubState extends MusicBeatSubState {
         FlxG.sound.music.fadeOut(0.5, 1);
 
         Conductor.music = null;
+        Conductor.bpm = lastBPM;
         Conductor.resetPosition();
 
         super.close();

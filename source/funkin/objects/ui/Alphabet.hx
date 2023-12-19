@@ -17,7 +17,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
     public var spriteTrackers:Map<FlxSprite, AlphabetTrackerPosition>;
 
     public function new(x:Float = 0, y:Float = 0, text:String = "", bold:Bool = true):Void {
-        super();
+        super(x, y);
 
         distance = FlxPoint.get(20, 140);
         spacing = FlxPoint.get(28, 60);
@@ -143,11 +143,11 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (character in v.split("")) {
             if (character == '\n') {
                 xPos = 0;
-                yPos += spacing.y;
+                yPos += spacing.y * scale.y;
                 continue;
             }
             else if (character == " ") {
-                xPos += spacing.x;
+                xPos += spacing.x * scale.x;
                 continue;
             }
       
@@ -162,6 +162,9 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
                 newCharacter.setup(character, bold);
                 newCharacter.setPosition(xPos, yPos);
             }
+
+            newCharacter.scale.set(scale.x, scale.y);
+            newCharacter.updateHitbox();
 
             xPos += newCharacter.width + 3;
             add(newCharacter);
