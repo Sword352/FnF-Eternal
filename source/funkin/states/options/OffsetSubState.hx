@@ -75,8 +75,7 @@ class OffsetSubState extends MusicBeatSubState {
         #end
 
         if (music.playing) {
-            var ratio:Float = FlxMath.bound(elapsed * 6, 0, 1);
-            logo.scale.set(FlxMath.lerp(logo.scale.x, 0.4, ratio), FlxMath.lerp(logo.scale.y, 0.4, ratio));
+            logo.scale.set(Tools.lerp(logo.scale.x, 0.4, 6), Tools.lerp(logo.scale.y, 0.4, 6));
             logo.angle += elapsed * 10;
         }
 

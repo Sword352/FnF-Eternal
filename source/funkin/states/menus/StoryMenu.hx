@@ -210,15 +210,14 @@ class StoryMenu extends MusicBeatState {
             }
         }
 
-        lerpScore = Math.floor(FlxMath.lerp(lerpScore, intendedScore, FlxMath.bound(elapsed * 10, 0, 1)));
+        lerpScore = Math.floor(Tools.lerp(lerpScore, intendedScore, 10));
         if (lerpScore != intendedScore && Math.abs(lerpScore - intendedScore) <= 10)
             lerpScore = intendedScore;
 
         scoreText.text = 'SCORE: ${lerpScore}';
 
-        var sprRatio:Float = FlxMath.bound(elapsed * 8.5, 0, 1); 
         for (sprite in weekSprites) {
-            sprite.y = FlxMath.lerp(sprite.y, sprite.ID * 120 + 480, sprRatio);
+            sprite.y = Tools.lerp(sprite.y, sprite.ID * 120 + 480, 8.5);
             sprite.visible = (sprite.y > yellowOverlay.y);
         }
 

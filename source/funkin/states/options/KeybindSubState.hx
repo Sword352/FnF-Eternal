@@ -208,14 +208,10 @@ class KeybindItem extends FlxText {
     }
 
     override function update(elapsed:Float):Void {
-        super.update(elapsed);
-
-        var ratio:Float = FlxMath.bound(elapsed * 15, 0, 1);
-
         for (text in [this, firstKeybind, secondKeybind])
-            text.y = FlxMath.lerp(text.y, (FlxG.height - text.height) * 0.4 + target * 80, ratio);
-
-        firstKeybind.x = FlxMath.lerp(firstKeybind.x, FlxG.width * 0.35 - firstKeybind.width, ratio);
+            text.y = Tools.lerp(text.y, (FlxG.height - text.height) * 0.4 + target * 80, 15);
+        
+        firstKeybind.x = Tools.lerp(firstKeybind.x, FlxG.width * 0.35 - firstKeybind.width, 15);
     }
 
     public function updateText(gamepad:Bool = false):Void {

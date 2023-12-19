@@ -74,8 +74,10 @@ class GeneralOptionSubState extends BaseOptionSubState {
     override function update(elapsed:Float):Void {
         super.update(elapsed);
 
-        var ratio:Float = FlxMath.bound(elapsed * 12, 0, 1);
-        boyfriend.scale.set(FlxMath.lerp(boyfriend.scale.x, 0.25, ratio), FlxMath.lerp(boyfriend.scale.y, 0.25, ratio));
+        boyfriend.scale.set(
+            Tools.lerp(boyfriend.scale.x, 0.25, 12),
+            Tools.lerp(boyfriend.scale.y, 0.25, 12)
+        );
 
         if (boyfriend.visible && FlxG.mouse.overlaps(boyfriend) && FlxG.mouse.justPressed) {
             if (sound.playing)

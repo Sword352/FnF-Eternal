@@ -328,7 +328,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         FlxG.sound.play(AssetHelper.sound("confirmMenu"));
     }
 
-    function updateConfirmText():Void {
+    inline function updateConfirmText():Void {
         if (Mods.currentMod == modReference) {
             confirmText.text = "ENABLED";
             confirmText.color = FlxColor.LIME;
@@ -365,15 +365,15 @@ class ModItem extends FlxSprite {
     }
 
     override function update(elapsed:Float):Void {
-        super.update(elapsed);
-
-        var ratio:Float = FlxMath.bound(elapsed * 10, 0, 1);
         var val:Float = (target == 0) ? 1 : 0.6;
 
-        x = FlxMath.lerp(x, ((FlxG.width - width) / 2) + (target * 240), ratio);
-        alpha = FlxMath.lerp(alpha, val, ratio);
+        x = Tools.lerp(x, ((FlxG.width - width) / 2) + (target * 240), 10);
+        alpha = Tools.lerp(alpha, val, 10);
 
-        scale.set(FlxMath.lerp(scale.x, val, ratio), FlxMath.lerp(scale.y, val, ratio));
+        scale.set(
+            Tools.lerp(scale.x, val, 10),
+            Tools.lerp(scale.y, val, 10)
+        );
         updateHitbox();
         offset.set();
     }

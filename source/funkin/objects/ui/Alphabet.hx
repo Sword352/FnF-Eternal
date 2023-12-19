@@ -32,9 +32,8 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         super.update(elapsed);
 
         if (menuItem) {
-            var ratio:Float = FlxMath.bound(elapsed * lerpSpeed, 0, 1);
-            x = FlxMath.lerp(x, getTargetX(), ratio);
-            y = FlxMath.lerp(y, getTargetY(), ratio);
+            x = Tools.lerp(x, getTargetX(), lerpSpeed);
+            y = Tools.lerp(y, getTargetY(), lerpSpeed);
         }
 
         for (spr => type in spriteTrackers) {

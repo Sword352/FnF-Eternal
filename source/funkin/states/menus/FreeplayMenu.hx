@@ -203,24 +203,21 @@ class FreeplayMenu extends MusicBeatState {
                 showDetails = !showDetails;
         }
 
-        var ratio:Float = FlxMath.bound(elapsed * 24, 0, 1);
-        var lowRatio:Float = FlxMath.bound(elapsed * 6, 0, 1);
-
-        lerpScore = Math.floor(FlxMath.lerp(lerpScore, scoreData.score, ratio));
+        lerpScore = Math.floor(Tools.lerp(lerpScore, scoreData.score, 24));
         if (lerpScore != scoreData.score && Math.abs(lerpScore - scoreData.score) <= 10)
             lerpScore = scoreData.score;
 
-        lerpAccuracy = FlxMath.lerp(lerpAccuracy, scoreData.accuracy, lowRatio);
+        lerpAccuracy = Tools.lerp(lerpAccuracy, scoreData.accuracy, 6);
         if (lerpAccuracy != scoreData.accuracy && Math.abs(lerpAccuracy - scoreData.accuracy) <= 5)
             lerpAccuracy = scoreData.accuracy;
 
         scoreText.text = "HIGH SCORE: " + lerpScore;
-        scoreText.x = FlxMath.lerp(scoreText.x, FlxG.width - scoreText.width - 6, ratio);
+        scoreText.x = Tools.lerp(scoreText.x, FlxG.width - scoreText.width - 6, 24);
 
         scoreBG.x = FlxG.width - scoreBG.scale.x * 0.5;
         scoreBG.scale.set(
-            FlxMath.lerp(scoreBG.scale.x, FlxG.width - scoreText.x + 6, ratio),
-            FlxMath.lerp(scoreBG.scale.y, (showDetails) ? 5.5 : 1, lowRatio * ((showDetails) ? 1 : 0.75))
+            Tools.lerp(scoreBG.scale.x, FlxG.width - scoreText.x + 6, 24),
+            Tools.lerp(scoreBG.scale.y, (showDetails) ? 5.5 : 1, 6 * ((showDetails) ? 1 : 0.75))
         );
 
         detailsText.text = 'MISSES: ${scoreData.misses}\nACCURACY: ${FlxMath.roundDecimal(lerpAccuracy, 2)}%';
@@ -230,7 +227,7 @@ class FreeplayMenu extends MusicBeatState {
         detailsText.clipRect.setSize(detailsText.width, detailsText.height * (scoreBG.scale.y - 4));
         detailsText.clipRect = detailsText.clipRect;
 
-        detailsText.x = FlxMath.lerp(detailsText.x, scoreText.x + (scoreText.width * 0.5) - (detailsText.width * 0.5), ratio);
+        detailsText.x = Tools.lerp(detailsText.x, scoreText.x + (scoreText.width * 0.5) - (detailsText.width * 0.5), 24);
 
         difficultyText.text = '< ${difficulties[currentDifficulty].toUpperCase()} >';
         difficultyText.x = Math.floor(scoreText.background.x + scoreText.background.width * 0.5) - (difficultyText.width * 0.5);

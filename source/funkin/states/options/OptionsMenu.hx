@@ -118,11 +118,10 @@ class OptionsMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        var ratio:Float = FlxMath.bound(elapsed * 6, 0, 1);
-        bg.scale.set(FlxMath.lerp(bg.scale.x, 1, ratio), FlxMath.lerp(bg.scale.y, 1, ratio));
+        bg.scale.set(Tools.lerp(bg.scale.x, 1, 6), Tools.lerp(bg.scale.y, 1, 6));
 
         for (text in categoryTexts)
-            text.y = FlxMath.lerp(text.y, 150 + 100 * text.ID, FlxMath.bound(elapsed * 12, 0, 1));
+            text.y = Tools.lerp(text.y, 150 + 100 * text.ID, 12);
 
         if (allowInputs && controls.anyJustPressed(["up", "down"])) {
             changeSelection(controls.lastAction == "up" ? -1 : 1);

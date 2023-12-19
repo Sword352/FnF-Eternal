@@ -35,8 +35,7 @@ class HealthIcon extends OffsetSprite {
         }
         
         if (bopping) {
-            var ratio:Float = FlxMath.bound(elapsed * bopSpeed, 0, 1);
-            scale.set(FlxMath.lerp(scale.x, defaultScaleX, ratio), FlxMath.lerp(scale.y, defaultScaleY, ratio));
+            scale.set(Tools.lerp(scale.x, defaultScaleX, bopSpeed), Tools.lerp(scale.y, defaultScaleY, bopSpeed));
             updateHitbox();
         }
     }
@@ -74,7 +73,7 @@ class HealthIcon extends OffsetSprite {
         return state = v;
     }
 
-    static function findSize(icon:String):Int {
+    inline static function findSize(icon:String):Int {
         var path:String = AssetHelper.txt('images/icons/${icon}');
         if (!FileTools.exists(path))
             return 2;

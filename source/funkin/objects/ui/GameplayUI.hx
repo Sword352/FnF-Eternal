@@ -85,7 +85,7 @@ class GameplayUI extends FlxSpriteGroup {
         
         // update health bar
 	    if (smoothHealth)
-            healthLerp = FlxMath.lerp(healthLerp, healthDisplay, FlxMath.bound(elapsed * 12, 0, 1));
+            healthLerp = Tools.lerp(healthLerp, healthDisplay, 12);
 	    else
             healthLerp = healthDisplay;
 
