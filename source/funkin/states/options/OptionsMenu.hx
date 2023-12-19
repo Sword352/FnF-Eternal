@@ -66,7 +66,6 @@ class OptionsMenu extends MusicBeatState {
         AssetHelper.clearAssets = !toPlayState || Settings.get("reload assets");
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "In the options";
         #end
 

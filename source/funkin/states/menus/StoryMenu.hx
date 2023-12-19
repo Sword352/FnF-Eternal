@@ -56,7 +56,6 @@ class StoryMenu extends MusicBeatState {
         PlayState.gameMode = STORY;
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "Story Menu";
         #end
 

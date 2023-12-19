@@ -100,7 +100,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "Charting " + chart.meta.name;
-        DiscordPresence.presence.state = "(in-dev)";
         #end
 
         loadSong();

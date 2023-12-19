@@ -258,7 +258,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
 
         if (apiStatus.isOutdated()) {
             apiText.text += '<>${apiStatus.getHandle()}<>\nREQUIRE: ${modReference.apiVersion}';
-            apiText.text += '\nHAVE: ${openfl.Lib.application.meta["version"]}';
+            apiText.text += '\nHAVE: ${Tools.gameVersion}';
             apiText.text += '\n<>Play at your own risk.<>';
             apiText.applyMarkup(apiText.text, [new FlxTextFormatMarkerPair(new FlxTextFormat(FlxColor.RED), '<>')]);
         }

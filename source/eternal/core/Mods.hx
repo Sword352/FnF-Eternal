@@ -122,7 +122,7 @@ class Mods {
             return NONE;
 
         var modVersion:Array<Int> = [for (i in mod.apiVersion.split(".")) Std.parseInt(i)];
-        var engineVersion:Array<Int> = [for (i in openfl.Lib.application.meta["version"].split(".")) Std.parseInt(i)];
+        var engineVersion:Array<Int> = [for (i in Tools.gameVersion.split(".")) Std.parseInt(i)];
 
         if (modVersion.length < 1 || engineVersion.length < 1) {
             trace('Could not resolve API version for ${mod.folder}');

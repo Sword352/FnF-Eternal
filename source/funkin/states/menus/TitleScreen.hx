@@ -61,7 +61,6 @@ class TitleScreen extends MusicBeatState {
         super.create();
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "Title Screen";
         #end
 

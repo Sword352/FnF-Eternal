@@ -128,7 +128,7 @@ class Controls {
    }
 
    public function listKeys(keybind:String, ?seperator:String = ", "):String {
-      var list:Array<String>= [];
+      var list:Array<String> = [];
 
       for (key in keybinds[keybind][0])
          if (key != NONE && key != ANY)

@@ -978,16 +978,22 @@ class PlayState extends MusicBeatState {
    override function onFocusLost():Void {
       super.onFocusLost();
 
-      if (!FlxG.autoPause && subState == null)
-         pause();
+      if (subState == null) {
+         if (!FlxG.autoPause)
+            pause();
 
-      #if ENGINE_DISCORD_RPC
-      DiscordPresence.presence.state = "Paused";
-      #end
+         #if ENGINE_DISCORD_RPC
+         DiscordPresence.presence.state = "Paused";
+         #end
+      }
    }
 
    override function destroy():Void {
       current = null;
+
+      #if ENGINE_DISCORD_RPC
+      DiscordPresence.presence.state = "";
+      #end
 
       Controls.globalControls.onKeyJustPressed.remove(onKeyDown);
       Controls.globalControls.onKeyJustReleased.remove(onKeyUp);

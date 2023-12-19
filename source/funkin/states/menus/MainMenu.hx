@@ -21,16 +21,19 @@ class MainMenu extends MusicBeatState {
         "options"
     ];
 
-    var bg:FlxSprite;
-    var flickerBg:FlxSprite;
-    var bottomText:FlxText;
+    var background:FlxSprite;
+    var flicker:FlxSprite;
+
     var items:FlxSpriteGroup;
+    var itemOrder:Array<FlxSprite>;
+
     var cameraTarget:FlxObject;
+    var bottomText:FlxText;
 
     var currentSelection:Int = 0;
     var allowInputs:Bool = true;
-    var itemOrder:Array<FlxSprite>;
 
+    var itemSpacing:Float = 145;
     var cameraSpeed:Float = 4.5;
 
     #if ENGINE_SCRIPTING
@@ -39,7 +42,6 @@ class MainMenu extends MusicBeatState {
 
     override function create():Void {
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "Main Menu";
         #end
 
@@ -59,27 +61,33 @@ class MainMenu extends MusicBeatState {
         
         FlxG.cameras.reset(new Camera());
 
-        bg = new FlxSprite();
-        bg.loadGraphic(AssetHelper.image("menus/menuBG"));
-        bg.scale.set(1.2, 1.2);
-        bg.updateHitbox();
-        bg.screenCenter();
-        bg.scrollFactor.set(0, 0.17);
-        add(bg);
+        background = new FlxSprite();
+        background.loadGraphic(AssetHelper.image("menus/menuBG"));
+        background.scale.set(1.2, 1.2);
+        background.updateHitbox();
+        background.screenCenter();
+        background.scrollFactor.set(0, 0.17);
+        add(background);
 
-        flickerBg = new FlxSprite();
-        flickerBg.loadGraphic(AssetHelper.image("menus/menuDesat"));
-        flickerBg.scale.set(1.2, 1.2);
-        flickerBg.updateHitbox();
-        flickerBg.screenCenter();
-        flickerBg.scrollFactor.set(0, bg.scrollFactor.y);
-        flickerBg.visible = false;
-        flickerBg.color = 0xFFfd719b;
-        add(flickerBg);
+        if (!Settings.get("disable flashing lights")) {
+            flicker = new FlxSprite();
+            flicker.loadGraphic(AssetHelper.image("menus/menuDesat"));
+            flicker.scale.set(1.2, 1.2);
+            flicker.updateHitbox();
+            flicker.screenCenter();
+            flicker.scrollFactor.set(0, background.scrollFactor.y);
+            flicker.visible = false;
+            flicker.color = 0xFFfd719b;
+            add(flicker);
+        }
+
+        var devState:String = "";
+        if (Tools.devState.length > 0)
+            devState = ' (${Tools.devState})';
 
         bottomText = new FlxText(5, 0, 0,
             #if ENGINE_MODDING 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\n' + #end
-            'Eternal Engine v0.1 (in-dev)'
+            'Eternal Engine v${Tools.gameVersion}${devState}'
         );
         bottomText.setFormat(AssetHelper.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
@@ -92,12 +100,14 @@ class MainMenu extends MusicBeatState {
         add(items);
 
         for (i in 0...itemList.length) {
-            var item = new FlxSprite(0, FlxG.height * (0.1 + (0.2 * i)));
+            var item:FlxSprite = new FlxSprite();
             item.frames = AssetHelper.getSparrowAtlas('menus/main/${itemList[i]}');
             item.animation.addByPrefix("normal", "basic", 24);
             item.animation.addByPrefix("selected", "white", 24);
             item.animation.play("normal");
             item.updateHitbox();
+            item.screenCenter();
+            item.y += (-item.height / 2) + itemSpacing * (i - Math.floor(itemList.length / 2));
             item.ID = i;
             items.add(item);
         }
@@ -113,7 +123,7 @@ class MainMenu extends MusicBeatState {
         midpoint.put();
 
         itemOrder = items.members.copy();
-        currentSelection = lastSelection % itemOrder.length;
+        currentSelection = lastSelection % itemList.length;
         changeSelection();
 
         persistentUpdate = true;
@@ -169,7 +179,7 @@ class MainMenu extends MusicBeatState {
         #end
     }
 
-    function changeSelection(i:Int = 0):Void {
+    inline function changeSelection(i:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [i]))
             return;
@@ -178,7 +188,11 @@ class MainMenu extends MusicBeatState {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, itemList.length - 1);
 
         for (item in itemOrder) {
-            item.animation.play((item.ID == currentSelection) ? "selected" : "normal");
+            var selected:Bool = (item.ID == currentSelection);
+            var scale:Float = (selected) ? 0.9 : 1;
+
+            item.animation.play((selected) ? "selected" : "normal");
+            item.scale.set(scale, scale);
             item.updateHitbox();
             item.screenCenter(X);
         }
@@ -201,7 +215,7 @@ class MainMenu extends MusicBeatState {
         #end
     }
 
-    function accept():Void {
+    inline function accept():Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onAccept"))
             return;
@@ -210,11 +224,11 @@ class MainMenu extends MusicBeatState {
         allowInputs = false;
         FlxG.sound.play(AssetHelper.sound("confirmMenu"));
 
-        for (item in items.members.filter(f -> f.ID != currentSelection))
+        for (item in items.members.filter((i) -> i.ID != currentSelection))
             FlxTween.tween(item, {alpha: 0}, 0.4, {ease: FlxEase.quadOut});
 
-        if (!Settings.get("disable flashing lights")) {
-            FlxFlicker.flicker(flickerBg, 1.1, 0.15, false, true, (_) -> goToNextState());
+        if (flicker != null) {
+            FlxFlicker.flicker(flicker, 1.1, 0.15, false, true, (_) -> goToNextState());
             FlxFlicker.flicker(itemOrder[currentSelection], 1.1, 0.06, false, true);
         }
         else
@@ -225,7 +239,7 @@ class MainMenu extends MusicBeatState {
         #end
     }
 
-    function goToNextState():Void {
+    inline function goToNextState():Void {
         switch (itemList[currentSelection]) {
             case "story mode": FlxG.switchState(new StoryMenu());
             case "freeplay": FlxG.switchState(new FreeplayMenu());

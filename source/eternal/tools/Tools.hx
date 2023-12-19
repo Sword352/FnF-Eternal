@@ -31,6 +31,12 @@ class Tools {
     public static final savePath:String = "Sword352/FNF-Eternal-Engine";
     public static final githubURL:String = "https://github.com/Sword352/FNF-EternalEngine";
 
+    public static final devState:String = "ALPHA";
+    
+    public static var gameVersion(get, never):String;
+    inline static function get_gameVersion():String
+        return openfl.Lib.application.meta["version"];
+
     inline public static function formatSong(song:String):String
         return song.toLowerCase().replace(" ", "-");
 

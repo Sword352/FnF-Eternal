@@ -58,7 +58,6 @@ class FreeplayMenu extends MusicBeatState {
         PlayState.gameMode = FREEPLAY;
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "(in-dev)";
         DiscordPresence.presence.details = "Freeplay Menu";
         #end
 

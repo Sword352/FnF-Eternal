@@ -71,9 +71,8 @@ class DiscordPresence {
         username = cpp.ConstPointer.fromRaw(request).ptr.username;
         trace('Connected as ${username}.');
 
-        presence.state = "(in-dev)";
         presence.largeImageKey = "logo";
-        presence.largeImageText = "ALPHA";
+        presence.largeImageText = Tools.devState;
     }
 
     private static function onError(errorCode:Int, message:cpp.ConstCharStar):Void {
