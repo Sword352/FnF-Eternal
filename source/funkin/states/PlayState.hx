@@ -200,7 +200,7 @@ class PlayState extends MusicBeatState {
       Conductor.beatsPerMeasure = song.meta.beatsPerMeasure ?? 4;
       Conductor.bpm = song.bpm;
       
-      notes = ChartLoader.generateNotes(song);
+      notes = ChartLoader.generateNotes(song, startTime);
 
       cameraZoomBeat = Conductor.beatsPerMeasure;
       
@@ -683,7 +683,7 @@ class PlayState extends MusicBeatState {
       hxsCall("onKeyReleaseUnsafe", [rawID, action]);
       #end
 
-      if (action == null || !Note.directions.contains(action))
+      if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
          return;
 
       #if ENGINE_SCRIPTING
@@ -1074,25 +1074,8 @@ class PlayState extends MusicBeatState {
    }
 
    inline public function setTime(time:Float):Void {
-      clearNotesBefore(time);
       Conductor.position = time;
       startSong(time);
-   }
-
-   public function clearNotesBefore(time:Float):Void {
-      var invalidNotes:Array<Note> = [];
-
-      for (note in notes) {
-         if (note.time >= time)
-            break;
-         
-         invalidNotes.push(note);
-      }
-
-      for (note in invalidNotes) {
-         notes.remove(note);
-         note.destroy();
-      }
    }
 
    public static function getRank(game:PlayState):String {

@@ -1,10 +1,8 @@
 package funkin.states.options;
 
 import flixel.FlxSubState;
-import flixel.group.FlxGroup.FlxTypedGroup;
-
-import flixel.text.FlxText;
 import flixel.addons.display.FlxBackdrop;
+import flixel.group.FlxGroup.FlxTypedGroup;
 
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -20,13 +18,16 @@ typedef OptionCategory = {
 
 class OptionsMenu extends MusicBeatState {
     public var background:FlxSprite;
+    var backdrop:FlxBackdrop;
 
     var categoryTexts:FlxTypedGroup<Alphabet>;
-    var checkerBackdrop:FlxBackdrop;
+    var categoryIcons:Array<FlxSprite> = [];
 
     var categories:Array<OptionCategory>;
     var currentSelection:Int = 0;
     var toPlayState:Bool;
+
+    var allowInputs:Bool = true;
 
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
@@ -40,6 +41,20 @@ class OptionsMenu extends MusicBeatState {
     override function create():Void {
         super.create();
 
+        categories = [
+            {name: "General", action: goToGeneral},
+            {name: "Gameplay", action: goToGameplay},
+            {name: "Adjust offset", action: goToOffset},
+            {name: "Keybinds", action: goToKeybind},
+            {name: "Debug", action: goToDebug},
+            {name: "Exit", action: exit, skipOutro: true},
+        ];
+
+        #if ENGINE_MODDING
+        if (Settings.modSettings.length > 0)
+            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.folder), action: goToModOptions});
+        #end
+
         #if ENGINE_SCRIPTING
         initStateScript();
         hxsCall("onCreate");
@@ -48,20 +63,6 @@ class OptionsMenu extends MusicBeatState {
             hxsCall("onCreatePost");
             return;
         }
-        #end
-          
-        categories = [
-            {name: "General", action: goToGeneral},
-            {name: "Gameplay", action: goToGameplay},
-            {name: "Keybinds", action: goToKeybind},
-            {name: "Adjust offset", action: goToOffset},
-            {name: "Debug", action: goToDebug},
-            {name: "Exit", action: exit, skipOutro: true},
-        ];
-
-        #if ENGINE_MODDING
-        if (Settings.modSettings.length > 0)
-            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.folder), action: goToModOptions});
         #end
 
         AssetHelper.clearAssets = !toPlayState || Settings.get("reload assets");
@@ -79,21 +80,39 @@ class OptionsMenu extends MusicBeatState {
         background.color = 0x3E3E7A;
 		add(background);
 
-        checkerBackdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
-        checkerBackdrop.color = 0xFF120E7A;
-        checkerBackdrop.alpha = 0.4;
-        checkerBackdrop.velocity.x = 50;
-        add(checkerBackdrop);
+        backdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
+        backdrop.color = 0xFF120E7A;
+        backdrop.alpha = 0.4;
+        backdrop.velocity.x = 50;
+        add(backdrop);
 
         categoryTexts = new FlxTypedGroup<Alphabet>();
         add(categoryTexts);
 
         for (i in 0...categories.length) {
-            var categoryText:Alphabet = new Alphabet(50, 150 + 100 * i);
+            var left:Bool = (i % 2 == 0);
+
+            var categoryText:Alphabet = new Alphabet(FlxG.width * ((left) ? 0.1 : 0.9));
             categoryText.scale.set(0.7, 0.7);
             categoryText.text = categories[i].name;
             categoryText.ID = i;
             categoryTexts.add(categoryText);
+
+            categoryText.screenCenter(Y);
+            categoryText.y += 100 * Math.floor(((i + 1) / 2) - (categories.length / 2)) + (categoryText.height * 2);
+
+            if (!left)
+                categoryText.x -= categoryText.width;
+
+            var icon:FlxSprite = new FlxSprite(0, 0, AssetHelper.image('menus/options/icon_${categoryText.text.toLowerCase().replace(" ", "-")}'));
+            icon.scale.set(0.5, 0.5);
+            icon.updateHitbox();
+            icon.offset.y += icon.height * 0.25;
+            icon.ID = i;
+            add(icon);
+
+            categoryText.spriteTrackers.set(icon, (left) ? LEFT : RIGHT);
+            categoryIcons.push(icon);
         }
         
         changeSelection();
@@ -102,9 +121,6 @@ class OptionsMenu extends MusicBeatState {
         hxsCall("onCreatePost");
         #end
     }
-
-    var allowInputs:Bool = true;
-    var inputHoldTime:Float = 0;
 
     override function update(elapsed:Float):Void {
         #if ENGINE_SCRIPTING
@@ -124,34 +140,50 @@ class OptionsMenu extends MusicBeatState {
             Tools.lerp(background.scale.y, 1, 6)
         );
 
-        for (text in categoryTexts)
-            text.y = Tools.lerp(text.y, 150 + 100 * text.ID, 12);
+        if (allowInputs) {
+            if (controls.anyJustPressed(["up", "down"]))      
+                changeSelection((controls.lastAction == "up") ? -2 : 2);
 
-        if (allowInputs && controls.anyJustPressed(["up", "down"])) {
-            changeSelection(controls.lastAction == "up" ? -1 : 1);
-            inputHoldTime = 0;
-        }
+            if (controls.anyJustPressed(["left", "right"])) {
+                // TODO: change the current selected item to the right column
+                var odd:Bool = (currentSelection % 2 == 0);
+                changeSelection((odd) ? 1 : -1);
 
-        if (allowInputs && controls.anyPressed(["up", "down"])) {
-            inputHoldTime += 1 * elapsed;
-            if (inputHoldTime > 0.75) {
-                changeSelection(controls.lastAction == "up" ? -1 : 1);
-                inputHoldTime -= 15 * elapsed;
+                /*
+                var change:Int = (odd) ? 1 : -1;
+
+                if ((odd && controls.lastAction == "right") || (!odd && controls.lastAction == "left"))
+                    change += 2 * ((odd) ? -1 : 1);
+                */
+
+                /*
+                var target:Alphabet = null;
+
+                categoryTexts.forEach((item) -> {
+                    if (item != categoryTexts.members[currentSelection] && Math.abs(item.y - categoryTexts.members[currentSelection].y) <= 10)
+                        target = item;
+                });
+
+                if (target != null) {
+                    currentSelection = categoryTexts.members.indexOf(target);
+                    FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+                    changeSelection();
+                }*/
+            }
+
+            if (FlxG.mouse.wheel != 0)
+                changeSelection(Std.int(FlxMath.bound(-FlxG.mouse.wheel, -1, 1)) * 2);
+
+            if (controls.justPressed("back")) {
+                allowInputs = false;
+                exit();
+            }
+
+            if (controls.justPressed("accept")) {
+                allowInputs = false;
+                accept();
             }
         }
-
-        if (allowInputs && controls.justPressed("back")) {
-            allowInputs = false;
-            exit();
-        }
-
-        if (allowInputs && controls.justPressed("accept")) {
-            allowInputs = false;
-            accept();
-        }
-
-        if (allowInputs && FlxG.mouse.wheel != 0)
-            changeSelection(Std.int(FlxMath.bound(-FlxG.mouse.wheel, -1, 1)));
 
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);
@@ -165,11 +197,10 @@ class OptionsMenu extends MusicBeatState {
         #end
 
         currentSelection = FlxMath.wrap(currentSelection + i, 0, categories.length - 1);
+        categoryTexts.forEach((text) -> text.alpha = (text.ID == currentSelection) ? 1 : 0.6);
 
-        categoryTexts.forEach((text) -> {
-            text.ID = categoryTexts.members.indexOf(text) - currentSelection;
-            text.alpha = (text.ID == 0) ? 1 : 0.6;
-        });
+        for (icon in categoryIcons)
+            icon.alpha = (icon.ID == currentSelection) ? 1 : 0.6;
 
         if (i != 0)
             FlxG.sound.play(AssetHelper.sound("scrollMenu"));
@@ -194,7 +225,7 @@ class OptionsMenu extends MusicBeatState {
         FlxG.sound.play(AssetHelper.sound("confirmMenu"));
 
         for (text in categoryTexts)
-            FlxTween.tween(text, {x: -(text.width + 15)}, 0.75, {ease: FlxEase.circInOut});
+            FlxTween.tween(text, {x: ((text.ID % 2 == 0) ? -(text.width + 15) : FlxG.width)}, 0.75, {ease: FlxEase.circInOut});
 
         new FlxTimer().start(0.85, (_) -> categories[currentSelection].action());
 
@@ -245,12 +276,15 @@ class OptionsMenu extends MusicBeatState {
 
         if (transition)
             return;
+
+        if (!skipOutro(categories[currentSelection])) {
+            for (text in categoryTexts) {
+                var left:Bool = (text.ID % 2 == 0);
+                FlxTween.tween(text, {x: FlxG.width * ((left) ? 0.1 : 0.9) - ((left) ? 0 : text.width)}, 0.75, {ease: FlxEase.circInOut});
+            }
+        }
         
         allowInputs = true;
-
-        if (!skipOutro(categories[currentSelection]))
-            for (text in categoryTexts)
-                FlxTween.tween(text, {x: 50}, 0.75, {ease: FlxEase.circInOut});
     }
 
     override function destroy():Void {
@@ -267,6 +301,7 @@ class OptionsMenu extends MusicBeatState {
         if (possibleValue != null && possibleValue is Bool)
             return possibleValue;
         #end
-        return category.skipOutro != null && category.skipOutro;
+
+        return category.skipOutro ?? false;
     }
 }

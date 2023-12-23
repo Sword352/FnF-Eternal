@@ -12,7 +12,7 @@ class HScriptInclude {
     public static final imports:Map<String, Array<String>> = [
         // Packages
         "flixel" => ["flixel.system.macros", "flixel.addons.nape", "flixel.addons.editors"],
-        "sys" => #if hl ["sys.ssl", "sys.net", "sys.db", "sys.Http"], #else null, #end // some stuff can't compile on HL due to failing to load "ssl.hdll"
+        #if sys "sys" => #if hl ["sys.ssl", "sys.net", "sys.db", "sys.Http"], #else null, #end #end // some stuff can't compile on HL due to failing to load "ssl.hdll"
         #if hxCodec "hxcodec.flixel" => null, #end
 
         // Classes

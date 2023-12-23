@@ -32,7 +32,7 @@ class StrumLine extends FlxGroup {
    public var onMiss(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
 
    var notesToRemove:Array<Note> = [];
-   var holdTmr:Float = 0; // used for base game behaviour
+   var lastStep:Int = 0; // used for base game behaviour
 
    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false):Void {
       super();
@@ -58,11 +58,6 @@ class StrumLine extends FlxGroup {
    }
    
    override public function update(elapsed:Float):Void {
-      if (holdTmr >= Conductor.stepCrochet)
-         holdTmr = 0;
-      else
-         holdTmr += elapsed * 1000;
-
       notes.forEachAlive((note) -> {
          var receptor:Receptor = receptors.members[note.direction];
 
@@ -102,11 +97,11 @@ class StrumLine extends FlxGroup {
          if (note.missed && !note.isSustainNote && ((mult > 0 && note.y < -note.height) || (mult < 0 && note.y > FlxG.height)))
             notesToRemove.push(note);
 
-         if (note.isSustainNote && (note.goodHit || (!cpu && note.missed))) {
-            note.sustain.length -= elapsed * 1000;
+         if (note.isSustainNote && (note.goodHit || note.missed)) {
+            note.sustain.length -= elapsed * Conductor.playbackRate * 1000;
             clipSustainTail(note, note.sustain.flipY);
 
-            if (holdTmr >= Conductor.stepCrochet) {
+            if (lastStep != Conductor.currentStep) {
                if (cpu || holdKeys[note.direction]) {
                   receptor.playAnimation("confirm", true);
                   singCharacters(note);
@@ -132,6 +127,8 @@ class StrumLine extends FlxGroup {
                receptor.playAnimation("static", true);
          });
       }
+
+      lastStep = Conductor.currentStep;
    }
 
    override function draw():Void {

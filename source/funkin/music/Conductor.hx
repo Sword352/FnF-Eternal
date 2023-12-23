@@ -18,7 +18,7 @@ class Conductor {
     public static var bpm(default, set):Float = 100;
     public static var crochet:Float = 0;
     public static var stepCrochet:Float = 0;
-    // public static var playbackRate(default, set):Float = 1;
+    public static var playbackRate:Float = 1;
 
     public static var measureLength(get, never):Int;
     public static var timeSignature(get, never):Float;
@@ -46,7 +46,7 @@ class Conductor {
         if (music != null)
             position = music.time;
         else
-            rawPosition += elapsed * 1000;
+            rawPosition += elapsed * playbackRate * 1000;
 
         decimalStep = position / stepCrochet;
         currentStep = Math.floor(decimalStep);
@@ -78,7 +78,7 @@ class Conductor {
         resetCallbacks();
 
         music = null;
-        // playbackRate = 1;
+        playbackRate = 1;
 
         beatsPerMeasure = 4;
         stepsPerBeat = 4;
@@ -151,11 +151,4 @@ class Conductor {
 
     static function get_timeSignatureSTR():String
         return '${beatsPerMeasure} / ${stepsPerBeat}';
-
-    /*
-    static function set_playbackRate(v:Float):Float {
-        bpm *= v;
-        return playbackRate = v;
-    }
-    */
 }

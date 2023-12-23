@@ -130,6 +130,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             return;
         }
 
+        if (FlxG.keys.justPressed.ESCAPE) {
+            playTest();
+            return;
+        }
+
         if (FlxG.keys.justPressed.ENTER) {
             goToPlayState();
             return;
@@ -361,6 +366,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         FlxG.switchState(new PlayState((FlxG.keys.pressed.SHIFT) ? Conductor.position : 0));
     }
 
+    inline function playTest():Void {
+        music.stop();
+        autoSave();
+
+        persistentUpdate = false;
+        FlxG.mouse.visible = false;
+
+        openSubState(new ChartPlayState(this, (FlxG.keys.pressed.SHIFT) ? Conductor.position : 0));
+    }
+
     inline function killNote(note:DebugNote):Void {
         if (selectedNote == note)
             selectedNote = null;
@@ -478,9 +493,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                music.createVoice(voiceFile);
 
         music.onSongEnd.add(() -> {
-            Conductor.resetPreviousPosition();
-            line.y = 0;
+            if (subState == null) {
+                Conductor.resetPreviousPosition();
+                line.y = 0;
+            }
         });
+        
         music.instrumental.time = startTime;
         add(music);
 
@@ -744,7 +762,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function destroy():Void {
         FlxG.stage.window.onClose.remove(autoSave);
-
         super.destroy();
 
         // temporary fix for haxeui crash
@@ -791,11 +808,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         return Math.floor(position / checkerSize) * checkerSize;
     }
 
-    inline static function getTimeFromY(y:Float):Float {
+    public static inline function getTimeFromY(y:Float):Float {
         return Conductor.stepCrochet * (y / checkerSize);
     }
 
-    inline static function getYFromTime(time:Float):Float {
+    public static inline function getYFromTime(time:Float):Float {
         return checkerSize * (time / Conductor.stepCrochet);
     }
 

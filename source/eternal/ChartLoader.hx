@@ -119,11 +119,33 @@ class ChartLoader {
         return finalData;
     }
 
-    public static function generateNotes(chart:Chart):Array<Note> {
+    public static function convertToLegacy(chart:Chart):Dynamic {
+        var output:Dynamic = {
+            song: {
+                song: chart.meta.rawName,
+                speed: chart.speed,
+                bpm: chart.bpm,
+                notes: [],
+
+                player1: chart.meta.player,
+                player2: chart.meta.opponent,
+
+                needsVoices: (chart.meta.voiceFiles.length > 0),
+                validScore: true
+            }
+        };
+
+        return output;
+    }
+
+    public static function generateNotes(chart:Chart, minTime:Float = 0):Array<Note> {
         var notes:Array<Note> = [];
         var i:Int = 0;
 
         for (noteData in chart.notes) {
+            if (noteData.time < minTime)
+                continue;
+            
             var note:Note = new Note(noteData.time, noteData.direction);
             note.strumline = noteData.strumline;
             note.type = noteData.type;

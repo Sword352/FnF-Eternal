@@ -345,16 +345,6 @@ class ChartSubScreen extends FlxSubState {
         var eventDropdown:DropDown = new DropDown();
         eventDropdown.width = FlxG.width * 0.15;
 
-        /*
-        eventDropdown.styleSheet = new StyleSheet();
-        eventDropdown.styleSheet.parse('
-        .eventDropDown .listview .item-renderer:selected {
-            font-name: ${AssetHelper.font("vcr")};
-        }
-        ');
-        eventDropdown.handlerStyleNames = "eventDropDown";
-        */
-
         var grid:PropertyGrid = new PropertyGrid();
         grid.width = 300;
         grid.height = 250;

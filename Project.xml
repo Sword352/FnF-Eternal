@@ -67,6 +67,7 @@
 
 	<haxelib name="haxeui-core" />
 	<haxelib name="haxeui-flixel" />
+	<haxelib name="flixel-text-input" />
 
 	<!-- [[ Defines ]] -->
 

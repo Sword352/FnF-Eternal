@@ -21,6 +21,9 @@ class Note extends OffsetSprite {
    public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
    public var baseVisible:Bool = true;
 
+   // not really useful in gameplay, just a helper boolean
+   public var checked:Bool = false;
+
    public var followX:Bool = true;
    public var followY:Bool = true;
    public var followSpeed:Bool = true;

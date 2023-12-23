@@ -26,7 +26,6 @@ class MusicBeatState extends State {
         FlxG.watch.add(Conductor, "currentStep", "Current Step");
         FlxG.watch.add(Conductor, "currentBeat", "Current Beat");
         FlxG.watch.add(Conductor, "currentMeasure", "Current Measure");
-        // FlxG.watch.add(Conductor, "playbackRate", "Playback Rate");
         #end
     }
 
@@ -51,7 +50,6 @@ class MusicBeatState extends State {
     public override function destroy():Void {
         #if debug
         FlxG.watch.remove(Conductor, "position");
-        // FlxG.watch.remove(Conductor, "playbackRate");
         FlxG.watch.remove(Conductor, "bpm");
         FlxG.watch.remove(Conductor, "currentStep");
         FlxG.watch.remove(Conductor, "currentBeat");

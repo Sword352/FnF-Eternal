@@ -10,6 +10,9 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
     public var distance(default, null):FlxPoint;
     public var spacing(default, null):FlxPoint;
 
+    public var horizontalOffset:Float = 90;
+    public var verticalOffset:Null<Float> = null;
+
     public var menuItem:Bool = false;
     public var lerpSpeed:Float = 12;
     public var target:Float = 0;
@@ -39,7 +42,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (spr => type in spriteTrackers) {
             spr.y = y;
             switch (type) {
-                case LEFT: spr.x = x - 150;
+                case LEFT: spr.x = x - (spr.width + 10);
                 case RIGHT: spr.x = x + width + 10;
                 case CENTER: spr.x = x + (width * 0.5);
             }
@@ -55,21 +58,21 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
     }
 
     inline public function getTargetX():Float {
-        return ((target * distance.x) + 90);
+        return horizontalOffset + (target * distance.x);
     }
 
     inline public function getTargetY():Float {
-        return (((FlxG.height - spacing.y) * 0.5) + (target * distance.y));
+        return (verticalOffset ?? (FlxG.height - spacing.y) * 0.5) + (target * distance.y);
     }
 
     override function destroy():Void {
-        super.destroy();
-
         distance = FlxDestroyUtil.put(distance);
         spacing = FlxDestroyUtil.put(spacing);
 
         spriteTrackers?.clear();
         spriteTrackers = null;
+        
+        super.destroy();
     }
 
     override function findMinXHelper():Float {
