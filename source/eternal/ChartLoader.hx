@@ -73,47 +73,51 @@ class ChartLoader {
         // Used to replace some section specific stuff with events
         var currentBPM:Float = data.bpm;
         var currentTarget:Int = -1;
-        var sectCount:Int = 0;
+        var time:Float = 0;
 
         for (section in cast(data.notes, Array<Dynamic>)) {
             for (noteData in cast(section.sectionNotes, Array<Dynamic>)) {
+                var direction:Int = noteData[1];
+                if (direction < 0) // ignore psych events (TODO: perhaps convert those into actual events?)
+                    continue;
+
                 var shouldHit:Bool = section.mustHitSection;
-                if (noteData[1] > 3)
+                if (direction > 3)
                     shouldHit = !shouldHit;
 
                 var data:ChartNote = {
                     time: noteData[0],
-                    direction: Std.int(noteData[1] % 4),
-                    strumline: shouldHit ? 1 : 0,
+                    direction: Std.int(direction % 4),
+                    strumline: (shouldHit) ? 1 : 0,
                     type: noteData[3],
-                    animSuffix: (section.altAnim) ? "-alt" : null
+                    animSuffix: (section.altAnim) ? "-alt" : null // TODO: remove this and replace it with a notetype instead
                 };
 
                 data.length = (noteData[2] != null && noteData[2] is Float) ? noteData[2] : 0;
                 finalData.notes.push(data);
             }
 
-            var intendedTarget:Int = section.mustHitSection ? 2 : 0;
+            var intendedTarget:Int = (section.mustHitSection) ? 2 : 0;
             if (intendedTarget != currentTarget) {
                 finalData.events.push({
                     event: "change camera target",
-                    time: Conductor.calculateMeasureTime(currentBPM) * sectCount,
+                    time: time,
                     arguments: [intendedTarget]
                 });
                 currentTarget = intendedTarget;
             }
 
-            var intendedBPM:Null<Float> = section.changeBPM ? section.bpm : null;
+            var intendedBPM:Null<Float> = (section.changeBPM) ? section.bpm : null;
             if (intendedBPM != null && intendedBPM != currentBPM) {
                 finalData.events.push({
                     event: "change bpm",
-                    time: Conductor.calculateMeasureTime(currentBPM) * sectCount,
+                    time: time,
                     arguments: [intendedBPM]
                 });
                 currentBPM = intendedBPM;
             }
 
-            sectCount++;
+            time += (((60 / currentBPM) * 1000) / 4) * 16;
         }
 
         return finalData;

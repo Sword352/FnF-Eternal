@@ -66,7 +66,7 @@ class MusicPlayback extends FlxBasic {
             if (!music.playing)
                 continue;
 
-            if (Math.abs(music.time - Conductor.position) > 25) {
+            if (Math.abs(music.time - Conductor.position) > (25 * Conductor.playbackRate)) {
                 resyncMusic();
                 break;
             }

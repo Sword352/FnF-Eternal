@@ -35,6 +35,9 @@ class Conductor {
     public static var decimalBeat(default, null):Float;
     public static var decimalMeasure(default, null):Float;
 
+    // used for bpm change events
+    public static final beatOffset:BeatOffset = {step: 0, time: 0};
+
     private static var previousStep:Int = -1;
     private static var previousBeat:Int = -1;
     private static var previousMeasure:Int = -1;
@@ -48,7 +51,7 @@ class Conductor {
         else
             rawPosition += elapsed * playbackRate * 1000;
 
-        decimalStep = position / stepCrochet;
+        decimalStep = ((position - beatOffset.time) / stepCrochet) + beatOffset.step;
         currentStep = Math.floor(decimalStep);
 
         decimalBeat = decimalStep / stepsPerBeat;
@@ -77,6 +80,9 @@ class Conductor {
         resetPosition();
         resetCallbacks();
 
+        beatOffset.step = 0;
+        beatOffset.time = 0;
+
         music = null;
         playbackRate = 1;
 
@@ -87,12 +93,16 @@ class Conductor {
 
     public static function resetPosition():Void {
         position = 0;
+
         currentStep = 0;
         decimalStep = 0;
+
         currentBeat = 0;
         decimalBeat = 0;
+        
         currentMeasure = 0;
         decimalMeasure = 0;
+
         resetPreviousPosition();
     }
 
@@ -108,6 +118,15 @@ class Conductor {
         onMeasure.removeAll();
     }
 
+    public static function calculateCrochet(bpm:Float):Float {
+        return calculateBeatTime(bpm) * 1000;
+    }
+
+    public static function calculateBeatTime(bpm:Float):Float {
+        return 60 / bpm;
+    }
+
+    // TODO: make those methods better
     public static function timeToStep(time:Float, ?bpm:Float, ?stepsPerBeat:Int):Int {
         return Math.floor(time / (calculateCrochet(bpm ?? Conductor.bpm) / (stepsPerBeat ?? Conductor.stepsPerBeat)));
     }
@@ -120,17 +139,10 @@ class Conductor {
         return Math.floor(timeToBeat(time, bpm, stepsPerBeat) / 4);
     }
 
-    public static function calculateCrochet(bpm:Float):Float {
-        return calculateBeatTime(bpm) * 1000;
-    }
-
-    public static function calculateBeatTime(bpm:Float):Float {
-        return 60 / bpm;
-    }
-
     public static function calculateMeasureTime(bpm:Float, ?stepsPerBeat:Int, ?measureLength:Float):Float {
         return (calculateCrochet(bpm) / (stepsPerBeat ?? Conductor.stepsPerBeat)) * (measureLength ?? Conductor.measureLength);
     }
+    //
 
     static function set_bpm(b:Float):Float {
         crochet = calculateCrochet(b);
@@ -151,4 +163,9 @@ class Conductor {
 
     static function get_timeSignatureSTR():String
         return '${beatsPerMeasure} / ${stepsPerBeat}';
+}
+
+@:structInit class BeatOffset {
+    public var step:Float;
+    public var time:Float;
 }

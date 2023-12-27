@@ -90,6 +90,10 @@ class OptionsMenu extends MusicBeatState {
         add(categoryTexts);
 
         for (i in 0...categories.length) {
+            var image:String = 'menus/options/icon_${categories[i].name.toLowerCase().replace(" ", "-")}';
+            if (!FileTools.exists(AssetHelper.getPath('images/${image}', IMAGE)))
+                image = 'menus/options/icon_default';
+
             var left:Bool = (i % 2 == 0);
 
             var categoryText:Alphabet = new Alphabet(FlxG.width * ((left) ? 0.1 : 0.9));
@@ -104,7 +108,7 @@ class OptionsMenu extends MusicBeatState {
             if (!left)
                 categoryText.x -= categoryText.width;
 
-            var icon:FlxSprite = new FlxSprite(0, 0, AssetHelper.image('menus/options/icon_${categoryText.text.toLowerCase().replace(" ", "-")}'));
+            var icon:FlxSprite = new FlxSprite(0, 0, AssetHelper.image(image));
             icon.scale.set(0.5, 0.5);
             icon.updateHitbox();
             icon.offset.y += icon.height * 0.25;
@@ -141,34 +145,19 @@ class OptionsMenu extends MusicBeatState {
         );
 
         if (allowInputs) {
+            // TODO: perhaps better inputs, this should be good for now
             if (controls.anyJustPressed(["up", "down"]))      
                 changeSelection((controls.lastAction == "up") ? -2 : 2);
 
             if (controls.anyJustPressed(["left", "right"])) {
-                // TODO: change the current selected item to the right column
                 var odd:Bool = (currentSelection % 2 == 0);
-                changeSelection((odd) ? 1 : -1);
-
-                /*
                 var change:Int = (odd) ? 1 : -1;
 
-                if ((odd && controls.lastAction == "right") || (!odd && controls.lastAction == "left"))
+                if (categories.length % 2 == 0 && ((odd && controls.lastAction == "right") || (!odd && controls.lastAction == "left")))
                     change += 2 * ((odd) ? -1 : 1);
-                */
 
-                /*
-                var target:Alphabet = null;
-
-                categoryTexts.forEach((item) -> {
-                    if (item != categoryTexts.members[currentSelection] && Math.abs(item.y - categoryTexts.members[currentSelection].y) <= 10)
-                        target = item;
-                });
-
-                if (target != null) {
-                    currentSelection = categoryTexts.members.indexOf(target);
-                    FlxG.sound.play(AssetHelper.sound("scrollMenu"));
-                    changeSelection();
-                }*/
+                // changeSelection((odd) ? 1 : -1);
+                changeSelection(change);
             }
 
             if (FlxG.mouse.wheel != 0)

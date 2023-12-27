@@ -63,17 +63,17 @@
 	<haxelib name="hscript" unless="ENGINE_SCRIPTING" />
 	<haxelib name="hscript-improved" rename="hscript" if="ENGINE_SCRIPTING" />
 
-	<haxelib name="hxcpp-debug-server" if="cpp debug" />
-
 	<haxelib name="haxeui-core" />
 	<haxelib name="haxeui-flixel" />
 	<haxelib name="flixel-text-input" />
+
+	<haxelib name="hxcpp-debug-server" if="cpp debug" />
 
 	<!-- [[ Defines ]] -->
 
 	<!-- Disable the HaxeUI custom cursors -->
 	<haxedef name="haxeui_flixel_no_custom_cursors" />
-
+ 
 	<!-- Prevents the Discord API from making a second thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="ENGINE_DISCORD_RPC" />
 

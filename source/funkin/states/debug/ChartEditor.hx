@@ -20,9 +20,10 @@ import funkin.music.MusicPlayback;
 import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
-import eternal.ui.NoteViewer;
 import funkin.objects.ui.HealthIcon;
 import funkin.objects.notes.Receptor;
+import eternal.ui.HelpButton;
+// import eternal.ui.NoteViewer;
 import haxe.ui.components.HorizontalSlider;
 
 import eternal.ChartFormat.Chart;
@@ -44,8 +45,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var currentEvent:EventDetails;
     public var defaultArgs:Array<Any>;
 
-    public var uiCamera:Camera;
-
     public var notes:FlxTypedGroup<DebugNote>;
     public var events:FlxTypedGroup<EventSprite>;
 
@@ -56,24 +55,28 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var selectedEvent(default, set):EventSprite;
 
     public var receptors:FlxTypedSpriteGroup<Receptor>;
-    public var noteViewer:NoteViewer;
     public var mouseCursor:FlxSprite;
-
-    public var overlay:FlxSprite;
-    public var musicText:FlxText;
-    public var timeBar:HorizontalSlider;
 
     public var measures:FlxTypedGroup<FlxText>;
     public var beatIndicators:FlxSpriteGroup;
+
+    // public var noteViewer:NoteViewer;
+    public var helpButton:HelpButton;
+    public var uiCamera:Camera;
+
+    public var timeBar:HorizontalSlider;
+    public var overlay:FlxSprite;
+    public var musicText:FlxText;
 
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
 
     public var eventBPM:Bool = false;
 
+    var lastPosition:Float = 0;
+    var lastStep:Int = 0;
+
     var startTime:Float = 0;
-    var lastPosition:Float;
-    var lastStep:Int;
 
     public function new(chart:Chart, difficulty:String = "normal", startTime:Float = 0):Void {
         super();
@@ -376,6 +379,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         openSubState(new ChartPlayState(this, (FlxG.keys.pressed.SHIFT) ? Conductor.position : 0));
     }
 
+    inline function openHelpPage():Void {
+        openSubState(
+            new HelpSubState(
+                "SPACE: Play/Stop music\n"
+                + "UP/DOWN/Mouse wheel: Increase/Decrease music time (faster if SHIFT pressed)\n"
+                + "Mouse click on grid: Place a note/event\n"
+                + "Q/E: Increase/Decrease selected note hold length\n"
+                + "CTRL + Mouse click: Select hovered note/event\n"
+                + "SHIFT (hold): Un-snap cursor to grid\n"
+                + "Z (hold): Delete hovered notes/events\n\n"
+
+                + "TAB/SEVEN: Open Sub-screen\n"
+                + "ESCAPE: Play chart in the chart editor\n"
+                + "ESCAPE+SHIFT: Play chart in the chart editor at current time\n"
+                + "ENTER: Play chart\n"
+                + "ENTER+SHIFT: Play chart at current time\n"
+                + "CTRL+S: Save chart"
+            )
+        );
+    }
+
     inline function killNote(note:DebugNote):Void {
         if (selectedNote == note)
             selectedNote = null;
@@ -408,12 +432,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         var currentTime:String = FlxStringUtil.formatTime(music.instrumental.time / 1000);
         var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length / 1000);
 
+        var playbackRate:String = Std.string(music.pitch);
+        if (music.pitch is Int)
+            playbackRate += ".0";
+
         musicText.text =
-        '${currentTime} / ${maxTime}\n\n'
+        '${currentTime} / ${maxTime} (${playbackRate}x)\n\n'
         + 'Step: ${Conductor.currentStep}\n'
         + 'Beat: ${Conductor.currentBeat}\n'
         + 'Measure: ${Conductor.currentMeasure}\n\n'
-        + 'BPM: ${Conductor.bpm}\n'
+        + 'BPM: ${Conductor.bpm} (${chart.bpm})\n'
         + 'Time Signature: ${Conductor.timeSignatureSTR}'
         ;
 
@@ -440,22 +468,35 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Conductor.resetPreviousPosition();
     }
 
+    // UNFINISHED
     inline public function reloadMeasureMarks():Void {
-        var measureTime:Float = Conductor.calculateMeasureTime(Conductor.bpm);
         var measureFnt:String = AssetHelper.font("vcr"); // avoids 78 file exist calls
-        var measureIndex:Int = 0;
+        var measureTime:Float = 0;
+        var timeOffset:Float = 0;
 
         measures.forEachAlive((measure) -> measure.kill());
 
-        while ((measureTime * measureIndex) < music.instrumental.length) {
-            var text:FlxText = measures.recycle(FlxText, () -> new FlxText().setFormat(measureFnt, 32));
-            text.x = checkerboard.x + checkerboard.width + checkerSize * 0.5;
-            text.y = checkerSize * Conductor.measureLength * measureIndex;
-            text.text = Std.string(measureIndex);
-            text.ID = measureIndex;
+        while (measureTime < music.instrumental.length) {
+            var measureStep:Int = Math.round((measureTime) / Conductor.stepCrochet);
+            var measure:Int = Math.round(measureStep / Conductor.measureLength);
+
+            var text:FlxText = measures.recycle(FlxText, () -> new FlxText(checkerboard.x + checkerboard.width + checkerSize * 0.5).setFormat(measureFnt, 32));
+            text.y = checkerSize * measureStep;
+            text.text = Std.string(measure);
+            text.ID = measure;
             measures.add(text);
 
-            measureIndex++;
+            var currentBPM:Float = chart.bpm;
+            if (chart.events.length > 0) {
+                for (event in chart.events) {
+                    if (event.event == "change bpm" && event.time <= measureTime) {
+                        currentBPM = event.arguments[0];
+                        timeOffset = event.time;
+                    }
+                }
+            }
+
+            measureTime += (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat) * Conductor.measureLength;
         }
     }
 
@@ -465,24 +506,37 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         eventBPM = false;
 
         if (chart.events.length > 0) {
+            var lastChange:Float = 0;
+            var bpmOffset:Float = 0;
+
             for (event in chart.events) {
                 if (event.event == "change bpm" && event.time <= Conductor.position) {
+                    bpmOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat));
+                    lastChange = event.time;
+
                     currentBPM = event.arguments[0];
                     eventBPM = true;
                 }
             }
+
+            Conductor.beatOffset.time = lastChange;
+            Conductor.beatOffset.step = bpmOffset;
         }
 
-        if (!eventBPM)
+        if (!eventBPM) {
+            Conductor.beatOffset.time = 0;
+            Conductor.beatOffset.step = 0;
             currentBPM = chart.bpm;
+        }
 
         if (currentBPM != Conductor.bpm) {
             // trace("changed bpm to " + currentBPM);
             Conductor.bpm = currentBPM;
-            reloadMeasureMarks();
+            // reloadMeasureMarks();
             reloadGrid(false);
         }
     }
+    //
 
     inline function loadSong():Void {
         music = new MusicPlayback(chart.meta.rawName);
@@ -689,6 +743,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         playerIcon.cameras = [uiCamera];
         playerIcon.active = false;
         add(playerIcon);
+
+        helpButton = new HelpButton();
+        helpButton.camera = uiCamera;
+        helpButton.onClick = openHelpPage;
+        add(helpButton);
 
         /*
         noteViewer = new NoteViewer(-40, 0);

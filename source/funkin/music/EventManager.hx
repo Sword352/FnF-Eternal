@@ -69,6 +69,9 @@ class EventManager extends FlxBasic {
     public var loadedEvents(default, null):Array<ChartEvent> = [];
     public var game(default, null):PlayState;
 
+    var lastBpmChange:Float = 0;
+    var bpmOffset:Float = 0;
+
     public function new(game:PlayState):Void {
         this.game = game;
         super();
@@ -135,8 +138,12 @@ class EventManager extends FlxBasic {
             case "change camera target":
                 game.changeCameraTarget(event.arguments[0]);
             case "change bpm":
+                bpmOffset += ((event.time - lastBpmChange) / Conductor.stepCrochet);
+                lastBpmChange = event.time;
+
+                Conductor.beatOffset.time = event.time;
+                Conductor.beatOffset.step = bpmOffset;
                 Conductor.bpm = event.arguments[0];
-                Conductor.resetPreviousPosition();
             case "change time signature":
                 // TODO
             #if ENGINE_SCRIPTING

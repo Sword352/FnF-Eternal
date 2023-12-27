@@ -81,8 +81,8 @@ class Tools {
         return sprite;
     }
 
-    inline public static function resizeText(text:FlxText):Void {
-        while (text.height >= FlxG.height || text.width >= FlxG.width)
+    inline public static function resizeText(text:FlxText, min:Float = 0):Void {
+        while (text.height >= (FlxG.height - min) || text.width >= (FlxG.width - min))
             text.size--;
     }
 
