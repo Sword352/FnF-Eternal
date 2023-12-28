@@ -85,7 +85,7 @@ class GameOverScreen extends MusicBeatSubState {
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
             if (character.animation.curAnim.curFrame >= 12 && camera.target == null)
-                camera.follow(cameraObject, LOCKON, FlxMath.bound(elapsed * 6, 0, 1));
+                camera.follow(cameraObject, LOCKON, data.cameraSpeed * 0.01);
 
             if (character.animation.curAnim.finished) {
                 started = true;
@@ -161,7 +161,8 @@ class GameOverScreen extends MusicBeatSubState {
                 confirmSound: "gameplay/gameOverEnd",
                 deathSound: "gameplay/fnf_loss_sfx",
                 fadeColor: "black",
-                fadeDuration: 2
+                fadeDuration: 2,
+                cameraSpeed: 6
             };
         }
 
@@ -183,6 +184,9 @@ class GameOverScreen extends MusicBeatSubState {
         if (properties.fadeDuration == null)
             properties.fadeDuration = 2;
 
+        if (properties.cameraSpeed == null)
+            properties.cameraSpeed = 6;
+
         return properties;
     }
 }
@@ -196,4 +200,6 @@ typedef GameOverProperties = {
 
     var ?fadeColor:Dynamic;
     var ?fadeDuration:Float;
+
+    var ?cameraSpeed:Float;
 }
