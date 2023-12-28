@@ -55,7 +55,7 @@
 	<haxelib name="flixel-addons" />
 
 	<haxelib name="hxdiscord_rpc" if="ENGINE_DISCORD_RPC" />
-	<haxelib name="hxCodec" if="VIDEO_CUTSCENES" />
+	<haxelib name="hxvlc" if="VIDEO_CUTSCENES" />
 
 	<haxelib name="yaml" />
 	<haxelib name="tjson" />

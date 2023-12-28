@@ -10,7 +10,7 @@ haxelib install flixel-text-input
 haxelib git yaml https://github.com/swordcube/hx-yaml
 haxelib git tjson https://github.com/Sword352/TJSON
 haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc
-haxelib git hxCodec https://github.com/polybiusproxy/hxCodec
+haxelib install hxvlc
 haxelib git hscript-improved https://github.com/FNF-CNE-Devs/hscript-improved
 haxelib install hxcpp
 haxelib install hxcpp-debug-server

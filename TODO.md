@@ -18,8 +18,6 @@
 - ModState and ModSubState error handling
 - (Better error handling for FreeplayMenu and StoryMenu?)
 
-- Replace hxCodec with [hxVlc](https://github.com/MAJigsaw77/hxvlc) (in a later time)
-
 - Add Credits menu
 - Finish the FNF modpack port
 
