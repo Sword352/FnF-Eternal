@@ -12,6 +12,7 @@
 
 ### Low Priority
 - Gameplay UI tweaks
+- Freeplay UI overhaul
 - Replace the placeholders BF and GF story menu character spritesheets
 
 - ModState and ModSubState error handling

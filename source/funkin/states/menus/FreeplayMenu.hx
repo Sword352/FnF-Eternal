@@ -1,14 +1,14 @@
 package funkin.states.menus;
 
-import funkin.objects.ui.BGText;
-import funkin.objects.ui.Alphabet;
-import funkin.objects.ui.HealthIcon;
-import funkin.states.substates.ResetScoreScreen;
-
 import flixel.text.FlxText;
 import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;
+
+import funkin.objects.ui.BGText;
+import funkin.objects.ui.Alphabet;
+import funkin.objects.ui.HealthIcon;
+import funkin.states.substates.ResetScoreScreen;
 
 class FreeplayMenu extends MusicBeatState {
     var items:FlxTypedGroup<Alphabet>;
@@ -158,7 +158,7 @@ class FreeplayMenu extends MusicBeatState {
             #else
             if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) {
             #end
-                currentDifficulty = FlxMath.wrap(currentDifficulty + (controls.lastAction == "left" ? -1 : 1), 0, difficulties.length - 1);
+                currentDifficulty = Math.floor(FlxMath.bound(currentDifficulty + (controls.lastAction == "left" ? -1 : 1), 0, difficulties.length - 1));
                 updateScoreData();
                 
                 #if ENGINE_SCRIPTING
@@ -229,8 +229,7 @@ class FreeplayMenu extends MusicBeatState {
 
         detailsText.x = Tools.lerp(detailsText.x, scoreText.x + (scoreText.width * 0.5) - (detailsText.width * 0.5), 24);
 
-        difficultyText.text = '< ${difficulties[currentDifficulty].toUpperCase()} >';
-        difficultyText.x = Math.floor(scoreText.background.x + scoreText.background.width * 0.5) - (difficultyText.width * 0.5);
+        updateDifficultyText();
 
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);
@@ -273,8 +272,25 @@ class FreeplayMenu extends MusicBeatState {
         #end
     }
 
-    inline private function updateScoreData():Void
+    inline function updateScoreData():Void {
         scoreData = HighScore.get('${songs[currentSelection].rawName}-${difficulties[currentDifficulty]}');
+    }
+
+    inline function updateDifficultyText():Void {
+        var baseText:String = difficulties[currentDifficulty].toUpperCase();
+
+        if (difficulties.length > 1) {
+            var max:Int = difficulties.length - 1;
+
+            if (currentDifficulty == 0 || currentDifficulty != max)
+                baseText += " >";
+            if (currentDifficulty != 0)
+                baseText = "< " + baseText;
+        }
+
+        difficultyText.text = baseText;
+        difficultyText.x = Math.floor(scoreText.background.x + scoreText.background.width * 0.5) - (difficultyText.width * 0.5);
+    }
 
     private function playInstrumental():Void {
         if (music == null)
