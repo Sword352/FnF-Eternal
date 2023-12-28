@@ -98,7 +98,10 @@ class StrumLine extends FlxGroup {
             notesToRemove.push(note);
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
-            note.sustain.length -= elapsed * Conductor.playbackRate * 1000;
+            var scaledElapsed:Float = elapsed * Conductor.playbackRate;
+            note.sustain.length -= scaledElapsed * 1000;
+            note.sustain.scrollY += scaledElapsed;
+
             clipSustainTail(note, note.sustain.flipY);
 
             if (lastStep != Conductor.currentStep) {
@@ -184,7 +187,7 @@ class StrumLine extends FlxGroup {
          return;
 
       var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get()).set();
-      clipRect.width = (downscroll) ? tail.frameWidth : tail.width / tail.scale.x;
+      clipRect.width = (downscroll) ? tail.frameWidth : (tail.width / tail.scale.x);
 
       if (downscroll) {
          clipRect.height = (receptorCenter - tail.y) / tail.scale.y;
@@ -260,16 +263,16 @@ class StrumLine extends FlxGroup {
    }
 
    override function destroy():Void {
-      super.destroy();
+      notesToRemove = null;
+
+      characters = null;
+      holdKeys = null;
 
       onMiss = cast FlxDestroyUtil.destroy(onMiss);
       onHold = cast FlxDestroyUtil.destroy(onHold);
       onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
 
-      characters = null;
-      holdKeys = null;
-
-      notesToRemove = null;
+      super.destroy();
    }
 
    function set_x(v:Float):Float {

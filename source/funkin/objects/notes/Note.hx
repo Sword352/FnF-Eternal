@@ -1,9 +1,11 @@
 package funkin.objects.notes;
 
 import flixel.FlxCamera;
+import flixel.math.FlxRect;
 import flixel.graphics.FlxGraphic;
-import funkin.objects.sprites.TiledSprite;
 import flixel.graphics.frames.FlxFramesCollection;
+
+import funkin.objects.sprites.TiledSprite;
 
 class Note extends OffsetSprite {
    public static final directions:Array<String> = ["left", "down", "up", "right"];
@@ -142,14 +144,14 @@ class Sustain extends TiledSprite {
    public var scrollSpeed:Float = 0.45;
    public var downscroll:Bool = false;
 
-   public var tail(default, null):FlxSprite;
+   public var tail(default, null):Tail;
    public var parent(default, set):Note;
 
    public function new():Void {
       // TODO: make scaling not dependant of `repeatX`
       super(null, 0, 0, true, true);
 
-      tail = new FlxSprite();
+      tail = new Tail();
       alpha = 0.6;
    }
 
@@ -251,5 +253,16 @@ class Sustain extends TiledSprite {
       if (tail != null)
          tail.camera = v;
       return super.set_camera(v); 
+   }
+}
+
+class Tail extends FlxSprite {
+   override function set_clipRect(rect:FlxRect):FlxRect {
+      clipRect = rect;
+   
+      if (frames != null)
+         frame = frames.frames[animation.frameIndex];
+   
+      return rect;
    }
 }
