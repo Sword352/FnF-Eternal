@@ -20,12 +20,12 @@ class NoteViewer extends FlxSpriteGroup {
         super(x, y);
 
         container = new FlxSprite();
-        container.loadGraphic(AssetHelper.image("ui/debug/noteView"));
+        container.loadGraphic(Assets.image("ui/debug/noteView"));
         container.alpha = 0.6;
         add(container);
 
         note = new FlxSprite();
-        note.loadGraphic(AssetHelper.image("ui/debug/NoteGrid"), true, 161, 161);
+        note.loadGraphic(Assets.image("ui/debug/NoteGrid"), true, 161, 161);
         note.animation.add("note", [0, 1, 2, 3], 0);
         note.animation.play("note", true);
 
@@ -36,11 +36,11 @@ class NoteViewer extends FlxSpriteGroup {
         add(note);
 
         infos = new FlxText(container.width * 0.25, container.height * 0.45);
-        infos.setFormat(AssetHelper.font("vcr"), 12, FlxColor.BLACK);
+        infos.setFormat(Assets.font("vcr"), 12, FlxColor.BLACK);
         add(infos);
 
         lengthStepper = new NumberStepper();
-        lengthStepper.customStyle.fontName = AssetHelper.font("vcr");
+        lengthStepper.customStyle.fontName = Assets.font("vcr");
         lengthStepper.customStyle.color = FlxColor.BLACK;
         lengthStepper.customStyle.fontSize = 12;
 

@@ -96,7 +96,7 @@ class SoftcodedStage extends BaseStage {
     override function create():Void {
         var basePath:String = 'data/stages/${stage}';
 
-        var path:String = AssetHelper.yaml(basePath);
+        var path:String = Assets.yaml(basePath);
         if (!FileTools.exists(path) || FileTools.isDirectory(path)) {
             if (stage != null && stage.length > 0)
                 trace('Stage file ${stage}.yaml is missing!');
@@ -112,7 +112,7 @@ class SoftcodedStage extends BaseStage {
         }
 
         #if ENGINE_SCRIPTING
-        var scriptPath:String = AssetHelper.getPath(basePath, SCRIPT);
+        var scriptPath:String = Assets.getPath(basePath, SCRIPT);
         if (FileTools.exists(scriptPath)) {
             script = new HScript(scriptPath, false);
             PlayState.current.addScript(script);
@@ -184,18 +184,18 @@ class SoftcodedStage extends BaseStage {
 
             switch ((obj.type ?? "").toLowerCase().trim()) {
                 case "sparrow":
-                    sprite.frames = AssetHelper.getSparrowAtlas(obj.image, obj.library);
+                    sprite.frames = Assets.getSparrowAtlas(obj.image, obj.library);
                 case "packer":
-                    sprite.frames = AssetHelper.getPackerAtlas(obj.image, obj.library);
+                    sprite.frames = Assets.getPackerAtlas(obj.image, obj.library);
                 case "aseprite":
-                    sprite.frames = AssetHelper.getAseAtlas(obj.image, obj.library);
+                    sprite.frames = Assets.getAseAtlas(obj.image, obj.library);
                 case "rect":
                     sprite.makeGraphic(obj.rectGraphic[0], obj.rectGraphic[1], Tools.getColor(obj.rectGraphic[2]));
                 default:
                     if (obj.animationSize != null && obj.animationSize.length > 1)
-                        sprite.loadGraphic(AssetHelper.image(obj.image, obj.library), true, obj.animationSize[0], obj.animationSize[1]);
+                        sprite.loadGraphic(Assets.image(obj.image, obj.library), true, obj.animationSize[0], obj.animationSize[1]);
                     else
-                        sprite.loadGraphic(AssetHelper.image(obj.image, obj.library));
+                        sprite.loadGraphic(Assets.image(obj.image, obj.library));
             }
 
             if (obj.animations != null)

@@ -69,7 +69,7 @@ class BaseOptionSubState extends MusicBeatSubState {
         }
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [i]);

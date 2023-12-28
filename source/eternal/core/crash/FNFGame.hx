@@ -49,9 +49,9 @@ class FNFGame extends FlxGame {
             return onCrash(e, "onFocusLost");
     }
 
-    private function onCrash(event:Exception, func:String = "[UNKNOWN]"):Void {        
+    private function onCrash(event:Exception, func:String = "(?)"):Void {        
         CrashHandler.processCrash(event);
-        AssetHelper.clearAssets = true;
+        Assets.clearAssets = true;
         
         TransitionSubState.onComplete.removeAll();
         Tools.stopAllSounds();

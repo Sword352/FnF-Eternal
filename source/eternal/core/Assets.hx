@@ -1,15 +1,15 @@
 package eternal.core;
 
-import openfl.Assets;
-import openfl.system.System;
-
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 
 import openfl.media.Sound;
 import openfl.display.BitmapData;
 
-class AssetHelper {
+import openfl.system.System;
+import openfl.Assets as OpenFLAssets;
+
+class Assets {
     // Directories
     public static final defaultDirectory:String = "assets/";
 
@@ -103,7 +103,7 @@ class AssetHelper {
         if (graphic == null) {
             graphic = createGraphic(path, library);
             if (graphic != null)
-                sendToCache(key, graphic, IMAGE);
+                registerGraphic(key, graphic);
         }
 
         return graphic;
@@ -118,7 +118,7 @@ class AssetHelper {
         if (sound == null) {
             sound = createSound(path, library);
             if (sound != null)
-                sendToCache(key, sound, SOUND);
+                registerSound(key, sound);
         }
 
         return sound;
@@ -127,7 +127,7 @@ class AssetHelper {
     public static function createGraphic(path:String, ?library:String):FlxGraphic {
         var realPath:String = getPath(path, IMAGE, library);
         
-        var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else Assets.getBitmapData(realPath) #end ;
+        var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else OpenFLAssets.getBitmapData(realPath) #end ;
         if (bitmap == null) {
             trace('Invalid graphic path "${realPath}"!');
             return null;
@@ -148,22 +148,14 @@ class AssetHelper {
             return null;
         }
 
-        return #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else Assets.getSound(realPath) #end ;
+        return #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end ;
     }
 
-    inline public static function sendToCache(key:String, asset:Any, type:AssetType):Void {
-        if (key == null || asset == null || type == null)
-            return;
-        
-        switch type {
-            case IMAGE:
-                loadedGraphics.set(key, asset);
-            case SOUND:
-                loadedSounds.set(key, asset);
-            default:
-                trace("Cannot register asset of type " + type + " to the cache!");
-        }
-    }
+    inline public static function registerSound(key:String, asset:Sound):Void
+        loadedSounds.set(key, asset);
+
+    inline public static function registerGraphic(key:String, asset:FlxGraphic):Void
+        loadedGraphics.set(key, asset);
 
     inline private static function resolveAtlasData(key:String):String {
         #if ENGINE_RUNTIME_ASSETS
@@ -183,7 +175,7 @@ class AssetHelper {
         // Clear the cache entirely
         clearCache();
         // Clear the OpenFL cache
-        Assets.cache.clear();
+        OpenFLAssets.cache.clear();
 
         // Clear any graphics registered into Flixel's cache
         FlxG.bitmap.dumpCache();
@@ -210,7 +202,7 @@ class AssetHelper {
             if (excludeSounds.contains(sound))
                 continue;
 
-            Assets.cache.removeSound(key);
+            OpenFLAssets.cache.removeSound(key);
             sound.close();
 
             loadedSounds.remove(key);
@@ -244,7 +236,7 @@ class AssetHelper {
     }
 
     public static function clearFonts():Void {
-        var cache:openfl.utils.AssetCache = cast Assets.cache;
+        var cache:openfl.utils.AssetCache = cast OpenFLAssets.cache;
         for (key in cache.font.keys())
             if (!excludeFonts.contains(key))
                 cache.font.remove(key);
@@ -273,7 +265,7 @@ enum abstract AssetType(String) from String to String {
     public function getExtensions():Array<String> {
         return switch (this:AssetType) {
             case IMAGE:  [".png"];
-            case SOUND:  [".ogg", ".wav"];
+            case SOUND:  [".ogg", ".wav", #if web "mp3" #end];
             case FONT:   [".ttf", ".otf"];
 
             case XML:    [".xml"];

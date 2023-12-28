@@ -52,7 +52,7 @@ class OptionsMenu extends MusicBeatState {
 
         #if ENGINE_MODDING
         if (Settings.modSettings.length > 0)
-            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.folder), action: goToModOptions});
+            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.id), action: goToModOptions});
         #end
 
         #if ENGINE_SCRIPTING
@@ -65,7 +65,7 @@ class OptionsMenu extends MusicBeatState {
         }
         #end
 
-        AssetHelper.clearAssets = !toPlayState || Settings.get("reload assets");
+        Assets.clearAssets = !toPlayState || Settings.get("reload assets");
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "In the options";
@@ -74,13 +74,13 @@ class OptionsMenu extends MusicBeatState {
         Tools.playMusicCheck((toPlayState) ? "chillFresh" : "freakyMenu");
         Conductor.bpm = (toPlayState) ? 117 : 102;
 
-		background = new FlxSprite(0, 0, AssetHelper.image('menus/menuDesat'));
+		background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
         background.scale.set(1.15, 1.15);
 		background.screenCenter();
         background.color = 0x3E3E7A;
 		add(background);
 
-        backdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
+        backdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
         backdrop.color = 0xFF120E7A;
         backdrop.alpha = 0.4;
         backdrop.velocity.x = 50;
@@ -91,7 +91,7 @@ class OptionsMenu extends MusicBeatState {
 
         for (i in 0...categories.length) {
             var image:String = 'menus/options/icon_${categories[i].name.toLowerCase().replace(" ", "-")}';
-            if (!FileTools.exists(AssetHelper.getPath('images/${image}', IMAGE)))
+            if (!FileTools.exists(Assets.getPath('images/${image}', IMAGE)))
                 image = 'menus/options/icon_default';
 
             var left:Bool = (i % 2 == 0);
@@ -108,7 +108,7 @@ class OptionsMenu extends MusicBeatState {
             if (!left)
                 categoryText.x -= categoryText.width;
 
-            var icon:FlxSprite = new FlxSprite(0, 0, AssetHelper.image(image));
+            var icon:FlxSprite = new FlxSprite(0, 0, Assets.image(image));
             icon.scale.set(0.5, 0.5);
             icon.updateHitbox();
             icon.offset.y += icon.height * 0.25;
@@ -192,7 +192,7 @@ class OptionsMenu extends MusicBeatState {
             icon.alpha = (icon.ID == currentSelection) ? 1 : 0.6;
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [i]);
@@ -211,7 +211,7 @@ class OptionsMenu extends MusicBeatState {
             return;
         }
 
-        FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+        FlxG.sound.play(Assets.sound("confirmMenu"));
 
         for (text in categoryTexts)
             FlxTween.tween(text, {x: ((text.ID % 2 == 0) ? -(text.width + 15) : FlxG.width)}, 0.75, {ease: FlxEase.circInOut});
@@ -250,7 +250,7 @@ class OptionsMenu extends MusicBeatState {
     }
 
     inline function exit():Void {
-        FlxG.sound.play(AssetHelper.sound("cancelMenu"));
+        FlxG.sound.play(Assets.sound("cancelMenu"));
         FlxG.switchState((toPlayState) ? new PlayState() : new MainMenu());
     }
 

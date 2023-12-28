@@ -59,7 +59,7 @@ class ModsMenu extends MusicBeatSubState {
         background.alpha = 0.6;
         add(background);
 
-        checkerBackdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
+        checkerBackdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
         checkerBackdrop.color = FlxColor.WHITE;
         checkerBackdrop.velocity.x = 50;
         checkerBackdrop.alpha = 0.15;
@@ -71,7 +71,7 @@ class ModsMenu extends MusicBeatSubState {
         add(bar);
 
         modText = new FlxText();
-        modText.setFormat(AssetHelper.font("vcr"), 54, FlxColor.WHITE, CENTER);
+        modText.setFormat(Assets.font("vcr"), 54, FlxColor.WHITE, CENTER);
         modText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1);
         updateModText();
         add(modText);
@@ -80,11 +80,11 @@ class ModsMenu extends MusicBeatSubState {
         add(itemGroup);
 
         for (mod in Mods.mods) {
-            AssetHelper.currentDirectory = '${Mods.MODS_PATH}${mod.folder}/';
+            Assets.currentDirectory = '${Mods.MODS_PATH}${mod.folder}/';
             itemGroup.add(new ModItem(mod));
         }
 
-        AssetHelper.currentDirectory = '${Mods.MODS_PATH}${Mods.currentMod.folder}/';
+        Assets.currentDirectory = '${Mods.MODS_PATH}${Mods.currentMod.folder}/';
 
         currentSelection = Mods.mods.indexOf(Mods.currentMod);
         persistentUpdate = true;
@@ -120,7 +120,7 @@ class ModsMenu extends MusicBeatSubState {
 
             if (controls.justPressed("back")) {
                 allowInputs = false;
-                FlxG.sound.play(AssetHelper.sound("cancelMenu"));
+                FlxG.sound.play(Assets.sound("cancelMenu"));
 
                 if (exitToTitle) {
                     Tools.stopMusic();
@@ -143,7 +143,7 @@ class ModsMenu extends MusicBeatSubState {
         #end
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         currentSelection = FlxMath.wrap(currentSelection + i, 0, Mods.mods.length - 1);
         itemGroup.forEach((i) -> i.target = itemGroup.members.indexOf(i) - currentSelection);
@@ -235,7 +235,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         add(icon);
 
         modName = new FlxText();
-        modName.setFormat(AssetHelper.font("vcr"), 45);
+        modName.setFormat(Assets.font("vcr"), 45);
         modName.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         modName.text = modReference.title;
         modName.setPosition(FlxG.width - modName.width - 90, 50);
@@ -317,7 +317,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
 
     inline function accept():Void {
         Mods.loadMod(modReference.folder);
-        FlxG.save.data.lastMod = modReference.folder;
+        FlxG.save.data.lastMod = modReference.id;
         FlxG.save.flush();
 
         var modMenu:ModsMenu = cast _parentState;
@@ -325,7 +325,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         modMenu.updateModText();
 
         updateConfirmText();
-        FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+        FlxG.sound.play(Assets.sound("confirmMenu"));
     }
 
     inline function updateConfirmText():Void {
@@ -355,11 +355,11 @@ class ModItem extends FlxSprite {
 
         target = Mods.mods.indexOf(mod);
 
-        var possibleIcon:String = AssetHelper.getPath("pack", IMAGE);
+        var possibleIcon:String = Assets.getPath("pack", IMAGE);
         if (FileTools.exists(possibleIcon))
-            loadGraphic(AssetHelper.getGraphic('pack', null, 'icon_${mod.folder}'));
+            loadGraphic(Assets.getGraphic('pack', null, 'icon_${mod.id}'));
         else
-            loadGraphic(AssetHelper.image('menus/questionMark'));
+            loadGraphic(Assets.image('menus/questionMark'));
 
         screenCenter(Y);
     }

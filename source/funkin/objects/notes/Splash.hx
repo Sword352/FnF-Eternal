@@ -6,7 +6,7 @@ class Splash extends OffsetSprite {
     public function new():Void {
         super();
 
-        frames = AssetHelper.getSparrowAtlas("notes/noteSplashes");
+        frames = Assets.getSparrowAtlas("notes/noteSplashes");
 
         var animationArray:Array<String> = ["down", "up", "left", "right"];
         for (i in 0...2) {

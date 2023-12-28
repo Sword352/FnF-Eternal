@@ -140,7 +140,7 @@ class FlxSoundTray extends Sprite {
 	 */
 	public function show(up:Bool = false):Void {
 		if (!silent)
-			FlxG.sound.play(AssetHelper.sound(up ? volumeUpSound : volumeDownSound));
+			FlxG.sound.play(Assets.sound(up ? volumeUpSound : volumeDownSound));
 
 		_timer = 1;
 		_intendedY = 0;

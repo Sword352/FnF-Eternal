@@ -55,7 +55,7 @@ class GameOverScreen extends MusicBeatSubState {
         add(cameraObject);
 
         character.playAnimation("firstDeath");
-        FlxG.sound.play(AssetHelper.sound(data.deathSound));
+        FlxG.sound.play(Assets.sound(data.deathSound));
 
         Conductor.bpm = data.bpm;
         Conductor.music = FlxG.sound.music;
@@ -89,7 +89,7 @@ class GameOverScreen extends MusicBeatSubState {
 
             if (character.animation.curAnim.finished) {
                 started = true;
-                FlxG.sound.playMusic(AssetHelper.music(data.music));
+                FlxG.sound.playMusic(Assets.music(data.music));
             }
         }
 
@@ -128,13 +128,13 @@ class GameOverScreen extends MusicBeatSubState {
         #end
 
         allowInputs = false;
-        AssetHelper.clearAssets = Settings.get("reload assets");
+        Assets.clearAssets = Settings.get("reload assets");
 
         Conductor.music = null;
         Tools.stopMusic();
 
         character?.playAnimation("deathConfirm", true);
-        FlxG.sound.play(AssetHelper.sound(data.confirmSound));
+        FlxG.sound.play(Assets.sound(data.confirmSound));
 
         new FlxTimer().start(0.7, (_) -> {
             camera.fade(Tools.getColor(data.fadeColor), data.fadeDuration, false, FlxG.resetState);

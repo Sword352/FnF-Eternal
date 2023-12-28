@@ -9,7 +9,7 @@ import flixel.FlxSubState;
     public function new(script:String):Void {
         super();
 
-        var path:String = AssetHelper.getPath('data/states/${script}', SCRIPT);
+        var path:String = Assets.getPath('data/states/${script}', SCRIPT);
         if (!FileTools.exists(path)) {
             trace('Could not find state script ${script}!');
             return;
@@ -42,7 +42,7 @@ import flixel.FlxSubState;
     public function new(script:String):Void {
         super();
 
-        var path:String = AssetHelper.getPath('data/substates/${script}', SCRIPT);
+        var path:String = Assets.getPath('data/substates/${script}', SCRIPT);
         if (!FileTools.exists(path)) {
             trace('Could not find substate script ${script}!');
             return;
@@ -85,7 +85,7 @@ class ScriptableState extends TransitionState implements IScriptable {
     }
 
     public function loadScriptsFrom(path:String):Void {
-        var realPath:String = AssetHelper.getPath('${path}/', NONE);
+        var realPath:String = Assets.getPath('${path}/', NONE);
         if (!FileTools.exists(realPath))
             return;
 
@@ -142,7 +142,7 @@ class ScriptableState extends TransitionState implements IScriptable {
 
     private function initStateScript():Bool {
         var statePackage:String = Type.getClassName(Type.getClass(this));
-        var path:String = AssetHelper.getPath('data/states/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
+        var path:String = Assets.getPath('data/states/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
 
         if (!FileTools.exists(path))
             return false;
@@ -211,7 +211,7 @@ class ScriptableSubState extends FlxSubState implements IScriptable {
     }
 
     public function loadScriptsFrom(path:String):Void {
-        var realPath:String = AssetHelper.getPath('${path}/', NONE);
+        var realPath:String = Assets.getPath('${path}/', NONE);
         if (!FileTools.exists(realPath))
             return;
 
@@ -268,7 +268,7 @@ class ScriptableSubState extends FlxSubState implements IScriptable {
 
     private function initStateScript():Bool {
         var statePackage:String = Type.getClassName(Type.getClass(this));
-        var path:String = AssetHelper.getPath('data/substates/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
+        var path:String = Assets.getPath('data/substates/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
 
         if (!FileTools.exists(path))
             return false;

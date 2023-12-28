@@ -59,7 +59,8 @@ class HScript {
         "Tools" => Tools,
         "StringTools" => StringTools,
 
-		"AssetHelper" => AssetHelper,
+		"Assets" => Assets,
+        "AssetHelper" => Assets, // avoids breaking change (temporary?)
         "Paths" => eternal.tools.Paths,
 
         #if sys "Sys" => Sys, #end

@@ -41,9 +41,9 @@ class HealthIcon extends OffsetSprite {
     }
 
     public function changeIcon(icon:String):Void {
-        var newGraphic:FlxGraphic = AssetHelper.image('icons/${icon}');
+        var newGraphic:FlxGraphic = Assets.image('icons/${icon}');
         if (newGraphic == null)
-            newGraphic = AssetHelper.image('icons/face');
+            newGraphic = Assets.image('icons/face');
 
         var size:Int = findSize(icon);
         loadGraphic(newGraphic, true, Std.int(newGraphic.width / size), newGraphic.height);
@@ -74,7 +74,7 @@ class HealthIcon extends OffsetSprite {
     }
 
     inline static function findSize(icon:String):Int {
-        var path:String = AssetHelper.txt('images/icons/${icon}');
+        var path:String = Assets.txt('images/icons/${icon}');
         if (!FileTools.exists(path))
             return 2;
 

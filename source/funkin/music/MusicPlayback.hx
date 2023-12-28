@@ -27,13 +27,13 @@ class MusicPlayback extends FlxBasic {
     }
 
     public function setupInstrumental(file:String):Void {
-        instrumental = FlxG.sound.load(AssetHelper.songAudio(song, 'song/${file}'));
+        instrumental = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
         instrumental.onComplete = onSongEnd.dispatch;
         musics.push(instrumental);
     }
 
     public function createVoice(file:String):Void {
-        var voice:FlxSound = FlxG.sound.load(AssetHelper.songAudio(song, 'song/${file}'));
+        var voice:FlxSound = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
         if (vocals.length < 1)
             mainVocals = voice;
 
@@ -93,14 +93,14 @@ class MusicPlayback extends FlxBasic {
     }
 
     override function destroy():Void {
-        super.destroy();
-        
         onSongEnd = cast FlxDestroyUtil.destroy(onSongEnd);
 
         destroyMusic();
         musics = null;
         vocals = null;
         song = null;
+        
+        super.destroy();
     }
 
     function set_vocalsVolume(v:Float):Float {

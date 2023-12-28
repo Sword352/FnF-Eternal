@@ -2,6 +2,12 @@ package eternal;
 
 import funkin.states.substates.GameOverScreen.GameOverProperties;
 
+/**
+ * TODO:
+ * - `Chart`: move `speed` and `bpm` to `SongMetadata`
+ * - `ChartNote`: remove `animSuffix` and use notetypes for anim suffixes
+ */
+
 @:structInit class Chart {
    public var meta:SongMetadata;
 
@@ -10,6 +16,37 @@ import funkin.states.substates.GameOverScreen.GameOverProperties;
 
    public var speed:Float;
    public var bpm:Float;
+
+   public function toStruct():Dynamic {
+      return {
+         meta: this.meta,
+
+         notes: this.notes.copy(),
+         events: this.events.copy(),
+
+         speed: this.speed,
+         bpm: this.bpm
+      };
+   }
+
+   public static function fromStruct(struct:Dynamic):Chart {
+      return {
+         meta: struct.meta,
+
+         notes: struct.notes,
+         events: struct.events,
+
+         speed: struct.speed,
+         bpm: struct.bpm
+      };
+   }
+
+   public static function resolve(data:Dynamic):Chart {
+      if (data is Chart)
+         return data;
+
+      return fromStruct(data);
+   }
 }
 
 typedef SongMetadata = {

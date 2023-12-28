@@ -12,7 +12,7 @@ class Receptor extends OffsetSprite {
     }
 
     public function load(direction:Int):Void {
-        frames = AssetHelper.getSparrowAtlas("notes/receptors");
+        frames = Assets.getSparrowAtlas("notes/receptors");
 
         for (anim in ["press", "static", "confirm"])
             animation.addByPrefix(anim, '${Note.directions[direction]} ${anim}', 24, false);

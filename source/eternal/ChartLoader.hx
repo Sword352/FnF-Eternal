@@ -34,7 +34,7 @@ class ChartLoader {
         };
 
     public static function loadMetaData(song:String):SongMetadata {
-        var path:String = AssetHelper.json('songs/${Tools.formatSong(song)}/meta');
+        var path:String = Assets.json('songs/${Tools.formatSong(song)}/meta');
         if (!FileTools.exists(path)) {
             trace('Path to ${song} has not been found, returning default metadata');
             return getDefaultMeta();
@@ -167,7 +167,7 @@ class ChartLoader {
         if (difficulty == null)
             difficulty = "normal";
 
-        var path:String = AssetHelper.json('songs/${song}/charts/${difficulty}');
+        var path:String = Assets.json('songs/${song}/charts/${difficulty}');
         var data:Dynamic = Json.parse(FileTools.getContent(path));
         #if sys var overwrite:Bool = false; #end
 
@@ -183,7 +183,7 @@ class ChartLoader {
 
         // check for events
         if (data.events == null) {
-            var eventsPath:String = AssetHelper.json('songs/${song}/events');
+            var eventsPath:String = Assets.json('songs/${song}/events');
             if (FileTools.exists(eventsPath))
                 data.events = Json.parse(FileTools.getContent(eventsPath));
             else
@@ -195,21 +195,6 @@ class ChartLoader {
             sys.io.File.saveContent(path, Json.encode(data, null, false)); // overwrite the chart json
         #end
 
-        return resolveChart(data);
-    }
-
-    inline public static function resolveChart(chart:Dynamic):Chart {
-        if (chart is Chart)
-            return chart;
-
-        return {
-            meta: chart.meta,
-
-            notes: chart.notes,
-            events: chart.events,
-
-            speed: chart.speed,
-            bpm: chart.bpm
-        };
+        return Chart.resolve(data);
     }
 }

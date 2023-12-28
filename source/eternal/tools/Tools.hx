@@ -119,7 +119,7 @@ class Tools {
 
     public static function playMusicCheck(file:String, ?library:String, loop:Bool = true):Void {
         if (FlxG.sound.music == null || !FlxG.sound.music.playing)
-            FlxG.sound.playMusic(AssetHelper.music(file, library), 1, loop);
+            FlxG.sound.playMusic(Assets.music(file, library), 1, loop);
     }
 
     public static function invokeTempSave(funcToDo:FlxSave->Void, name:String, ?folder:String):Void {

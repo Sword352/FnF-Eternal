@@ -211,7 +211,7 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function createUI():Void {
         infos = new FlxText(0, FlxG.height * 0.9);
-        infos.setFormat(AssetHelper.font("vcr"), 20, FlxColor.WHITE, CENTER);
+        infos.setFormat(Assets.font("vcr"), 20, FlxColor.WHITE, CENTER);
         infos.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         infos.alpha = 0;
         add(infos);

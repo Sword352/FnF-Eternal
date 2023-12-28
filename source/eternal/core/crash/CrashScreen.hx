@@ -23,7 +23,7 @@ class CrashScreen extends FlxState {
         super.create();
 
         questionMark = new FlxSprite();
-        questionMark.loadGraphic(AssetHelper.image("menus/questionMark"));
+        questionMark.loadGraphic(Assets.image("menus/questionMark"));
         questionMark.color = FlxColor.RED;
         questionMark.scale.set(1.5, 1.5);
         questionMark.updateHitbox();
@@ -31,24 +31,24 @@ class CrashScreen extends FlxState {
         add(questionMark);
 
         var boyfriend:FlxSprite = new FlxSprite();
-        boyfriend.loadGraphic(AssetHelper.image("menus/exceptions/crash"));
+        boyfriend.loadGraphic(Assets.image("menus/exceptions/crash"));
         boyfriend.setGraphicSize(0, FlxG.height / 2);
         boyfriend.updateHitbox();
         boyfriend.y = FlxG.height - boyfriend.height;
         add(boyfriend);
 
         callstack = new FlxText();
-        callstack.setFormat(AssetHelper.font("vcr"), 32, FlxColor.WHITE, CENTER);
+        callstack.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, CENTER);
         callstack.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
 
-        callstack.text = CrashHandler.lastCallstack;
+        callstack.text = CrashHandler.lastReport.callstack;
         callstack.resizeText();
 
         callstack.clipRect = flixel.math.FlxRect.get(0, 0, callstack.width, (callstack.height > 315) ? (callstack.height / 2 + 5) : callstack.height);
         callstack.setPosition((FlxG.width - callstack.width) / 2, (FlxG.height - callstack.clipRect.height) / 2);
         add(callstack);
 
-        var topText:FlxText = new FlxText(0, 0, 0, CrashHandler.lastException);
+        var topText:FlxText = new FlxText(0, 0, 0, '<>Error:<> ' + CrashHandler.lastReport.exception);
         topText.setFormat(callstack.font, 44);
         topText.resizeText();
         
@@ -60,7 +60,7 @@ class CrashScreen extends FlxState {
         var fullBottomText:String = 'Called from: ${func}';
 
         #if sys
-        fullBottomText += '\nSaved crash log to "${CrashHandler.lastCrashLog}"';
+        fullBottomText += '\nSaved crash log to "${CrashHandler.lastReport.crashLog}"';
         #end
         
         fullBottomText += "\n\nTurn the mouse wheel to scroll the crash stack";
@@ -87,7 +87,7 @@ class CrashScreen extends FlxState {
         camera.alpha = 0;
         FlxTween.tween(camera, {alpha: 1}, 0.45);
 
-        FlxG.sound.play(AssetHelper.sound("error"));
+        FlxG.sound.play(Assets.sound("error"));
     }
 
     override function update(elapsed:Float):Void {

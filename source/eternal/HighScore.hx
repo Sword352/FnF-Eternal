@@ -6,7 +6,7 @@ class HighScore {
 
     public static function set(song:String, data:ScoreMeasure):Void {
         #if ENGINE_MODDING
-        song = Mods.currentMod.folder + "_" + song;
+        song = Mods.currentMod.id + "_" + song;
         #end
 
         var original:ScoreMeasure = scoreMap.get(song) ?? defaultMeasure;
@@ -19,7 +19,7 @@ class HighScore {
 
     public static function get(song:String):ScoreMeasure {
         #if ENGINE_MODDING
-        song = Mods.currentMod.folder + "_" + song;
+        song = Mods.currentMod.id + "_" + song;
         #end
         
         if (!scoreMap.exists(song))

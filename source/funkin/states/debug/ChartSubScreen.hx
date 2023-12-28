@@ -43,7 +43,7 @@ class ChartSubScreen extends FlxSubState {
         .tabbar-button {
             color: #000000;
             font-size: 16px;
-            font-name: ${AssetHelper.font("vcr")};
+            font-name: ${Assets.font("vcr")};
             border-top-color: #000000;
             border-left-color: #000000;
             border-right-color: #000000;
@@ -530,7 +530,7 @@ class ChartSubScreen extends FlxSubState {
     }
 
     inline static function applyStyle(s:haxe.ui.styles.Style, color:FlxColor = FlxColor.WHITE):Void {
-        s.fontName = AssetHelper.font("vcr");
+        s.fontName = Assets.font("vcr");
         s.color = color;
         s.fontSize = 12;
     }

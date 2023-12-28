@@ -111,9 +111,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         createGrid();
         createUI();
 
-        hitsound = AssetHelper.sound("editors/hitsound");
+        hitsound = Assets.sound("editors/hitsound");
 
-        metronome = FlxG.sound.load(AssetHelper.sound("editors/metronome"));
+        metronome = FlxG.sound.load(Assets.sound("editors/metronome"));
         metronome.volume = Settings.get("CHART_metronomeVolume");
 
         // spawn existing notes
@@ -361,7 +361,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         persistentUpdate = false;
         FlxG.mouse.visible = false;
-        AssetHelper.clearAssets = Settings.get("reload assets");
+        Assets.clearAssets = Settings.get("reload assets");
 
         PlayState.song = chart;
         PlayState.currentDifficulty = difficulty;
@@ -470,7 +470,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     // UNFINISHED
     inline public function reloadMeasureMarks():Void {
-        var measureFnt:String = AssetHelper.font("vcr"); // avoids 78 file exist calls
+        var measureFnt:String = Assets.font("vcr"); // avoids 78 file exist calls
         var measureTime:Float = 0;
         var timeOffset:Float = 0;
 
@@ -657,14 +657,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function createBackground():Void {
-        var backdrop:FlxBackdrop = new FlxBackdrop(AssetHelper.image("menus/checkboard"));
+        var backdrop:FlxBackdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
         backdrop.scrollFactor.set(0.2, 0.2);
         backdrop.color = FlxColor.PURPLE;
         backdrop.alpha = 0.5;
         backdrop.active = false;
         add(backdrop);
 
-        var background:FlxSprite = new FlxSprite(0, 0, AssetHelper.image("menus/menuDesat"));
+        var background:FlxSprite = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
         background.scrollFactor.set();
         background.blend = MULTIPLY;
         background.active = false;
@@ -692,7 +692,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(overlay);
 
         musicText = new FlxText(0, overlay.y);
-        musicText.setFormat(AssetHelper.font("vcr"), 14, FlxColor.WHITE, RIGHT);
+        musicText.setFormat(Assets.font("vcr"), 14, FlxColor.WHITE, RIGHT);
         musicText.setBorderStyle(OUTLINE, FlxColor.BLACK, 0.5);
         musicText.visible = Settings.get("CHART_timeOverlay");
         musicText.cameras = [uiCamera];
@@ -763,7 +763,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Tools.invokeTempSave((save) -> {
             var saveMap:Map<String, Dynamic> = save.data.charts;
             if (saveMap != null && saveMap.exists(chart.meta.rawName))
-                chart = eternal.ChartLoader.resolveChart(saveMap.get(chart.meta.rawName));           
+                chart = eternal.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));           
         }, "chart_autosave");
 
         if (oldChart == chart)
@@ -771,7 +771,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         // perhaps it's better to not switch states at all?
         
-        AssetHelper.clearAssets = false;
+        Assets.clearAssets = false;
 
         subState.close();
         FlxG.switchState(new ChartEditor(chart, difficulty));
@@ -783,13 +783,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             if (saveMap == null)
                 saveMap = [];
 
-            saveMap.set(chart.meta.rawName, {
-                meta: chart.meta,
-                notes: chart.notes,
-                events: chart.events,
-                speed: chart.speed,
-                bpm: chart.bpm
-            });
+            saveMap.set(chart.meta.rawName, chart.toStruct());
             save.data.charts = saveMap;
         }, "chart_autosave");
     }
@@ -879,7 +873,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (character == null)
             return "face";
 
-        var file:String = AssetHelper.yaml('data/characters/${character}');
+        var file:String = Assets.yaml('data/characters/${character}');
         if (!FileTools.exists(file))
             return "face";
 
@@ -897,7 +891,7 @@ class DebugNote extends FlxSprite {
     public function new():Void {
         super();
 
-        loadGraphic(AssetHelper.image("ui/debug/NoteGrid"), true, 161, 161);
+        loadGraphic(Assets.image("ui/debug/NoteGrid"), true, 161, 161);
         animation.add('note', [for (i in 0...4) i], 0);
         animation.play('note', true);
 
@@ -990,7 +984,7 @@ class EventSprite extends FlxSprite {
     public function new():Void {
         super();
 
-        loadGraphic(AssetHelper.image("ui/debug/evt_ic"));
+        loadGraphic(Assets.image("ui/debug/evt_ic"));
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
 
@@ -999,7 +993,7 @@ class EventSprite extends FlxSprite {
         rect.visible = false;
 
         text = new FlxText();
-        text.setFormat(AssetHelper.font("vcr"), 12, FlxColor.WHITE, RIGHT);
+        text.setFormat(Assets.font("vcr"), 12, FlxColor.WHITE, RIGHT);
     }
 
     override function update(elapsed:Float):Void {

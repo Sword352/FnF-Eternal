@@ -56,7 +56,7 @@ class Note extends OffsetSprite {
 
       var dir:String = directions[direction];
 
-      frames = AssetHelper.getSparrowAtlas("notes/notes");
+      frames = Assets.getSparrowAtlas("notes/notes");
 		animation.addByPrefix(dir, '${dir}0');
       playAnimation(dir);
 

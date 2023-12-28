@@ -62,7 +62,7 @@ class MainMenu extends MusicBeatState {
         FlxG.cameras.reset(new Camera());
 
         background = new FlxSprite();
-        background.loadGraphic(AssetHelper.image("menus/menuBG"));
+        background.loadGraphic(Assets.image("menus/menuBG"));
         background.scale.set(1.2, 1.2);
         background.updateHitbox();
         background.screenCenter();
@@ -71,7 +71,7 @@ class MainMenu extends MusicBeatState {
 
         if (!Settings.get("disable flashing lights")) {
             flicker = new FlxSprite();
-            flicker.loadGraphic(AssetHelper.image("menus/menuDesat"));
+            flicker.loadGraphic(Assets.image("menus/menuDesat"));
             flicker.scale.set(1.2, 1.2);
             flicker.updateHitbox();
             flicker.screenCenter();
@@ -89,7 +89,7 @@ class MainMenu extends MusicBeatState {
             #if ENGINE_MODDING 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\n' + #end
             'Eternal Engine v${Tools.gameVersion}${devState}'
         );
-        bottomText.setFormat(AssetHelper.font("vcr"), 16);
+        bottomText.setFormat(Assets.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
         bottomText.scrollFactor.set();
         bottomText.y = FlxG.height - bottomText.height;
@@ -101,7 +101,7 @@ class MainMenu extends MusicBeatState {
 
         for (i in 0...itemList.length) {
             var item:FlxSprite = new FlxSprite();
-            item.frames = AssetHelper.getSparrowAtlas('menus/main/${itemList[i]}');
+            item.frames = Assets.getSparrowAtlas('menus/main/${itemList[i]}');
             item.animation.addByPrefix("normal", "basic", 24);
             item.animation.addByPrefix("selected", "white", 24);
             item.animation.play("normal");
@@ -146,6 +146,8 @@ class MainMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
+        if (FlxG.keys.justPressed.G) cast(null, FlxSprite).draw();
+
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
         cameraTarget.setPosition(
             Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed),
@@ -161,7 +163,7 @@ class MainMenu extends MusicBeatState {
                 accept();
 
             if (controls.justPressed("back")) {
-                FlxG.sound.play(AssetHelper.sound("cancelMenu"));
+                FlxG.sound.play(Assets.sound("cancelMenu"));
                 TransitionSubState.skipNextTransOut = true;
                 FlxG.switchState(new TitleScreen());
             }
@@ -208,7 +210,7 @@ class MainMenu extends MusicBeatState {
         });
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [i]);
@@ -222,7 +224,7 @@ class MainMenu extends MusicBeatState {
         #end
 
         allowInputs = false;
-        FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+        FlxG.sound.play(Assets.sound("confirmMenu"));
 
         for (item in items.members.filter((i) -> i.ID != currentSelection))
             FlxTween.tween(item, {alpha: 0}, 0.4, {ease: FlxEase.quadOut});

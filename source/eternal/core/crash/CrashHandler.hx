@@ -18,73 +18,52 @@ import haxe.EnumFlags;
 #end
 
 class CrashHandler {
-     public static var lastCallstack(default, null):String;
-     public static var lastException(default, null):String;
-
      #if sys
      public static final CRASHLOG_PATH:String = "crash/";
-     public static var lastCrashLog(default, null):String;
      #end
 
+     public static var lastReport(default, null):CrashReport = {};
+
      public static final quotes:Array<String> = [
+          // sword
+          "i told you to use FlxGroup.recycle why don't you listen",
+          "https://www.youtube.com/watch?v=4kEO7VjKRB8",
+          "duh what did you do bro",
+          "so true",
+          "bruh",
+                              
+          #if ENGINE_DISCORD_RPC
+          "#DISCORD Well, looks like ${user} crashed the game.",
+          "#DISCORD ${user} should really take a break!",
+          #end
+
           // leon brother
           "Looks like a pipe exploded",
           "Come back next Friday",
           "Haha someone's code isn't funkin'",
           "Looks like it's crashing time!",
-          // crazyb3ndy
-          "your funkin ain't fridayin",
+
           // plankdev
           "erm... what the blast",
           "you're did it !!!!",
-          // "can you shur.up man??? uuggghhh *shakes butt*",
-          // <a:bwomp:1148184617552187435>
-          // memehoovy
-          "Hi. I'm Eternal engine, and I'm a crashaholic.",
-          // eyedalehim
-          "now what the heck happened here?",
-          // laztrix
-          "what the scallop",
-          // smb
-          "a crash? aw man",
-          // glade
-          "um hi i'm the friendly crash quote",
-          // sword
-          "https://www.youtube.com/watch?v=4kEO7VjKRB8",
-          
-          #if ENGINE_DISCORD_RPC
-          "#DISCORD Looks like ${user} crashed the game!",
-          "#DISCORD ${user} should really take a break"
-          #end
+
+          "your funkin ain't fridayin", // crazyb3ndy
+          "Hi. I'm Eternal engine, and I'm a crashaholic.", // memehoovy
+          "now what the heck happened here?", // eyedalehim
+          "what the scallop", // meloomazy
+          "a crash? aw man", // smb
+          "um hi i'm the friendly crash quote" // glade
      ];
 
-     public static function init():Void {
-         Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
+     public static inline function init():Void {
+         Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, _onCriticalCrash);
 
          #if hl
-         Api.setErrorHandler(onCrash);
-         /*
-         #elseif cpp
-         untyped __global__.__hxcpp_set_critical_error_handler((e) -> onCrash(e, true));
-         */
+         Api.setErrorHandler(_onCriticalCrash);
          #end
      }
 
-     private static function onCrash(event:Dynamic):Void {          
-          var msg:String = processCrash(event);     
-
-          #if hl
-          var params:EnumFlags<DialogFlags> = new EnumFlags<DialogFlags>();
-          params.set(IsError);
-          UI.dialog("Friday Night Funkin': Eternal Engine - Exception Report", msg + '\n\nPress OK to close the game.', params);
-          #else
-          Lib.application.window.alert(msg + '\n\nPress OK to close the game.', "Friday Night Funkin': Eternal Engine - Exception Report");
-          #end
-     }
-
      public static function processCrash(event:Dynamic):String {
-          var exception:String = processError(event);
-
           var fullStack:String = "";
           for (stackItem in CallStack.exceptionStack(true)) {
                switch (stackItem) {
@@ -101,10 +80,10 @@ class CrashHandler {
                }
           }
 
-          lastException = '<>Error:<> ${exception}';
-          lastCallstack = fullStack;
+          lastReport.exception = processError(event);
+          lastReport.callstack = fullStack;
 
-          var msg:String = '${lastException.replace("<>", "")}\n${lastCallstack}';
+          var msg:String = 'Error: ${lastReport.exception}\n${lastReport.callstack}';
           trace("\n" + msg);
           msg += '\nPlease report this to the github page: ${Tools.githubURL}';
 
@@ -119,13 +98,13 @@ class CrashHandler {
           File.saveContent(path, msg);
           trace('Saved crash log to "${path}"');
 
-          lastCrashLog = path;
+          lastReport.crashLog = path;
           #end
 
           return msg;
      }
 
-     inline private static function processError(error:Dynamic):String {
+     public static inline function processError(error:Dynamic):String {
           var exception:String = "Unknown";
 
           try {
@@ -142,7 +121,7 @@ class CrashHandler {
           return exception;
      }
 
-     inline public static function getNextQuote():String {
+     public static inline function getNextQuote():String {
           FlxG.random.shuffle(quotes);
 
           #if ENGINE_DISCORD_RPC
@@ -156,6 +135,26 @@ class CrashHandler {
           return FlxG.random.getObject(quotes);
           #end
      }
+
+     private static function _onCriticalCrash(event:Dynamic):Void {          
+          var msg:String = processCrash(event);     
+
+          #if hl
+          var params:EnumFlags<DialogFlags> = new EnumFlags<DialogFlags>();
+          params.set(IsError);
+          UI.dialog("Friday Night Funkin': Eternal Engine - Exception Report", msg + '\n\nPress OK to close the game.', params);
+          #else
+          Lib.application.window.alert(msg + '\n\nPress OK to close the game.', "Friday Night Funkin': Eternal Engine - Exception Report");
+          #end
+     }
+}
+
+@:structInit class CrashReport {
+     public var callstack:String;
+     public var exception:String;
+     #if sys public var crashLog:String; #end
+
+     public function new():Void {}
 }
 
 interface ICrashListener {

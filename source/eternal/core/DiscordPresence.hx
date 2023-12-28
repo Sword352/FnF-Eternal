@@ -69,18 +69,18 @@ class DiscordPresence {
 
     private static function onReady(request:cpp.RawConstPointer<DiscordUser>):Void {
         username = cpp.ConstPointer.fromRaw(request).ptr.username;
-        trace('Connected as ${username}.');
+        trace('Connected to Discord as ${username}.');
 
         presence.largeImageKey = "logo";
         presence.largeImageText = Tools.devState;
     }
 
-    private static function onError(errorCode:Int, message:cpp.ConstCharStar):Void {
+    private static inline function onError(errorCode:Int, message:cpp.ConstCharStar):Void {
         trace('An error has occured while connecting! [ERROR: ${message} - CODE: ${errorCode}]');
         shutdown();
     }
 
-    private static function onDisconnected(errorCode:Int, message:cpp.ConstCharStar):Void {
+    private static inline function onDisconnected(errorCode:Int, message:cpp.ConstCharStar):Void {
         trace('Connection has been lost! [ERROR: ${message} - CODE: ${errorCode}]');
         shutdown();
     }

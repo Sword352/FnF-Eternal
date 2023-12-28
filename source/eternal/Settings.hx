@@ -132,11 +132,11 @@ class Settings {
         while (modSettings.length > 0)
             settings.remove(modSettings.shift().backendKey);
 
-        var settingConfig:String = AssetHelper.yaml("data/settings");
+        var settingConfig:String = Assets.yaml("data/settings");
         if (!FileTools.exists(settingConfig))
             return;
 
-        var setters:String = AssetHelper.getPath("data/settings", SCRIPT);
+        var setters:String = Assets.getPath("data/settings", SCRIPT);
         if (FileTools.exists(setters))
             setterScript = new HScript(setters, false);
 
@@ -155,7 +155,7 @@ class Settings {
             }
             instance.onChange = (val) -> setterScript?.call('onChange_${id}', [val]);
 
-            setting.backendKey = Mods.currentMod.folder + "_" + id;
+            setting.backendKey = Mods.currentMod.id + "_" + id;
             modSettings.push(setting);
             settings.set(setting.backendKey, instance);
         }
@@ -167,7 +167,7 @@ class Settings {
 
     inline public static function get(key:String):Dynamic {
         #if ENGINE_MODDING
-        var modKey:String = Mods.currentMod.folder + "_" + key;
+        var modKey:String = Mods.currentMod.id + "_" + key;
         if (settings.exists(modKey))
             return settings.get(modKey).value;
         #end

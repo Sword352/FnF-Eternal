@@ -85,10 +85,10 @@ class StoryMenu extends MusicBeatState {
                 if (character == "#NONE" || charactersData.exists(character))
                     continue;
 
-                var path:String = AssetHelper.yaml('images/menus/story/characters/${character}');
+                var path:String = Assets.yaml('images/menus/story/characters/${character}');
                 charactersData.set(character, Tools.parseYAML(FileTools.getContent(path)));
 
-                AssetHelper.getSparrowAtlas('menus/story/characters/${character}');
+                Assets.getSparrowAtlas('menus/story/characters/${character}');
             }
         }
 
@@ -99,7 +99,7 @@ class StoryMenu extends MusicBeatState {
         yellowOverlay.makeRect(FlxG.width, 400, 0xFFF9CF51);
 
         tracks = new FlxText(FlxG.width * 0.05, yellowOverlay.x + yellowOverlay.height + 100, 0, "TRACKS");
-        tracks.setFormat(AssetHelper.font("vcr"), 44, 0xFFe55777);
+        tracks.setFormat(Assets.font("vcr"), 44, 0xFFe55777);
         add(tracks);
 
         songDisplay = new FlxText(tracks.x, tracks.y + 50);
@@ -109,7 +109,7 @@ class StoryMenu extends MusicBeatState {
         for (week in weeks) {
             // using OffsetSprite in case people wanna make those animated
             var sprite:OffsetSprite = new OffsetSprite();
-            sprite.loadGraphic(AssetHelper.image('menus/story/${week.image}'));
+            sprite.loadGraphic(Assets.image('menus/story/${week.image}'));
             sprite.ID = weeks.indexOf(week);
             sprite.y = sprite.ID * 120 + 480;
             sprite.screenCenter(X);
@@ -125,7 +125,7 @@ class StoryMenu extends MusicBeatState {
             var direction:String = (i == 0) ? "left" : "right";
 
             var arrow:OffsetSprite = new OffsetSprite(FlxG.width * 0.8 + 150 * i, yellowOverlay.y + yellowOverlay.height + 10);
-            arrow.frames = AssetHelper.getSparrowAtlas("menus/story/ui");
+            arrow.frames = Assets.getSparrowAtlas("menus/story/ui");
             arrow.animation.addByPrefix("normal", 'arrow ${direction}', 1);
             arrow.animation.addByPrefix("press", 'arrow push ${direction}', 1);
             arrow.animation.play("normal");
@@ -175,7 +175,7 @@ class StoryMenu extends MusicBeatState {
         if (allowInputs) {
             if (controls.justPressed("back")) {
                 allowInputs = false;
-                FlxG.sound.play(AssetHelper.sound("cancelMenu"));
+                FlxG.sound.play(Assets.sound("cancelMenu"));
                 FlxG.switchState(new MainMenu());
             }
     
@@ -249,7 +249,7 @@ class StoryMenu extends MusicBeatState {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, weeks.length - 1);
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         for (sprite in weekSprites) {
             sprite.ID = weekSprites.members.indexOf(sprite) - currentSelection;
@@ -312,7 +312,7 @@ class StoryMenu extends MusicBeatState {
     }
 
     function updateDifficultySprite():Void {
-        var graphic = AssetHelper.image('menus/story/${difficulties[currentDifficulty]}');
+        var graphic = Assets.image('menus/story/${difficulties[currentDifficulty]}');
         if (difficultySprite.graphic == graphic)
             return;
 
@@ -348,7 +348,7 @@ class StoryMenu extends MusicBeatState {
         #end
 
         allowInputs = false;
-        FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+        FlxG.sound.play(Assets.sound("confirmMenu"));
 
         weekSprites.members[currentSelection].color = FlxColor.CYAN;
         doFlash = !Settings.get("disable flashing lights");
@@ -375,7 +375,7 @@ class StoryMenu extends MusicBeatState {
     }
 
     public static function loadWeeks():Array<WeekStructure> {
-        var allWeeks:String = AssetHelper.getPath("data/weeks", NONE);
+        var allWeeks:String = Assets.getPath("data/weeks", NONE);
 
         if (!FileTools.exists(allWeeks) || !FileTools.isDirectory(allWeeks))
             return null;
@@ -383,7 +383,7 @@ class StoryMenu extends MusicBeatState {
         var list:Array<WeekStructure> = [];
 
         var foundWeeks:Array<String> = [];
-        var orderPath:String = AssetHelper.txt("data/weeks/weekOrder");
+        var orderPath:String = Assets.txt("data/weeks/weekOrder");
 
         if (FileTools.exists(orderPath)) {
             foundWeeks = FileTools.getContent(orderPath).split("\n").map((f) -> {
@@ -440,7 +440,7 @@ private class StoryMenuCharacter extends DancingSprite {
 
         this.character = character;
 
-        frames = AssetHelper.getSparrowAtlas('menus/story/characters/${character}');
+        frames = Assets.getSparrowAtlas('menus/story/characters/${character}');
         Tools.addYamlAnimations(this, cast data.animations);
 
         danceAnimations = (data.danceAnimations == null) ? ["idle"] : cast data.danceAnimations;

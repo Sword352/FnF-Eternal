@@ -57,7 +57,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         sound = FlxG.sound.list.recycle(FlxSound);
 
         boyfriend = new FlxSprite();
-        boyfriend.loadGraphic(AssetHelper.image("menus/options-bf"));
+        boyfriend.loadGraphic(Assets.image("menus/options-bf"));
         boyfriend.scale.set(0.25, 0.25);
         boyfriend.updateHitbox();
         boyfriend.screenCenter().y += 150;
@@ -86,7 +86,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
             var selectedSound:Int = FlxG.random.int(1, 8, [lastSound]);
             lastSound = selectedSound;
 
-            sound.loadEmbedded(AssetHelper.sound('options/sound${selectedSound}')).play();
+            sound.loadEmbedded(Assets.sound('options/sound${selectedSound}')).play();
             boyfriend.scale.set(FlxG.random.float(0.3, 0.5), FlxG.random.float(0.3, 0.5));
         } 
     }

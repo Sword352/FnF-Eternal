@@ -185,7 +185,7 @@ class EventManager extends FlxBasic {
             case "custom event":
                 var name:String = event.arguments[0];
                 if (!scriptsMap.exists(name)) {
-                    var script:HScript = new HScript(AssetHelper.getPath('data/events/${name}', SCRIPT));
+                    var script:HScript = new HScript(Assets.getPath('data/events/${name}', SCRIPT));
                     if (script.state != ALIVE)
                         trace('Failed loading event script "${name}"!');
                     else {
@@ -274,7 +274,7 @@ class EventManager extends FlxBasic {
     }
 
     public static function getEventList():Map<String, EventDetails> {
-        var path:String = AssetHelper.getPath("data/events", NONE);
+        var path:String = Assets.getPath("data/events", NONE);
         var exts:Array<String> = JSON.getExtensions();
 
         var list:Array<EventDetails> = defaultEvents.copy();

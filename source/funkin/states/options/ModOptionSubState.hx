@@ -6,7 +6,7 @@ import funkin.objects.options.*;
 class ModOptionSubState extends BaseOptionSubState {
     override function create():Void {
         for (setting in Settings.modSettings) {
-            var key:String = Mods.currentMod.folder + "_" + setting.id;
+            var key:String = Mods.currentMod.id + "_" + setting.id;
 
             var item:BaseOptionItem<Dynamic> = switch ((setting.type ?? "").toLowerCase()) {
                 case "string": new ArrayOptionItem<String>(key, setting.valueList);

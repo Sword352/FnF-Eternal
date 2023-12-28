@@ -463,7 +463,7 @@ class PlayState extends MusicBeatState {
    }
 
    inline public function openChartEditor():Void {
-      AssetHelper.clearAssets = Settings.get("reload assets");
+      Assets.clearAssets = Settings.get("reload assets");
       FlxG.switchState(new ChartEditor(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.position, 0) : 0));
    }
 
@@ -499,11 +499,11 @@ class PlayState extends MusicBeatState {
       // Caching
       for (sprite in countdownSprites)
          if (sprite != null)
-            AssetHelper.image(sprite);
+            Assets.image(sprite);
 
       for (sound in countdownSounds)
          if (sound != null)
-            AssetHelper.sound(sound);
+            Assets.sound(sound);
 
       // Change the conductor position (mostly to fit the notes position during the start countdown)
       if (changeConductorPos)
@@ -535,7 +535,7 @@ class PlayState extends MusicBeatState {
          #end
 
          if (countdownSprites[currentLoop] != null) {
-            countdownSprite.loadGraphic(AssetHelper.image(countdownSprites[currentLoop]));
+            countdownSprite.loadGraphic(Assets.image(countdownSprites[currentLoop]));
             countdownSprite.alpha = 1;
          }
          else
@@ -543,7 +543,7 @@ class PlayState extends MusicBeatState {
          countdownSprite.screenCenter();
 
          if (countdownSounds[currentLoop] != null)
-            FlxG.sound.play(AssetHelper.sound(countdownSounds[currentLoop]));
+            FlxG.sound.play(Assets.sound(countdownSounds[currentLoop]));
 
          if (!Settings.get("reduced movements"))
             countSpriteY += 100;
@@ -814,7 +814,7 @@ class PlayState extends MusicBeatState {
          spectator.animEndTime = Conductor.crochet / 1000;
       }
       
-      FlxG.sound.play(AssetHelper.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(0.1, 0.2));
+      FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(0.1, 0.2));
 
       #if ENGINE_SCRIPTING
       hxsCall("onMissPost", [note]);
@@ -868,7 +868,7 @@ class PlayState extends MusicBeatState {
          sprite.alpha = 1;
       }
 
-      sprite.loadGraphic(AssetHelper.image('ui/gameplay/${rating.ratingGraphic}'));
+      sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
       sprite.scale.set(0.7, 0.7);
       sprite.updateHitbox();
       sprite.setPosition(ratingSprites.x, ratingSprites.y); 
@@ -917,7 +917,7 @@ class PlayState extends MusicBeatState {
             sprite.alpha = 1;
          }
 
-         sprite.loadGraphic(AssetHelper.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
+         sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
          sprite.scale.set(0.5, 0.5);
          sprite.updateHitbox();
          sprite.setPosition(comboSprites.x + 43 * i, comboSprites.y);
@@ -1034,28 +1034,28 @@ class PlayState extends MusicBeatState {
       var gameOverCache:Character = new Character(0, 0, player.data.gameOverCharacter, GAMEOVER);
       var gameOverData:GameOverProperties = gameOverCache.data.gameOverProperties;
 
-      AssetHelper.sound(gameOverData.confirmSound);
-      AssetHelper.sound(gameOverData.deathSound);
-      AssetHelper.music(gameOverData.music);
+      Assets.sound(gameOverData.confirmSound);
+      Assets.sound(gameOverData.deathSound);
+      Assets.music(gameOverData.music);
 
       gameOverCache.destroy();
       */
 
       // Cache commonly used graphics and sounds
-      AssetHelper.getSparrowAtlas("ui/alphabet");
+      Assets.getSparrowAtlas("ui/alphabet");
 
       for (i in 1...4)
-         AssetHelper.sound('gameplay/missnote${i}');
+         Assets.sound('gameplay/missnote${i}');
 
       for (i in 0...10)
-         AssetHelper.image('ui/gameplay/num${i}');
+         Assets.image('ui/gameplay/num${i}');
 
       for (rating in ratings)
          if (rating.ratingGraphic != null)
-            AssetHelper.image('ui/gameplay/${rating.ratingGraphic}');
+            Assets.image('ui/gameplay/${rating.ratingGraphic}');
 
       // Cache pause music
-      AssetHelper.music("breakfast");
+      Assets.music("breakfast");
 
       // Misc cache, for scripting
       for (k => v in cacheList) {
@@ -1063,8 +1063,8 @@ class PlayState extends MusicBeatState {
             continue;
 
          switch (v) {
-            case IMAGE: AssetHelper.image(k);
-            case SOUND: AssetHelper.sound(k);
+            case IMAGE: Assets.image(k);
+            case SOUND: Assets.sound(k);
             default:
          }
       }

@@ -31,7 +31,7 @@ class GameplayUI extends FlxSpriteGroup {
         scrollFactor.set();
 
         healthBarBG = new FlxSprite();
-	    healthBarBG.loadGraphic(AssetHelper.image('ui/gameplay/healthBar'));
+	    healthBarBG.loadGraphic(Assets.image('ui/gameplay/healthBar'));
         healthBarBG.screenCenter(X);
 	    add(healthBarBG);
 
@@ -57,7 +57,7 @@ class GameplayUI extends FlxSpriteGroup {
         add(iconOpponent);
 
         scoreText = new FlxText();
-        scoreText.setFormat(AssetHelper.font("vcr"), 20, FlxColor.WHITE, CENTER);
+        scoreText.setFormat(Assets.font("vcr"), 20, FlxColor.WHITE, CENTER);
 	    scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
         scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
         scoreText.screenCenter(X);

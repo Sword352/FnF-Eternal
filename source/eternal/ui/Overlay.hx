@@ -48,7 +48,7 @@ class Overlay extends Sprite {
         text.selectable = false;
         text.mouseEnabled = false;
 
-        text.defaultTextFormat = new TextFormat(AssetHelper.font("vcr"), 18, 0xFFFFFFFF);
+        text.defaultTextFormat = new TextFormat(Assets.font("vcr"), 18, 0xFFFFFFFF);
         addChild(text);
     }
 

@@ -96,14 +96,14 @@ class TitleScreen extends MusicBeatState {
             add(alphabetGroup);
 
         pressEnterSprite = new FlxSprite(100, FlxG.height * 0.8);
-        pressEnterSprite.frames = AssetHelper.getSparrowAtlas("menus/title/titleEnter");
+        pressEnterSprite.frames = Assets.getSparrowAtlas("menus/title/titleEnter");
         pressEnterSprite.animation.addByPrefix("normal", "Press Enter To Begin", 24);
         pressEnterSprite.animation.addByPrefix("pressed", "ENTER PRESSED", 24);
         pressEnterSprite.animation.play("normal");
         pressEnterSprite.updateHitbox();
 
         // load data
-        var path:String = AssetHelper.yaml("data/titlescreen");
+        var path:String = Assets.yaml("data/titlescreen");
         if (FileTools.exists(path))
             setupFromData(Tools.parseYAML(FileTools.getContent(path)));
         else
@@ -190,7 +190,7 @@ class TitleScreen extends MusicBeatState {
             allowInputs = false;
 
             pressEnterSprite.animation.play("pressed");
-            FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+            FlxG.sound.play(Assets.sound("confirmMenu"));
 
             new FlxTimer().start(1, (_) -> FlxG.switchState(new MainMenu()));
         }
@@ -324,7 +324,7 @@ class TitleScreen extends MusicBeatState {
         if (data.postRenderSprites != null)
             setupSprites(data.postRenderSprites, postRenderSprites);
 
-        ngSprite?.loadGraphic(AssetHelper.image((data.logo == null) ? "menus/title/newgrounds_logo" : data.logo));
+        ngSprite?.loadGraphic(Assets.image((data.logo == null) ? "menus/title/newgrounds_logo" : data.logo));
         ngSprite?.screenCenter(X);
     }
 
@@ -335,7 +335,7 @@ class TitleScreen extends MusicBeatState {
         beatSequences = getDefaultSequences();
         randomText = getDefaultRandomText();
 
-        ngSprite?.loadGraphic(AssetHelper.image("menus/title/newgrounds_logo"));
+        ngSprite?.loadGraphic(Assets.image("menus/title/newgrounds_logo"));
         ngSprite?.screenCenter(X);
 
         addDefaultSprites();
@@ -389,13 +389,13 @@ class TitleScreen extends MusicBeatState {
 
             switch ((data.type ?? "").toLowerCase().trim()) {
                 case "sparrow":
-                    sprite.frames = AssetHelper.getSparrowAtlas(data.image, data.library);
+                    sprite.frames = Assets.getSparrowAtlas(data.image, data.library);
                 case "packer":
-                    sprite.frames = AssetHelper.getPackerAtlas(data.image, data.library);
+                    sprite.frames = Assets.getPackerAtlas(data.image, data.library);
                 case "aseprite":
-                    sprite.frames = AssetHelper.getAseAtlas(data.image, data.library);
+                    sprite.frames = Assets.getAseAtlas(data.image, data.library);
                 default:
-                    var graphic = AssetHelper.image(data.image, data.library);
+                    var graphic = Assets.image(data.image, data.library);
                     if (data.animationSize != null && data.animationSize.length > 1)
                         sprite.loadGraphic(graphic, true, data.animationSize[0], data.animationSize[1]);
                     else
@@ -453,7 +453,7 @@ class TitleScreen extends MusicBeatState {
 
     function addDefaultSprites():Void {
         var logo:DancingSprite = new DancingSprite(-150, -100);
-        logo.frames = AssetHelper.getSparrowAtlas("menus/title/logoBumpin");
+        logo.frames = Assets.getSparrowAtlas("menus/title/logoBumpin");
         logo.animation.addByPrefix("bump", "logo bumpin", 24, false);
         logo.danceAnimations.push("bump");
 
@@ -464,7 +464,7 @@ class TitleScreen extends MusicBeatState {
         postRenderSprites.add(logo);
         
         var girlfriend:DancingSprite = new DancingSprite(FlxG.width * 0.4, FlxG.height * 0.07);
-        girlfriend.frames = AssetHelper.getSparrowAtlas("menus/title/gfDanceTitle");
+        girlfriend.frames = Assets.getSparrowAtlas("menus/title/gfDanceTitle");
         girlfriend.animation.addByIndices("left", "gfDance", [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
         girlfriend.animation.addByIndices("right", "gfDance", [for (i in 15...30) i], "", 24, false);
         girlfriend.danceAnimations = ["left", "right"];

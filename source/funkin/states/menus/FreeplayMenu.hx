@@ -73,7 +73,7 @@ class FreeplayMenu extends MusicBeatState {
         }
         #end
 
-        background = new FlxSprite().loadGraphic(AssetHelper.image("menus/menuDesat"));
+        background = new FlxSprite().loadGraphic(Assets.image("menus/menuDesat"));
         add(background);
 
         items = new FlxTypedGroup<Alphabet>();
@@ -98,7 +98,7 @@ class FreeplayMenu extends MusicBeatState {
         }
         
         scoreText = new BGText(FlxG.width * 0.7, 5);
-        scoreText.setFormat(AssetHelper.font("vcr"), 32, FlxColor.WHITE, RIGHT);
+        scoreText.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, RIGHT);
         scoreText.automaticScale = scoreText.automaticPosition = false;
         scoreText.background.makeGraphic(1, 66, 0x99000000);
         scoreBG = scoreText.background;
@@ -172,7 +172,7 @@ class FreeplayMenu extends MusicBeatState {
             if (controls.justPressed("accept")) {
             #end
                 allowInputs = false;
-                FlxG.sound.play(AssetHelper.sound("confirmMenu"));
+                FlxG.sound.play(Assets.sound("confirmMenu"));
     
                 TransitionSubState.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
                 FlxG.switchState(new PlayState());
@@ -245,7 +245,7 @@ class FreeplayMenu extends MusicBeatState {
 
         if (change != 0) {
             currentSelection = FlxMath.wrap(currentSelection + change, 0, items.length - 1);
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
         }
 
         for (item in items) {
@@ -298,7 +298,7 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     inline function playNextSong():Void {
-        music.loadEmbedded(AssetHelper.songAudio(songs[currentSelection].rawName, "song/Inst"));
+        music.loadEmbedded(Assets.songAudio(songs[currentSelection].rawName, "song/Inst"));
         music.volume = 0;
         music.play();
         music.fadeOut(0.5, 1);
@@ -319,7 +319,7 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     public static function loadFreeplaySongs():Array<SongStructure> {
-        var listPath:String = AssetHelper.txt("data/freeplaySongs");
+        var listPath:String = Assets.txt("data/freeplaySongs");
 
         if (!FileTools.exists(listPath))
             return null;

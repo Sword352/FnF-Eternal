@@ -30,7 +30,7 @@ class HelpSubState extends FlxSubState {
         add(background);
 
         text = new FlxText(0, 0, 0, message);
-        text.setFormat(AssetHelper.font("vcr"), 32, FlxColor.WHITE, CENTER);
+        text.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, CENTER);
         text.resizeText(25);
         text.screenCenter(X);
         text.y = -text.height;

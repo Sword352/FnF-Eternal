@@ -39,8 +39,8 @@ class InitState extends FlxState {
             FlxG.fullscreen = FlxG.save.data.fullscreen;
 
         // Add callbacks to clear memory when switching states
-        FlxG.signals.preStateSwitch.add(AssetHelper.freeMemory);
-        FlxG.signals.preStateCreate.add(AssetHelper.freeMemoryPost);
+        FlxG.signals.preStateSwitch.add(Assets.freeMemory);
+        FlxG.signals.preStateCreate.add(Assets.freeMemoryPost);
 
         // To go on/off fullscreen by pressing F11
         FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyJustPressed);

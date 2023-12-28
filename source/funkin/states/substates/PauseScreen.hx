@@ -46,7 +46,7 @@ class PauseScreen extends MusicBeatSubState {
         #end
 
         // Caching
-        AssetHelper.sound("scrollMenu");
+        Assets.sound("scrollMenu");
         
         background = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -59,7 +59,7 @@ class PauseScreen extends MusicBeatSubState {
         changeList("default");
 
         songText = new FlxText(0, 15);
-        songText.setFormat(AssetHelper.font('vcr'), 32);
+        songText.setFormat(Assets.font('vcr'), 32);
 		songText.updateHitbox();
         songText.text = '${PlayState.song.meta.name} (${PlayState.currentDifficulty.toUpperCase()})';
         songText.x = FlxG.width - songText.width - 10;
@@ -74,7 +74,7 @@ class PauseScreen extends MusicBeatSubState {
         lossCounter.alpha = 0;
         add(lossCounter);
 
-        music = FlxG.sound.load(AssetHelper.music("breakfast"), 0, true);
+        music = FlxG.sound.load(Assets.music("breakfast"), 0, true);
         music.play(false, FlxG.random.int(0, Math.floor(music.length * 0.5)));
 
         FlxTween.tween(background, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
@@ -127,7 +127,7 @@ class PauseScreen extends MusicBeatSubState {
         }
 
         if (i != 0)
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [i]);
@@ -144,11 +144,11 @@ class PauseScreen extends MusicBeatSubState {
             case "resume": 
                 close();
             case "restart song":
-                AssetHelper.clearAssets = Settings.get("reload assets");
-                TransitionSubState.skipNextTransIn = TransitionSubState.skipNextTransOut = !AssetHelper.clearAssets;
+                Assets.clearAssets = Settings.get("reload assets");
+                TransitionSubState.skipNextTransIn = TransitionSubState.skipNextTransOut = !Assets.clearAssets;
                 FlxG.resetState();
             case "go to options":
-                AssetHelper.clearAssets = Settings.get("reload assets");
+                Assets.clearAssets = Settings.get("reload assets");
                 FlxG.switchState(new OptionsMenu(true));
             case "exit to menu":
                 PlayState.lossCounter = 0;

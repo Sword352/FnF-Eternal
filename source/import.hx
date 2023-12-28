@@ -12,7 +12,7 @@ import flixel.util.FlxDestroyUtil;
 import funkin.objects.sprites.OffsetSprite;
 
 import eternal.tools.*;
-import eternal.core.AssetHelper;
+import eternal.core.Assets;
 
 import eternal.Controls;
 import eternal.Settings;

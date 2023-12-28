@@ -188,7 +188,7 @@ class AlphabetCharacter extends FlxSprite {
 
     public function new(x:Float, y:Float, character:String, bold:Bool = false):Void {
         super(x, y);
-        frames = AssetHelper.getSparrowAtlas("ui/alphabet");
+        frames = Assets.getSparrowAtlas("ui/alphabet");
         setup(character, bold);
     }
 

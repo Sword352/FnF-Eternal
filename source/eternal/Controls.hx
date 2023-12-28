@@ -233,13 +233,13 @@ class Controls {
       }
    }
 
-   public static function reloadVolumeKeys():Void {
+   public static function reloadVolumeKeys(enabled:Bool = true):Void {
       var muteKeys:Array<FlxKey> = globalControls.keybinds.get("volume mute")[0].filter((k) -> k != NONE);
       var volumeUpKeys:Array<FlxKey> = globalControls.keybinds.get("volume up")[0].filter((k) -> k != NONE);
       var volumeDownKeys:Array<FlxKey> = globalControls.keybinds.get("volume down")[0].filter((k) -> k != NONE);
 
-      FlxG.sound.muteKeys = (muteKeys.length > 0) ? muteKeys : null;
-      FlxG.sound.volumeUpKeys = (volumeUpKeys.length > 0) ? volumeUpKeys : null;
-      FlxG.sound.volumeDownKeys = (volumeDownKeys.length > 0) ? volumeDownKeys : null;
+      FlxG.sound.muteKeys = (enabled && muteKeys.length > 0) ? muteKeys : null;
+      FlxG.sound.volumeUpKeys = (enabled && volumeUpKeys.length > 0) ? volumeUpKeys : null;
+      FlxG.sound.volumeDownKeys = (enabled && volumeDownKeys.length > 0) ? volumeDownKeys : null;
    }
 }

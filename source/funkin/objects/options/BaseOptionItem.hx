@@ -41,7 +41,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         add(separator);
 
         nameText = new FlxText();
-        nameText.setFormat(AssetHelper.font("vcr"), 32);
+        nameText.setFormat(Assets.font("vcr"), 32);
         nameText.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         nameText.text = title;
         nameText.x = background.x + 25;
@@ -77,7 +77,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
 
         if (Controls.globalControls.anyJustPressed(inputs)) {
             inputHoldTime = 0;
-            FlxG.sound.play(AssetHelper.sound("scrollMenu"));
+            FlxG.sound.play(Assets.sound("scrollMenu"));
             updateBoth((Controls.globalControls.lastAction == "left") ? -1 : 1);
         }
 

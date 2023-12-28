@@ -40,7 +40,7 @@ class ResetScoreScreen extends MusicBeatSubState {
         add(background);
 
         text = new FlxText(0, 150);
-        text.setFormat(AssetHelper.font("vcr"), 32, FlxColor.WHITE, CENTER);
+        text.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, CENTER);
         text.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         text.text = 'RESET THE SCORE OF\n${display}?';
         text.screenCenter(X);
@@ -108,7 +108,7 @@ class ResetScoreScreen extends MusicBeatSubState {
                 song += "_story";
 
             #if ENGINE_MODDING
-            song = Mods.currentMod.folder + "_" + song;
+            song = Mods.currentMod.id + "_" + song;
             #end
 
             HighScore.scoreMap.set(song, HighScore.defaultMeasure);

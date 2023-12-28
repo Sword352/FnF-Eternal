@@ -51,7 +51,7 @@ class Mods {
             if (!FileTools.isDirectory(path))
                 continue;
 
-            var pack:String = AssetHelper.filterPath(path + "/pack", YAML);
+            var pack:String = Assets.filterPath(path + "/pack", YAML);
             if (!FileTools.exists(pack)) {
                 trace('${folder}: Missing pack configuration file!');
                 continue;
@@ -63,15 +63,18 @@ class Mods {
             // configuration file is empty
             if (data == null) {
                 mod.title = folder;
+                mod.id = folder;
                 mods.push(mod);
                 continue;
             }
 
             mod.title = data.title ?? folder;
             mod.description = data.description;
+            mod.id = data.id ?? folder;
 
             mod.license = data.license;
             mod.apiVersion = data.apiVersion;
+
             mod.restartGame = data.restartGame ?? false;
 
             #if ENGINE_DISCORD_RPC
@@ -90,7 +93,7 @@ class Mods {
         }
 
         for (mod in mods) {
-            if (mod.folder == currentMod.folder) {
+            if (mod.id == currentMod.id) {
                 // current mod has been found, just switch mod instance
                 currentMod = mod;
                 return;
@@ -125,7 +128,7 @@ class Mods {
         var engineVersion:Array<Int> = [for (i in Tools.gameVersion.split(".")) Std.parseInt(i)];
 
         if (modVersion.length < 1 || engineVersion.length < 1) {
-            trace('Could not resolve API version for ${mod.folder}');
+            trace('Could not resolve API version for "${mod.id}"');
             return NONE;
         }
 
@@ -139,22 +142,22 @@ class Mods {
         return UPDATED;
     }
 
-    inline private static function loadFirstMod():Void {
+    private static inline function loadFirstMod():Void {
         if (currentMod != null)
-            trace('Mod "${currentMod.folder}" has not been found, setting current mod to "${mods[0].folder}"');
+            trace('Mod "${currentMod.id}" has not been found, setting current mod to "${mods[0].id}"');
 
         _loadMod(mods[0]);
-        FlxG.save.data.lastMod = currentMod.folder;
+        FlxG.save.data.lastMod = currentMod.id;
         FlxG.save.flush();
     }
 
-    inline private static function checkLastMod():Void {
+    private static inline function checkLastMod():Void {
         var lastMod:String = FlxG.save.data.lastMod;
         if (lastMod == null)
             return;
 
         for (mod in mods) {
-            if (mod.folder == lastMod) {
+            if (mod.id == lastMod) {
                 _loadMod(mod);
                 break;
             }
@@ -173,7 +176,7 @@ class Mods {
     inline private static function _loadMod(mod:Mod):Void {
         currentMod = mod;
 
-        AssetHelper.currentDirectory = (currentMod == null) ? AssetHelper.defaultDirectory : '${MODS_PATH}${currentMod.folder}/';
+        Assets.currentDirectory = (currentMod == null) ? Assets.defaultDirectory : '${MODS_PATH}${currentMod.folder}/';
         Settings.reloadModSettings();
 
         #if ENGINE_DISCORD_RPC
@@ -187,10 +190,10 @@ class Mods {
             initScript = null;
         }
 
-        var scriptPath:String = AssetHelper.getPath("data/Init", SCRIPT);
+        var scriptPath:String = Assets.getPath("data/Init", SCRIPT);
         if (FileTools.exists(scriptPath)) {
             initScript = new HScript(scriptPath, false);
-            initScript.call("init", []);
+            initScript.call("init");
         }
         #end
     }
@@ -199,6 +202,7 @@ class Mods {
 @:structInit class Mod {
     public var title:String;
     public var folder:String;
+    public var id:String;
 
     public var description:String;    
     public var license:String;

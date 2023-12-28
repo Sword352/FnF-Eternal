@@ -12,7 +12,7 @@ class HelpButton extends FlxSprite {
     public function new():Void {
         super();
 
-        loadGraphic(AssetHelper.image("ui/debug/question_marks"), true, 179, 179);
+        loadGraphic(Assets.image("ui/debug/question_marks"), true, 179, 179);
         animation.add("mark", [0, 1], 0);
         animation.play("mark");
 

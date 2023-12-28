@@ -73,7 +73,7 @@ class Character extends DancingSprite {
 
         switch (v) { // case "name" to hardcode your characters
             default:
-                var filePath:String = AssetHelper.yaml('data/characters/${v}');
+                var filePath:String = Assets.yaml('data/characters/${v}');
 
                 if (FileTools.exists(filePath))
                     data = Tools.parseYAML(FileTools.getContent(filePath));
@@ -88,7 +88,7 @@ class Character extends DancingSprite {
                 destroyScript();
 
                 if (type != DEBUG && FlxG.state is ScriptableState) {
-                    var scriptPath:String = AssetHelper.getPath('data/characters/${v}', SCRIPT);
+                    var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
                     if (FileTools.exists(scriptPath)) {
                         var scr:HScript = new HScript(scriptPath, false);
                         cast(FlxG.state, ScriptableState).addScript(scr);
@@ -141,9 +141,9 @@ class Character extends DancingSprite {
 
     public function setup(config:CharacterConfig):Void {
         frames = switch ((config.atlasType ?? "").toLowerCase().trim()) {
-            case "aseprite": AssetHelper.getAseAtlas(config.image);
-            case "packer": AssetHelper.getPackerAtlas(config.image);
-            default: AssetHelper.getSparrowAtlas(config.image);
+            case "aseprite": Assets.getAseAtlas(config.image);
+            case "packer": Assets.getPackerAtlas(config.image);
+            default: Assets.getSparrowAtlas(config.image);
         }
 
         Tools.addYamlAnimations(this, config.animations);

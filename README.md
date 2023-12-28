@@ -20,8 +20,8 @@ In it's current state, Eternal is in alpha and some features such as dialogue is
 - MemeHoovy: Coder
 
 > Contributors
+- PlankDev: Metronome Sound Composer and Helper Coder
 - Meloomazy: FNF Modpack Porter and Debug UI Artist
-- PlankDev: Metronome Sound Composer
 - SquidBowl: Animated Few Assets
 - Swordcube: Helper Coder
 - SMB: Wiki Writer
