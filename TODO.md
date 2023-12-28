@@ -1,35 +1,32 @@
 ### High Priority
-- Proper noteskins (and asset style?) system
-- Finish Alphabet (character offsets + symbols)
+- Finish the chart editor
+- Finish the built-in events
+- Finish the audio offset support
+- Finish the Alphabet (character offsets + symbols)
 
 ### Medium Priority
-- Finish the audio offset support
-- Finish the built-in events
+- Test/Fix controller inputs
 - Dialogue cutscenes implementation
+- Proper noteskins (and asset style?) system
 - Finish the key formatting in `KeybindItem#formatKey`
 
 ### Low Priority
-- Reduce PlayState loading time
-
+- Gameplay UI tweaks
 - Replace the placeholders BF and GF story menu character spritesheets
+
+- ModState and ModSubState error handling
 - (Better error handling for FreeplayMenu and StoryMenu?)
 
-- (Make CrashScreen an openfl.display.Sprite instead of an FlxState, in case when the FlxGame itself crashes?)
-- (Add critical error handling? NOTE: critical error handler gets called on YAML parsing warnings)
-
-- Gameplay UI tweaks
-- ModState and ModSubState error handling
-
-- (Use [hxVlc](https://github.com/MAJigsaw77/hxvlc) instead of hxCodec?)
-- Continue README.me, complete the wiki stuff, move it to proper git wiki and add a "documentation" issue template
+- Replace hxCodec with [hxVlc](https://github.com/MAJigsaw77/hxvlc) (in a later time)
 
 - Add Credits menu
-- Continue the chart editor
 - Finish the FNF modpack port
 
+- Continue README.me, complete the wiki stuff, move it to proper git wiki and add a "documentation" issue template
+
 ### After Release
-- Add a note colors option
-- Add notetypes support
+- Add note colors support
+- Add softcoded notetypes support
 
 - Playback rate feature (Freeplay mode only)
 - Extended shader support/tools
@@ -38,7 +35,7 @@
 - (Add modchart tools?)
 - (Add "modules" support?)
 - (Lua scripting implementation?)
-- (Add multiple strumlines support?)
+- (Add support for multiple strumlines/characters within a chart?)
 
 - (Debug Mode, as an option?)
   * Possibility to hot reload ModState and ModSubState
