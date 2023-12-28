@@ -146,8 +146,6 @@ class MainMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        if (FlxG.keys.justPressed.G) cast(null, FlxSprite).draw();
-
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
         cameraTarget.setPosition(
             Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed),
@@ -169,7 +167,7 @@ class MainMenu extends MusicBeatState {
             }
 
             #if ENGINE_MODDING
-            if (controls.justPressed("open mods")) {
+            if (subState == null && controls.justPressed("open mods")) {
                 persistentUpdate = false;
                 openSubState(new ModsMenu());
             }
