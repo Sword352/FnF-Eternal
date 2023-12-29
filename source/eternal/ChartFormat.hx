@@ -17,7 +17,7 @@ import funkin.states.substates.GameOverScreen.GameOverProperties;
    public var speed:Float;
    public var bpm:Float;
 
-   public function toStruct():Dynamic {
+   public inline function toStruct():Dynamic {
       return {
          meta: this.meta,
 
@@ -29,7 +29,7 @@ import funkin.states.substates.GameOverScreen.GameOverProperties;
       };
    }
 
-   public static function fromStruct(struct:Dynamic):Chart {
+   public static inline function fromStruct(struct:Dynamic):Chart {
       return {
          meta: struct.meta,
 
@@ -41,7 +41,7 @@ import funkin.states.substates.GameOverScreen.GameOverProperties;
       };
    }
 
-   public static function resolve(data:Dynamic):Chart {
+   public static inline function resolve(data:Dynamic):Chart {
       if (data is Chart)
          return data;
 

@@ -28,7 +28,6 @@ class ChartPlayState extends MusicBeatSubState {
     var spawnTime:Float;
 
     var parent:ChartEditor;
-    var lastPosition:Float;
 
     public function new(parent:ChartEditor, startTime:Float = 0):Void {
         super();
@@ -37,8 +36,7 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function create():Void {
-        lastPosition = Conductor.position;
-        Conductor.resetPosition();
+        Conductor.resetTime();
         Conductor.music = null;
 
         Conductor.onStep.remove(parent.stepHit);
@@ -89,7 +87,7 @@ class ChartPlayState extends MusicBeatSubState {
         Controls.globalControls.onKeyJustPressed.add(onKeyDown);
         Controls.globalControls.onKeyJustReleased.add(onKeyUp);
 
-        Conductor.position = startTime - (1500 * parent.music.pitch);
+        Conductor.time = startTime - (1500 * parent.music.pitch);
         Conductor.playbackRate = parent.music.pitch;
         parent.music.onSongEnd.add(close);
 
@@ -110,7 +108,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         Conductor.update(elapsed);
 
-        while (notes.length > 0 && notes[0].time - Conductor.position < spawnTime)
+        while (notes.length > 0 && notes[0].time - Conductor.time < spawnTime)
             strumlines[notes[0].strumline].addNote(notes.shift());
 
         updateUI();
@@ -247,10 +245,10 @@ class ChartPlayState extends MusicBeatSubState {
         parent.music.onSongEnd.remove(close);
         parent.music.pause();
 
-        Conductor.resetPosition();
+        Conductor.resetTime();
         Conductor.playbackRate = 1;
 
-        parent.music.instrumental.time = lastPosition;
+        parent.music.instrumental.time = startTime;
         Conductor.music = parent.music.instrumental;
 
         Conductor.onStep.add(parent.stepHit);

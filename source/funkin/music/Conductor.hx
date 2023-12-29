@@ -4,165 +4,179 @@ import flixel.sound.FlxSound;
 import flixel.util.FlxSignal.FlxTypedSignal;
 
 class Conductor {
+    public static var time(get, set):Float;
+    public static var rawTime:Float = 0;
+
+    public static var playbackRate:Float = 1;
+    public static var offset:Float = 0;
+    
+    public static var bpm(default, set):Float = 100;
+    public static var crochet(default, null):Float = 600;
+    public static var stepCrochet(default, null):Float = 150;
+
+    public static var currentStep(get, set):Int;
+    public static var currentBeat(get, set):Int;
+    public static var currentMeasure(get, set):Int;
+
+    public static var decimalStep(get, set):Float;
+    public static var decimalBeat(get, set):Float;
+    public static var decimalMeasure(get, set):Float;
+
+    public static var stepsPerBeat(default, set):Int = 4;
+    public static var beatsPerMeasure:Int = 4;
+    
+    public static var timeSignature(get, never):Float;
+    public static var measureLength(get, never):Int;
+
     public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
-    public static var active:Bool = true;
-    public static var music:FlxSound;
-
-    public static var position(get, set):Float;
-    public static var rawPosition:Float = 0;
-    public static var offset:Float = 0;
-    
-    public static var bpm(default, set):Float = 100;
-    public static var crochet:Float = 0;
-    public static var stepCrochet:Float = 0;
-    public static var playbackRate:Float = 1;
-
-    public static var measureLength(get, never):Int;
-    public static var timeSignature(get, never):Float;
-    public static var timeSignatureSTR(get, never):String;
-
-    public static var stepsPerBeat:Int = 4;
-    public static var beatsPerMeasure:Int = 4;
-
-    public static var currentStep(default, null):Int;
-    public static var currentBeat(default, null):Int;
-    public static var currentMeasure(default, null):Int;
-
-    public static var decimalStep(default, null):Float;
-    public static var decimalBeat(default, null):Float;
-    public static var decimalMeasure(default, null):Float;
-
     // used for bpm change events
     public static final beatOffset:BeatOffset = {step: 0, time: 0};
 
-    private static var previousStep:Int = -1;
-    private static var previousBeat:Int = -1;
-    private static var previousMeasure:Int = -1;
+    public static var active:Bool = true;
+    public static var music:FlxSound;
 
-    public static function update(elapsed:Float):Void {
+    static var _prevStep:Int = -1;
+    static var _prevBeat:Int = -1;
+    static var _prevMeas:Int = -1;
+
+    public static inline function update(elapsed:Float):Void {
         if (!active)
             return;
 
-        if (music != null)
-            position = music.time;
-        else
-            rawPosition += elapsed * playbackRate * 1000;
+        updateTime(elapsed);
+        updateCallbacks();
+    }
 
-        decimalStep = ((position - beatOffset.time) / stepCrochet) + beatOffset.step;
-        currentStep = Math.floor(decimalStep);
+    public static inline function updateTime(elapsed:Float):Void {
+        if (music == null)
+            rawTime += elapsed * playbackRate * 1000;
+    }
 
-        decimalBeat = decimalStep / stepsPerBeat;
-        currentBeat = Math.floor(decimalBeat);
+    public static inline function updateCallbacks():Void {
+        var step:Int = currentStep;
+        if (step <= _prevStep)
+            return;
+        
+        _prevStep = step;
+        onStep.dispatch(step);
 
-        decimalMeasure = decimalBeat / beatsPerMeasure;
-        currentMeasure = Math.floor(decimalMeasure);
+        var beat:Int = currentBeat;
+        var measure:Int = currentMeasure;
 
-        if (currentStep > previousStep) {
-            previousStep = currentStep;
-            onStep.dispatch(currentStep);
+        if (step % stepsPerBeat == 0 && beat != _prevBeat) {
+            _prevBeat = beat;
+            onBeat.dispatch(beat);
         }
 
-        if (currentStep % stepsPerBeat == 0 && currentBeat > previousBeat) {
-            previousBeat = currentBeat;
-            onBeat.dispatch(currentBeat);
-        }
-
-        if (currentBeat % beatsPerMeasure == 0 && currentMeasure > previousMeasure) {
-            previousMeasure = currentMeasure;
-            onMeasure.dispatch(currentMeasure);
+        if (beat % beatsPerMeasure == 0 && measure != _prevMeas) {
+            _prevMeas = measure;
+            onMeasure.dispatch(measure);
         }
     }
 
-    public static function reset():Void {
-        resetPosition();
+    public static inline function reset():Void {
+        resetTime();
         resetCallbacks();
 
         beatOffset.step = 0;
         beatOffset.time = 0;
 
-        music = null;
         playbackRate = 1;
+        music = null;
 
         beatsPerMeasure = 4;
         stepsPerBeat = 4;
         bpm = 100;
     }
 
-    public static function resetPosition():Void {
-        position = 0;
-
-        currentStep = 0;
-        decimalStep = 0;
-
-        currentBeat = 0;
-        decimalBeat = 0;
-        
-        currentMeasure = 0;
-        decimalMeasure = 0;
-
-        resetPreviousPosition();
+    public static inline function resetTime():Void {
+        rawTime = 0;
+        resetPrevTime();
     }
 
-    public static function resetPreviousPosition():Void {
-        previousStep = -1;
-        previousBeat = -1;
-        previousMeasure = -1;
+    public static inline function resetPrevTime(to:Int = -1):Void {
+        _prevStep = _prevBeat = _prevMeas = to;
     }
 
-    public static function resetCallbacks():Void {
+    public static inline function resetCallbacks():Void {
         onStep.removeAll();
         onBeat.removeAll();
         onMeasure.removeAll();
     }
 
-    public static function calculateCrochet(bpm:Float):Float {
-        return calculateBeatTime(bpm) * 1000;
+    public static inline function getSignature():String
+        return '${beatsPerMeasure} / ${stepsPerBeat}';
+
+    static function set_bpm(v:Float):Float {
+        crochet = ((60 / v) * 1000);
+        stepCrochet = (crochet / stepsPerBeat);
+        return bpm = v;
     }
 
-    public static function calculateBeatTime(bpm:Float):Float {
-        return 60 / bpm;
+    static function set_stepsPerBeat(v:Int):Int {
+        stepCrochet = (crochet / v);
+        return stepsPerBeat = v;
     }
 
-    // TODO: make those methods better
-    public static function timeToStep(time:Float, ?bpm:Float, ?stepsPerBeat:Int):Int {
-        return Math.floor(time / (calculateCrochet(bpm ?? Conductor.bpm) / (stepsPerBeat ?? Conductor.stepsPerBeat)));
+    static function set_time(v:Float):Float
+        return rawTime = v;
+
+    static function get_time():Float {
+        return (music?.time ?? rawTime) - offset;
     }
 
-    public static function timeToBeat(time:Float, ?bpm:Float, ?stepsPerBeat:Int):Int {
-        return Math.floor(timeToStep(time, bpm, stepsPerBeat) / 4);
+    static function get_decimalStep():Float {
+        return ((time - beatOffset.time) / stepCrochet) + beatOffset.step;
     }
 
-    public static function timeToMeasure(time:Float, ?bpm:Float, ?stepsPerBeat:Int):Int {
-        return Math.floor(timeToBeat(time, bpm, stepsPerBeat) / 4);
+    static function set_decimalStep(v:Float):Float {
+        rawTime = stepCrochet * v;
+
+        if (music != null)
+            music.time = rawTime;
+
+        return v;
     }
 
-    public static function calculateMeasureTime(bpm:Float, ?stepsPerBeat:Int, ?measureLength:Float):Float {
-        return (calculateCrochet(bpm) / (stepsPerBeat ?? Conductor.stepsPerBeat)) * (measureLength ?? Conductor.measureLength);
-    }
-    //
+    static function get_decimalBeat():Float
+        return decimalStep / stepsPerBeat;
 
-    static function set_bpm(b:Float):Float {
-        crochet = calculateCrochet(b);
-        stepCrochet = crochet / stepsPerBeat;
-        return bpm = b;
+    static function set_decimalBeat(v:Float):Float {
+        set_decimalStep(v * stepsPerBeat);
+        return v;
     }
 
-    static function set_position(v:Float):Float
-        return rawPosition = v;
-    static function get_position():Float
-        return rawPosition - offset;
+    static function get_decimalMeasure():Float
+        return decimalBeat / beatsPerMeasure;
+
+    static function set_decimalMeasure(v:Float):Float {
+        set_decimalBeat(v * beatsPerMeasure);
+        return v;
+    }
+
+    static function get_currentStep():Int
+        return Math.floor(decimalStep);
+    static function set_currentStep(v:Int):Int
+        return Math.floor(set_decimalStep(v));
+
+    static function get_currentBeat():Int
+        return Math.floor(decimalBeat);
+    static function set_currentBeat(v:Int):Int
+        return Math.floor(set_decimalBeat(v));
+
+    static function get_currentMeasure():Int
+        return Math.floor(decimalMeasure);
+    static function set_currentMeasure(v:Int):Int
+        return Math.floor(set_decimalMeasure(v));
 
     static function get_measureLength():Int
         return stepsPerBeat * beatsPerMeasure;
 
     static function get_timeSignature():Float
         return beatsPerMeasure / stepsPerBeat;
-
-    static function get_timeSignatureSTR():String
-        return '${beatsPerMeasure} / ${stepsPerBeat}';
 }
 
 @:structInit class BeatOffset {

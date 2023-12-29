@@ -66,7 +66,7 @@ class MusicPlayback extends FlxBasic {
             if (!music.playing)
                 continue;
 
-            if (Math.abs(music.time - Conductor.position) > (25 * Conductor.playbackRate)) {
+            if (Math.abs(music.time - Conductor.time) > (25 * Conductor.playbackRate)) {
                 resyncMusic();
                 break;
             }
@@ -74,7 +74,7 @@ class MusicPlayback extends FlxBasic {
     }
         
     public function resyncMusic():Void {
-        Conductor.position = instrumental.time;
+        Conductor.time = instrumental.time;
 
         for (voice in vocals) {
             if (voice.playing)

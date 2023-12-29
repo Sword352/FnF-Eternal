@@ -46,13 +46,13 @@ class OffsetSubState extends MusicBeatSubState {
         add(offsetText);
 
         music = FlxG.sound.load(Assets.music("offsetSong"), 1, true);
-        music.onComplete = Conductor.resetPosition;
+        music.onComplete = Conductor.resetTime;
         FlxG.sound.music.fadeOut(0.5, 0);
 
         lastBPM = Conductor.bpm;
         Conductor.bpm = 80;
 
-        Conductor.resetPosition();
+        Conductor.resetTime();
         Conductor.music = music;
 
         var beatDuration:Float = Conductor.crochet / 1000;
@@ -127,7 +127,7 @@ class OffsetSubState extends MusicBeatSubState {
 
         Conductor.music = null;
         Conductor.bpm = lastBPM;
-        Conductor.resetPosition();
+        Conductor.resetTime();
 
         super.close();
     }

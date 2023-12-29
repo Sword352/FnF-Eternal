@@ -60,7 +60,7 @@ class GameOverScreen extends MusicBeatSubState {
         Conductor.bpm = data.bpm;
         Conductor.music = FlxG.sound.music;
 
-        Conductor.resetPosition();
+        Conductor.resetTime();
 
         #if ENGINE_SCRIPTING
         hxsCall("onCreatePost");

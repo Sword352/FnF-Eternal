@@ -78,7 +78,7 @@ class EventManager extends FlxBasic {
     }
 
     override function update(elapsed:Float):Void {
-        while (loadedEvents.length > 0 && Conductor.position >= loadedEvents[0].time)
+        while (loadedEvents.length > 0 && Conductor.time >= loadedEvents[0].time)
             runEvent(loadedEvents.shift());
     }
 

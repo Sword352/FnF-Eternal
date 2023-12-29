@@ -273,7 +273,7 @@ class ChartSubScreen extends FlxSubState {
         var page:Box = createPage("Meta");
 
         // time signature
-        var signature:Label = createText('Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)');
+        var signature:Label = createText('Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)');
         signature.left = 5;
         
         var beatsPerMeasure:NumberStepper = createNumStepper();
@@ -294,7 +294,7 @@ class ChartSubScreen extends FlxSubState {
             parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
             beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
         
-            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)';
+            signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
         };
         
         stepsPerBeat.value = oldSteps;
@@ -303,13 +303,11 @@ class ChartSubScreen extends FlxSubState {
             if (!(val is Int))
                 stepsPerBeat.value = Math.floor(val);
         
-            Conductor.stepsPerBeat = stepsPerBeat.value;
-            Conductor.stepCrochet = Conductor.crochet / Conductor.stepsPerBeat;
-        
+            Conductor.stepsPerBeat = stepsPerBeat.value;        
             parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
             stepsChanged = (Conductor.stepsPerBeat != oldSteps);
         
-            signature.text = 'Time Signature: ${Conductor.timeSignatureSTR}\n(beats per measure / steps per beat)';
+            signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
         };
 
         // bpm

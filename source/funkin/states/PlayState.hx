@@ -346,19 +346,19 @@ class PlayState extends MusicBeatState {
       );
 
       #if ENGINE_DISCORD_RPC
-      if (music.playing && Conductor.position >= 0 && Conductor.position <= music.instrumental.length)
-         DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.position * 0.001));
+      if (music.playing && Conductor.time >= 0 && Conductor.time <= music.instrumental.length)
+         DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.time * 0.001));
       #end
 
       #if ENGINE_SCRIPTING
-      while (notes.length > 0 && notes[0].time - Conductor.position < (noteSpawnTime + notes[0].spawnTimeOffset)) {
+      while (notes.length > 0 && notes[0].time - Conductor.time < (noteSpawnTime + notes[0].spawnTimeOffset)) {
          var note:Note = notes.shift();
          hxsCall("onNoteSpawn", [note]);
          strumLines.members[note.strumline].addNote(note);
          hxsCall("onNoteSpawnPost", [note]);
       }
       #else
-      while (notes.length > 0 && notes[0].time - Conductor.position < (noteSpawnTime + notes[0].spawnTimeOffset))
+      while (notes.length > 0 && notes[0].time - Conductor.time < (noteSpawnTime + notes[0].spawnTimeOffset))
          strumLines.members[notes[0].strumline].addNote(notes.shift());
       #end
       
@@ -464,7 +464,7 @@ class PlayState extends MusicBeatState {
 
    inline public function openChartEditor():Void {
       Assets.clearAssets = Settings.get("reload assets");
-      FlxG.switchState(new ChartEditor(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.position, 0) : 0));
+      FlxG.switchState(new ChartEditor(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.time, 0) : 0));
    }
 
    public function changeCameraTarget(target:Int):Void {
@@ -507,7 +507,7 @@ class PlayState extends MusicBeatState {
 
       // Change the conductor position (mostly to fit the notes position during the start countdown)
       if (changeConductorPos)
-         Conductor.position = -(Conductor.crochet * (loops + 1));
+         Conductor.time = -(Conductor.crochet * (loops + 1));
 
       // Setup some countdown elements and data
       countdownSprite = new FlxSprite();
@@ -656,7 +656,7 @@ class PlayState extends MusicBeatState {
             for (i => note in possibleNotes) {
                if (i == 0) continue;
    
-               if (note.direction == noteToHit.direction && Math.abs(note.time - noteToHit.time) <= 10)
+               if (Math.abs(note.time - noteToHit.time) < 10)
                   playerStrumline.removeNote(note);
                else break;
             }
@@ -694,7 +694,7 @@ class PlayState extends MusicBeatState {
       playerStrumline.holdKeys[index] = false;
 
       for (player in playerStrumline.characters)
-         player.holding = playerStrumline.holdKeys[FlxMath.wrap(player.singAnimations.indexOf(player.animation.curAnim.name), 0, 3)];
+         player.holding = playerStrumline.holdKeys.contains(true);
 
       playerStrumline.receptors.members[index].playAnimation("static", true);
 
@@ -920,7 +920,7 @@ class PlayState extends MusicBeatState {
          sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
          sprite.scale.set(0.5, 0.5);
          sprite.updateHitbox();
-         sprite.setPosition(comboSprites.x + 43 * i, comboSprites.y);
+         sprite.setPosition(comboSprites.x + 43 * (i + 1), comboSprites.y);
 
          sprite.acceleration.y = FlxG.random.int(200, 300);
          sprite.velocity.set(FlxG.random.float(-5, 5), -FlxG.random.int(140, 160));
@@ -1074,7 +1074,7 @@ class PlayState extends MusicBeatState {
    }
 
    inline public function setTime(time:Float):Void {
-      Conductor.position = time;
+      Conductor.time = time;
       startSong(time);
    }
 

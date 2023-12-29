@@ -115,7 +115,7 @@ class TitleScreen extends MusicBeatState {
         postRenderSprites.add(pressEnterSprite);
 
         Conductor.music = FlxG.sound.music;
-        FlxG.sound.music.onComplete = Conductor.resetPreviousPosition;
+        FlxG.sound.music.onComplete = () -> Conductor.resetPrevTime();
 
         if (!firstTime) {
             clearSequences();

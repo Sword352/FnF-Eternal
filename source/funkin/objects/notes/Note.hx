@@ -129,14 +129,14 @@ class Note extends OffsetSprite {
    }
 
    inline function get_late():Bool {
-      return (Conductor.position - time) > safeZoneOffset;
+      return (Conductor.time - time) > safeZoneOffset;
    }
 
    inline function get_isSustainNote():Bool
       return sustain != null;
 
    inline function get_canBeHit():Bool
-      return !goodHit && !missed && Math.abs(Conductor.position - time) <= safeZoneOffset;
+      return !goodHit && !missed && Math.abs(Conductor.time - time) <= safeZoneOffset;
 }
 
 class Sustain extends TiledSprite {

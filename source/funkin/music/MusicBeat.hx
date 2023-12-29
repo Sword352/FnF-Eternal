@@ -20,9 +20,9 @@ class MusicBeatState extends State {
 
         #if debug
         // for debugging
-        FlxG.watch.add(Conductor, "position", "C. Position");
+        FlxG.watch.add(Conductor, "time", "C. Time");
         FlxG.watch.add(Conductor, "bpm", "BPM");
-        FlxG.watch.add(Conductor, "timeSignatureSTR", "Time Signature");
+        FlxG.watch.addFunction("Time Signature", Conductor.getSignature);
         FlxG.watch.add(Conductor, "currentStep", "Current Step");
         FlxG.watch.add(Conductor, "currentBeat", "Current Beat");
         FlxG.watch.add(Conductor, "currentMeasure", "Current Measure");
@@ -49,8 +49,9 @@ class MusicBeatState extends State {
 
     public override function destroy():Void {
         #if debug
-        FlxG.watch.remove(Conductor, "position");
+        FlxG.watch.remove(Conductor, "time");
         FlxG.watch.remove(Conductor, "bpm");
+        FlxG.watch.removeFunction("Time Signature");
         FlxG.watch.remove(Conductor, "currentStep");
         FlxG.watch.remove(Conductor, "currentBeat");
         FlxG.watch.remove(Conductor, "currentMeasure");

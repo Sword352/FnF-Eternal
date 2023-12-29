@@ -64,7 +64,7 @@ class StrumLine extends FlxGroup {
          var speed:Float = Math.abs(((note.followSpeed) ? (receptor.scrollSpeed ?? scrollSpeed) : note.scrollSpeed) * 0.45);
          var mult:Float = (note.followSpeed) ? (receptor.scrollMult ?? scrollMult) : note.scrollMult;
 
-         note.distance = mult * -((Conductor.position - note.time) * speed);
+         note.distance = mult * -((Conductor.time - note.time) * speed);
 
          if (note.isSustainNote) {
             note.sustain.scrollSpeed = speed * Math.abs(mult);
@@ -81,7 +81,7 @@ class StrumLine extends FlxGroup {
                note.y += note.distance;
          }
 
-         if (cpu && !note.goodHit && !note.missed && Conductor.position - note.time >= 0) {
+         if (cpu && !note.goodHit && !note.missed && Conductor.time - note.time >= 0) {
             note.goodHit = true;
             onNoteHit.dispatch(note);
 
@@ -157,7 +157,7 @@ class StrumLine extends FlxGroup {
    public function hitNote(note:Note):Void {
       if (note.isSustainNote) {
          if (!cpu)
-            note.sustain.length += note.time - Conductor.position; // incase the player hits the note early/lately
+            note.sustain.length += note.time - Conductor.time; // incase the player hits the note early/lately
          note.baseVisible = false;
       }
       else
@@ -167,7 +167,7 @@ class StrumLine extends FlxGroup {
    inline function miss(note:Note):Void {
       if (note.isSustainNote) {
          note.baseVisible = false;
-         note.sustain.length += note.time - Conductor.position;
+         note.sustain.length += note.time - Conductor.time;
       }
       else 
          note.alpha = 0.3;

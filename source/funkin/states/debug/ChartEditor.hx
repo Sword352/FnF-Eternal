@@ -157,7 +157,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             if (music.playing)
                 pauseMusic();
             else
-                music.play(Conductor.position);
+                music.play(Conductor.time);
         }
 
         mouseCursor.x = FlxMath.bound(floorMousePosition(FlxG.mouse.x), checkerboard.x - checkerSize, checkerboard.x + checkerSize * 7);
@@ -195,7 +195,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         else
             line.y = Tools.lerp(line.y, getYFromTime(music.instrumental.time), 12);
 
-        if (!music.playing && Conductor.position >= music.instrumental.length) {
+        if (!music.playing && Conductor.time >= music.instrumental.length) {
             music.instrumental.time = 0;
             line.y = 0;
         }
@@ -221,19 +221,19 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (music.playing) {
             var hitsoundVolume:Float = Settings.get("CHART_hitsoundVolume");
             notes.forEachAlive((note) -> {
-                var late:Bool = (note.data.time <= Conductor.position);
+                var late:Bool = (note.data.time <= Conductor.time);
                 var hit:Bool = (late && note.data.time > lastPosition);
 
                 if (hit && hitsoundVolume > 0)
                     FlxG.sound.play(hitsound, hitsoundVolume);
 
-                if (receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.position
+                if (receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.time
                     && (Settings.get("CHART_rStaticGlow") || lastStep != Conductor.currentStep))))
                     receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
             });
         }
 
-        lastPosition = Conductor.position;
+        lastPosition = Conductor.time;
         lastStep = Conductor.currentStep;
     }
 
@@ -339,7 +339,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         for (vocals in music.vocals)
             vocals.time = music.instrumental.time;
 
-        Conductor.resetPreviousPosition();
+        Conductor.resetPrevTime();
     }
 
     override function openSubState(SubState:FlxSubState):Void {
@@ -356,6 +356,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function goToPlayState():Void {
+        var time:Float = Conductor.time;
+
         music.stop();
         autoSave();
 
@@ -366,17 +368,19 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         PlayState.song = chart;
         PlayState.currentDifficulty = difficulty;
 
-        FlxG.switchState(new PlayState((FlxG.keys.pressed.SHIFT) ? Conductor.position : 0));
+        FlxG.switchState(new PlayState((FlxG.keys.pressed.SHIFT) ? time : 0));
     }
 
     inline function playTest():Void {
+        var time:Float = Conductor.time;
+
         music.stop();
         autoSave();
 
         persistentUpdate = false;
         FlxG.mouse.visible = false;
 
-        openSubState(new ChartPlayState(this, (FlxG.keys.pressed.SHIFT) ? Conductor.position : 0));
+        openSubState(new ChartPlayState(this, (FlxG.keys.pressed.SHIFT) ? time : 0));
     }
 
     inline function openHelpPage():Void {
@@ -442,7 +446,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         + 'Beat: ${Conductor.currentBeat}\n'
         + 'Measure: ${Conductor.currentMeasure}\n\n'
         + 'BPM: ${Conductor.bpm} (${chart.bpm})\n'
-        + 'Time Signature: ${Conductor.timeSignatureSTR}'
+        + 'Time Signature: ${Conductor.getSignature()}'
         ;
 
         musicText.x = FlxG.width - musicText.width - 5;
@@ -465,7 +469,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (updateMeasures)
             measures.forEachAlive((measure) -> measure.y = checkerSize * Conductor.measureLength * measure.ID);
 
-        Conductor.resetPreviousPosition();
+        Conductor.resetPrevTime();
     }
 
     // UNFINISHED
@@ -510,7 +514,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             var bpmOffset:Float = 0;
 
             for (event in chart.events) {
-                if (event.event == "change bpm" && event.time <= Conductor.position) {
+                if (event.event == "change bpm" && event.time <= Conductor.time) {
                     bpmOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat));
                     lastChange = event.time;
 
@@ -548,7 +552,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         music.onSongEnd.add(() -> {
             if (subState == null) {
-                Conductor.resetPreviousPosition();
+                Conductor.resetPrevTime();
                 line.y = 0;
             }
         });
@@ -721,7 +725,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             for (vocals in music.vocals)
                 vocals.time = music.instrumental.time;
 
-            Conductor.resetPreviousPosition();
+            Conductor.resetPrevTime();
         }
 
         var opponentIcon:HealthIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.meta.opponent));
@@ -903,7 +907,7 @@ class DebugNote extends FlxSprite {
     }
 
     override function update(elapsed:Float):Void {
-        alpha = (data.time < Conductor.position && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
+        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
         // super.update(elapsed);
     }
 
@@ -997,7 +1001,7 @@ class EventSprite extends FlxSprite {
     }
 
     override function update(elapsed:Float):Void {
-        alpha = (data.time < Conductor.position && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
+        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
         color = (FlxG.mouse.overlaps(this)) ? ChartEditor.hoverColor : FlxColor.WHITE;
 
         text.alpha = alpha;

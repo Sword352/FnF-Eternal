@@ -66,7 +66,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         add(boyfriend);
 
         Conductor.music = FlxG.sound.music;
-        Conductor.resetPosition();
+        Conductor.resetTime();
     }
 
     private static var lastSound:Int = -1;
@@ -111,7 +111,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         sound.destroy();
 
         Conductor.music = null;
-        Conductor.resetPosition();
+        Conductor.resetTime();
 
         FlxG.mouse.visible = false;
         super.close();
