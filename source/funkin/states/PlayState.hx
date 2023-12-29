@@ -492,11 +492,7 @@ class PlayState extends MusicBeatState {
          cameraPoint.set(FlxG.width * 0.5, FlxG.height * 0.5);
    }
 
-   public function startCountdown(loops:Int = 4, changeConductorPos:Bool = true):Void { 
-      if (loops <= 0 || Math.isNaN(loops) || loops == Math.POSITIVE_INFINITY || loops == Math.NEGATIVE_INFINITY)
-         loops = 4; // why would you try to loop it eternally?
-
-      // Caching
+   public function startCountdown(loops:Int = 4, changeBeat:Bool = true):Void { 
       for (sprite in countdownSprites)
          if (sprite != null)
             Assets.image(sprite);
@@ -505,11 +501,9 @@ class PlayState extends MusicBeatState {
          if (sound != null)
             Assets.sound(sound);
 
-      // Change the conductor position (mostly to fit the notes position during the start countdown)
-      if (changeConductorPos)
-         Conductor.time = -(Conductor.crochet * (loops + 1));
+      if (changeBeat)
+         Conductor.currentBeat = -(loops + 1);
 
-      // Setup some countdown elements and data
       countdownSprite = new FlxSprite();
       countdownSprite.cameras = [camHUD];
       countdownSprite.alpha = 0;
@@ -518,7 +512,6 @@ class PlayState extends MusicBeatState {
       var countSpriteY:Float = 0;
       var timing:Float = Conductor.crochet / 1000;
 
-      // Actually starts the countdown
       new FlxTimer().start(timing, tmr -> {
          var currentLoop:Int = tmr.elapsedLoops - 1;
          var isDone:Bool = (tmr.loopsLeft == 0);
