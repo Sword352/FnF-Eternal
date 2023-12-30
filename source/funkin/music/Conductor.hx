@@ -33,7 +33,7 @@ class Conductor {
     public static final onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
     // used for bpm change events
-    public static final beatOffset:BeatOffset = {step: 0, time: 0};
+    public static final beatOffset:BeatOffset = {};
 
     public static var active:Bool = true;
     public static var music:FlxSound;
@@ -81,9 +81,6 @@ class Conductor {
         resetTime();
         resetCallbacks();
 
-        beatOffset.step = 0;
-        beatOffset.time = 0;
-
         playbackRate = 1;
         music = null;
 
@@ -95,6 +92,8 @@ class Conductor {
     public static inline function resetTime():Void {
         rawTime = 0;
         resetPrevTime();
+
+        beatOffset.reset();
     }
 
     public static inline function resetPrevTime(to:Int = -1):Void {
@@ -180,6 +179,15 @@ class Conductor {
 }
 
 @:structInit class BeatOffset {
-    public var step:Float;
-    public var time:Float;
+    public var time:Float = 0;
+    public var step:Float = 0;
+    public var beat:Float = 0;
+
+    public function new():Void {}
+
+    public function reset():Void {
+        time = 0;
+        step = 0;
+        beat = 0;
+    }
 }

@@ -125,6 +125,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             spawnEvents(chart.events);
 
         FlxG.stage.window.onClose.add(autoSave);
+
+        FlxG.watch.add(Conductor.beatOffset, "step");
+        FlxG.watch.add(Conductor.beatOffset, "time");
     }
 
     override function update(elapsed:Float):Void {
@@ -506,32 +509,28 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline function updateCurrentBPM():Void {
         var currentBPM:Float = Conductor.bpm;
+        var stepOffset:Float = 0;
+        var lastChange:Float = 0;
 
         eventBPM = false;
 
         if (chart.events.length > 0) {
-            var lastChange:Float = 0;
-            var bpmOffset:Float = 0;
-
             for (event in chart.events) {
                 if (event.event == "change bpm" && event.time <= Conductor.time) {
-                    bpmOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat));
+                    stepOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat));
                     lastChange = event.time;
 
                     currentBPM = event.arguments[0];
                     eventBPM = true;
                 }
             }
-
-            Conductor.beatOffset.time = lastChange;
-            Conductor.beatOffset.step = bpmOffset;
         }
 
-        if (!eventBPM) {
-            Conductor.beatOffset.time = 0;
-            Conductor.beatOffset.step = 0;
+        Conductor.beatOffset.time = lastChange;
+        Conductor.beatOffset.step = stepOffset;
+
+        if (!eventBPM)
             currentBPM = chart.bpm;
-        }
 
         if (currentBPM != Conductor.bpm) {
             // trace("changed bpm to " + currentBPM);

@@ -57,6 +57,12 @@ class EventManager extends FlxBasic {
             display: "Change BPM",
             description: "Change the song's beat per minutes",
             arguments: [{name: "New BPM", type: "Float", defaultValue: 100}]
+        },
+        {
+            name: "change time signature",
+            display: "Change Time Signature",
+            description: "Change the song's time signature",
+            arguments: [{name: "Steps per beat", type: "Int", defaultValue: 4}]
         }
     ];
 
@@ -71,6 +77,10 @@ class EventManager extends FlxBasic {
 
     var lastBpmChange:Float = 0;
     var bpmOffset:Float = 0;
+
+    var stepOffset:Float = 0;
+    var beatOffset:Float = 0;
+    var lastTS:Float = 0;
 
     public function new(game:PlayState):Void {
         this.game = game;
@@ -145,7 +155,17 @@ class EventManager extends FlxBasic {
                 Conductor.beatOffset.step = bpmOffset;
                 Conductor.bpm = event.arguments[0];
             case "change time signature":
-                // TODO
+                /*
+                stepOffset += ((event.time - lastTS) / Conductor.stepCrochet);
+                beatOffset += ((event.time - lastTS) / Conductor.crochet);
+                lastTS = event.time;
+
+                Conductor.beatOffset.step = stepOffset;
+                Conductor.beatOffset.beat = beatOffset;
+                Conductor.beatOffset.time = lastTS;
+
+                Conductor.stepsPerBeat = event.arguments[0];
+                */
             #if ENGINE_SCRIPTING
             case "custom event":
                 var name:String = event.arguments[0];
