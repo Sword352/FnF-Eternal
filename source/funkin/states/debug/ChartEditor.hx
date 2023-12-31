@@ -519,7 +519,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (currentBPM != Conductor.bpm) {
             Conductor.bpm = currentBPM;
-
             reloadGrid(false, !eventBPM);
             reloadMeasureMarks();
         }
