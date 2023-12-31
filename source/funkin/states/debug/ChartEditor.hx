@@ -71,8 +71,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
 
-    public var eventBPM:Bool = false;
-
     var lastPosition:Float = 0;
     var lastStep:Int = 0;
 
@@ -125,9 +123,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             spawnEvents(chart.events);
 
         FlxG.stage.window.onClose.add(autoSave);
-
-        FlxG.watch.add(Conductor.beatOffset, "step");
-        FlxG.watch.add(Conductor.beatOffset, "time");
     }
 
     override function update(elapsed:Float):Void {
@@ -462,7 +457,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             timeBar.pos = music.instrumental.time;
     }
 
-    inline public function reloadGrid(updateMeasures:Bool = true):Void {
+    inline public function reloadGrid(updateMeasures:Bool = true, resetTime:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
         line.y = getYFromTime(music.instrumental.time);
 
@@ -472,47 +467,40 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (updateMeasures)
             measures.forEachAlive((measure) -> measure.y = checkerSize * Conductor.measureLength * measure.ID);
 
-        Conductor.resetPrevTime();
+        if (resetTime)
+            Conductor.resetPrevTime();
     }
 
-    // UNFINISHED
     inline public function reloadMeasureMarks():Void {
-        var measureFnt:String = Assets.font("vcr"); // avoids 78 file exist calls
-        var measureTime:Float = 0;
-        var timeOffset:Float = 0;
+        /**
+         * TODO:
+         * - Make it do not generate extra marks (due to bpm changes, time signatures...)
+         * - Make it account bpm changes properly
+         */
+
+        var time:Float = Conductor.beatOffset.step * Conductor.measureLength;
+        var font:String = Assets.font("vcr"); // avoids 78 file exist calls
 
         measures.forEachAlive((measure) -> measure.kill());
 
-        while (measureTime < music.instrumental.length) {
-            var measureStep:Int = Math.round((measureTime) / Conductor.stepCrochet);
+        while (time < music.instrumental.length) {
+            var measureStep:Float = (time / Conductor.stepCrochet);
             var measure:Int = Math.round(measureStep / Conductor.measureLength);
 
-            var text:FlxText = measures.recycle(FlxText, () -> new FlxText(checkerboard.x + checkerboard.width + checkerSize * 0.5).setFormat(measureFnt, 32));
+            var text:FlxText = measures.recycle(FlxText, () -> new FlxText(checkerboard.x + checkerboard.width + checkerSize * 0.5).setFormat(font, 32));
             text.y = checkerSize * measureStep;
             text.text = Std.string(measure);
             text.ID = measure;
-            measures.add(text);
 
-            var currentBPM:Float = chart.bpm;
-            if (chart.events.length > 0) {
-                for (event in chart.events) {
-                    if (event.event == "change bpm" && event.time <= measureTime) {
-                        currentBPM = event.arguments[0];
-                        timeOffset = event.time;
-                    }
-                }
-            }
-
-            measureTime += (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat) * Conductor.measureLength;
+            time += Conductor.stepCrochet * Conductor.measureLength;
         }
     }
 
     inline function updateCurrentBPM():Void {
-        var currentBPM:Float = Conductor.bpm;
+        var currentBPM:Float = chart.bpm;
+        var eventBPM:Bool = false;
         var stepOffset:Float = 0;
         var lastChange:Float = 0;
-
-        eventBPM = false;
 
         if (chart.events.length > 0) {
             for (event in chart.events) {
@@ -529,17 +517,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Conductor.beatOffset.time = lastChange;
         Conductor.beatOffset.step = stepOffset;
 
-        if (!eventBPM)
-            currentBPM = chart.bpm;
-
         if (currentBPM != Conductor.bpm) {
-            // trace("changed bpm to " + currentBPM);
             Conductor.bpm = currentBPM;
-            // reloadMeasureMarks();
-            reloadGrid(false);
+
+            reloadGrid(false, !eventBPM);
+            reloadMeasureMarks();
         }
     }
-    //
 
     inline function loadSong():Void {
         music = new MusicPlayback(chart.meta.rawName);
