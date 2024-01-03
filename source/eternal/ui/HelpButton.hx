@@ -1,10 +1,12 @@
 package eternal.ui;
 
 class HelpButton extends FlxSprite {
-    public var onClick:Void->Void = null;
+    public var baseY:Float = FlxG.height - 5;
+    public var applyOffset:Bool = true;
 
     public var flickerDuration:Float = 0.2;
-    public var flickerCount:Float = 2;
+    public var flickerCount:Float = 3;
+    public var onClick:Void->Void = null;
 
     var flickerTmr:Float = 0;
     var flickerDly:Float = 0;
@@ -20,7 +22,9 @@ class HelpButton extends FlxSprite {
         updateHitbox();
         alpha = 0.6;
 
-        setPosition(5, FlxG.height - height - 5);
+        setPosition(5, baseY);
+        if (applyOffset)
+            y -= height;
     }
 
     override function update(elapsed:Float):Void {
@@ -58,7 +62,8 @@ class HelpButton extends FlxSprite {
         scale.x = scale.y = Tools.lerp(scale.x, (animate) ? 0.4 : 0.35, 3);
         updateHitbox();
 
-        y = FlxG.height - height - 5;
+        if (applyOffset)
+            y = baseY - height;
     }
 
     inline function flicker():Void {

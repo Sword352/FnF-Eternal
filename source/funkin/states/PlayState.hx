@@ -469,14 +469,14 @@ class PlayState extends MusicBeatState {
 
    public function changeCameraTarget(target:Int):Void {
       #if ENGINE_SCRIPTING
-      if (cancellableCall("onCameraMove"))
+      if (cancellableCall("onCamChange", [target]))
          return;
       #end
 
       targetCharacter = cameraTargets[target];
 
       #if ENGINE_SCRIPTING
-      hxsCall("onCameraMovePost");
+      hxsCall("onCamChangePost", [target]);
       #end
    }
 

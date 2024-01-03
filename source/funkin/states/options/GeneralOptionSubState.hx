@@ -57,7 +57,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         sound = FlxG.sound.list.recycle(FlxSound);
 
         boyfriend = new FlxSprite();
-        boyfriend.loadGraphic(Assets.image("menus/options-bf"));
+        boyfriend.loadGraphic(Assets.image("menus/options/options-bf"));
         boyfriend.scale.set(0.25, 0.25);
         boyfriend.updateHitbox();
         boyfriend.screenCenter().y += 150;

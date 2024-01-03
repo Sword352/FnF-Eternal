@@ -92,9 +92,8 @@ class ChartSubScreen extends FlxSubState {
                 parent.reloadMeasureMarks();
         }
 
-        parent = null;
-
         lastPage = menu.pageIndex;
+        parent = null;
 
         super.destroy();
     }

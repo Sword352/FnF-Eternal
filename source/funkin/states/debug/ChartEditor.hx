@@ -32,6 +32,7 @@ import eternal.ChartFormat.ChartEvent;
 
 import tjson.TJSON as Json;
 
+// TODO: make the editor run better in debug mode
 class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements eternal.core.crash.CrashHandler.ICrashListener #end {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
@@ -60,6 +61,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var measures:FlxTypedGroup<FlxText>;
     public var beatIndicators:FlxSpriteGroup;
 
+    public var measureTimes:Map<FlxText, Float> = [];
+
     // public var noteViewer:NoteViewer;
     public var helpButton:HelpButton;
     public var uiCamera:Camera;
@@ -71,10 +74,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
 
-    var lastPosition:Float = 0;
-    var lastStep:Int = 0;
+    var lastBpmChange:Float = 0;
 
     var startTime:Float = 0;
+    var lastTime:Float = 0;
+    var lastStep:Int = 0;
 
     public function new(chart:Chart, difficulty:String = "normal", startTime:Float = 0):Void {
         super();
@@ -126,7 +130,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function update(elapsed:Float):Void {
-        if (FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.SEVEN) {
+        if (FlxG.keys.justPressed.TAB) {
             openSubState(new ChartSubScreen(this));
             return;
         }
@@ -173,10 +177,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 checkObjectDeletion();
         }
 
-        if (selectedNote != null && (FlxG.keys.justPressed.Q || FlxG.keys.justPressed.E)) {
-            selectedNote.data.length += Conductor.stepCrochet * ((FlxG.keys.justPressed.Q) ? 1 : -1);
-            if (selectedNote.data.length < 0)
-                killNote(selectedNote);
+        if (selectedNote != null) {
+            var pressed:Bool = (FlxG.keys.justPressed.Q || FlxG.keys.justPressed.E);
+            var holding:Bool = (FlxG.keys.pressed.SHIFT && (FlxG.keys.pressed.Q || FlxG.keys.pressed.E));
+
+            if (pressed || holding) {
+                var mult:Int = (FlxG.keys.pressed.Q) ? 1 : -1;
+                selectedNote.data.length += (holding) ? (Conductor.stepCrochet / 10 * Tools.framerateMult() * mult) : (Conductor.stepCrochet * mult);
+                if (selectedNote.data.length < 0)
+                    killNote(selectedNote);
+            }
         }
 
         if (FlxG.mouse.wheel != 0)
@@ -220,7 +230,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             var hitsoundVolume:Float = Settings.get("CHART_hitsoundVolume");
             notes.forEachAlive((note) -> {
                 var late:Bool = (note.data.time <= Conductor.time);
-                var hit:Bool = (late && note.data.time > lastPosition);
+                var hit:Bool = (late && note.data.time > lastTime);
 
                 if (hit && hitsoundVolume > 0)
                     FlxG.sound.play(hitsound, hitsoundVolume);
@@ -231,8 +241,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             });
         }
 
-        lastPosition = Conductor.time;
         lastStep = Conductor.currentStep;
+        lastTime = Conductor.time;
     }
 
     override function stepHit(currentStep:Int):Void {
@@ -257,7 +267,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline function checkSpawnNote():Void {
         var calc:Int = Std.int(mouseCursor.x / checkerSize);
-        var strumline:Int = (calc > 15) ? 1 : 0; // TODO: calculate the strumline instead
+        var strumline:Int = (calc > 15) ? 1 : 0;
         var direction:Int = calc % 4;
 
         var existingNote:DebugNote = notes.getFirst((n) -> n.alive && n.data.direction == direction && FlxG.mouse.overlaps(n));
@@ -387,12 +397,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 "SPACE: Play/Stop music\n"
                 + "UP/DOWN/Mouse wheel: Increase/Decrease music time (faster if SHIFT pressed)\n"
                 + "Mouse click on grid: Place a note/event\n"
-                + "Q/E: Increase/Decrease selected note hold length\n"
+                + "Q/E: Increase/Decrease selected note hold length (faster if SHIFT pressed)\n"
                 + "CTRL + Mouse click: Select hovered note/event\n"
                 + "SHIFT (hold): Un-snap cursor to grid\n"
                 + "Z (hold): Delete hovered notes/events\n\n"
 
-                + "TAB/SEVEN: Open Sub-screen\n"
+                + "TAB: Open Sub-screen\n"
                 + "ESCAPE: Play chart in the chart editor\n"
                 + "ESCAPE+SHIFT: Play chart in the chart editor at current time\n"
                 + "ENTER: Play chart\n"
@@ -465,7 +475,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
 
         if (updateMeasures)
-            measures.forEachAlive((measure) -> measure.y = checkerSize * Conductor.measureLength * measure.ID);
+            measures.forEachAlive((measure) -> measure.y = getYFromTime(measureTimes[measure]));
 
         if (resetTime)
             Conductor.resetPrevTime();
@@ -474,24 +484,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     inline public function reloadMeasureMarks():Void {
         /**
          * TODO:
-         * - Make it do not generate extra marks (due to bpm changes, time signatures...)
-         * - Make it account bpm changes properly
+         * - Make it do not create extra marks (due to bpm changes, time signatures...)
+         * - Fix measure marks being wrongly created on some time signatures after bpm changes
+         * - Fix measure marks being wrongly re-created when changing both beats per measure and steps per beat after bpm changes
          */
 
-        var time:Float = Conductor.beatOffset.step * Conductor.measureLength;
+        var time:Float = Conductor.beatOffset.time;
         var font:String = Assets.font("vcr"); // avoids 78 file exist calls
 
         measures.forEachAlive((measure) -> measure.kill());
+        measureTimes.clear();
 
         while (time < music.instrumental.length) {
-            var measureStep:Float = (time / Conductor.stepCrochet);
+            var measureStep:Float = Conductor.beatOffset.step + ((time - Conductor.beatOffset.time) / Conductor.stepCrochet);
             var measure:Int = Math.round(measureStep / Conductor.measureLength);
 
             var text:FlxText = measures.recycle(FlxText, () -> new FlxText(checkerboard.x + checkerboard.width + checkerSize * 0.5).setFormat(font, 32));
-            text.y = checkerSize * measureStep;
             text.text = Std.string(measure);
+            text.y = getYFromTime(time);
             text.ID = measure;
 
+            measureTimes[text] = time;
             time += Conductor.stepCrochet * Conductor.measureLength;
         }
     }
@@ -517,10 +530,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Conductor.beatOffset.time = lastChange;
         Conductor.beatOffset.step = stepOffset;
 
-        if (currentBPM != Conductor.bpm) {
+        if (currentBPM != Conductor.bpm || lastBpmChange != lastChange) {
             Conductor.bpm = currentBPM;
             reloadGrid(false, !eventBPM);
             reloadMeasureMarks();
+
+            lastBpmChange = lastChange;
         }
     }
 
@@ -800,6 +815,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function destroy():Void {
+        difficulty = null;
+        chart = null;
+
+        eventList = null;
+        currentEvent = null;
+        defaultArgs = null;
+
+        measureTimes = null;
+        hitsound = null;
+
         FlxG.stage.window.onClose.remove(autoSave);
         super.destroy();
 
@@ -907,50 +932,11 @@ class DebugNote extends FlxSprite {
             sustain.color = sustainColors[data.direction];
             sustain.alpha = alpha;
             sustain.draw();
-
-            /*
-            if (length > 1)
-                drawSustainPiece(0.65);
-
-            for (i in 0...length) {
-                if (i == (length - 1))
-                    drawSustainEnd(i + 1);
-                else
-                    drawSustainPiece(i + 1);
-            }
-            */
         }
 
         animation.curAnim.curFrame = data.direction;
         super.draw();
     }
-
-    /*
-    function drawSustainPiece(spacing:Float):Void {
-        var baseY:Float = y;
-
-        animation.curAnim.curFrame = data.direction + 4;
-
-        y += ChartEditor.checkerSize * spacing;
-        scale.y *= 4;
-
-        super.draw();
-
-        scale.y *= 0.25;
-        y = baseY;
-    }
-
-    function drawSustainEnd(spacing:Float):Void {
-        var baseY:Float = y;
-
-        animation.curAnim.curFrame = data.direction + 8;
-
-        y += ChartEditor.checkerSize * spacing - ChartEditor.checkerSize * 0.5;
-        super.draw();
-
-        y = baseY;
-    }
-    */
 
     override function destroy():Void {
         sustain = FlxDestroyUtil.destroy(sustain);

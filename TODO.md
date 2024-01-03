@@ -3,6 +3,7 @@
 - Finish the built-in events
 - Finish the audio offset support
 - Finish the Alphabet (character offsets + symbols)
+- Do all of the TODO stuff that can be found in the code
 
 ### Medium Priority
 - Test/Fix controller inputs

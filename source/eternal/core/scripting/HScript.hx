@@ -61,9 +61,16 @@ class HScript {
 
 		"Assets" => Assets,
         "AssetHelper" => Assets, // avoids breaking change (temporary?)
+        "OpenFLAssets" => openfl.Assets,
+        "FileTools" => FileTools,
         "Paths" => eternal.tools.Paths,
 
-        #if sys "Sys" => Sys, #end
+        #if sys
+        "Sys" => Sys,
+        "File" => sys.io.File,
+        "FileSystem" => sys.FileSystem,
+        #end
+
         "Reflect" => Reflect,
         "Type" => Type,
 	];
