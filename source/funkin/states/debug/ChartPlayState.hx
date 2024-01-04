@@ -9,19 +9,27 @@ import funkin.objects.notes.StrumLine;
 
 import eternal.ChartLoader;
 
+/**
+ * TODO:
+ * - Add counters for steps, beats and measures
+ * - Add rating, combo popups and splashes
+ * - Fix bug causing voice desync and stopping beat callbacks upon exiting a substate with a differing bpm (bpm changes)
+ * - Make the time do not have the need to resync when the music starts
+ */
+
 class ChartPlayState extends MusicBeatSubState {
     var playerStrumline:StrumLine;
     var opponentStrumline:StrumLine;
     var strumlines:Array<StrumLine>;
     var notes:Array<Note>;
 
-    var infos:FlxText;
-    var oppNoteCount:FlxText;
     var playerNoteCount:FlxText;
+    var oppNoteCount:FlxText;
+    var infos:FlxText;
 
-    var missCount:Int = 0;
     var totalPlayerNotes:Int = 0;
     var totalOppNotes:Int = 0;
+    var missCount:Int = 0;
 
     var startTimer:FlxTimer;
     var startTime:Float;
@@ -91,7 +99,11 @@ class ChartPlayState extends MusicBeatSubState {
         Conductor.playbackRate = parent.music.pitch;
         parent.music.onSongEnd.add(close);
 
-        startTimer = new FlxTimer().start(1.5, (_) -> parent.music.play(startTime));
+        startTimer = new FlxTimer().start(1.5, (_) -> {
+            Conductor.music = parent.music.instrumental;
+            Conductor.updateInterp = true;
+            parent.music.play(startTime);
+        });
     }
 
     override function update(elapsed:Float):Void {
@@ -116,7 +128,7 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function stepHit(currentStep:Int):Void
-        parent.music.resyncCheck();
+        parent.music.resync();
 
     inline function onKeyDown(rawID:Int, action:String):Void {
         if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
@@ -139,7 +151,7 @@ class ChartPlayState extends MusicBeatSubState {
                 for (i => note in possibleNotes) {
                     if (i == 0) continue;
    
-                    if (note.direction == noteToHit.direction && Math.abs(note.time - noteToHit.time) <= 10)
+                    if (Math.abs(note.time - noteToHit.time) <= 10)
                         playerStrumline.removeNote(note);
                     else break;
                 }
@@ -246,10 +258,14 @@ class ChartPlayState extends MusicBeatSubState {
         parent.music.pause();
 
         Conductor.resetTime();
-        Conductor.playbackRate = 1;
+        Conductor.resetPrevTime();
 
         parent.music.instrumental.time = startTime;
         Conductor.music = parent.music.instrumental;
+        parent.music.resync();
+
+        Conductor.updateInterp = false;
+        Conductor.playbackRate = 1;
 
         Conductor.onStep.add(parent.stepHit);
         Conductor.onBeat.add(parent.beatHit);

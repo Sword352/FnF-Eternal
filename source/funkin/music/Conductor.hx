@@ -5,10 +5,14 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 
 class Conductor {
     public static var time(get, set):Float;
+    public static var interpTime:Float = 0;
     public static var rawTime:Float = 0;
 
     public static var playbackRate:Float = 1;
     public static var offset:Float = 0;
+
+    public static var active:Bool = true;
+    public static var updateInterp:Bool = false;
     
     public static var bpm(default, set):Float = 100;
     public static var crochet(default, null):Float = 600;
@@ -28,15 +32,14 @@ class Conductor {
     public static var timeSignature(get, never):Float;
     public static var measureLength(get, never):Int;
 
+    public static var music:FlxSound;
+
     public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
     // used for bpm change events
     public static final beatOffset:BeatOffset = {};
-
-    public static var active:Bool = true;
-    public static var music:FlxSound;
 
     static var _prevStep:Int = -1;
     static var _prevBeat:Int = -1;
@@ -51,8 +54,18 @@ class Conductor {
     }
 
     public static inline function updateTime(elapsed:Float):Void {
+        var scaledElapsed:Float = elapsed * playbackRate * 1000;
+
         if (music == null)
-            rawTime += elapsed * playbackRate * 1000;
+            rawTime += scaledElapsed;
+
+        if (updateInterp) {
+            interpTime += scaledElapsed;
+
+            var fixedTime:Float = time + offset;
+            if (Math.abs(fixedTime - interpTime) > (25 * playbackRate))
+                interpTime = fixedTime;
+        }
     }
 
     public static inline function updateCallbacks():Void {
@@ -87,12 +100,15 @@ class Conductor {
         beatsPerMeasure = 4;
         stepsPerBeat = 4;
         bpm = 100;
+
+        updateInterp = false;
     }
 
     public static inline function resetTime():Void {
         rawTime = 0;
-        resetPrevTime();
+        interpTime = 0;
 
+        resetPrevTime();
         beatOffset.reset();
     }
 

@@ -247,7 +247,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function stepHit(currentStep:Int):Void {
         if (music.playing)
-            music.resyncCheck();
+            music.resync();
 
         super.stepHit(currentStep);
     }

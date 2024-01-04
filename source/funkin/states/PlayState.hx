@@ -196,12 +196,11 @@ class PlayState extends MusicBeatState {
       music.onSongEnd.add(endSong);
       add(music);
 
-      Conductor.stepsPerBeat = song.meta.stepsPerBeat ?? 4;
-      Conductor.beatsPerMeasure = song.meta.beatsPerMeasure ?? 4;
+      Conductor.beatsPerMeasure = (song.meta.beatsPerMeasure ?? 4);
+      Conductor.stepsPerBeat = (song.meta.stepsPerBeat ?? 4);
       Conductor.bpm = song.bpm;
       
       notes = ChartLoader.generateNotes(song, startTime);
-
       cameraZoomBeat = Conductor.beatsPerMeasure;
       
       eventManager = new EventManager(this);
@@ -288,6 +287,8 @@ class PlayState extends MusicBeatState {
 
       Controls.globalControls.onKeyJustPressed.add(onKeyDown);
       Controls.globalControls.onKeyJustReleased.add(onKeyUp);
+
+      Conductor.updateInterp = true;
       noteSpawnTime = 1800 / song.speed;
 
       #if ENGINE_DISCORD_RPC
@@ -391,7 +392,7 @@ class PlayState extends MusicBeatState {
    }
 
    override function stepHit(currentStep:Int):Void {
-      music.resyncCheck();
+      music.resync();
       stage.stepHit(currentStep);
       super.stepHit(currentStep);
    }
@@ -501,8 +502,10 @@ class PlayState extends MusicBeatState {
          if (sound != null)
             Assets.sound(sound);
 
-      if (changeBeat)
+      if (changeBeat) {
          Conductor.currentBeat = -(loops + 1);
+         Conductor.interpTime = Conductor.time;
+      }
 
       countdownSprite = new FlxSprite();
       countdownSprite.cameras = [camHUD];
@@ -510,7 +513,7 @@ class PlayState extends MusicBeatState {
       add(countdownSprite);
 
       var countSpriteY:Float = 0;
-      var timing:Float = Conductor.crochet / 1000;
+      var timing:Float = (Conductor.crochet / 1000);
 
       new FlxTimer().start(timing, tmr -> {
          var currentLoop:Int = tmr.elapsedLoops - 1;
@@ -579,6 +582,8 @@ class PlayState extends MusicBeatState {
       if (hud.timer.visible)
          hud.tweenTimer();
 
+      Conductor.music = music.instrumental;
+
       #if ENGINE_SCRIPTING
       hxsCall("onSongStartPost");
       #end
@@ -589,6 +594,8 @@ class PlayState extends MusicBeatState {
       if (cancellableCall("onSongEnd"))
          return;
       #end
+
+      Conductor.music = null;
 
       stage.onSongEnd();
 
@@ -714,7 +721,7 @@ class PlayState extends MusicBeatState {
       health += healthIncrement;
 
       // Calculate the rating
-      var noteDiff:Float = Math.abs(music.instrumental.time - note.time);
+      var noteDiff:Float = Math.abs(Conductor.time - note.time);
       var rating:Rating = ratings[0];
 
       for (possibleRating in ratings)
@@ -804,7 +811,7 @@ class PlayState extends MusicBeatState {
       if (spectator != null && spectator.animation.exists("sad")
          && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
          spectator.playAnimation("sad", true);
-         spectator.animEndTime = Conductor.crochet / 1000;
+         spectator.animEndTime = (Conductor.crochet / 1000);
       }
       
       FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(0.1, 0.2));
@@ -822,7 +829,7 @@ class PlayState extends MusicBeatState {
             player.holdTime = 0;
 
          player.currentDance = 0;
-         player.animEndTime = Conductor.crochet / 1000;
+         player.animEndTime = (Conductor.crochet / 1000);
       }
    }
 
@@ -1068,6 +1075,7 @@ class PlayState extends MusicBeatState {
 
    inline public function setTime(time:Float):Void {
       Conductor.time = time;
+      Conductor.interpTime = Conductor.time;
       startSong(time);
    }
 

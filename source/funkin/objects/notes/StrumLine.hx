@@ -64,7 +64,7 @@ class StrumLine extends FlxGroup {
          var speed:Float = Math.abs(((note.followSpeed) ? (receptor.scrollSpeed ?? scrollSpeed) : note.scrollSpeed) * 0.45);
          var mult:Float = (note.followSpeed) ? (receptor.scrollMult ?? scrollMult) : note.scrollMult;
 
-         note.distance = mult * -((Conductor.time - note.time) * speed);
+         note.distance = mult * -((getTime() - note.time) * speed);
 
          if (note.isSustainNote) {
             note.sustain.scrollSpeed = speed * Math.abs(mult);
@@ -296,8 +296,11 @@ class StrumLine extends FlxGroup {
    inline function get_downscroll():Bool
       return scrollMult < 0;
 
-   // Sorting function
-   inline function sortNotes(a:Note, b:Note):Int {
+   inline static function getTime():Float {
+      return (Conductor.updateInterp) ? Conductor.interpTime : Conductor.time;
+   }
+
+   inline static function sortNotes(a:Note, b:Note):Int {
       return Std.int(a.time - b.time);
    }
 }
