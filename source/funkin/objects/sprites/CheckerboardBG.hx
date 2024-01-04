@@ -93,4 +93,11 @@ class CheckerboardBG extends FlxBackdrop
 
 		return [remainderWidth, remainderHeight];
 	}
+
+    override public function destroy() {
+        super.destroy();
+
+        _actualImage.destroy();
+        _actualImage = null;
+    }
 }
