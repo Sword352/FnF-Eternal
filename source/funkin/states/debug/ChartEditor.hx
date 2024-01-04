@@ -5,7 +5,6 @@ import flixel.sound.FlxSound;
 import funkin.objects.Camera;
 
 import flixel.text.FlxText;
-import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxTiledSprite;
 
 import flixel.group.FlxSpriteGroup;
@@ -20,6 +19,7 @@ import funkin.music.MusicPlayback;
 import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
+import funkin.objects.sprites.CheckerboardBG;
 import funkin.objects.ui.HealthIcon;
 import funkin.objects.notes.Receptor;
 import eternal.ui.HelpButton;
@@ -657,10 +657,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(receptors);
     }
 
+    var backdrop:CheckerboardBG;
+
     inline function createBackground():Void {
-        var backdrop:FlxBackdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
+        backdrop = new CheckerboardBG(200, 200, FlxColor.PURPLE, FlxColor.TRANSPARENT);
         backdrop.scrollFactor.set(0.2, 0.2);
-        backdrop.color = FlxColor.PURPLE;
         backdrop.alpha = 0.5;
         backdrop.active = false;
         add(backdrop);

@@ -2,7 +2,7 @@ package funkin.states.menus;
 
 import flixel.FlxCamera;
 import flixel.text.FlxText;
-import flixel.addons.display.FlxBackdrop;
+import funkin.objects.sprites.CheckerboardBG;
 
 import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -15,7 +15,7 @@ class ModsMenu extends MusicBeatSubState {
     public var exitToTitle:Bool = false;
     public var currentSelection:Int = 0;
 
-    var checkerBackdrop:FlxBackdrop;
+    var checkerBackdrop:CheckerboardBG;
     var background:FlxSprite;
     var modText:FlxText;
     var bar:FlxSprite;
@@ -59,8 +59,7 @@ class ModsMenu extends MusicBeatSubState {
         background.alpha = 0.6;
         add(background);
 
-        checkerBackdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
-        checkerBackdrop.color = FlxColor.WHITE;
+        checkerBackdrop = new CheckerboardBG(200, 200, FlxColor.WHITE, FlxColor.TRANSPARENT);
         checkerBackdrop.velocity.x = 50;
         checkerBackdrop.alpha = 0.15;
         add(checkerBackdrop);
