@@ -1,7 +1,7 @@
 package funkin.objects.sprites;
 
-import flixel.graphics.FlxGraphic;
 import flixel.addons.display.FlxBackdrop;
+import flixel.graphics.FlxGraphic;
 import flixel.util.FlxAxes;
 import openfl.display.BitmapData;
 import openfl.geom.Rectangle;
@@ -21,36 +21,8 @@ class CheckerboardBG extends FlxBackdrop
 
 		var initialBitmap:BitmapData = new BitmapData(width, height, true, 0);
 
-		initialBitmap.lock();
-
-		var remainderWidth:Int = 0;
-		var remainderHeight:Int = 0;
-
-		if (width % 2 != 0)
-			remainderWidth = Math.floor(width % 2);
-		if (height % 2 != 0)
-			remainderHeight = Math.floor(height % 2);
-
-		if (color1 != null && color1.alpha > 0)
-		{
-			var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
-			initialBitmap.fillRect(topLeft, color1);
-
-			var bottomRight:Rectangle = new Rectangle(topLeft.width, topLeft.height, Math.ceil(width / 2) + remainderWidth,
-				Math.ceil(height / 2) + remainderHeight);
-			initialBitmap.fillRect(bottomRight, color1);
-		}
-
-		if (color2 != null && color2.alpha > 0)
-		{
-			var bottomLeft:Rectangle = new Rectangle(0, Math.ceil(height / 2), Math.ceil(width / 2), Math.ceil(height / 2));
-			initialBitmap.fillRect(bottomLeft, color2);
-
-			var topRight:Rectangle = new Rectangle(Math.ceil(width / 2), 0, Math.ceil(width / 2) + remainderWidth, Math.ceil(height / 2) + remainderHeight);
-			initialBitmap.fillRect(topRight, color2);
-		}
-
-		initialBitmap.unlock();
+        setColor1Rects(color1, initialBitmap);
+        setColor2Rects(color2, initialBitmap);
 
 		_actualImage = FlxGraphic.fromBitmapData(initialBitmap, false, 'checkerboard_${width}_${height}_${color1}_${color2}');
 
@@ -61,28 +33,7 @@ class CheckerboardBG extends FlxBackdrop
 	{
 		color1 = newColor;
 
-		var checkBitmap:BitmapData = _actualImage?.bitmap;
-
-		if (checkBitmap != null)
-		{
-			var remainderWidth:Int = 0;
-			var remainderHeight:Int = 0;
-
-			if (width % 2 != 0)
-				remainderWidth = Math.floor(width % 2);
-			if (height % 2 != 0)
-				remainderHeight = Math.floor(height % 2);
-
-			if (color1 != null && color1.alpha > 0)
-			{
-				var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
-				checkBitmap.fillRect(topLeft, color1);
-
-				var bottomRight:Rectangle = new Rectangle(topLeft.width, topLeft.height, Math.ceil(width / 2) + remainderWidth,
-					Math.ceil(height / 2) + remainderHeight);
-				checkBitmap.fillRect(bottomRight, color1);
-			}
-		}
+		setColor1Rects(color1, _actualImage?.bitmap);
 
 		return newColor;
 	}
@@ -91,28 +42,65 @@ class CheckerboardBG extends FlxBackdrop
 	{
 		color2 = newColor;
 
-		var checkBitmap:BitmapData = _actualImage?.bitmap;
+        setColor2Rects(color2, _actualImage?.bitmap);
 
-		if (checkBitmap != null)
+		return newColor;
+	}
+
+	inline function setColor1Rects(newColor:FlxColor, bitmap:BitmapData):Void
+	{
+		if (bitmap != null)
 		{
-			var remainderWidth:Int = 0;
-			var remainderHeight:Int = 0;
+			bitmap.lock();
 
-			if (width % 2 != 0)
-				remainderWidth = Math.floor(width % 2);
-			if (height % 2 != 0)
-				remainderHeight = Math.floor(height % 2);
+			var remainder:Array<Int> = getRemainder();
+
+			if (color1 != null && color1.alpha > 0)
+			{
+				var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
+				bitmap.fillRect(topLeft, color1);
+
+				var bottomRight:Rectangle = new Rectangle(topLeft.width, topLeft.height, Math.ceil(width / 2) + remainder[0],
+					Math.ceil(height / 2) + remainder[1]);
+				bitmap.fillRect(bottomRight, color1);
+			}
+
+			bitmap.unlock();
+		}
+	}
+
+	inline function setColor2Rects(newColor:FlxColor, bitmap:BitmapData):Void
+	{
+		if (bitmap != null)
+		{
+			bitmap.lock();
+
+			var remainder:Array<Int> = getRemainder();
 
 			if (color2 != null && color2.alpha > 0)
 			{
 				var bottomLeft:Rectangle = new Rectangle(0, Math.ceil(height / 2), Math.ceil(width / 2), Math.ceil(height / 2));
-				checkBitmap.fillRect(bottomLeft, color2);
+				bitmap.fillRect(bottomLeft, color2);
 
-				var topRight:Rectangle = new Rectangle(Math.ceil(width / 2), 0, Math.ceil(width / 2) + remainderWidth, Math.ceil(height / 2) + remainderHeight);
-				checkBitmap.fillRect(topRight, color2);
+				var topRight:Rectangle = new Rectangle(Math.ceil(width / 2), 0, Math.ceil(width / 2) + remainder[0], Math.ceil(height / 2) + remainder[1]);
+				bitmap.fillRect(topRight, color2);
 			}
-		}
 
-		return newColor;
+			bitmap.unlock();
+		}
+	}
+
+	// better way to do this? will come back to this later
+	inline function getRemainder():Array<Int>
+	{
+		var remainderWidth:Int = 0;
+		var remainderHeight:Int = 0;
+
+		if (width % 2 != 0)
+			remainderWidth = Math.floor(width % 2);
+		if (height % 2 != 0)
+			remainderHeight = Math.floor(height % 2);
+
+		return [remainderWidth, remainderHeight];
 	}
 }
