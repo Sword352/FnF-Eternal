@@ -9,8 +9,11 @@ import funkin.objects.sprites.TiledSprite;
 
 class Note extends OffsetSprite {
    public static final directions:Array<String> = ["left", "down", "up", "right"];
-   public static final safeZoneOffset:Float = 166.66;
    public static final globalWidth:Float = 112;
+
+   public static var safeZoneOffset(get, never):Float;
+   inline static function get_safeZoneOffset():Float
+      return 166.66 * Conductor.playbackRate;
 
    public var canBeHit(get, never):Bool;
    public var late(get, never):Bool;
