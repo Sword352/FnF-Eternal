@@ -14,8 +14,7 @@ class CheckerboardBG extends FlxBackdrop
 	public var color2(default, set):Null<FlxColor> = 0xFFFFFFFF; // top-right, bottom-left
 
 	override public function new(width:Int, height:Int, color1:Null<FlxColor>, color2:Null<FlxColor>, repeatAxes:FlxAxes = XY, spacingX:Float = 0.0,
-			spacingY:Float = 0.0)
-	{
+			spacingY:Float = 0.0) {
 		this.color1 = color1;
 		this.color2 = color2;
 
@@ -29,17 +28,15 @@ class CheckerboardBG extends FlxBackdrop
 		super(_actualImage, XY, spacingX, spacingY);
 	}
 
-	function set_color1(newColor:Null<FlxColor>):Null<FlxColor>
-	{
+	function set_color1(newColor:Null<FlxColor>):Null<FlxColor> {
 		color1 = newColor;
 
 		setColor1Rects(color1, _actualImage?.bitmap);
 
 		return newColor;
-	}
+    }
 
-	function set_color2(newColor:Null<FlxColor>):Null<FlxColor>
-	{
+	function set_color2(newColor:Null<FlxColor>):Null<FlxColor> {
 		color2 = newColor;
 
         setColor2Rects(color2, _actualImage?.bitmap);
@@ -47,16 +44,13 @@ class CheckerboardBG extends FlxBackdrop
 		return newColor;
 	}
 
-	inline function setColor1Rects(newColor:FlxColor, bitmap:BitmapData):Void
-	{
-		if (bitmap != null)
-		{
+	inline function setColor1Rects(newColor:FlxColor, bitmap:BitmapData):Void {
+		if (bitmap != null) {
 			bitmap.lock();
 
 			var remainder:Array<Int> = getRemainder();
 
-			if (color1 != null && color1.alpha > 0)
-			{
+			if (color1 != null && color1.alpha > 0) {
 				var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
 				bitmap.fillRect(topLeft, color1);
 
@@ -69,16 +63,13 @@ class CheckerboardBG extends FlxBackdrop
 		}
 	}
 
-	inline function setColor2Rects(newColor:FlxColor, bitmap:BitmapData):Void
-	{
-		if (bitmap != null)
-		{
+	inline function setColor2Rects(newColor:FlxColor, bitmap:BitmapData):Void {
+		if (bitmap != null) {
 			bitmap.lock();
 
 			var remainder:Array<Int> = getRemainder();
 
-			if (color2 != null && color2.alpha > 0)
-			{
+			if (color2 != null && color2.alpha > 0) {
 				var bottomLeft:Rectangle = new Rectangle(0, Math.ceil(height / 2), Math.ceil(width / 2), Math.ceil(height / 2));
 				bitmap.fillRect(bottomLeft, color2);
 
@@ -91,8 +82,7 @@ class CheckerboardBG extends FlxBackdrop
 	}
 
 	// better way to do this? will come back to this later
-	inline function getRemainder():Array<Int>
-	{
+	inline function getRemainder():Array<Int> {
 		var remainderWidth:Int = 0;
 		var remainderHeight:Int = 0;
 
