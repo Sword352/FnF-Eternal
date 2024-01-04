@@ -1,13 +1,13 @@
 package funkin.states.options;
 
 import flixel.FlxSubState;
-import flixel.addons.display.FlxBackdrop;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 
 import funkin.objects.ui.Alphabet;
+import funkin.objects.sprites.CheckerboardBG;
 import funkin.states.menus.MainMenu;
 
 typedef OptionCategory = {
@@ -18,7 +18,7 @@ typedef OptionCategory = {
 
 class OptionsMenu extends MusicBeatState {
     public var background:FlxSprite;
-    var backdrop:FlxBackdrop;
+    var backdrop:CheckerboardBG;
 
     var categoryTexts:FlxTypedGroup<Alphabet>;
     var categoryIcons:Array<FlxSprite> = [];
@@ -80,8 +80,7 @@ class OptionsMenu extends MusicBeatState {
         background.color = 0x3E3E7A;
 		add(background);
 
-        backdrop = new FlxBackdrop(Assets.image("menus/checkboard"));
-        backdrop.color = 0xFF120E7A;
+        backdrop = new CheckerboardBG(200, 200, 0xFF120E7A, FlxColor.TRANSPARENT);
         backdrop.alpha = 0.4;
         backdrop.velocity.x = 50;
         add(backdrop);
