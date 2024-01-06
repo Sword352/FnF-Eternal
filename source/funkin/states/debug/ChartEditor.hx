@@ -488,6 +488,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
          * - Make it do not create extra marks (due to bpm changes, time signatures...)
          * - Fix measure marks being wrongly created on some time signatures after bpm changes
          * - Fix measure marks being wrongly re-created when changing both beats per measure and steps per beat after bpm changes
+         * - Make it determinate the next measure each loops instead of increasing the time value (in case of bpm changes mid-section etc)
          */
 
         var time:Float = Conductor.beatOffset.time;
