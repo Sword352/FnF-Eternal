@@ -1,103 +1,75 @@
 package funkin.objects.sprites;
 
-import flixel.addons.display.FlxBackdrop;
-import flixel.graphics.FlxGraphic;
 import flixel.util.FlxAxes;
-import openfl.display.BitmapData;
-import openfl.geom.Rectangle;
+import flixel.graphics.FlxGraphic;
+import flixel.addons.display.FlxBackdrop;
 
-class CheckerboardBG extends FlxBackdrop
-{
+import openfl.geom.Rectangle;
+import openfl.display.BitmapData;
+
+class CheckerboardBG extends FlxBackdrop {
+	public var color1(default, set):FlxColor = 0xFF000000; // top-left, bottom-right
+	public var color2(default, set):FlxColor = 0xFFFFFFFF; // top-right, bottom-left
+
 	private var _actualImage:FlxGraphic;
 
-	public var color1(default, set):Null<FlxColor> = 0xFF000000; // top-left, bottom-right
-	public var color2(default, set):Null<FlxColor> = 0xFFFFFFFF; // top-right, bottom-left
+	public function new(width:Int, height:Int, color1:FlxColor, color2:FlxColor, repeatAxes:FlxAxes = XY, spacingX:Float = 0, spacingY:Float = 0):Void {
+		super(null, repeatAxes, spacingX, spacingY);
 
-	override public function new(width:Int, height:Int, color1:Null<FlxColor>, color2:Null<FlxColor>, repeatAxes:FlxAxes = XY, spacingX:Float = 0.0,
-			spacingY:Float = 0.0) {
+		_actualImage = getGraphic(width, height, color1, color2);
+		loadGraphic(_actualImage);
+
 		this.color1 = color1;
 		this.color2 = color2;
-
-		var initialBitmap:BitmapData = new BitmapData(width, height, true, 0);
-
-        setColor1Rects(color1, initialBitmap);
-        setColor2Rects(color2, initialBitmap);
-
-		_actualImage = FlxGraphic.fromBitmapData(initialBitmap, false, 'checkerboard_${width}_${height}_${color1}_${color2}');
-
-		super(_actualImage, XY, spacingX, spacingY);
 	}
 
-	function set_color1(newColor:Null<FlxColor>):Null<FlxColor> {
-		color1 = newColor;
-
-		setColor1Rects(color1, _actualImage?.bitmap);
-
-		return newColor;
+	function set_color1(newColor:FlxColor):FlxColor {
+		setColor1Rects(newColor, _actualImage?.bitmap);
+		return color1 = newColor;
     }
 
-	function set_color2(newColor:Null<FlxColor>):Null<FlxColor> {
-		color2 = newColor;
-
-        setColor2Rects(color2, _actualImage?.bitmap);
-
-		return newColor;
+	function set_color2(newColor:FlxColor):FlxColor {
+        setColor2Rects(newColor, _actualImage?.bitmap);
+		return color2 = newColor;
 	}
 
 	inline function setColor1Rects(newColor:FlxColor, bitmap:BitmapData):Void {
-		if (bitmap != null) {
-			bitmap.lock();
+		if (bitmap == null)
+			return;
 
-			var remainder:Array<Int> = getRemainder();
+		var remainder:Array<Int> = getRemainder();
 
-			if (color1 != null && color1.alpha > 0) {
-				var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
-				bitmap.fillRect(topLeft, color1);
+		var topLeft:Rectangle = new Rectangle(0, 0, Math.ceil(width / 2), Math.ceil(height / 2));
+		bitmap.fillRect(topLeft, newColor);
 
-				var bottomRight:Rectangle = new Rectangle(topLeft.width, topLeft.height, Math.ceil(width / 2) + remainder[0],
-					Math.ceil(height / 2) + remainder[1]);
-				bitmap.fillRect(bottomRight, color1);
-			}
-
-			bitmap.unlock();
-		}
+		var bottomRight:Rectangle = new Rectangle(topLeft.width, topLeft.height, Math.ceil(width / 2) + remainder[0], Math.ceil(height / 2) + remainder[1]);
+		bitmap.fillRect(bottomRight, newColor);
 	}
 
 	inline function setColor2Rects(newColor:FlxColor, bitmap:BitmapData):Void {
-		if (bitmap != null) {
-			bitmap.lock();
+		if (bitmap == null)
+			return;
 
-			var remainder:Array<Int> = getRemainder();
+		var remainder:Array<Int> = getRemainder();
 
-			if (color2 != null && color2.alpha > 0) {
-				var bottomLeft:Rectangle = new Rectangle(0, Math.ceil(height / 2), Math.ceil(width / 2), Math.ceil(height / 2));
-				bitmap.fillRect(bottomLeft, color2);
+		var bottomLeft:Rectangle = new Rectangle(0, Math.ceil(height / 2), Math.ceil(width / 2), Math.ceil(height / 2));
+		bitmap.fillRect(bottomLeft, newColor);
 
-				var topRight:Rectangle = new Rectangle(Math.ceil(width / 2), 0, Math.ceil(width / 2) + remainder[0], Math.ceil(height / 2) + remainder[1]);
-				bitmap.fillRect(topRight, color2);
-			}
-
-			bitmap.unlock();
-		}
+		var topRight:Rectangle = new Rectangle(Math.ceil(width / 2), 0, Math.ceil(width / 2) + remainder[0], Math.ceil(height / 2) + remainder[1]);
+		bitmap.fillRect(topRight, newColor);
 	}
 
 	// better way to do this? will come back to this later
-	inline function getRemainder():Array<Int> {
-		var remainderWidth:Int = 0;
-		var remainderHeight:Int = 0;
+	inline function getRemainder():Array<Int>
+		return [Math.floor(width % 2), Math.floor(height % 2)];
 
-		if (width % 2 != 0)
-			remainderWidth = Math.floor(width % 2);
-		if (height % 2 != 0)
-			remainderHeight = Math.floor(height % 2);
-
-		return [remainderWidth, remainderHeight];
-	}
-
-    override public function destroy() {
-        super.destroy();
-
-        _actualImage.destroy();
+    override function destroy():Void {
         _actualImage = null;
+        super.destroy();
     }
+
+	inline static function getGraphic(width:Int, height:Int, color1:FlxColor, color2:FlxColor):FlxGraphic {
+		var key:String = 'checkerboard_${width}_${height}_${color1}_${color2}';
+		return FlxG.bitmap.get(key) ?? FlxGraphic.fromBitmapData(new BitmapData(width, height, true, 0), false, key);
+	}
 }

@@ -19,12 +19,13 @@ import funkin.music.MusicPlayback;
 import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
-import funkin.objects.sprites.CheckerboardBG;
-import funkin.objects.ui.HealthIcon;
-import funkin.objects.notes.Receptor;
 import eternal.ui.HelpButton;
 // import eternal.ui.NoteViewer;
 import haxe.ui.components.HorizontalSlider;
+
+import funkin.objects.ui.HealthIcon;
+import funkin.objects.notes.Receptor;
+import funkin.objects.sprites.CheckerboardBG;
 
 import eternal.ChartFormat.Chart;
 import eternal.ChartFormat.ChartNote;
@@ -129,7 +130,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         FlxG.stage.window.onClose.add(autoSave);
     }
 
-    override function update(elapsed:Float):Void {
+    override function update(elapsed:Float):Void {        
         if (FlxG.keys.justPressed.TAB) {
             openSubState(new ChartSubScreen(this));
             return;
@@ -657,10 +658,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(receptors);
     }
 
-    var backdrop:CheckerboardBG;
-
     inline function createBackground():Void {
-        backdrop = new CheckerboardBG(200, 200, FlxColor.PURPLE, FlxColor.TRANSPARENT);
+        var backdrop:CheckerboardBG = new CheckerboardBG(200, 200, FlxColor.PURPLE, FlxColor.TRANSPARENT);
         backdrop.scrollFactor.set(0.2, 0.2);
         backdrop.alpha = 0.5;
         backdrop.active = false;

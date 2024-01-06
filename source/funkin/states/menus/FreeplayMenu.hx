@@ -8,6 +8,8 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import funkin.objects.ui.BGText;
 import funkin.objects.ui.Alphabet;
 import funkin.objects.ui.HealthIcon;
+
+import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 
 class FreeplayMenu extends MusicBeatState {
@@ -15,10 +17,14 @@ class FreeplayMenu extends MusicBeatState {
     var background:FlxSprite;
 
     var scoreText:BGText;
-    var scoreBG:FlxSprite; // base game compat
-    var instructions:BGText;
+    var scoreBG:FlxSprite;
+
     var detailsText:FlxText;
     var difficultyText:FlxText;
+
+    var instructionBG:FlxSprite;
+    var instructionSep:FlxSprite;
+    var instructionTexts:Array<FlxText> = []; // for scripting purposes
 
     var songs:Array<SongStructure>;
     var currentSelection:Int = 0;
@@ -108,14 +114,55 @@ class FreeplayMenu extends MusicBeatState {
         difficultyText.font = scoreText.font;
         add(difficultyText);
 
-        instructions = new BGText();
-        instructions.setFormat(scoreText.font, 16, FlxColor.WHITE, RIGHT);
-        instructions.text = "Press SPACE to play/stop the instrumental | Press CTRL to show/hide score details | ";
-        instructions.text += "Press R to reset the score of the current song";
-        instructions.background.alpha = 0.6;
-        instructions.screenCenter(X);
-        instructions.y = FlxG.height - instructions.height;
-        add(instructions);
+        var instructionText:Array<String> = ["SPACE: play/stop instrumental"];
+        var sepScale:Float = 0.25;
+        var sepY:Float = 0.65;
+
+        if (Settings.get("editor access")) {
+            instructionText.push("ENTER + SHIFT: open song in chart editor");
+            sepScale = sepY = 0.5;
+        }
+
+        instructionText.push("CTRL: show/hide song score details");
+        instructionText.push("R: reset song score");
+
+        instructionBG = new FlxSprite();
+        instructionBG.makeRect(FlxG.width, 70, FlxColor.BLACK);
+        instructionBG.y = FlxG.height - instructionBG.height;
+        instructionBG.alpha = 0.4;
+        add(instructionBG);
+
+        instructionSep = new FlxSprite();
+        instructionSep.makeRect(1.75, instructionBG.height * sepScale);
+        instructionSep.y = instructionBG.y + (instructionBG.height - instructionSep.height) * sepY;
+        instructionSep.screenCenter(X);
+        add(instructionSep);
+
+        var odd:Bool = ((instructionText.length % 2) == 0);
+
+        for (i in 0...instructionText.length) {
+            var center:Bool = (!odd && i == 0);
+            var right:Bool = ((i % 2) == 0);
+
+            var text:FlxText = new FlxText();
+            text.setFormat(scoreText.font, 18, FlxColor.WHITE, (center) ? CENTER : ((right) ? RIGHT : LEFT));
+            text.text = instructionText[i];
+
+            if (center) {
+                text.y = instructionSep.y - text.height;
+                text.screenCenter(X);
+            }
+            else {
+                text.y = instructionSep.y;
+                if (odd) 
+                    text.y += ((instructionSep.height - text.height) * Math.floor(i / 2));
+
+                text.x = (right) ? (instructionSep.x - text.width - 15) : (instructionSep.x + 15);
+            }
+
+            instructionTexts.push(text);
+            add(text);
+        }
 
         detailsText = new FlxText(0, scoreText.y + 104);
         detailsText.setFormat(scoreText.font, 32, FlxColor.WHITE, RIGHT);
@@ -166,17 +213,15 @@ class FreeplayMenu extends MusicBeatState {
                 #end
             }
 
-            #if ENGINE_SCRIPTING
-            if (controls.justPressed("accept") && !cancellableCall("onAccept")) {
-            #else
-            if (controls.justPressed("accept")) {
-            #end
-                allowInputs = false;
-                FlxG.sound.play(Assets.sound("confirmMenu"));
-    
-                TransitionSubState.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
-                FlxG.switchState(new PlayState());
+            if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER && Settings.get("editor access")) {
+                openChartEditor();
+
+                // we return here in case the "accept" keybind contains the "ENTER" key
+                return; 
             }
+
+            if (controls.justPressed("accept"))
+                accept();
 
             if (controls.justPressed("back")) {
                 allowInputs = false;
@@ -236,7 +281,7 @@ class FreeplayMenu extends MusicBeatState {
         #end
     }
 
-    private function changeSelection(change:Int = 0):Void {
+    inline function changeSelection(change:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [change]))
             return;
@@ -272,6 +317,34 @@ class FreeplayMenu extends MusicBeatState {
         #end
     }
 
+    inline function accept():Void {
+        #if ENGINE_SCRIPTING
+        if (cancellableCall("onAccept"))
+            return;
+        #end
+
+        allowInputs = false;
+        
+        TransitionSubState.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
+        FlxG.switchState(new PlayState());
+    }
+
+    inline function openChartEditor():Void {
+        Tools.stopMusic();
+
+        PlayState.gameMode = DEBUG;
+        allowInputs = false;
+
+        var chartEditor:ChartEditor = new ChartEditor(null, difficulties[currentDifficulty]);
+        TransitionSubState.onComplete.add(() -> {
+            // avoid lag
+            PlayState.load(songs[currentSelection].rawName, chartEditor.difficulty);
+            chartEditor.chart = PlayState.song;
+        });
+
+        FlxG.switchState(chartEditor);
+    }
+
     inline function updateScoreData():Void {
         scoreData = HighScore.get('${songs[currentSelection].rawName}-${difficulties[currentDifficulty]}');
     }
@@ -292,7 +365,7 @@ class FreeplayMenu extends MusicBeatState {
         difficultyText.x = Math.floor(scoreText.background.x + scoreText.background.width * 0.5) - (difficultyText.width * 0.5);
     }
 
-    private function playInstrumental():Void {
+    inline function playInstrumental():Void {
         if (music == null)
             return;
 
@@ -305,7 +378,7 @@ class FreeplayMenu extends MusicBeatState {
         #end
     }
 
-    private function stopMusic():Void {
+    inline function stopMusic():Void {
         if (music == null)
             return;
 
@@ -329,6 +402,7 @@ class FreeplayMenu extends MusicBeatState {
         songs = null;
         difficulties = null;
 
+        instructionTexts = null;
         scoreData = null;
 
         super.destroy();

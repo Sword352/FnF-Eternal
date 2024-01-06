@@ -8,6 +8,7 @@ import flixel.tweens.FlxTween;
 
 import funkin.objects.ui.Alphabet;
 import funkin.objects.sprites.CheckerboardBG;
+
 import funkin.states.menus.MainMenu;
 
 typedef OptionCategory = {

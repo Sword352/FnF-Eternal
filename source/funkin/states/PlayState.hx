@@ -100,7 +100,7 @@ class PlayState extends MusicBeatState {
    public var notes:Array<Note> = [];
    public var noteSpawnTime:Float;
 
-   public var validScore:Bool = gameMode != DEBUG;
+   public var validScore:Bool = (gameMode != DEBUG);
 
    var startTime:Float;
 

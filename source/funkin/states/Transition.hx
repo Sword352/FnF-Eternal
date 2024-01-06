@@ -10,13 +10,15 @@ import flixel.util.FlxSignal;
 import flixel.util.FlxGradient;
 
 class TransitionState extends FlxState {
+    public var transitionDuration:Float = 0.35;
+
     override function create():Void {
         super.create();
-        openSubState(new TransitionSubState(OUT));
+        openSubState(new TransitionSubState(OUT, transitionDuration));
     }
 
     override function startOutro(onOutroComplete:() -> Void):Void {
-        openSubState(new TransitionSubState(IN));
+        openSubState(new TransitionSubState(IN, transitionDuration));
         TransitionSubState.onComplete.add(onOutroComplete);
     }
 }
@@ -34,9 +36,10 @@ class TransitionSubState extends FlxSubState {
     var gradient:FlxSprite;
     var rect:FlxSprite;
 
-    public function new(type:TransitionType = IN):Void {
+    public function new(type:TransitionType = IN, duration:Float = 0.35):Void {
         super();
         this.type = type;
+        this.duration = duration;
     }
 
     override function create():Void {

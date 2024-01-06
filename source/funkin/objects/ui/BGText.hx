@@ -17,7 +17,7 @@ class BGText extends FlxText {
 
     override function draw():Void {
         if (automaticScale && (background.width != width || background.height != height)) {
-            background.setGraphicSize(width, height);
+            background.scale.set(width, height);
             background.updateHitbox();
         }
 
