@@ -19,7 +19,7 @@ class Note extends OffsetSprite {
    public var missed:Bool = false;
 
    public var canBeHit(get, default):Bool = false;
-   public var late(get, never):Bool;
+   public var late(get, default):Bool = false;
 
    public var time:Float = 0;
    public var direction:Int = 0;
@@ -39,11 +39,16 @@ class Note extends OffsetSprite {
 
    public var followX:Bool = true;
    public var followY:Bool = true;
+   public var followAlpha:Bool = true;
    public var followSpeed:Bool = true;
 
    public var offsetX:Float = 0;
    public var offsetY:Float = 0;
    public var spawnTimeOffset:Float = 0;
+
+   public var alphaMult:Float = 1;
+   public var lateAlpha:Float = 0.3;
+   public var sustainAlpha:Float = 0.6;
 
    public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
    public var baseVisible:Bool = true;
@@ -86,6 +91,12 @@ class Note extends OffsetSprite {
          y = receptor.y + offsetY;
          if (!isSustainNote || baseVisible)
             y += distance;
+      }
+
+      if (followAlpha) {
+         alpha = receptor.alpha * alphaMult;
+         if (isSustainNote)
+            sustain.alpha = Math.min(alpha, sustainAlpha);
       }
    }
 
@@ -187,7 +198,6 @@ class Note extends OffsetSprite {
          switch (v) {
             case "Alt Animation":
                animSuffix = "-alt";
-               trace("found alt note");
          }
       }
 
@@ -195,7 +205,7 @@ class Note extends OffsetSprite {
    }
 
    inline function get_distance():Float {
-      return (autoDistance) ? (scrollMult * -((((Conductor.updateInterp) ? Conductor.interpTime : Conductor.time) - time) * scrollSpeed)) : distance;
+      return (autoDistance) ? (scrollMult * -((((Conductor.updateInterp) ? Conductor.interpTime : Conductor.time) - time) * scrollSpeed)) : this.distance;
    }
 
    inline function get_scrollSpeed():Float {
@@ -213,7 +223,7 @@ class Note extends OffsetSprite {
    }
 
    inline function get_late():Bool {
-      return (Conductor.time - time) > safeZoneOffset;
+      return this.late || (Conductor.time - time) > safeZoneOffset;
    }
 
    inline function get_downscroll():Bool {

@@ -158,7 +158,7 @@ class StrumLine extends FlxGroup {
          note.length += (note.time - Conductor.time);
       }
       else 
-         note.alpha = 0.3;
+         note.alphaMult = note.lateAlpha;
 
       note.missed = true;
       onMiss.dispatch(note);
