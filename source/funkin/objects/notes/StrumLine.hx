@@ -3,7 +3,6 @@ package funkin.objects.notes;
 import flixel.tweens.*;
 
 import flixel.util.FlxAxes;
-import flixel.math.FlxRect;
 import flixel.util.FlxSignal;
 
 import flixel.group.FlxGroup.FlxGroup;
@@ -31,6 +30,7 @@ class StrumLine extends FlxGroup {
    public var onHold(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
    public var onMiss(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
 
+   var removeNextFrame:Array<Note> = [];
    var notesToRemove:Array<Note> = [];
    var lastStep:Int = 0; // used for base game behaviour
 
@@ -58,30 +58,16 @@ class StrumLine extends FlxGroup {
    }
    
    override public function update(elapsed:Float):Void {
+      while (removeNextFrame.length > 0)
+         removeNote(removeNextFrame.shift());
+
       notes.forEachAlive((note) -> {
          var receptor:Receptor = receptors.members[note.direction];
+         var mult:Float = note.scrollMult;
 
-         var speed:Float = Math.abs(((note.followSpeed) ? (receptor.scrollSpeed ?? scrollSpeed) : note.scrollSpeed) * 0.45);
-         var mult:Float = (note.followSpeed) ? (receptor.scrollMult ?? scrollMult) : note.scrollMult;
+         note.follow(receptor);
 
-         note.distance = mult * -((getTime() - note.time) * speed);
-
-         if (note.isSustainNote) {
-            note.sustain.scrollSpeed = speed * Math.abs(mult);
-            if (note.flipSustain)
-               note.sustain.downscroll = note.sustain.flipY = mult < 0;
-         }
-
-         if (note.followX)
-            note.x = receptor.x + note.offsetX;
-
-         if (note.followY) {
-            note.y = receptor.y + note.offsetY;
-            if (!note.isSustainNote || note.baseVisible)
-               note.y += note.distance;
-         }
-
-         if (cpu && !note.goodHit && !note.missed && Conductor.time - note.time >= 0) {
+         if (cpu && note.canBeHit) {
             note.goodHit = true;
             onNoteHit.dispatch(note);
 
@@ -99,10 +85,10 @@ class StrumLine extends FlxGroup {
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
             var scaledElapsed:Float = elapsed * Conductor.playbackRate;
-            note.sustain.length -= scaledElapsed * 1000;
-            note.sustain.scrollY += scaledElapsed;
+            note.holdProgress += scaledElapsed * 1000;
 
-            clipSustainTail(note, note.sustain.flipY);
+            if (note.autoClipSustain)
+               note.clipSustain(scaledElapsed, receptors.members[note.direction]);
 
             if (lastStep != Conductor.currentStep) {
                if (cpu || holdKeys[note.direction]) {
@@ -114,8 +100,8 @@ class StrumLine extends FlxGroup {
                   onMiss.dispatch(note);
             }
 
-            if (note.sustain.length <= 0)
-               notesToRemove.push(note);
+            if (note.holdProgress >= note.length)
+               removeNextFrame.push(note);
          }
       });
 
@@ -143,8 +129,10 @@ class StrumLine extends FlxGroup {
       super.draw();
    }
 
-   public function addNote(note:Note):Void {      
+   public function addNote(note:Note):Void {
+      note.parentStrumline = this;
       notes.add(note);
+
       if (notes.members.length > 1)
          notes.members.sort(sortNotes);
    }
@@ -157,7 +145,7 @@ class StrumLine extends FlxGroup {
    public function hitNote(note:Note):Void {
       if (note.isSustainNote) {
          if (!cpu)
-            note.sustain.length += note.time - Conductor.time; // incase the player hits the note early/lately
+            note.length += (note.time - Conductor.time); // incase the player hits the note early/lately
          note.baseVisible = false;
       }
       else
@@ -167,38 +155,13 @@ class StrumLine extends FlxGroup {
    inline function miss(note:Note):Void {
       if (note.isSustainNote) {
          note.baseVisible = false;
-         note.sustain.length += note.time - Conductor.time;
+         note.length += (note.time - Conductor.time);
       }
       else 
          note.alpha = 0.3;
 
       note.missed = true;
       onMiss.dispatch(note);
-   }
-
-   function clipSustainTail(note:Note, downscroll:Bool = false):Void {
-      var receptor:Receptor = receptors.members[note.direction];
-      var tail:FlxSprite = note.sustain.tail;
-
-      var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
-
-      if ((downscroll && tail.y - tail.offset.y * tail.scale.y + tail.height < receptorCenter)
-         || (!downscroll && tail.y + tail.offset.y * tail.scale.y > receptorCenter))
-         return;
-
-      var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get()).set();
-      clipRect.width = (downscroll) ? tail.frameWidth : (tail.width / tail.scale.x);
-
-      if (downscroll) {
-         clipRect.height = (receptorCenter - tail.y) / tail.scale.y;
-         clipRect.y = tail.frameHeight - clipRect.height;
-      }
-      else {
-         clipRect.y = (receptorCenter - tail.y) / tail.scale.y;
-			clipRect.height = (tail.height / tail.scale.y) - clipRect.y;
-      }
-
-      tail.clipRect = clipRect;
    }
 
    public function setPosition(x:Float = 0, y:Float = 0):StrumLine {
@@ -264,6 +227,7 @@ class StrumLine extends FlxGroup {
 
    override function destroy():Void {
       notesToRemove = null;
+      removeNextFrame = null;
 
       characters = null;
       holdKeys = null;
@@ -295,10 +259,6 @@ class StrumLine extends FlxGroup {
 
    inline function get_downscroll():Bool
       return scrollMult < 0;
-
-   inline static function getTime():Float {
-      return (Conductor.updateInterp) ? Conductor.interpTime : Conductor.time;
-   }
 
    inline static function sortNotes(a:Note, b:Note):Int {
       return Std.int(a.time - b.time);

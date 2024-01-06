@@ -2,11 +2,7 @@ package eternal;
 
 import funkin.states.substates.GameOverScreen.GameOverProperties;
 
-/**
- * TODO:
- * - `Chart`: move `speed` and `bpm` to `SongMetadata`
- * - `ChartNote`: remove `animSuffix` and use notetypes for anim suffixes
- */
+// TODO: move `speed` and `bpm` to `SongMetadata`
 
 @:structInit class Chart {
    public var meta:SongMetadata;
@@ -79,5 +75,4 @@ typedef ChartNote = {
    var strumline:Int;
    var ?length:Float;
    var ?type:String;
-   var ?animSuffix:String;
 }

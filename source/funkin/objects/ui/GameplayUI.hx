@@ -144,7 +144,7 @@ class GameplayUI extends FlxSpriteGroup {
     }
     
     inline public function repositionElements(downscroll:Bool = false):Void {
-	    healthBarBG.y = FlxG.height * ((downscroll) ? 0.075 : 0.875);
+	    healthBarBG.y = FlxG.height * ((downscroll) ? 0.1 : 0.875);
 	    healthBar.y = healthBarBG.y + 4;
 	    
 	    scoreText.y = healthBarBG.y + 50;

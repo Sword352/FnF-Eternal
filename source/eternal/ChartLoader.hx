@@ -85,12 +85,15 @@ class ChartLoader {
                 if (direction > 3)
                     shouldHit = !shouldHit;
 
+                var type:String = noteData[3];
+                if (section.altAnim && type == null)
+                    type = "Alt Animation";
+
                 var data:ChartNote = {
                     time: noteData[0],
                     direction: Std.int(direction % 4),
                     strumline: (shouldHit) ? 1 : 0,
-                    type: noteData[3],
-                    animSuffix: (section.altAnim) ? "-alt" : null // TODO: remove this and replace it with a notetype instead
+                    type: type
                 };
 
                 data.length = (noteData[2] != null && noteData[2] is Float) ? noteData[2] : 0;
@@ -152,9 +155,8 @@ class ChartLoader {
             
             var note:Note = new Note(noteData.time, noteData.direction);
             note.strumline = noteData.strumline;
-            note.type = noteData.type;
             note.length = noteData.length;
-            note.animSuffix = noteData.animSuffix;
+            note.type = noteData.type;
             note.ID = i++;
             notes.push(note);
         }

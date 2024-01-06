@@ -15,41 +15,51 @@ class Note extends OffsetSprite {
    inline static function get_safeZoneOffset():Float
       return 166.66 * Conductor.playbackRate;
 
-   public var canBeHit(get, never):Bool;
-   public var late(get, never):Bool;
    public var goodHit:Bool = false;
    public var missed:Bool = false;
 
-   public var isSustainNote(get, never):Bool;
+   public var canBeHit(get, default):Bool = false;
+   public var late(get, never):Bool;
+
+   public var time:Float = 0;
+   public var direction:Int = 0;
+
+   public var parentStrumline:StrumLine;
+   public var strumline:Int = 0;
+
+   public var length(default, set):Float = 0;
+   public var holdProgress:Float = 0;
+
    public var sustain(default, null):Sustain;
+   public var isSustainNote(get, never):Bool;
+   public var sustainDecrease(get, default):Float = 0;
 
-   public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
-   public var baseVisible:Bool = true;
-
-   // not really useful in gameplay, just a helper boolean
-   public var checked:Bool = false;
+   public var type(default, set):String = "";
+   public var animSuffix:String;
 
    public var followX:Bool = true;
    public var followY:Bool = true;
    public var followSpeed:Bool = true;
-   public var flipSustain:Bool = true;
-
-   public var direction:Int = 0;
-   public var strumline:Int = 0;
-
-   public var length(default, set):Float = 0;
-   public var time:Float = 0;
-
-   public var scrollSpeed:Float = 0.45;
-   public var scrollMult:Float = 1;
-   public var distance:Float = 0;
 
    public var offsetX:Float = 0;
    public var offsetY:Float = 0;
    public var spawnTimeOffset:Float = 0;
 
-   public var type:String = "";
-   public var animSuffix:String;
+   public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
+   public var baseVisible:Bool = true;
+
+   public var autoDistance:Bool = true;
+   public var autoClipSustain:Bool = true;
+   public var flipSustain:Bool = true;
+
+   public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
+   public var scrollSpeed(get, default):Float = 1;
+   public var distance(get, default):Float = 0;
+
+   public var downscroll(get, never):Bool;
+
+   // not really useful in gameplay, just a helper boolean
+   public var checked:Bool = false;
 
    public function new(time:Float = 0, direction:Int = 0):Void {
       super();
@@ -68,10 +78,50 @@ class Note extends OffsetSprite {
       resetPosition();
    }
 
-   public function resetPosition():Void {
+   public function follow(receptor:FlxSprite):Void {
+      if (followX)
+         x = receptor.x + offsetX;
+
+      if (followY) {
+         y = receptor.y + offsetY;
+         if (!isSustainNote || baseVisible)
+            y += distance;
+      }
+   }
+
+   public function clipSustain(elapsed:Float, receptor:FlxSprite):Void {
+      sustain.scrollY += elapsed;
+
+      var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
+      var tail:FlxSprite = sustain.tail;
+
+      if ((downscroll && tail.y - tail.offset.y * tail.scale.y + tail.height < receptorCenter)
+         || (!downscroll && tail.y + tail.offset.y * tail.scale.y > receptorCenter))
+         return;
+
+      var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get()).set();
+      clipRect.width = (downscroll) ? tail.frameWidth : (tail.width / tail.scale.x);
+
+      if (downscroll) {
+         clipRect.height = (receptorCenter - tail.y) / tail.scale.y;
+         clipRect.y = tail.frameHeight - clipRect.height;
+      }
+      else {
+         clipRect.y = (receptorCenter - tail.y) / tail.scale.y;
+			clipRect.height = (tail.height / tail.scale.y) - clipRect.y;
+      }
+
+      tail.clipRect = clipRect;
+   }
+
+   public inline function resetPosition():Void {
       // making sure it goes off screen
       this.x = -FlxG.width;
       this.y = -FlxG.height;
+   }
+
+   public inline function resetTypeProps():Void {
+      animSuffix = null;
    }
 
    override function update(elapsed:Float):Void {
@@ -91,7 +141,9 @@ class Note extends OffsetSprite {
 
    override function destroy():Void {
       sustain = FlxDestroyUtil.destroy(sustain);
-      animSuffix = null;
+      parentStrumline = null;
+      type = null;
+
       super.destroy();
    }
 
@@ -119,9 +171,6 @@ class Note extends OffsetSprite {
             sustain = new Sustain();
             sustain.parent = this;
          }
-
-         sustain.length = v;
-         sustain.updateSustain();
       }
       else if (isSustainNote) {
          sustain.destroy();
@@ -131,30 +180,69 @@ class Note extends OffsetSprite {
       return length = v;
    }
 
+   function set_type(v:String):String {
+      resetTypeProps();
+
+      if (v != null) {
+         switch (v) {
+            case "Alt Animation":
+               animSuffix = "-alt";
+               trace("found alt note");
+         }
+      }
+
+      return type = v;
+   }
+
+   inline function get_distance():Float {
+      return (autoDistance) ? (scrollMult * -((((Conductor.updateInterp) ? Conductor.interpTime : Conductor.time) - time) * scrollSpeed)) : distance;
+   }
+
+   inline function get_scrollSpeed():Float {
+      var receptor:Receptor = parentStrumline?.receptors.members[direction];
+      var speed:Float = Math.abs(((followSpeed && parentStrumline != null) ? (receptor.scrollSpeed ?? parentStrumline.scrollSpeed) : this.scrollSpeed) * 0.45);
+      return speed * Math.abs(scrollMult);
+   }
+
+   inline function get_scrollMult():Float {
+      return (followSpeed && parentStrumline != null) ? (parentStrumline.scrollMult) : this.scrollMult;
+   }
+
+   inline function get_sustainDecrease():Float {
+      return (autoClipSustain) ? holdProgress : this.sustainDecrease;
+   }
+
    inline function get_late():Bool {
       return (Conductor.time - time) > safeZoneOffset;
+   }
+
+   inline function get_downscroll():Bool {
+      return (followSpeed && parentStrumline?.downscroll) || (!followSpeed && scrollMult < 0);
    }
 
    inline function get_isSustainNote():Bool
       return sustain != null;
 
-   inline function get_canBeHit():Bool
-      return !goodHit && !missed && Math.abs(Conductor.time - time) <= safeZoneOffset;
+   function get_canBeHit():Bool {
+      if (goodHit || missed)
+         return false;
+
+      if (parentStrumline != null)
+         return (parentStrumline.cpu && time <= Conductor.time) || (!parentStrumline.cpu && Math.abs(Conductor.time - time) <= safeZoneOffset);
+
+      return this.canBeHit;
+   }
 }
 
-class Sustain extends TiledSprite {
-   public var length:Float = Conductor.stepCrochet;
-   public var scrollSpeed:Float = 0.45;
-   public var downscroll:Bool = false;
-
-   public var tail(default, null):Tail;
+class Sustain extends TiledSprite {   
+   public var tail(default, null):FlxSprite;
    public var parent(default, set):Note;
 
    public function new():Void {
       // TODO: make scaling not dependant of `repeatX`
       super(null, 0, 0, true, true);
 
-      tail = new Tail();
+      tail = new FlxSprite();
       alpha = 0.6;
    }
 
@@ -182,18 +270,17 @@ class Sustain extends TiledSprite {
       super.destroy();
    }
 
-   public function updateSustain():Void {
-      height = length * scrollSpeed - tail.height;
+   public inline function updateSustain():Void {
+      height = (parent.length - parent.sustainDecrease) * parent.scrollSpeed - tail.height;
 
-      if (parent != null) {
-         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
-         if (downscroll)
-            y -= height;
-      }
+      setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
+      if (parent.downscroll)
+         y -= height;
 
-      tail.setPosition(x, (downscroll) ? (y - tail.height) : (y + height));
+      tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
+      flipY = (parent.flipSustain && parent.scrollMult < 0);
 
-      if (height <= 0 && parent?.baseVisible)
+      if (height <= 0 && parent.baseVisible)
          tail.y += tail.height * _facingVerticalMult;
    }
 
@@ -256,16 +343,5 @@ class Sustain extends TiledSprite {
       if (tail != null)
          tail.camera = v;
       return super.set_camera(v); 
-   }
-}
-
-class Tail extends FlxSprite {
-   override function set_clipRect(rect:FlxRect):FlxRect {
-      clipRect = rect;
-   
-      if (frames != null)
-         frame = frames.frames[animation.frameIndex];
-   
-      return rect;
    }
 }
