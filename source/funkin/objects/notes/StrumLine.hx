@@ -63,7 +63,6 @@ class StrumLine extends FlxGroup {
 
       notes.forEachAlive((note) -> {
          var receptor:Receptor = receptors.members[note.direction];
-         var mult:Float = note.scrollMult;
 
          note.follow(receptor);
 
@@ -80,7 +79,7 @@ class StrumLine extends FlxGroup {
          if (!cpu && note.late && !note.missed && !note.goodHit)
             miss(note);
 
-         if (note.missed && !note.isSustainNote && ((mult > 0 && note.y < -note.height) || (mult < 0 && note.y > FlxG.height)))
+         if (note.missed && !note.isSustainNote && ((!note.downscroll && note.y < -note.height) || (note.downscroll && note.y > FlxG.height)))
             notesToRemove.push(note);
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
@@ -88,7 +87,7 @@ class StrumLine extends FlxGroup {
             note.holdProgress += scaledElapsed * 1000;
 
             if (note.autoClipSustain)
-               note.clipSustain(scaledElapsed, receptors.members[note.direction]);
+               note.clipSustain(scaledElapsed, receptor);
 
             if (lastStep != Conductor.currentStep) {
                if (cpu || holdKeys[note.direction]) {
@@ -190,7 +189,7 @@ class StrumLine extends FlxGroup {
       }
    }
 
-   public function tweenReceptors():Void {
+   public function tweenReceptors(delay:Float = 0.5, dirDelay:Float = 0.2):Void {
       if (receptors == null)
          return;
 
@@ -199,7 +198,7 @@ class StrumLine extends FlxGroup {
          receptor.y -= 10;
          FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
             ease: FlxEase.circOut,
-            startDelay: 0.5 + (0.2 * receptor.direction)
+            startDelay: delay + (dirDelay * receptor.direction)
          });
       }
    }

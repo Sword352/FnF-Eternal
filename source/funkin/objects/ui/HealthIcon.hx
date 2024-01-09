@@ -4,25 +4,29 @@ import flixel.graphics.FlxGraphic;
 
 class HealthIcon extends OffsetSprite {
     public static final animations:Array<String> = ["neutral", "losing", "winning"];
+    public static final DEFAULT_ICON:String = "face";
 
     public var state(default, set):String = "neutral";
     public var healthAnim:Bool = true;
 
     public var bopping:Bool = false;
-    public var bopSpeed:Float = 13;
     public var bopIntensity:Float = 0.2;
+    public var bopSpeed:Float = 10;
 
-    public var defaultScaleX:Float;
-    public var defaultScaleY:Float;
+    public var defaultScaleX:Float = 1;
+    public var defaultScaleY:Float = 1;
+
+    public var character(get, set):String;
+    var _character:String;
     
     public function new(x:Float = 0, y:Float = 0, icon:String = "face") {
         super(x, y);
+
         changeIcon(icon);
+        moves = false;
     }
 
     override function update(elapsed:Float):Void {
-        super.update(elapsed);
-        
         if (healthAnim) {
             if (health > 20) {
                 if (health > 80 && state != "winning")
@@ -36,14 +40,21 @@ class HealthIcon extends OffsetSprite {
         
         if (bopping) {
             scale.set(Tools.lerp(scale.x, defaultScaleX, bopSpeed), Tools.lerp(scale.y, defaultScaleY, bopSpeed));
-            updateHitbox();
+            if (adjustBop != null)
+                adjustBop();
         }
+
+        super.update(elapsed);
     }
 
     public function changeIcon(icon:String):Void {
         var newGraphic:FlxGraphic = Assets.image('icons/${icon}');
-        if (newGraphic == null)
-            newGraphic = Assets.image('icons/face');
+        _character = icon;
+
+        if (newGraphic == null) {
+            newGraphic = Assets.image('icons/${DEFAULT_ICON}');
+            _character = DEFAULT_ICON;
+        }
 
         var size:Int = findSize(icon);
         loadGraphic(newGraphic, true, Std.int(newGraphic.width / size), newGraphic.height);
@@ -52,8 +63,6 @@ class HealthIcon extends OffsetSprite {
             animation.add(animations[i], [i], 0);
 
         animation.play("neutral", true);
-        defaultScaleX = scale.x;
-        defaultScaleY = scale.y;
     }
 
     public function bop():Void {
@@ -61,17 +70,32 @@ class HealthIcon extends OffsetSprite {
             scale.add(bopIntensity, bopIntensity);
     }
 
-    override function destroy():Void {
-        super.destroy();
-        state = null;
+    public dynamic function adjustBop():Void {
+        centerOrigin();
     }
 
-    function set_state(v:String):String {
+    override function destroy():Void {
+        _character = null;
+        adjustBop = null;
+        state = null;
+        
+        super.destroy();
+    }
+
+    inline function set_state(v:String):String {
         if (v != null && exists && animation.exists(v) && animation.curAnim.name != v)
             animation.play(v, true);
 
         return state = v;
     }
+
+    inline function set_character(v:String):String {
+        changeIcon(v);
+        return v;
+    }
+
+    inline function get_character():String
+        return _character;
 
     inline static function findSize(icon:String):Int {
         var path:String = Assets.txt('images/icons/${icon}');

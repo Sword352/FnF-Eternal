@@ -10,6 +10,7 @@ import eternal.core.scripting.ScriptableState.ScriptableSubState as SubState;
 
 class MusicBeatState extends State {
     var controls:Controls = Controls.globalControls;
+    var activeConductor:Bool = true;
 
     override function create():Void {
         super.create();
@@ -30,7 +31,9 @@ class MusicBeatState extends State {
     }
 
     override public function update(elapsed:Float):Void {
-        updateConductor(elapsed);
+        if (activeConductor)
+            updateConductor(elapsed);
+        
         super.update(elapsed);
     }
 

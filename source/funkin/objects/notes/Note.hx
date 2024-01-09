@@ -96,7 +96,7 @@ class Note extends OffsetSprite {
       if (followAlpha) {
          alpha = receptor.alpha * alphaMult;
          if (isSustainNote)
-            sustain.alpha = Math.min(alpha, sustainAlpha);
+            sustain.alpha = alpha - (1 - sustainAlpha);
       }
    }
 
@@ -123,6 +123,22 @@ class Note extends OffsetSprite {
       }
 
       tail.clipRect = clipRect;
+   }
+
+   public inline function findRating(ratings:Array<Rating>):Rating {
+      var diff:Float = (Math.abs(Conductor.time - time) / Conductor.playbackRate);
+      var rating:Rating = null;
+
+      var i:Int = ratings.length - 1;
+
+      while (i >= 0) {
+         if (diff <= ratings[i].hitWindow)
+            rating = ratings[i];
+
+         i--;
+      }
+
+      return rating ?? ratings[ratings.length - 1];
    }
 
    public inline function resetPosition():Void {
@@ -178,10 +194,8 @@ class Note extends OffsetSprite {
 
    function set_length(v:Float):Float {
       if (v >= 100) {
-         if (sustain == null) {
-            sustain = new Sustain();
-            sustain.parent = this;
-         }
+         if (sustain == null)
+            sustain = new Sustain(this);
       }
       else if (isSustainNote) {
          sustain.destroy();
@@ -248,12 +262,14 @@ class Sustain extends TiledSprite {
    public var tail(default, null):FlxSprite;
    public var parent(default, set):Note;
 
-   public function new():Void {
+   public function new(parent:Note):Void {
       // TODO: make scaling not dependant of `repeatX`
       super(null, 0, 0, true, true);
 
       tail = new FlxSprite();
       alpha = 0.6;
+
+      this.parent = parent;
    }
 
    override function update(elapsed:Float):Void {
@@ -281,14 +297,14 @@ class Sustain extends TiledSprite {
    }
 
    public inline function updateSustain():Void {
-      height = (parent.length - parent.sustainDecrease) * parent.scrollSpeed - tail.height;
+      height = ((parent.length - parent.sustainDecrease) * parent.scrollSpeed) - tail.height;
 
       setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
       if (parent.downscroll)
          y -= height;
 
       tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
-      flipY = (parent.flipSustain && parent.scrollMult < 0);
+      flipY = (parent.flipSustain && parent.downscroll);
 
       if (height <= 0 && parent.baseVisible)
          tail.y += tail.height * _facingVerticalMult;
@@ -321,7 +337,7 @@ class Sustain extends TiledSprite {
    }
 
    override function set_height(v:Float):Float {
-      regen = (v != height && v > 0) || regen;
+      regen = ((v != height && v > 0) || regen);
       return height = v;
    }
 

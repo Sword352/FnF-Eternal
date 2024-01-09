@@ -313,7 +313,7 @@ class SoftcodedStage extends BaseStage {
 
         if (!Settings.get("judgements on user interface")) {
             PlayState.current.ratingSprites.setPosition(ratingPosition[0], ratingPosition[1]);
-            PlayState.current.comboSprites.setPosition(ratingPosition[0] + 40, ratingPosition[1] + 140);
+            // PlayState.current.comboSprites.setPosition(ratingPosition[0] + 43, ratingPosition[1] + 140);
         }
     }
 

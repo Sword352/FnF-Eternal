@@ -65,7 +65,7 @@ class MusicPlayback extends FlxBasic {
         var time:Float = (Conductor.time + Conductor.offset);
 
         for (music in musics) {
-            if (Conductor.music != music && music.playing && Math.abs(music.time - time) > (25 * pitch))
+            if (Conductor.music != music && music.playing && Math.abs(music.time - time) > (20 * pitch))
                 music.time = time;
         }
     }

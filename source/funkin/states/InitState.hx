@@ -26,6 +26,8 @@ class InitState extends FlxState {
         DiscordPresence.init();
         #end
 
+        Assets.init();
+
         // Setup controls
         Controls.globalControls = new Controls("main");
         Controls.reloadVolumeKeys();
@@ -37,10 +39,6 @@ class InitState extends FlxState {
         // Check if the game was fullscreen last time
         if (FlxG.save.data.fullscreen != null)
             FlxG.fullscreen = FlxG.save.data.fullscreen;
-
-        // Add callbacks to clear memory when switching states
-        FlxG.signals.preStateSwitch.add(Assets.freeMemory);
-        FlxG.signals.preStateCreate.add(Assets.freeMemoryPost);
 
         // To go on/off fullscreen by pressing F11
         FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyJustPressed);

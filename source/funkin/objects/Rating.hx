@@ -5,7 +5,7 @@ class Rating {
 
     public var scoreIncrement:Null<Float>;
     public var accuracyMod:Null<Float>;
-    public var hitWindowMult:Null<Float>;
+    public var hitWindow:Null<Float>;
 
     public var rank:String;
     public var hits:Null<Int>;
@@ -27,7 +27,7 @@ class Rating {
         var rating:Rating = new Rating(name);
         rating.scoreIncrement = scoreIncrement;
         rating.accuracyMod = accuracyMod;
-        rating.hitWindowMult = hitWindowMult;
+        rating.hitWindow = hitWindow;
         rating.rank = rank;
         rating.ratingGraphic = ratingGraphic;
         rating.displayNoteSplash = displayNoteSplash;
@@ -44,7 +44,7 @@ class Rating {
         name = "sick";
         scoreIncrement = 350;
         accuracyMod = 1;
-        hitWindowMult = 0.1;
+        hitWindow = 40;
         ratingGraphic = "sick";
         rank = "SFC";
         displayNoteSplash = true;
@@ -59,7 +59,7 @@ class Rating {
         name = null;
         scoreIncrement = null;
         accuracyMod = null;
-        hitWindowMult = null;
+        hitWindow = null;
         ratingGraphic = null;
         rank = null;
         displayNoteSplash = null;
@@ -76,7 +76,7 @@ class Rating {
         var good:Rating = new Rating("good");
         good.scoreIncrement = 200;
         good.accuracyMod = 0.7;
-        good.hitWindowMult = 0.2;
+        good.hitWindow = 85;
         good.rank = "GFC";
         good.ratingGraphic = "good";
         good.displayNoteSplash = false;
@@ -86,7 +86,7 @@ class Rating {
         var bad:Rating = new Rating("bad");
         bad.scoreIncrement = 100;
         bad.accuracyMod = 0.3;
-        bad.hitWindowMult = 0.75;
+        bad.hitWindow = 125;
         bad.ratingGraphic = "bad";
         bad.displayNoteSplash = false;
         bad.missThreshold = 1;
@@ -95,7 +95,7 @@ class Rating {
         var shit:Rating = new Rating("shit");
         shit.scoreIncrement = 50;
         shit.accuracyMod = 0;
-        shit.hitWindowMult = 0.9;
+        shit.hitWindow = 140;
         shit.ratingGraphic = "shit";
         shit.displayNoteSplash = false;
         shit.missThreshold = 1;

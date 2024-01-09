@@ -428,7 +428,7 @@ class FreeplayMenu extends MusicBeatState {
             list.push({
                 name: elements[0],
                 rawName: elements[1] ?? elements[0],
-                icon: elements[2] ?? "face",
+                icon: elements[2] ?? HealthIcon.DEFAULT_ICON,
                 color: Tools.getColor(elements[3]),
                 difficulties: (elements[4] == null) ? ["Easy", "Normal", "Hard"] : elements[4].split("/")
             });

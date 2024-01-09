@@ -63,7 +63,7 @@ class Conductor {
             interpTime += scaledElapsed;
 
             var fixedTime:Float = time + offset;
-            if (Math.abs(fixedTime - interpTime) > (25 * playbackRate))
+            if (Math.abs(fixedTime - interpTime) > (20 * playbackRate))
                 interpTime = fixedTime;
         }
     }

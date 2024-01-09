@@ -5,7 +5,7 @@ import flixel.input.gamepad.FlxGamepad;
 import flixel.input.FlxInput.FlxInputState;
 import flixel.input.gamepad.FlxGamepadInputID;
 
-import openfl.events.KeyboardEvent;
+import openfl.ui.Keyboard;
 import flixel.util.FlxSignal.FlxTypedSignal;
 
 typedef KeyCall = (Int, String) -> Void;
@@ -60,8 +60,8 @@ class Controls {
       loadControls();
 
       FlxG.stage.addEventListener("enterFrame", this.updateGamepadInputs);
-      FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
-      FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, this.onKeyUp);
+      FlxG.stage.application.window.onKeyDown.add(this.onKeyDown);
+		FlxG.stage.application.window.onKeyUp.add(this.onKeyUp);
    }
 
    inline public function pressed(key:String):Bool
@@ -166,9 +166,9 @@ class Controls {
    }
 
    public function destroy():Void {
-      FlxG.stage.removeEventListener("enterFrame", this.updateGamepadInputs);
-      FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
-      FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, this.onKeyUp);      
+      FlxG.stage.removeEventListener("enterFrame", this.updateGamepadInputs);      
+      FlxG.stage.application.window.onKeyDown.remove(this.onKeyDown);
+		FlxG.stage.application.window.onKeyUp.remove(this.onKeyUp);
 
       for (signal in [onKeyPressed, onKeyReleased, onKeyJustPressed, onKeyJustReleased])
          signal?.destroy();
@@ -207,29 +207,33 @@ class Controls {
       }
    }
 
-   inline function onKeyDown(evt:KeyboardEvent):Void {
+   inline function onKeyDown(rawKey:Int, _):Void {
       if (!active || !FlxG.keys.enabled)
          return;
 
-      var action:String = getActionFromKey(evt.keyCode, true);
-      onKeyPressed.dispatch(evt.keyCode, action);
+      var keyCode:Int = @:privateAccess Keyboard.__convertKeyCode(rawKey);
 
-      if (!heldKeys.contains(evt.keyCode)) {
-         onKeyJustPressed.dispatch(evt.keyCode, action);
-         heldKeys.push(evt.keyCode);
+      var action:String = getActionFromKey(keyCode, true);
+      onKeyPressed.dispatch(keyCode, action);
+
+      if (!heldKeys.contains(keyCode)) {
+         onKeyJustPressed.dispatch(keyCode, action);
+         heldKeys.push(keyCode);
       }
    }
 
-   inline function onKeyUp(evt:KeyboardEvent):Void {
+   inline function onKeyUp(rawKey:Int, _):Void {
       if (!active || !FlxG.keys.enabled)
          return;
-      
-      var action:String = getActionFromKey(evt.keyCode, true);
-      onKeyReleased.dispatch(evt.keyCode, action);
 
-      if (heldKeys.contains(evt.keyCode)) {
-         onKeyJustReleased.dispatch(evt.keyCode, action);
-         heldKeys.remove(evt.keyCode);
+      var keyCode:Int = @:privateAccess Keyboard.__convertKeyCode(rawKey);
+      
+      var action:String = getActionFromKey(keyCode, true);
+      onKeyReleased.dispatch(keyCode, action);
+
+      if (heldKeys.contains(keyCode)) {
+         onKeyJustReleased.dispatch(keyCode, action);
+         heldKeys.remove(keyCode);
       }
    }
 

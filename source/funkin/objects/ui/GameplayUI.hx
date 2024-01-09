@@ -43,14 +43,14 @@ class GameplayUI extends FlxSpriteGroup {
         healthBar.setRange(0, 100);
 	    add(healthBar);
 
-        iconPlayer = new HealthIcon(0, 0, PlayState.current.player?.data.icon ?? "face");
+        iconPlayer = new HealthIcon(0, 0, PlayState.current.player?.data.icon ?? HealthIcon.DEFAULT_ICON);
         iconPlayer.bopping = true;
         iconPlayer.flipX = true;
         iconPlayer.health = 50;
         iconPlayer.state = "neutral";
         add(iconPlayer);
         
-        iconOpponent = new HealthIcon(0, 0, PlayState.current.opponent?.data.icon ?? "face");
+        iconOpponent = new HealthIcon(0, 0, PlayState.current.opponent?.data.icon ?? HealthIcon.DEFAULT_ICON);
         iconOpponent.bopping = true;
         iconOpponent.health = 50;
         iconOpponent.state = "neutral";

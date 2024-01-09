@@ -1,7 +1,6 @@
 package;
 
 import funkin.states.InitState;
-
 import openfl.display.Sprite;
 import eternal.ui.Overlay;
 

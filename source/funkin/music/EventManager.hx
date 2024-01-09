@@ -143,8 +143,6 @@ class EventManager extends FlxBasic {
                     else
                         strumline.scrollSpeed = newSpeed;
                 }
-
-                game.noteSpawnTime = 1800 / newSpeed;
             case "change camera target":
                 game.changeCameraTarget(event.arguments[0]);
             case "change bpm":

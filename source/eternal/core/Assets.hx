@@ -20,12 +20,13 @@ class Assets {
     // Asset cache
     public static var clearAssets:Bool = true;
 
-    public static final excludeGraphics:Array<FlxGraphic> = [];
-    public static final excludeSounds:Array<Sound> = [];
-    public static final excludeFonts:Array<String> = [];
-
     private static final loadedGraphics:Map<String, FlxGraphic> = [];
     private static final loadedSounds:Map<String, Sound> = [];
+
+    public static inline function init():Void {
+        FlxG.signals.preStateSwitch.add(freeMemory);
+        FlxG.signals.preStateCreate.add(freeMemoryPost);
+    }
 
     // Path shortcuts & atlas stuff
     inline public static function image(file:String, ?library:String):FlxGraphic
@@ -101,7 +102,7 @@ class Assets {
         var graphic:FlxGraphic = loadedGraphics.get(key);
 
         if (graphic == null) {
-            graphic = createGraphic(path, library);
+            graphic = createGraphic(path, library, key);
             if (graphic != null)
                 registerGraphic(key, graphic);
         }
@@ -124,7 +125,7 @@ class Assets {
         return sound;
     }
 
-    public static function createGraphic(path:String, ?library:String):FlxGraphic {
+    public static function createGraphic(path:String, ?library:String, ?key:String):FlxGraphic {
         var realPath:String = getPath(path, IMAGE, library);
         
         var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else OpenFLAssets.getBitmapData(realPath) #end ;
@@ -133,7 +134,7 @@ class Assets {
             return null;
         }
         
-        var graphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, null, true);
+        var graphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key ?? path, true);
         graphic.persist = true;
         return graphic;
     }
@@ -148,7 +149,9 @@ class Assets {
             return null;
         }
 
-        return #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end ;
+        var sound:Sound = #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end ;
+        OpenFLAssets.cache.setSound(path, sound);
+        return sound;
     }
 
     inline public static function registerSound(key:String, asset:Sound):Void
@@ -174,6 +177,7 @@ class Assets {
 
         // Clear the cache entirely
         clearCache();
+
         // Clear the OpenFL cache
         OpenFLAssets.cache.clear();
 
@@ -198,13 +202,8 @@ class Assets {
 
     public static function clearSounds():Void {
         for (key in loadedSounds.keys()) {
-            var sound:Sound = loadedSounds.get(key);
-            if (excludeSounds.contains(sound))
-                continue;
-
+            loadedSounds.get(key).close();
             OpenFLAssets.cache.removeSound(key);
-            sound.close();
-
             loadedSounds.remove(key);
         }
     }
@@ -213,24 +212,21 @@ class Assets {
         @:privateAccess
         for (key in FlxG.bitmap._cache.keys()) {
             var graphic:FlxGraphic = FlxG.bitmap.get(key);
-            if (excludeGraphics.contains(graphic))
+            if (graphic.persist && !loadedGraphics.exists(key))
                 continue;
 
-            FlxG.bitmap.removeKey(key);
             graphic.dump();
             graphic.destroy();
+            FlxG.bitmap.removeKey(key);
         }
 
         for (key in loadedGraphics.keys()) {
             var graphic:FlxGraphic = loadedGraphics.get(key);
-            if (excludeGraphics.contains(graphic))
-                continue;
 
-            if (graphic.bitmap != null) {
-                graphic.dump();
-                graphic.destroy();
-            }
+            graphic.dump();
+            graphic.destroy();
 
+            FlxG.bitmap.remove(graphic);
             loadedGraphics.remove(key);
         }
     }
@@ -238,8 +234,7 @@ class Assets {
     public static function clearFonts():Void {
         var cache:openfl.utils.AssetCache = cast OpenFLAssets.cache;
         for (key in cache.font.keys())
-            if (!excludeFonts.contains(key))
-                cache.font.remove(key);
+            cache.font.remove(key);
     }
 }
 

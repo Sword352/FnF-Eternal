@@ -155,7 +155,7 @@ class Character extends DancingSprite {
         beat = config.danceBeat ?? 2;
 
         if (config.icon == null && (type == PLAYER || type == DEFAULT))
-            config.icon = "face";
+            config.icon = funkin.objects.ui.HealthIcon.DEFAULT_ICON;
 
         if (config.healthBarColor == null && (type == PLAYER || type == DEFAULT))
             config.healthBarColor = (type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000;

@@ -22,7 +22,7 @@
 - Add Credits menu
 - Finish the FNF modpack port
 
-- Continue README.me, complete the wiki stuff, move it to proper git wiki and add a "documentation" issue template
+- Continue README.me, complete the wiki stuff and move it to proper git wiki
 
 ### After Release
 - Add note colors support
@@ -44,7 +44,7 @@
 ### Bugs to Fix
 - Fix sustain rendering bugs
   - Fix sustain tail not clipping properly (except on low scroll speeds)
-  - Fix sustain scroll texture (?)
+  - Fix sustain texture scrolling (?)
 
 - Fix the objects "repositioning" when using a lerped camera zoom value (like in PlayState with camHUD)
 - Fix little position snap when calling `obj.centerToObject(base, Y)`, where `base`'s position is get via `FlxMath#lerp` (the snap happens when `base` is in it's intended position)

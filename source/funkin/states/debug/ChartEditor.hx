@@ -72,10 +72,15 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var overlay:FlxSprite;
     public var musicText:FlxText;
 
+    public var opponentIcon:HealthIcon;
+    public var playerIcon:HealthIcon;
+
     public var hitsound:openfl.media.Sound; // avoid lag
     public var metronome:FlxSound;
 
     var lastBpmChange:Float = 0;
+    var awaitReload:Bool = false;
+    var eventBPM:Bool = false;
 
     var startTime:Float = 0;
     var lastTime:Float = 0;
@@ -357,11 +362,21 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             return;
         }
 
-        pauseMusic();
         persistentUpdate = false;
+        pauseMusic();
 
         SubState.camera = uiCamera;
         super.openSubState(SubState);
+    }
+
+    override function closeSubState():Void {
+        if (!(subState is TransitionSubState) && awaitReload) {
+            reloadGrid(false, !eventBPM);
+            reloadMeasureMarks();
+            awaitReload = false;
+        }
+
+        super.closeSubState();
     }
 
     inline function goToPlayState():Void {
@@ -442,19 +457,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (!musicText.visible)
             return;
 
-        var currentTime:String = FlxStringUtil.formatTime(music.instrumental.time / 1000);
-        var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length / 1000);
-
-        var playbackRate:String = Std.string(music.pitch);
-        if (music.pitch is Int)
-            playbackRate += ".0";
-
         musicText.text =
-        '${currentTime} / ${maxTime} (${playbackRate}x)\n\n'
+        '${getTimeInfo()}\n\n'
         + 'Step: ${Conductor.currentStep}\n'
         + 'Beat: ${Conductor.currentBeat}\n'
         + 'Measure: ${Conductor.currentMeasure}\n\n'
-        + 'BPM: ${Conductor.bpm} (${chart.bpm})\n'
+        + '${getBPMInfo()}\n'
         + 'Time Signature: ${Conductor.getSignature()}'
         ;
 
@@ -467,6 +475,20 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (!FlxG.mouse.overlaps(timeBar) || !FlxG.mouse.pressed)
             timeBar.pos = music.instrumental.time;
     }
+
+    inline public function getTimeInfo():String {
+        var currentTime:String = FlxStringUtil.formatTime(music.instrumental.time * 0.001);
+        var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length * 0.001);
+
+        var playbackRate:String = Std.string(music.pitch);
+        if (music.pitch is Int)
+            playbackRate += ".0";
+
+        return '${currentTime} / ${maxTime} (${playbackRate}x)';
+    }
+
+    inline public function getBPMInfo():String
+        return 'BPM: ${Conductor.bpm} (${chart.bpm})';
 
     inline public function reloadGrid(updateMeasures:Bool = true, resetTime:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
@@ -511,11 +533,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
     }
 
-    inline function updateCurrentBPM():Void {
+    public inline function updateCurrentBPM():Void {
         var currentBPM:Float = chart.bpm;
-        var eventBPM:Bool = false;
         var stepOffset:Float = 0;
         var lastChange:Float = 0;
+
+        eventBPM = false;
 
         if (chart.events.length > 0) {
             for (event in chart.events) {
@@ -534,10 +557,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (currentBPM != Conductor.bpm || lastBpmChange != lastChange) {
             Conductor.bpm = currentBPM;
-            reloadGrid(false, !eventBPM);
-            reloadMeasureMarks();
-
             lastBpmChange = lastChange;
+
+            awaitReload = (subState != null);
+            if (!awaitReload) {
+                reloadGrid(false, !eventBPM);
+                reloadMeasureMarks();
+            }
         }
     }
 
@@ -550,10 +576,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                music.createVoice(voiceFile);
 
         music.onSongEnd.add(() -> {
-            if (subState == null) {
-                Conductor.resetPrevTime();
-                line.y = 0;
-            }
+            Conductor.resetPrevTime();
+            line.y = 0;
         });
         
         music.instrumental.time = startTime;
@@ -562,8 +586,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         music.instrumental.volume = (Settings.get("CHART_muteInst")) ? 0 : 1;
         music.pitch = Settings.get("CHART_pitch");
 
-        Conductor.stepsPerBeat = chart.meta.stepsPerBeat ?? 4;
         Conductor.beatsPerMeasure = chart.meta.beatsPerMeasure ?? 4;
+        Conductor.stepsPerBeat = chart.meta.stepsPerBeat ?? 4;
         Conductor.bpm = chart.bpm;
 
         Conductor.music = music.instrumental;
@@ -726,7 +750,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             Conductor.resetPrevTime();
         }
 
-        var opponentIcon:HealthIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.meta.opponent));
+        opponentIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.meta.opponent));
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
         opponentIcon.x -= opponentIcon.width;
@@ -736,7 +760,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         opponentIcon.active = false;
         add(opponentIcon);
 
-        var playerIcon:HealthIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.meta.player));
+        playerIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.meta.player));
         playerIcon.setGraphicSize(0, 100);
         playerIcon.updateHitbox();
         playerIcon.scrollFactor.set();
@@ -883,14 +907,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline static function getIcon(character:String):String {
         if (character == null)
-            return "face";
+            return HealthIcon.DEFAULT_ICON;
 
         var file:String = Assets.yaml('data/characters/${character}');
         if (!FileTools.exists(file))
-            return "face";
+            return HealthIcon.DEFAULT_ICON;
 
         var icon:String = Tools.parseYAML(FileTools.getContent(file)).icon;
-        return (icon == null) ? "face" : icon;
+        return (icon == null) ? HealthIcon.DEFAULT_ICON : icon;
     }
 }
 
@@ -915,18 +939,21 @@ class DebugNote extends FlxSprite {
     }
 
     override function update(elapsed:Float):Void {
-        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
-        // super.update(elapsed);
-    }
-
-    override function draw():Void {
+        // updating scale in update instead of draw to avoid scale changes on substates
         if (data.length > 0) {
             sustain.scale.y = ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5);
             if (sustain.scale.y < ChartEditor.checkerSize)
                 sustain.scale.y = ChartEditor.checkerSize;
 
             sustain.updateHitbox();
+        }
 
+        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
+        // super.update(elapsed);
+    }
+
+    override function draw():Void {
+        if (data.length > 0) {
             sustain.x = x + (width - sustain.width) * 0.5; 
             sustain.y = y + height * 0.5;
 

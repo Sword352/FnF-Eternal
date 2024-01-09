@@ -5,8 +5,9 @@ import flixel.util.*;
 import flixel.tweens.*;
 import flixel.math.FlxPoint;
 import funkin.objects.Camera;
+
+import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
 import funkin.music.MusicPlayback;
 import funkin.music.EventManager;
@@ -55,8 +56,8 @@ class PlayState extends MusicBeatState {
    public var opponentStrumline:StrumLine;
    public var playerStrumline:StrumLine;
 
-   public var ratingSprites:FlxTypedSpriteGroup<FlxSprite>;
-   public var comboSprites:FlxTypedSpriteGroup<FlxSprite>;
+   public var ratingSprites:FlxSpriteGroup;
+   public var comboSprites:FlxSpriteGroup;
    public var hud:GameplayUI;
 
    public var countdownSprites:Array<String> = [null, 'ui/gameplay/ready', 'ui/gameplay/set', 'ui/gameplay/go'];
@@ -98,10 +99,8 @@ class PlayState extends MusicBeatState {
    public var targetCharacter:Character;
 
    public var notes:Array<Note> = [];
-   public var noteSpawnTime:Float;
 
    public var validScore:Bool = (gameMode != DEBUG);
-
    var startTime:Float;
 
    // ======= Base game compatibility ==============
@@ -255,8 +254,8 @@ class PlayState extends MusicBeatState {
       add(hud);
 
       if (Settings.get("downscroll")) {
-         playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
          playerStrumline.downscroll = opponentStrumline.downscroll = true;
+         playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
       }
       if (Settings.get("centered strumline")) {
          opponentStrumline.visible = false;
@@ -266,21 +265,18 @@ class PlayState extends MusicBeatState {
       if (gameMode == FREEPLAY)
          strumLines.forEach((strumline) -> strumline.tweenReceptors());
 
-      comboSprites = new FlxTypedSpriteGroup<FlxSprite>();
-      add(comboSprites);
-
-      ratingSprites = new FlxTypedSpriteGroup<FlxSprite>();
-      add(ratingSprites);
+      comboSprites = new FlxSpriteGroup();
+      ratingSprites = new FlxSpriteGroup();
 
       if (Settings.get("judgements on user interface")) {
-         ratingSprites.cameras = comboSprites.cameras = [camHUD];
-         ratingSprites.setPosition(FlxG.width * 0.5 - 100, FlxG.height * 0.5 - 100);
-         comboSprites.setPosition(ratingSprites.x + 60, ratingSprites.y + 140);
-
          for (group in [ratingSprites, comboSprites]) {
-            remove(group, true);
+            group.cameras = [camHUD];
             insert(members.indexOf(strumLines), group);
          }
+      }
+      else {
+         add(comboSprites);
+         add(ratingSprites);
       }
 
       cache();
@@ -289,7 +285,7 @@ class PlayState extends MusicBeatState {
       Controls.globalControls.onKeyJustReleased.add(onKeyUp);
 
       Conductor.updateInterp = true;
-      noteSpawnTime = 1800 / song.speed;
+      activeConductor = false;
 
       #if ENGINE_DISCORD_RPC
       DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.getHandle()})';
@@ -332,6 +328,9 @@ class PlayState extends MusicBeatState {
       hxsCall("onUpdate", [elapsed]);
       #end
 
+      updateConductor(elapsed);
+      checkSpawnNotes();
+
       super.update(elapsed);
 
       if (health <= minHealth)
@@ -349,18 +348,6 @@ class PlayState extends MusicBeatState {
       #if ENGINE_DISCORD_RPC
       if (music.playing && Conductor.time >= 0 && Conductor.time <= music.instrumental.length)
          DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.time * 0.001));
-      #end
-
-      #if ENGINE_SCRIPTING
-      while (notes.length > 0 && notes[0].time - Conductor.time < (noteSpawnTime + notes[0].spawnTimeOffset)) {
-         var note:Note = notes.shift();
-         hxsCall("onNoteSpawn", [note]);
-         strumLines.members[note.strumline].addNote(note);
-         hxsCall("onNoteSpawnPost", [note]);
-      }
-      #else
-      while (notes.length > 0 && notes[0].time - Conductor.time < (noteSpawnTime + notes[0].spawnTimeOffset))
-         strumLines.members[notes[0].strumline].addNote(notes.shift());
       #end
       
       if (controls.justPressed("accept"))
@@ -389,6 +376,21 @@ class PlayState extends MusicBeatState {
       #if ENGINE_SCRIPTING
       hxsCall("onUpdatePost", [elapsed]);
       #end
+   }
+
+   public dynamic function checkSpawnNotes():Void {
+      // TODO: maybe move this into the note class?
+      while (notes.length > 0)  {
+         var note:Note = notes[0];
+         if ((note.time - Conductor.time) > ((1800 / note.scrollSpeed) + note.spawnTimeOffset))
+            break;
+
+         #if ENGINE_SCRIPTING hxsCall("onNoteSpawn", [note]); #end
+         strumLines.members[note.strumline].addNote(note);
+         #if ENGINE_SCRIPTING hxsCall("onNoteSpawnPost", [note]); #end
+
+         notes.shift();
+      }
    }
 
    override function stepHit(currentStep:Int):Void {
@@ -720,13 +722,7 @@ class PlayState extends MusicBeatState {
       music.vocalsVolume = 1;
       health += healthIncrement;
 
-      // Calculate the rating
-      var noteDiff:Float = Math.abs(Conductor.time - note.time);
-      var rating:Rating = ratings[0];
-
-      for (possibleRating in ratings)
-         if (noteDiff > Note.safeZoneOffset * possibleRating.hitWindowMult)
-            rating = possibleRating;
+      var rating:Rating = note.findRating(ratings);
 
       score += rating.scoreIncrement;
       accuracyMod += rating.accuracyMod;
@@ -738,7 +734,7 @@ class PlayState extends MusicBeatState {
 
       combo++;
       if (rating.displayCombo && combo > 0)
-         displayCombo();
+         displayCombo(combo);
 
       if (rating.displayNoteSplash && !Settings.get("disable note splashes"))
          playerStrumline.popSplash(note.direction);
@@ -871,7 +867,10 @@ class PlayState extends MusicBeatState {
       sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
       sprite.scale.set(0.7, 0.7);
       sprite.updateHitbox();
-      sprite.setPosition(ratingSprites.x, ratingSprites.y); 
+
+      sprite.setPosition(ratingSprites.x, ratingSprites.y);
+      if (Settings.get("judgements on user interface"))
+         sprite.screenCenter();
 
       sprite.acceleration.y = 550;
       sprite.velocity.set(-FlxG.random.float(0, 10), -FlxG.random.float(140, 175));
@@ -889,9 +888,9 @@ class PlayState extends MusicBeatState {
       });
    }
 
-   public function displayCombo():Void {
+   public function displayCombo(combo:Int):Void {
       #if ENGINE_SCRIPTING
-      if (cancellableCall("onComboDisplay"))
+      if (cancellableCall("onComboDisplay", [combo]))
          return;
       #end
 
@@ -920,7 +919,14 @@ class PlayState extends MusicBeatState {
          sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
          sprite.scale.set(0.5, 0.5);
          sprite.updateHitbox();
-         sprite.setPosition(comboSprites.x + 43 * (i + 1), comboSprites.y);
+         
+         if (Settings.get("judgements on user interface")) {
+            sprite.screenCenter();
+            sprite.x += 43 * (i + 1);
+            sprite.y += 140;
+         }
+         else
+            sprite.setPosition(ratingSprites.x + 43 * (i + 3), ratingSprites.y + 140);
 
          sprite.acceleration.y = FlxG.random.int(200, 300);
          sprite.velocity.set(FlxG.random.float(-5, 5), -FlxG.random.int(140, 160));
