@@ -28,7 +28,7 @@ class Note extends OffsetSprite {
    public var strumline:Int = 0;
 
    public var length(default, set):Float = 0;
-   public var holdProgress:Float = 0;
+   public var holdProgress(get, never):Float;
 
    public var sustain(default, null):Sustain;
    public var isSustainNote(get, never):Bool;
@@ -100,9 +100,7 @@ class Note extends OffsetSprite {
       }
    }
 
-   public function clipSustain(elapsed:Float, receptor:FlxSprite):Void {
-      sustain.scrollY += elapsed;
-
+   public function clipSustainTail(receptor:FlxSprite):Void {
       var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
       var tail:FlxSprite = sustain.tail;
 
@@ -247,6 +245,9 @@ class Note extends OffsetSprite {
    inline function get_isSustainNote():Bool
       return sustain != null;
 
+   inline function get_holdProgress():Float
+      return FlxMath.bound(Conductor.time - time, 0, length);
+
    function get_canBeHit():Bool {
       if (goodHit || missed)
          return false;
@@ -296,7 +297,7 @@ class Sustain extends TiledSprite {
       super.destroy();
    }
 
-   public inline function updateSustain():Void {
+   inline function updateSustain():Void {
       height = ((parent.length - parent.sustainDecrease) * parent.scrollSpeed) - tail.height;
 
       setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
@@ -308,6 +309,9 @@ class Sustain extends TiledSprite {
 
       if (height <= 0 && parent.baseVisible)
          tail.y += tail.height * _facingVerticalMult;
+
+      if (parent.autoClipSustain)
+         scrollY = -parent.holdProgress;
    }
 
    public function reloadGraphic():Void {

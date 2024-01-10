@@ -83,11 +83,8 @@ class StrumLine extends FlxGroup {
             notesToRemove.push(note);
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
-            var scaledElapsed:Float = elapsed * Conductor.playbackRate;
-            note.holdProgress += scaledElapsed * 1000;
-
             if (note.autoClipSustain)
-               note.clipSustain(scaledElapsed, receptor);
+               note.clipSustainTail(receptor);
 
             if (lastStep != Conductor.currentStep) {
                if (cpu || holdKeys[note.direction]) {
@@ -121,7 +118,7 @@ class StrumLine extends FlxGroup {
 
    override function draw():Void {
       notes.forEachExists((note) -> {
-         if (note.isSustainNote && note.sustain.exists && note.sustain.visible && note.holdBehindStrum)
+         if (note.isSustainNote && note.sustain.visible && note.holdBehindStrum)
             note.sustain.draw();
       });
 
