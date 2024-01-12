@@ -22,7 +22,7 @@
 - Add Credits menu
 - Finish the FNF modpack port
 
-- Continue README.me, complete the wiki stuff and move it to proper git wiki
+- Continue README.md, complete the wiki stuff and move it to proper git wiki
 
 ### After Release
 - Add note colors support

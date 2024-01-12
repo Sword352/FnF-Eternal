@@ -32,14 +32,17 @@ In it's current state, Eternal is in alpha and some features such as dialogue is
 - Superpowers04: In-Game Crash Handler Concept
 - CrowPlexus: Helper, Inspiration
 - EyeDaleHim: Helper, Inspiration
+- MAJigsaw77: hxdiscord_rpc and hxvlc Librairies Maintainer
 
 > Testers
 - Crazyb3ndy
 - Meloomazy
 - Glade
 - SMB
+- cyn
 - TheJutroMan
 - Jelly
 - leonbrother
 - Unholywanderer04
+- Daniel (skruyo)
 - MemeHoovy
