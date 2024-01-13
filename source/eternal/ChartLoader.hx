@@ -154,8 +154,8 @@ class ChartLoader {
                 continue;
             
             var note:Note = new Note(noteData.time, noteData.direction);
+            note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;
-            note.length = noteData.length;
             note.type = noteData.type;
             note.ID = i++;
             notes.push(note);

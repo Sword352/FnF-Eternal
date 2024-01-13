@@ -29,6 +29,7 @@ class Note extends OffsetSprite {
 
    public var length(default, set):Float = 0;
    public var holdProgress(get, never):Float;
+   public var initialLength:Float = 0;
 
    public var sustain(default, null):Sustain;
    public var isSustainNote(get, never):Bool;

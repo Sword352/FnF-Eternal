@@ -61,6 +61,7 @@ class ChartPlayState extends MusicBeatSubState {
     override function create():Void {
         Conductor.resetTime();
         Conductor.music = null;
+        Conductor.updateInterp = true;
 
         Conductor.onStep.remove(parent.stepHit);
         Conductor.onBeat.remove(parent.beatHit);
@@ -126,7 +127,6 @@ class ChartPlayState extends MusicBeatSubState {
 
         startTimer = new FlxTimer().start(0.85, (_) -> {
             Conductor.music = parent.music.instrumental;
-            Conductor.updateInterp = true;
             parent.music.play(startTime);
         });
     }

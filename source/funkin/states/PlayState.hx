@@ -518,7 +518,7 @@ class PlayState extends MusicBeatState {
       var timing:Float = (Conductor.crochet / 1000);
 
       new FlxTimer().start(timing, tmr -> {
-         var currentLoop:Int = tmr.elapsedLoops - 1;
+         var currentLoop:Int = (tmr.elapsedLoops - 1);
          var isDone:Bool = (tmr.loopsLeft == 0);
 
          stage.onCountdownTick(currentLoop);

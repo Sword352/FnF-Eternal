@@ -5,19 +5,20 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 
 class Conductor {
     public static var time(get, set):Float;
+    public static var rawTime(get, set):Float;
     public static var interpTime:Float = 0;
-    public static var rawTime:Float = 0;
 
     public static var playbackRate:Float = 1;
     public static var offset:Float = 0;
 
     public static var active:Bool = true;
     public static var updateInterp:Bool = false;
+    public static var music:FlxSound;
     
     public static var bpm(default, set):Float = 100;
     public static var crochet(default, null):Float = 600;
     public static var stepCrochet(default, null):Float = 150;
-
+    
     public static var currentStep(get, set):Int;
     public static var currentBeat(get, set):Int;
     public static var currentMeasure(get, set):Int;
@@ -28,11 +29,8 @@ class Conductor {
 
     public static var stepsPerBeat(default, set):Int = 4;
     public static var beatsPerMeasure:Int = 4;
-    
-    public static var timeSignature(get, never):Float;
-    public static var measureLength(get, never):Int;
 
-    public static var music:FlxSound;
+    public static var measureLength(get, never):Int;
 
     public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
     public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
@@ -49,23 +47,16 @@ class Conductor {
         if (!active)
             return;
 
-        updateTime(elapsed);
+        if (updateInterp)
+            updateTime(elapsed);
+
         updateCallbacks();
     }
 
     public static inline function updateTime(elapsed:Float):Void {
-        var scaledElapsed:Float = elapsed * playbackRate * 1000;
-
-        if (music == null)
-            rawTime += scaledElapsed;
-
-        if (updateInterp) {
-            interpTime += scaledElapsed;
-
-            var fixedTime:Float = time + offset;
-            if (Math.abs(fixedTime - interpTime) > (20 * playbackRate))
-                interpTime = fixedTime;
-        }
+        interpTime += elapsed * playbackRate * 1000;
+        if (music != null && Math.abs(time - interpTime) > (20 * playbackRate))
+            interpTime = time;
     }
 
     public static inline function updateCallbacks():Void {
@@ -105,9 +96,7 @@ class Conductor {
     }
 
     public static inline function resetTime():Void {
-        rawTime = 0;
         interpTime = 0;
-
         resetPrevTime();
         beatOffset.reset();
     }
@@ -136,23 +125,31 @@ class Conductor {
         return stepsPerBeat = v;
     }
 
+    static function set_rawTime(v:Float):Float {
+        if (music != null)
+            music.time = v;
+        else if (updateInterp)
+            interpTime = v;
+
+        return v; 
+    }
+
+    static function get_rawTime():Float {
+        return (music?.time ?? interpTime);
+    }
+
     static function set_time(v:Float):Float
         return rawTime = v;
 
-    static function get_time():Float {
-        return (music?.time ?? rawTime) - offset;
-    }
+    static function get_time():Float
+        return rawTime - offset;
 
     static function get_decimalStep():Float {
         return ((time - beatOffset.time) / stepCrochet) + beatOffset.step;
     }
 
     static function set_decimalStep(v:Float):Float {
-        rawTime = stepCrochet * v;
-
-        if (music != null)
-            music.time = rawTime;
-
+        rawTime = (stepCrochet * v);
         return v;
     }
 
@@ -189,9 +186,6 @@ class Conductor {
 
     static function get_measureLength():Int
         return stepsPerBeat * beatsPerMeasure;
-
-    static function get_timeSignature():Float
-        return beatsPerMeasure / stepsPerBeat;
 }
 
 @:structInit class BeatOffset {

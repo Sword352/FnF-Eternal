@@ -141,7 +141,7 @@ class StrumLine extends FlxGroup {
    public function hitNote(note:Note):Void {
       if (note.isSustainNote) {
          if (!cpu)
-            note.length += (note.time - Conductor.time); // incase the player hits the note early/lately
+            resizeLength(note);
          note.baseVisible = false;
       }
       else
@@ -151,13 +151,18 @@ class StrumLine extends FlxGroup {
    inline function miss(note:Note):Void {
       if (note.isSustainNote) {
          note.baseVisible = false;
-         note.length += (note.time - Conductor.time);
+         resizeLength(note);
       }
       else 
          note.alphaMult = note.lateAlpha;
 
       note.missed = true;
       onMiss.dispatch(note);
+   }
+
+   // incase the player hits the note early or late
+   inline function resizeLength(note:Note):Void {
+      note.length += (note.time - Conductor.time);
    }
 
    public function setPosition(x:Float = 0, y:Float = 0):StrumLine {
@@ -169,8 +174,10 @@ class StrumLine extends FlxGroup {
    public function screenCenter(axes:FlxAxes = XY):StrumLine {
       if (axes.x)
          x = FlxG.width * 0.5;
+
       if (axes.y)
          y = FlxG.height * 0.5;
+      
       return this;
    }
 
