@@ -42,7 +42,9 @@ class Splash extends OffsetSprite {
     function set_skin(v:String):String {
         if (v != null) {
             switch (v) {
+                // case "name" to hardcode your noteskins
                 case "default":
+                    // default noteskin
                     frames = Assets.getSparrowAtlas("notes/noteSplashes");
 
                     var animationArray:Array<String> = ["down", "up", "left", "right"];
@@ -64,6 +66,7 @@ class Splash extends OffsetSprite {
 
                     pop(0);
                 default:
+                    // softcoded noteskin
                     var config:NoteSkinConfig = NoteSkin.get(v);
                     if (config == null || config.splash == null)
                         return set_skin("default");

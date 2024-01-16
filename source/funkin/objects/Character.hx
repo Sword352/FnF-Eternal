@@ -73,7 +73,8 @@ class Character extends DancingSprite {
         if (!exists)
             return v;
 
-        switch (v) { // case "name" to hardcode your characters
+        switch (v) {
+            // case "name" to hardcode your characters
             default:
                 var filePath:String = Assets.yaml('data/characters/${v}');
 

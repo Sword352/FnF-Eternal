@@ -40,7 +40,7 @@ class Receptor extends OffsetSprite {
     function set_skin(v:String):String {
         if (v != null) {
             switch (v) {
-                // case "skin name" to hardcode your noteskins
+                // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
                     frames = Assets.getSparrowAtlas("notes/receptors");

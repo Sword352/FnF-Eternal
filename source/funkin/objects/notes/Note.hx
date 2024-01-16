@@ -198,7 +198,7 @@ class Note extends OffsetSprite {
    function set_skin(v:String):String {
       if (v != null) {
          switch (v) {
-            // case "skin name" to hardcode your noteskins
+            // case "name" to hardcode your noteskins
             case "default":
                // default noteskin
                var dir:String = directions[direction];
