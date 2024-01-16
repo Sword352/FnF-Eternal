@@ -60,6 +60,9 @@ typedef SongMetadata = {
    var ?spectator:String;
    var ?stage:String;
 
+   var ?playerNoteSkin:String;
+   var ?oppNoteSkin:String;
+
    var ?gameOverProperties:GameOverProperties;
 }
 

@@ -15,13 +15,15 @@ class StrumLine extends FlxGroup {
    public var receptors(default, null):FlxTypedGroup<Receptor>;
    public var splashes(default, null):FlxTypedGroup<Splash>;
    public var notes(default, null):FlxTypedGroup<Note>;
+   
+   public var receptorSpacing(default, set):Float = 112;
 
    public var downscroll(get, set):Bool;
-
    public var scrollSpeed:Float = 1;
    public var scrollMult:Float = 1;
 
    public var characters:Array<Character> = [];
+   public var skin(default, set):String;
 
    public var holdKeys:Array<Bool> = [false, false, false, false];
    public var cpu:Bool = false;
@@ -34,12 +36,14 @@ class StrumLine extends FlxGroup {
    var notesToRemove:Array<Note> = [];
    var lastStep:Int = 0; // used for base game behaviour
 
-   public function new(x:Float = 0, y:Float = 0, cpu:Bool = false):Void {
+   public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, skin:String = "default"):Void {
       super();
       
       this.x = x;
       this.y = y;
+
       this.cpu = cpu;
+      this.skin = skin;
       
       receptors = new FlxTypedGroup<Receptor>();
       add(receptors);
@@ -51,8 +55,8 @@ class StrumLine extends FlxGroup {
       add(notes);
 
       for (i in 0...4) {
-         var receptor:Receptor = new Receptor(i);
-         receptor.setPosition(x + (Note.globalWidth * (i - 2)), y);
+         var receptor:Receptor = new Receptor(i, skin);
+         receptor.setPosition(x + (receptorSpacing * (i - 2)), y);
          receptors.add(receptor);
       }
    }
@@ -108,7 +112,7 @@ class StrumLine extends FlxGroup {
 
       if (cpu) {
          receptors.forEachAlive((receptor) -> {
-            if (receptor.animation.curAnim.name == "confirm" && receptor.animation.curAnim.finished)
+            if (receptor.animation.curAnim.name.startsWith("confirm") && receptor.animation.curAnim.finished)
                receptor.playAnimation("static", true);
          });
       }
@@ -211,21 +215,29 @@ class StrumLine extends FlxGroup {
       splashes = new FlxTypedGroup<Splash>();
       add(splashes);
 
-      if (cache) {
-         var cachedSplash:Splash = new Splash();
-         splashes.add(cachedSplash);
-         cachedSplash.kill();
-      }
+      if (cache)
+         cacheSplash();
+   }
+
+   public inline function cacheSplash():Void {
+      var cachedSplash:Splash = new Splash(skin);
+      splashes.add(cachedSplash);
+      cachedSplash.kill();
    }
 
    public function popSplash(direction:Int):Void {
       if (splashes == null)
          return;
 
-      var splash:Splash = splashes.recycle(Splash);
+      var splash:Splash = splashes.recycle(Splash, () -> new Splash(skin));
       var receptor:Receptor = receptors.members[direction];
       splash.setPosition(receptor.x, receptor.y);
       splash.pop(direction);
+   }
+
+   inline function setReceptorsX(x:Float):Void {
+      if (receptors != null)
+         receptors.forEach((r) -> r.x = x + (receptorSpacing * (r.direction - 2)));
    }
 
    override function destroy():Void {
@@ -234,6 +246,7 @@ class StrumLine extends FlxGroup {
 
       characters = null;
       holdKeys = null;
+      skin = null;
 
       onMiss = cast FlxDestroyUtil.destroy(onMiss);
       onHold = cast FlxDestroyUtil.destroy(onHold);
@@ -243,8 +256,7 @@ class StrumLine extends FlxGroup {
    }
 
    function set_x(v:Float):Float {
-      if (receptors != null)
-         receptors.forEach((r) -> r.x = v + (Note.globalWidth * (r.direction - 2)));
+      setReceptorsX(v);
       return x = v;
    }
 
@@ -252,6 +264,23 @@ class StrumLine extends FlxGroup {
       if (receptors != null)
          receptors.forEach((r) -> r.y = v);
       return y = v;
+   }
+
+   function set_skin(v:String):String {
+      if (v != null) {
+         if (receptors != null)
+            receptors.forEach((r) -> r.skin = v);
+
+         receptorSpacing = ((v == "default") ? 112 : (eternal.NoteSkin.get(v)?.receptor?.spacing ?? 112));
+      }
+
+      return skin = v;
+   }
+
+   function set_receptorSpacing(v:Float):Float {
+      receptorSpacing = v;
+      setReceptorsX(this.x);
+      return v;
    }
 
    function set_downscroll(v:Bool):Bool {

@@ -2,14 +2,14 @@ package funkin.objects.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
-import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxFramesCollection;
 
+import flixel.graphics.FlxGraphic;
 import funkin.objects.sprites.TiledSprite;
+
+import eternal.NoteSkin;
 
 class Note extends OffsetSprite {
    public static final directions:Array<String> = ["left", "down", "up", "right"];
-   public static final globalWidth:Float = 112;
 
    public static var safeZoneOffset(get, never):Float;
    inline static function get_safeZoneOffset():Float
@@ -36,6 +36,7 @@ class Note extends OffsetSprite {
    public var sustainDecrease(get, default):Float = 0;
 
    public var type(default, set):String = "";
+   public var skin(default, set):String;
    public var animSuffix:String;
 
    public var followX:Bool = true;
@@ -67,21 +68,15 @@ class Note extends OffsetSprite {
    // not really useful in gameplay, just a helper boolean
    public var checked:Bool = false;
 
-   public function new(time:Float = 0, direction:Int = 0):Void {
+   public function new(time:Float = 0, direction:Int = 0, skin:String = "default"):Void {
       super();
 
       this.time = time;
       this.direction = direction;
+      this.skin = skin;
 
-      var dir:String = directions[direction];
-
-      frames = Assets.getSparrowAtlas("notes/notes");
-		animation.addByPrefix(dir, '${dir}0');
-      playAnimation(dir);
-
-      scale.set(0.7, 0.7);
-      updateHitbox();
       resetPosition();
+      moves = false;
    }
 
    public function follow(receptor:FlxSprite):Void {
@@ -168,27 +163,10 @@ class Note extends OffsetSprite {
    override function destroy():Void {
       sustain = FlxDestroyUtil.destroy(sustain);
       parentStrumline = null;
+      skin = null;
       type = null;
 
       super.destroy();
-   }
-
-   override function set_frames(v:FlxFramesCollection):FlxFramesCollection {
-      super.set_frames(v);
-      sustain?.reloadGraphic();
-      return v;
-   }
-
-   override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-      if (isSustainNote)
-         sustain.cameras = v;
-      return super.set_cameras(v);
-   }
-
-   override function set_camera(v:FlxCamera):FlxCamera {
-      if (isSustainNote)
-         sustain.camera = v;
-      return super.set_camera(v);
    }
 
    function set_length(v:Float):Float {
@@ -215,6 +193,36 @@ class Note extends OffsetSprite {
       }
 
       return type = v;
+   }
+
+   function set_skin(v:String):String {
+      if (v != null) {
+         switch (v) {
+            // case "skin name" to hardcode your noteskins
+            case "default":
+               // default noteskin
+               var dir:String = directions[direction];
+
+               frames = Assets.getSparrowAtlas("notes/notes");
+               animation.addByPrefix(dir, '${dir}0', 0);
+               animation.addByPrefix(dir + " hold", '${dir} hold piece', 0);
+               animation.addByPrefix(dir + " end", '${dir} hold end', 0);
+               playAnimation(dir, true);
+         
+               scale.set(0.7, 0.7);
+               updateHitbox();
+            default:
+               // softcoded noteskin
+               var config:NoteSkinConfig = NoteSkin.get(v);
+               if (config == null || config.note == null)
+                  return set_skin("default");
+
+               var dir:String = directions[direction];
+               NoteSkin.applyGenericSkin(this, config.note, dir, dir);
+         }
+      }
+
+      return skin = v;
    }
 
    inline function get_distance():Float {
@@ -258,11 +266,23 @@ class Note extends OffsetSprite {
 
       return this.canBeHit;
    }
+
+   override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
+      if (isSustainNote)
+         sustain.cameras = v;
+      return super.set_cameras(v);
+   }
+
+   override function set_camera(v:FlxCamera):FlxCamera {
+      if (isSustainNote)
+         sustain.camera = v;
+      return super.set_camera(v);
+   }
 }
 
 class Sustain extends TiledSprite {   
    public var tail(default, null):FlxSprite;
-   public var parent(default, set):Note;
+   public var parent:Note;
 
    public function new(parent:Note):Void {
       // TODO: make scaling not dependant of `repeatX`
@@ -272,6 +292,7 @@ class Sustain extends TiledSprite {
       alpha = 0.6;
 
       this.parent = parent;
+      reloadGraphic();
    }
 
    override function update(elapsed:Float):Void {
@@ -308,37 +329,33 @@ class Sustain extends TiledSprite {
       tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
       flipY = (parent.flipSustain && parent.downscroll);
 
-      if (height <= 0 && parent.baseVisible)
-         tail.y += tail.height * _facingVerticalMult;
-
       if (parent.autoClipSustain)
          scrollY = -parent.holdProgress;
    }
 
-   public function reloadGraphic():Void {
-      if (parent == null)
-         return;
-
+   public inline function reloadGraphic():Void {
       var dir:String = Note.directions[parent.direction];
 
-      loadFrame(parent.frames.getByName('${dir} hold piece0000'));
-      scale.x = 0.7;
+      // TODO: find a better solution (FlxTiledSprite does not support animations at the moment)
+      frames = parent.frames;
+      animation.copyFrom(parent.animation);
+      animation.play(dir + " hold", true);
+      loadFrame(frame ?? parent.frame);
 
-      tail.loadGraphic(FlxGraphic.fromFrame(parent.frames.getByName('${dir} hold end0000')));
-      tail.scale.set(0.7, 0.7);
+      tail.frames = parent.frames;
+      tail.animation.copyFrom(parent.animation);
+      tail.animation.play(dir + " end", true);
 
+      scale.set(parent.scale.x, parent.scale.y);
+      tail.scale.set(scale.x, scale.y);
       updateHitbox();
+
+      antialiasing = tail.antialiasing = parent.antialiasing;
    }
 
    override function updateHitbox():Void {
       width = graphic.width * scale.x;
       tail.updateHitbox();
-   }
-
-   function set_parent(v:Note):Note {
-      parent = v;
-      reloadGraphic();
-      return v;
    }
 
    override function set_height(v:Float):Float {

@@ -27,9 +27,11 @@ typedef CharacterConfig = {
     var ?danceAnimations:Array<String>;
     var ?danceBeat:Float;
 
-    var ?icon:String;
     var ?healthBarColor:Dynamic;
     var ?cameraOffsets:Array<Float>;
+
+    var ?icon:String;
+    var ?noteSkin:String;
 
     var ?gameOverCharacter:String;
     var ?gameOverProperties:GameOverProperties;

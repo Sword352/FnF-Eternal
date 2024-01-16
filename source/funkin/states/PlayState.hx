@@ -98,7 +98,7 @@ class PlayState extends MusicBeatState {
    public var cameraTargets:Array<Character>;
    public var targetCharacter:Character;
 
-   public var notes:Array<Note> = [];
+   public var notes:Array<Note>;
 
    public var validScore:Bool = (gameMode != DEBUG);
    var startTime:Float;
@@ -199,7 +199,6 @@ class PlayState extends MusicBeatState {
       Conductor.stepsPerBeat = (song.meta.stepsPerBeat ?? 4);
       Conductor.bpm = song.bpm;
       
-      notes = ChartLoader.generateNotes(song, startTime);
       cameraZoomBeat = Conductor.beatsPerMeasure;
       
       eventManager = new EventManager(this);
@@ -209,13 +208,22 @@ class PlayState extends MusicBeatState {
       strumLines.cameras = [camHUD];
       add(strumLines);
 
-      opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true);
+      if (song.meta.opponent != null)
+         opponent = new Character(200, 0, song.meta.opponent);
+
+      if (song.meta.player != null)
+         player = new Character(400, 0, song.meta.player, PLAYER);
+
+      var playerNoteSkin:String = player?.data.noteSkin ?? song.meta.playerNoteSkin ?? "default";
+      var oppNoteSkin:String = opponent?.data.noteSkin ?? song.meta.oppNoteSkin ?? "default";
+
+      opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true, oppNoteSkin);
       opponentStrumline.scrollSpeed = song.speed;
       opponentStrumline.onNoteHit.add(opponentNoteHit);
       opponentStrumline.onHold.add(onOpponentHold);
       strumLines.add(opponentStrumline);
 
-      playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085);
+      playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085, playerNoteSkin);
       playerStrumline.scrollSpeed = song.speed;
       playerStrumline.onNoteHit.add(botplayNoteHit);
       playerStrumline.onHold.add(onHold);
@@ -235,13 +243,11 @@ class PlayState extends MusicBeatState {
       }
 
       if (song.meta.opponent != null) {
-         opponent = new Character(200, 0, song.meta.opponent);
          opponentStrumline.characters.push(opponent);
          add(opponent);
       }
 
       if (song.meta.player != null) {
-         player = new Character(400, 0, song.meta.player, PLAYER);
          playerStrumline.characters.push(player);
          add(player);
       }
@@ -279,13 +285,15 @@ class PlayState extends MusicBeatState {
          add(ratingSprites);
       }
 
-      cache();
+      notes = ChartLoader.generateNotes(song, startTime, playerNoteSkin, oppNoteSkin);
 
       Controls.globalControls.onKeyJustPressed.add(onKeyDown);
       Controls.globalControls.onKeyJustReleased.add(onKeyUp);
 
       Conductor.updateInterp = true;
       activeConductor = false;
+
+      cache();
 
       #if ENGINE_DISCORD_RPC
       DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.getHandle()})';

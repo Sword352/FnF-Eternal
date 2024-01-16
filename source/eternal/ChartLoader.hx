@@ -145,7 +145,7 @@ class ChartLoader {
         return output;
     }
 
-    public static function generateNotes(chart:Chart, minTime:Float = 0):Array<Note> {
+    public static function generateNotes(chart:Chart, minTime:Float = 0, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
         var notes:Array<Note> = [];
         var i:Int = 0;
 
@@ -153,7 +153,7 @@ class ChartLoader {
             if (noteData.time < minTime)
                 continue;
             
-            var note:Note = new Note(noteData.time, noteData.direction);
+            var note:Note = new Note(noteData.time, noteData.direction, (noteData.strumline == 1) ? playerSkin : oppSkin);
             note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;
             note.type = noteData.type;

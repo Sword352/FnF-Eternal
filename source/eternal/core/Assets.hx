@@ -70,6 +70,14 @@ class Assets {
     inline public static function getAseAtlas(file:String, ?library:String):FlxAtlasFrames
         return FlxAtlasFrames.fromAseprite(image(file, library), resolveAtlasData(json('images/${file}', library)));
 
+    inline public static function getFrames(file:String, ?type:String, ?library:String):FlxAtlasFrames {
+        return switch ((type ?? "").toLowerCase().trim()) {
+            case "packer": getPackerAtlas(file, library);
+            case "aseprite": getAseAtlas(file, library);
+            default: getSparrowAtlas(file, library);
+        }
+    }
+
     public static function getPath(file:String, type:AssetType, ?library:String):String {
         var basePath:String = file;
         if (library != null)
@@ -172,14 +180,19 @@ class Assets {
 
     // Assets clearing
     inline public static function freeMemory():Void {
-        if (!clearAssets)
+        if (!clearAssets) {
+            NoteSkin.clearWarnings();
             return;
+        }
 
         // Clear the cache entirely
         clearCache();
 
         // Clear the OpenFL cache
         OpenFLAssets.cache.clear();
+
+        // Clear the noteskin cache
+        NoteSkin.clear();
 
         // Clear any graphics registered into Flixel's cache
         FlxG.bitmap.dumpCache();

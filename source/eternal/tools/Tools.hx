@@ -156,7 +156,7 @@ class Tools {
         return FlxColor.WHITE;
     }
 
-    public static function addYamlAnimations(sprite:FlxSprite, animations:Array<YAMLAnimation>):Void {
+    public static inline function addYamlAnimations(sprite:FlxSprite, animations:Array<YAMLAnimation>):Void {
         if (sprite == null || animations == null || animations.length < 1)
             return;
 
@@ -167,25 +167,27 @@ class Tools {
             var loop:Bool = animation.loop ?? false;
             var fps:Float = animation.fps ?? 24;
             
-            if (animation.indices != null)
-                sprite.animation.addByIndices(animation.name, animation.prefix, animation.indices, "", fps, loop);
-            else if (animation.prefix != null)
-                sprite.animation.addByPrefix(animation.name, animation.prefix, fps, loop);
-            else
-                sprite.animation.add(animation.name, animation.frames, fps, loop);
-
-            sprite.animation.getByName(animation.name).timeScale = speed;
-
-            if (animation.offsets != null) {
-                while (animation.offsets.length < 2)
-                    animation.offsets.push(0);
-
-                if (offsetSprite)
-                    cast(sprite, OffsetSprite).addOffset(animation.name, animation.offsets[0], animation.offsets[1]);
+            try {
+                if (animation.indices != null)
+                    sprite.animation.addByIndices(animation.name, animation.prefix, animation.indices, "", fps, loop);
+                else if (animation.prefix != null)
+                    sprite.animation.addByPrefix(animation.name, animation.prefix, fps, loop);
                 else
-                    sprite.frames.setFramesOffsetByPrefix(animation.prefix, animation.offsets[0], animation.offsets[1], false);
+                    sprite.animation.add(animation.name, animation.frames, fps, loop);
+    
+                sprite.animation.getByName(animation.name).timeScale = speed;
+    
+                if (animation.offsets != null) {
+                    while (animation.offsets.length < 2)
+                        animation.offsets.push(0);
+    
+                    if (offsetSprite)
+                        cast(sprite, OffsetSprite).addOffset(animation.name, animation.offsets[0], animation.offsets[1]);
+                    else
+                        sprite.frames.setFramesOffsetByPrefix(animation.prefix, animation.offsets[0], animation.offsets[1], false);
+                }
             }
-                
+            catch (e) {}
         }
 
         if (offsetSprite)

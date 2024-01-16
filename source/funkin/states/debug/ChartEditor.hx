@@ -643,7 +643,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             receptor.x = checkerSize * i;
 
             receptor.animation.finishCallback = (name) -> {
-                if (name == "confirm")
+                if (name.startsWith("confirm"))
                     receptor.playAnimation("static", true);
             };
 
