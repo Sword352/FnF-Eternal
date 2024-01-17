@@ -44,6 +44,7 @@
 - Fix sustain rendering bugs/issues
   - Fix sustain tail not clipping properly (except on low scroll speeds)
   - Make the sustain tails visible when the sustain height is small
+  - Fix slightly innacurate upscroll texture scrolling (?)
   - Fix the small gaps that can be rarely seen
 
 - Fix the objects "repositioning" when using a lerped camera zoom value (like in PlayState with camHUD)

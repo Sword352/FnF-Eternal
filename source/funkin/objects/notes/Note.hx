@@ -2,8 +2,6 @@ package funkin.objects.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
-
-import flixel.graphics.FlxGraphic;
 import funkin.objects.sprites.TiledSprite;
 
 import eternal.NoteSkin;
@@ -58,6 +56,7 @@ class Note extends OffsetSprite {
    public var autoDistance:Bool = true;
    public var autoClipSustain:Bool = true;
    public var flipSustain:Bool = true;
+   public var overrideSustain:Bool = false;
 
    public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
    public var scrollSpeed(get, default):Float = 1;
@@ -236,7 +235,8 @@ class Note extends OffsetSprite {
    }
 
    inline function get_scrollMult():Float {
-      return (followSpeed && parentStrumline != null) ? (parentStrumline.scrollMult) : this.scrollMult;
+      var receptor:Receptor = parentStrumline?.receptors.members[direction];
+      return (followSpeed && parentStrumline != null) ? (receptor?.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
    }
 
    inline function get_sustainDecrease():Float {
@@ -247,9 +247,8 @@ class Note extends OffsetSprite {
       return this.late || (Conductor.time - time) > safeZoneOffset;
    }
 
-   inline function get_downscroll():Bool {
-      return (followSpeed && parentStrumline?.downscroll) || (!followSpeed && scrollMult < 0);
-   }
+   inline function get_downscroll():Bool
+      return scrollMult < 0;
 
    inline function get_isSustainNote():Bool
       return sustain != null;
@@ -303,7 +302,11 @@ class Sustain extends TiledSprite {
    }
 
    override function draw():Void {
-      updateSustain();
+      if (!parent.overrideSustain)
+         updateSustain();
+
+      if (regen)
+         regenGraphic();
 
       if (height > 0)
          super.draw();
@@ -329,8 +332,10 @@ class Sustain extends TiledSprite {
       tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
       flipY = (parent.flipSustain && parent.downscroll);
 
-      if (parent.autoClipSustain)
-         scrollY = -parent.holdProgress;
+      if (parent.autoClipSustain) {
+         // clipRect-like effect
+         scrollY = (parent.holdProgress * ((parent.downscroll) ? 0.001 : 0.3)) * parent.scrollSpeed;
+      }
    }
 
    public inline function reloadGraphic():Void {
@@ -359,7 +364,9 @@ class Sustain extends TiledSprite {
    }
 
    override function set_height(v:Float):Float {
-      regen = ((v != height && v > 0) || regen);
+      if (!regen)
+         regen = (v != height && v > 0);
+
       return height = v;
    }
 
