@@ -55,8 +55,6 @@ class Character extends DancingSprite {
     public var type:CharacterType;
 
     public var singAnimations:Array<String> = defaultAnimations.copy();
-
-    public var cameraDisplace:FlxPoint;
     public var holding:Bool = false;
 
     public var singDuration:Float = 4;
@@ -67,53 +65,8 @@ class Character extends DancingSprite {
     private var lastScriptRef:HScript;
     #end
 
-    private function set_character(v:String):String {
-        character = v;
-
-        if (!exists)
-            return v;
-
-        switch (v) {
-            // case "name" to hardcode your characters
-            default:
-                var filePath:String = Assets.yaml('data/characters/${v}');
-
-                if (FileTools.exists(filePath))
-                    data = Tools.parseYAML(FileTools.getContent(filePath));
-                else {
-                    trace('Could not find character "${v}"!');
-                    data = returnDefaultCharacter();
-                }
-
-                setup(data);
-
-                #if ENGINE_SCRIPTING
-                destroyScript();
-
-                if (type != DEBUG && FlxG.state is ScriptableState) {
-                    var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
-                    if (FileTools.exists(scriptPath)) {
-                        var scr:HScript = new HScript(scriptPath, false);
-                        cast(FlxG.state, ScriptableState).addScript(scr);
-                        scr.set("this", this);
-                        scr.call("onInit");
-
-                        lastScriptRef = scr;
-                    }
-                }
-                #end
-        }
-
-        animation.finish();
-        currentDance = 0;
-
-        return v;
-    }
-
     public function new(x:Float = 0, y:Float = 0, character:String = "bf", type:CharacterType = DEFAULT):Void {
         super(x, y);
-
-        cameraDisplace = FlxPoint.get();
 
         this.type = type;
         this.character = character;
@@ -203,24 +156,10 @@ class Character extends DancingSprite {
             config.cameraOffsets = [0, 0];
         while (config.cameraOffsets.length < 2)
             config.cameraOffsets.push(0);
-
-        updateCamDisplace();
     }
 
-    public function updateCamDisplace():Void {
-        if (cameraDisplace == null)
-            return;
-
-        getMidpoint(cameraDisplace);
-        cameraDisplace.x += data.cameraOffsets[0];
-        cameraDisplace.y += data.cameraOffsets[1];
-    }
-
-    public function sing(direction:Int, suffix:String = "", forced:Bool = true):Void {
-        if (suffix == null)
-            suffix = "";
-        playAnimation(singAnimations[direction] + suffix, forced);
-    }
+    public inline function sing(direction:Int, suffix:String = "", forced:Bool = true):Void
+        playAnimation(singAnimations[direction] + (suffix ?? ""), forced);
 
     public function swapAnimations(firstAnimation:String, secondAnimation:String):Void {
         if (!animation.exists(firstAnimation) || !animation.exists(secondAnimation))
@@ -245,9 +184,12 @@ class Character extends DancingSprite {
     }
 
     override public function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
-       super.playAnimation(name, force, reversed, frame);
+        super.playAnimation(name, force, reversed, frame);
         holdTime = 0;
     }
+
+    public inline function getCamDisplace():FlxPoint
+        return getMidpoint().add(data.cameraOffsets[0], data.cameraOffsets[1]);
 
     #if ENGINE_SCRIPTING
     inline function destroyScript():Void {
@@ -261,25 +203,51 @@ class Character extends DancingSprite {
         destroyScript();
         #end
 
-        super.destroy();
-
-        cameraDisplace = FlxDestroyUtil.put(cameraDisplace);
-        
         singAnimations = null;
         character = null;
         data = null;
+
+        super.destroy();
     }
 
-    override function set_x(x:Float):Float {
-        super.set_x(x);
-        updateCamDisplace();
-        return x;
-    }
+    function set_character(v:String):String {
+        if (v != null) {
+            switch (v) {
+                // case "name" to hardcode your characters
+                default:
+                    var filePath:String = Assets.yaml('data/characters/${v}');
+    
+                    if (FileTools.exists(filePath))
+                        data = Tools.parseYAML(FileTools.getContent(filePath));
+                    else {
+                        trace('Could not find character "${v}"!');
+                        data = returnDefaultCharacter();
+                    }
+    
+                    setup(data);
+    
+                    #if ENGINE_SCRIPTING
+                    destroyScript();
+    
+                    if (type != DEBUG && FlxG.state is ScriptableState) {
+                        var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
+                        if (FileTools.exists(scriptPath)) {
+                            var scr:HScript = new HScript(scriptPath, false);
+                            cast(FlxG.state, ScriptableState).addScript(scr);
+                            scr.set("this", this);
+                            scr.call("onInit");
+    
+                            lastScriptRef = scr;
+                        }
+                    }
+                    #end
+            }
 
-    override function set_y(y:Float):Float {
-        super.set_y(y);
-        updateCamDisplace();
-        return y;
+            animation.finish();
+            currentDance = 0;
+        }
+
+        return character = v;
     }
 
     public static function returnDefaultCharacter():CharacterConfig {

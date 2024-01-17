@@ -303,13 +303,11 @@ class PlayState extends MusicBeatState {
       stage.createPost();
 
       // Run the first camera event, then snap the camera's position to it's intended position
-      var cameraEvent:ChartEvent = null;
-      if (song.events.length > 0 && song.events[0].event == "change camera target")
-         cameraEvent = eventManager.loadedEvents.shift();
+      if (song.events.length > 0 && song.events[0].event == "change camera target" && song.events[0].time <= 10)
+         eventManager.runEvent(eventManager.loadedEvents.shift());
       else
-         cameraEvent = { time: 0, event: "change camera target", arguments: [0] };
+         cameraObject.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
 
-      eventManager.runEvent(cameraEvent);
       snapCamera();
 
       if (startTime <= 0) {
@@ -491,16 +489,21 @@ class PlayState extends MusicBeatState {
       #end
    }
 
-   public function snapCamera():Void {
+   public inline function snapCamera():Void {
       repositionCameraPoint();
-      cameraObject.setPosition(cameraPoint.x, cameraPoint.y);
+      cameraObject.setPosition(
+         cameraPoint.x,
+         cameraPoint.y
+      );
    }
 
-   inline public function repositionCameraPoint():Void {
-      if (targetCharacter != null)
-         cameraPoint.set(targetCharacter.cameraDisplace.x, targetCharacter.cameraDisplace.y);
-      else
-         cameraPoint.set(FlxG.width * 0.5, FlxG.height * 0.5);
+   public inline function repositionCameraPoint():Void {
+      if (targetCharacter == null)
+         return;
+
+      var position:FlxPoint = targetCharacter.getCamDisplace();
+      cameraPoint.set(position.x, position.y);
+      position.put();
    }
 
    public function startCountdown(loops:Int = 4, changeBeat:Bool = true):Void { 

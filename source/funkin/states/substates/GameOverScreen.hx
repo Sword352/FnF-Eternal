@@ -9,16 +9,15 @@ import funkin.states.debug.ChartEditor;
 import funkin.states.menus.FreeplayMenu;
 
 class GameOverScreen extends MusicBeatSubState {
-    var character:Character;
     var cameraObject:FlxObject;
+    var character:Character;
 
-    var characterStr:String;
     var data:GameOverProperties;
-
+    var characterStr:String;
     var position:FlxPoint;
 
-    var started:Bool = false;
     var allowInputs:Bool = true;
+    var started:Bool = false;
 
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
@@ -50,12 +49,16 @@ class GameOverScreen extends MusicBeatSubState {
         data = formatProperties(character.data.gameOverProperties ?? PlayState.song.meta.gameOverProperties);
         add(character);
 
-        cameraObject = new FlxObject(character.cameraDisplace.x, character.cameraDisplace.y, 1, 1);
+        cameraObject = new FlxObject(0, 0, 1, 1);
         cameraObject.visible = false;
         add(cameraObject);
 
-        character.playAnimation("firstDeath");
+        var position:FlxPoint = character.getCamDisplace();
+        cameraObject.setPosition(position.x, position.y);
+        position.put();
+
         FlxG.sound.play(Assets.sound(data.deathSound));
+        character.playAnimation("firstDeath");
 
         Conductor.bpm = data.bpm;
         Conductor.music = FlxG.sound.music;
@@ -88,8 +91,8 @@ class GameOverScreen extends MusicBeatSubState {
                 camera.follow(cameraObject, LOCKON, data.cameraSpeed * 0.01);
 
             if (character.animation.curAnim.finished) {
-                started = true;
                 FlxG.sound.playMusic(Assets.music(data.music));
+                started = true;
             }
         }
 
@@ -121,14 +124,14 @@ class GameOverScreen extends MusicBeatSubState {
         super.beatHit(currentBeat);
     }
 
-    private function accept():Void {
+    inline function accept():Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onAccept"))
             return;
         #end
 
-        allowInputs = false;
         Assets.clearAssets = Settings.get("reload assets");
+        allowInputs = false;
 
         Conductor.music = null;
         Tools.stopMusic();
