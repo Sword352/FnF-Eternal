@@ -5,9 +5,6 @@ playerPosition: [700, 450]
 spectatorPosition: [250, 100]
 ratingPosition: [500, 500]
 
-playerCameraOffset: [-150]
-opponentCameraOffset: [0, -50]
-
 objects:
 - {
     image: "stages/stage/stageback",

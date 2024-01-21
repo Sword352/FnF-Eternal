@@ -1,0 +1,7 @@
+songs:
+- { name: Bopeebo, folder: bopeebo }
+- { name: Fresh, folder: fresh }
+- { name: Dadbattle, folder: dadbattle }
+
+image: week1
+characters: ["dad", "Menu_BF", "Menu_GF"]

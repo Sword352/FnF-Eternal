@@ -1,13 +1,8 @@
 image: "characters/BOYFRIEND"
 
-cameraOffsets: [0, -150]
-
-icon: "bf"
-healthBarColor: [49, 176, 209]
-gameOverCharacter: "bf-dead"
-
 animations:
   - { name: "idle",          prefix: "BF idle dance",      fps: 24, loop: false }
+
   - { name: "singLEFT",      prefix: "BF NOTE LEFT0",      fps: 24, loop: false }
   - { name: "singDOWN",      prefix: "BF NOTE DOWN0",      fps: 24, loop: false }
   - { name: "singUP",        prefix: "BF NOTE UP0",        fps: 24, loop: false }
@@ -16,4 +11,12 @@ animations:
   - { name: "singDOWNmiss",  prefix: "BF NOTE DOWN MISS",  fps: 24, loop: false }
   - { name: "singUPmiss",    prefix: "BF NOTE UP MISS",    fps: 24, loop: false }
   - { name: "singRIGHTmiss", prefix: "BF NOTE RIGHT MISS", fps: 24, loop: false }
+
   - { name: "hey",           prefix: "BF HEY!!",           fps: 24, loop: false }
+  - { name: "scared",        prefix: "BF idle shaking",    fps: 24, loop: true  }
+
+icon: "bf"
+healthBarColor: [49, 176, 209]
+
+cameraOffsets: [-150, -150]
+gameOverCharacter: "bf-dead"

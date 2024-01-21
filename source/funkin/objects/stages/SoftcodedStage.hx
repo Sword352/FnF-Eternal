@@ -23,9 +23,9 @@ typedef StageData = {
     var ?spectatorCameraOffset:Array<Float>;
     var ?opponentCameraOffset:Array<Float>;
 
+    var ?cameraSpeed:Float;
     var ?cameraZoom:Float;
     var ?hudZoom:Float;
-    var ?cameraSpeed:Float;
 
     var ?objects:Array<StageObject>;
 }
@@ -282,9 +282,13 @@ class SoftcodedStage extends BaseStage {
     }
 
     override function createPost():Void {
+        var spectator:Character = PlayState.current.spectator;
+        var opponent:Character = PlayState.current.opponent;
+        var player:Character = PlayState.current.player;
+
         for (spr in spectatorFrontSprites) {
-            if (PlayState.current.spectator != null)
-                insert(PlayState.current.members.indexOf(PlayState.current.spectator) + 1, spr);
+            if (spectator != null)
+                insert(PlayState.current.members.indexOf(spectator) + 1, spr);
             else
                 add(spr);
         }
@@ -292,29 +296,43 @@ class SoftcodedStage extends BaseStage {
         for (spr in foregroundSprites)
             add(spr);
 
-        if (PlayState.current.player != null) {
-            PlayState.current.player.data.cameraOffsets[0] += playerCameraOffset[0];
-            PlayState.current.player.data.cameraOffsets[1] += playerCameraOffset[1];
-            PlayState.current.player.setPosition(playerPosition[0], playerPosition[1]);
+        if (player != null) {
+            player.data.cameraOffsets[0] += playerCameraOffset[0];
+            player.data.cameraOffsets[1] += playerCameraOffset[1];
+            player.setPosition(playerPosition[0], playerPosition[1]);
+
+            if (player.data.globalOffsets != null) {
+                player.x += player.data.globalOffsets[0] ?? 0;
+                player.y += player.data.globalOffsets[1] ?? 0;
+            }
         }
 
-        if (PlayState.current.opponent != null) {
-            PlayState.current.opponent.data.cameraOffsets[0] += opponentCameraOffset[0];
-            PlayState.current.opponent.data.cameraOffsets[1] += opponentCameraOffset[1];
-            PlayState.current.opponent.setPosition(opponentPosition[0], opponentPosition[1]);
+        if (opponent != null && opponent != spectator) {
+            opponent.data.cameraOffsets[0] += opponentCameraOffset[0];
+            opponent.data.cameraOffsets[1] += opponentCameraOffset[1];
+            opponent.setPosition(opponentPosition[0], opponentPosition[1]);
+
+            if (opponent.data.globalOffsets != null) {
+                opponent.x += opponent.data.globalOffsets[0] ?? 0;
+                opponent.y += opponent.data.globalOffsets[1] ?? 0;
+            }
         }
 
-        if (PlayState.current.spectator != null) {
-            PlayState.current.spectator.data.cameraOffsets[0] += spectatorCameraOffset[0];
-            PlayState.current.spectator.data.cameraOffsets[1] += spectatorCameraOffset[1];
-            PlayState.current.spectator.setPosition(spectatorPosition[0], spectatorPosition[1]);
-            PlayState.current.spectator.visible = showSpectator;
+        if (spectator != null) {
+            spectator.visible = showSpectator;
+            
+            spectator.data.cameraOffsets[0] += spectatorCameraOffset[0];
+            spectator.data.cameraOffsets[1] += spectatorCameraOffset[1];
+            spectator.setPosition(spectatorPosition[0], spectatorPosition[1]);
+
+            if (spectator.data.globalOffsets != null) {
+                spectator.x += spectator.data.globalOffsets[0] ?? 0;
+                spectator.y += spectator.data.globalOffsets[1] ?? 0;
+            }
         }
 
-        if (!Settings.get("judgements on user interface")) {
+        if (!Settings.get("judgements on user interface"))
             PlayState.current.ratingSprites.setPosition(ratingPosition[0], ratingPosition[1]);
-            // PlayState.current.comboSprites.setPosition(ratingPosition[0] + 43, ratingPosition[1] + 140);
-        }
     }
 
     override function beatHit(currentBeat:Int):Void {
@@ -345,7 +363,7 @@ class SoftcodedStage extends BaseStage {
         #end
     }
 
-    private function setDefaults():Void {
+    inline function setDefaults():Void {
         playerPosition = [800, 0];
         spectatorPosition = [600, 0];
         opponentPosition = [350, 0];

@@ -208,7 +208,7 @@ class PlayState extends MusicBeatState {
       strumLines.cameras = [camHUD];
       add(strumLines);
 
-      if (song.meta.opponent != null)
+      if (song.meta.opponent != null && song.meta.spectator != song.meta.opponent)
          opponent = new Character(200, 0, song.meta.opponent);
 
       if (song.meta.player != null)
@@ -240,6 +240,10 @@ class PlayState extends MusicBeatState {
       if (song.meta.spectator != null) {
          spectator = new Character(400, 0, song.meta.spectator);
          add(spectator);
+
+         // make the spectator behave as the opponent
+         if (song.meta.opponent != null && song.meta.opponent == song.meta.spectator)
+            opponent = spectator;
       }
 
       if (song.meta.opponent != null) {
@@ -406,9 +410,14 @@ class PlayState extends MusicBeatState {
    }
 
    override function beatHit(currentBeat:Int):Void {
-      for (character in [player, spectator, opponent])
-         if (character != null)
-            character.dance(currentBeat);
+      if (player != null)
+         player.dance(currentBeat);
+
+      if (spectator != null)
+         spectator.dance(currentBeat);
+
+      if (opponent != null && opponent != spectator)
+         opponent.dance(currentBeat);
 
       stage.beatHit(currentBeat);
 

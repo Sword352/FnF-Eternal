@@ -19,7 +19,7 @@ class StoryMenu extends MusicBeatState {
     var songDisplay:FlxText;
     var tracks:FlxText;
 
-    var charactersData:Map<String, Dynamic> = [];
+    var charactersData:Map<String, StoryCharacterData> = [];
     var characters:FlxTypedSpriteGroup<StoryMenuCharacter>;
 
     var weeks:Array<WeekStructure>;
@@ -72,11 +72,12 @@ class StoryMenu extends MusicBeatState {
         #end
 
         Tools.playMusicCheck("freakyMenu");
-
-        Conductor.bpm = 102;
         Conductor.music = FlxG.sound.music;
+        Conductor.bpm = 102;
 
         // load menu characters
+        var cacheHelper:FlxSprite = null;
+
         for (week in weeks) {
             if (week.characters == null)
                 continue;
@@ -85,10 +86,19 @@ class StoryMenu extends MusicBeatState {
                 if (character == "#NONE" || charactersData.exists(character))
                     continue;
 
-                var path:String = Assets.yaml('images/menus/story/characters/${character}');
-                charactersData.set(character, Tools.parseYAML(FileTools.getContent(path)));
+                if (cacheHelper == null) {
+                    cacheHelper = new FlxSprite();
+                    cacheHelper.alpha = 0.00001;
+                    add(cacheHelper);
+                }
 
-                Assets.getSparrowAtlas('menus/story/characters/${character}');
+                var data:Dynamic = Tools.parseYAML(FileTools.getContent(Assets.yaml('images/menus/story/characters/${character}')));
+                charactersData.set(character, data);
+
+                // does this really cache all spritesheets?
+                // TODO: test if it does
+                cacheHelper.frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
+                @:privateAccess cacheHelper.drawComplex(camera);
             }
         }
 
@@ -124,11 +134,11 @@ class StoryMenu extends MusicBeatState {
         for (i in 0...2) {
             var direction:String = (i == 0) ? "left" : "right";
 
-            var arrow:OffsetSprite = new OffsetSprite(FlxG.width * 0.8 + 150 * i, yellowOverlay.y + yellowOverlay.height + 10);
+            var arrow:OffsetSprite = new OffsetSprite((FlxG.width * 0.8) + (150 * i), yellowOverlay.y + yellowOverlay.height + 10);
             arrow.frames = Assets.getSparrowAtlas("menus/story/ui");
-            arrow.animation.addByPrefix("normal", 'arrow ${direction}', 1);
-            arrow.animation.addByPrefix("press", 'arrow push ${direction}', 1);
-            arrow.animation.play("normal");
+            arrow.animation.addByPrefix("normal", 'arrow ${direction}', 0);
+            arrow.animation.addByPrefix("press", 'arrow push ${direction}', 0);
+            arrow.animation.play("normal", true);
             arrow.ID = i;
             arrows.add(arrow);
         }
@@ -234,13 +244,13 @@ class StoryMenu extends MusicBeatState {
 
     override function beatHit(currentBeat:Int):Void {
         for (character in characters)
-            if (character.danceAnimations.length > 0)
+            if (character.danceAnimations.length > 0 && character.animation.name != "confirm")
                 character.dance(currentBeat, true);
 
         super.beatHit(currentBeat);
     }
 
-    function changeSelection(i:Int = 0):Void {
+    inline function changeSelection(i:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [i]))
             return;
@@ -259,8 +269,14 @@ class StoryMenu extends MusicBeatState {
         tagline.text = weeks[currentSelection].tagline;
         tagline.x = FlxG.width - tagline.width - 10;
 
+        var oldDifficulty:String = (difficulties != null) ? difficulties[currentDifficulty] : null;
+        
         difficulties = weeks[currentSelection].difficulties;
         currentDifficulty = Std.int(FlxMath.bound(currentDifficulty, 0, difficulties.length - 1));
+
+        if (difficulties.contains(oldDifficulty))
+            currentDifficulty = difficulties.indexOf(oldDifficulty);
+
         updateDifficultySprite();
 
         var songList:String = "";
@@ -275,21 +291,20 @@ class StoryMenu extends MusicBeatState {
         var intendedCharacters:Array<String> = weeks[currentSelection].characters;
         characters.visible = intendedCharacters != null;
 
-        if (!characters.visible)
-            return;
-
-        for (i in 0...characters.members.length) {
-            var characterString:String = intendedCharacters[i];
-            var character:StoryMenuCharacter = characters.members[i];
-
-            character.visible = (characterString != null && characterString != "#NONE");
-            if (!character.visible)
-                continue;
-
-            character.setup(characterString, charactersData.get(characterString));
-            character.x = (FlxG.width * 0.25) * (i + 1) - 150;
-            character.centerToObject(yellowOverlay, Y);
-        } 
+        if (characters.visible) {
+            for (i in 0...characters.members.length) {
+                var characterString:String = intendedCharacters[i];
+                var character:StoryMenuCharacter = characters.members[i];
+    
+                character.visible = (characterString != null && characterString != "#NONE");
+                if (!character.visible)
+                    continue;
+    
+                character.setup(characterString, charactersData.get(characterString));
+                character.x = (FlxG.width * 0.25) * (i + 1) - 150;
+                character.centerToObject(yellowOverlay, Y);
+            }
+        }
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [i]);
@@ -311,7 +326,7 @@ class StoryMenu extends MusicBeatState {
         #end
     }
 
-    function updateDifficultySprite():Void {
+    inline function updateDifficultySprite():Void {
         var graphic = Assets.image('menus/story/${difficulties[currentDifficulty]}');
         if (difficultySprite.graphic == graphic)
             return;
@@ -319,14 +334,15 @@ class StoryMenu extends MusicBeatState {
         FlxTween.cancelTweensOf(difficultySprite);
 
         difficultySprite.loadGraphic(graphic);
-        difficultySprite.x = (FlxG.width - difficultySprite.width) * 0.9;
+        difficultySprite.updateHitbox();
+        difficultySprite.x = (FlxG.width * 0.825) - (difficultySprite.width * 0.5);
 
         var leftArrow:FlxSprite = arrows.members[0];
         var rightArrow:FlxSprite = arrows.members[1];
 
-        rightArrow.x = Math.min(difficultySprite.x + difficultySprite.width, FlxG.width - rightArrow.width);
-        difficultySprite.setPosition(rightArrow.x - difficultySprite.width - 10, rightArrow.y - 15);
         leftArrow.x = difficultySprite.x - leftArrow.width - 10;
+        rightArrow.x = difficultySprite.x + difficultySprite.width + 10;
+        difficultySprite.y = rightArrow.y - 15;
 
         difficultySprite.alpha = 0;
         FlxTween.tween(difficultySprite, {y: rightArrow.y + 15, alpha: 1}, 0.07);
@@ -336,9 +352,7 @@ class StoryMenu extends MusicBeatState {
         intendedScore = 0;
 
         for (song in weeks[currentSelection].songs)
-            intendedScore += HighScore.get('${song}-${difficulties[currentDifficulty]}_story').score;
-
-        intendedScore = Std.int(intendedScore);
+            intendedScore += Math.floor(HighScore.get('${song}-${difficulties[currentDifficulty]}_story').score);
     }
 
     inline function accept():Void {
@@ -353,8 +367,11 @@ class StoryMenu extends MusicBeatState {
         weekSprites.members[currentSelection].color = FlxColor.CYAN;
         doFlash = !Settings.get("disable flashing lights");
 
-        var songs:Array<String> = [for (s in weeks[currentSelection].songs) s.folder];
+        for (character in characters)
+            if (character.animation.exists("confirm"))
+                character.playAnimation("confirm", true);
 
+        var songs:Array<String> = [for (s in weeks[currentSelection].songs) s.folder];
         TransitionSubState.onComplete.add(() -> PlayState.load(songs.shift(), difficulties[currentDifficulty]));
         PlayState.songPlaylist = songs;
 
@@ -366,12 +383,11 @@ class StoryMenu extends MusicBeatState {
     }
 
     override function destroy():Void {
-        super.destroy();
-        
         weeks = null;
         difficulties = null;
-
         charactersData = null;
+
+        super.destroy();
     }
 
     public static function loadWeeks():Array<WeekStructure> {
@@ -432,29 +448,50 @@ class StoryMenu extends MusicBeatState {
 }
 
 private class StoryMenuCharacter extends DancingSprite {
-    public var character:String;
+    var globalOffsets:Array<Float> = [0, 0];
+    var character:String;
 
-    public function setup(character:String, data:Dynamic):Void {
+    public function setup(character:String, data:StoryCharacterData):Void {
         if (this.character == character)
             return;
 
         this.character = character;
 
-        frames = Assets.getSparrowAtlas('menus/story/characters/${character}');
-        Tools.addYamlAnimations(this, cast data.animations);
+        frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
+        Tools.addYamlAnimations(this, data.animations);
 
-        danceAnimations = (data.danceAnimations == null) ? ["idle"] : cast data.danceAnimations;
+        danceAnimations = data.danceAnimations ?? ["idle"];
         beat = data.danceBeat ?? 1;
+
+        if (data.globalOffsets != null) {
+            globalOffsets[0] = data.globalOffsets[0] ?? 0;
+            globalOffsets[1] = data.globalOffsets[1] ?? 0;
+        }
+        else {
+            globalOffsets[0] = 0;
+            globalOffsets[1] = 0;
+        }
+
+        flipX = data.flipX ?? false;
 
         scale.set(data.scale ?? 1, data.scale ?? 1);
         updateHitbox();
 
-        flipX = data.flipX ?? false;
+        forceDance(true);
+        animation.finish();
+        
+        currentDance = 0;
+    }
+
+    override function forceDance(forced:Bool = false):Void {
+        super.forceDance(forced);
+        offset.add(globalOffsets[0], globalOffsets[1]);
     }
 
     override function destroy():Void {
-        super.destroy();
+        globalOffsets = null;
         character = null;
+        super.destroy();
     }
 }
 
@@ -465,11 +502,21 @@ private class StoryMenuCharacter extends DancingSprite {
     public var image:String;
     public var tagline:String;
     public var characters:Array<String>;
-
-    // public var color:FlxColor;
 }
 
 typedef WeekSong = {
     var name:String;
     var folder:String;
+}
+
+typedef StoryCharacterData = {
+    var ?image:String;
+    var animations:Array<YAMLAnimation>;
+
+    var ?danceAnimations:Array<String>;
+    var ?danceBeat:Float;
+
+    var ?globalOffsets:Array<Float>;
+    var ?scale:Float;
+    var ?flipX:Bool;
 }

@@ -1,0 +1,7 @@
+songs:
+- { name: Spookeez, folder: spookeez }
+- { name: South, folder: south }
+- { name: Monster, folder: monster }
+
+image: week2
+characters: ["spooky-kids", "Menu_BF", "Menu_GF"]

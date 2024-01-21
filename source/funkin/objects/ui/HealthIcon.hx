@@ -52,6 +52,8 @@ class HealthIcon extends OffsetSprite {
         _character = icon;
 
         if (newGraphic == null) {
+            trace('Could not find icon "${icon}"!');
+            
             newGraphic = Assets.image('icons/${DEFAULT_ICON}');
             _character = DEFAULT_ICON;
         }

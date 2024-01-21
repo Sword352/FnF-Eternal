@@ -27,16 +27,17 @@ typedef CharacterConfig = {
     var ?danceAnimations:Array<String>;
     var ?danceBeat:Float;
 
-    var ?healthBarColor:Dynamic;
     var ?cameraOffsets:Array<Float>;
+    var ?globalOffsets:Array<Float>;
 
     var ?icon:String;
     var ?noteSkin:String;
+    var ?healthBarColor:Dynamic;
 
     var ?gameOverCharacter:String;
     var ?gameOverProperties:GameOverProperties;
 
-    var ?playerFlip:Bool;
+    var ?playerFlip:Bool;    
     var ?extra:Dynamic;
 }
 
@@ -146,7 +147,7 @@ class Character extends DancingSprite {
             playAnimation(danceAnimations[0], true);
         }
 
-        if (type == PLAYER && data.playerFlip != null && data.playerFlip) {
+        if (type == PLAYER && data.playerFlip) {
             swapAnimations(singAnimations[0], singAnimations[3]);
             swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
             flipX = !flipX;
@@ -161,7 +162,7 @@ class Character extends DancingSprite {
     public inline function sing(direction:Int, suffix:String = "", forced:Bool = true):Void
         playAnimation(singAnimations[direction] + (suffix ?? ""), forced);
 
-    public function swapAnimations(firstAnimation:String, secondAnimation:String):Void {
+    inline function swapAnimations(firstAnimation:String, secondAnimation:String):Void {
         if (!animation.exists(firstAnimation) || !animation.exists(secondAnimation))
             return;
 

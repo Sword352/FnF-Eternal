@@ -1,0 +1,51 @@
+receptor: {
+    image: "noteskins/arrows-pixels",
+    centeredOffsets: true,
+    frameRect: [17, 17],
+
+    animations: [
+        {name: "static left",  frames: [0], fps: 0},
+        {name: "static down",  frames: [1], fps: 0},
+        {name: "static up",    frames: [2], fps: 0},
+        {name: "static right", frames: [3], fps: 0},
+
+        {name: "press left",  frames: [4, 8], fps: 12},
+        {name: "press down",  frames: [5, 9], fps: 12},
+        {name: "press up",    frames: [6, 10], fps: 12},
+        {name: "press right", frames: [7, 11], fps: 12},
+
+        {name: "confirm left",  frames: [12, 16], fps: 12},
+        {name: "confirm down",  frames: [13, 17], fps: 12},
+        {name: "confirm up",    frames: [14, 18], fps: 12},
+        {name: "confirm right", frames: [15, 19], fps: 12}
+    ],
+    
+    scale: [6, 6],
+    antialiasing: false
+}
+
+note: {
+    image: "noteskins/arrows-pixels",
+    centeredOffsets: true,
+    frameRect: [17, 17],
+
+    animations: [
+        {name: "left",  frames: [4], fps: 0},
+        {name: "down",  frames: [5], fps: 0},
+        {name: "up",    frames: [6], fps: 0},
+        {name: "right", frames: [7], fps: 0},
+
+        {name: "left hold",  frames: [20], fps: 0},
+        {name: "down hold",  frames: [21], fps: 0},
+        {name: "up hold",    frames: [22], fps: 0},
+        {name: "right hold", frames: [23], fps: 0},
+
+        {name: "left end",  frames: [24], fps: 0},
+        {name: "down end",  frames: [25], fps: 0},
+        {name: "up end",    frames: [26], fps: 0},
+        {name: "right end", frames: [27], fps: 0},
+    ],
+    
+    scale: [6, 6],
+    antialiasing: false
+}

@@ -13,8 +13,13 @@ import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 
 class FreeplayMenu extends MusicBeatState {
-    var items:FlxTypedGroup<Alphabet>;
     var background:FlxSprite;
+
+    var bgTimer:Float = 0;
+    var oldBgCol:FlxColor;
+    var bgCol:FlxColor;
+
+    var items:FlxTypedGroup<Alphabet>;
 
     var scoreText:BGText;
     var scoreBG:FlxSprite;
@@ -196,6 +201,11 @@ class FreeplayMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
+        if (background.color != bgCol) {
+            background.color = FlxColor.interpolate(oldBgCol, bgCol, bgTimer / 0.75);
+            bgTimer = Math.min(bgTimer + elapsed, 0.75);
+        }
+
         if (allowInputs) {
             if (items.length > 1 && controls.anyJustPressed(["up", "down"]))
                 changeSelection(controls.lastAction == "up" ? -1 : 1);
@@ -205,7 +215,7 @@ class FreeplayMenu extends MusicBeatState {
             #else
             if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) {
             #end
-                currentDifficulty = Math.floor(FlxMath.bound(currentDifficulty + (controls.lastAction == "left" ? -1 : 1), 0, difficulties.length - 1));
+                currentDifficulty = FlxMath.wrap(currentDifficulty + ((controls.lastAction == "left") ? -1 : 1), 0, difficulties.length - 1);
                 updateScoreData();
                 
                 #if ENGINE_SCRIPTING
@@ -215,9 +225,7 @@ class FreeplayMenu extends MusicBeatState {
 
             if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER && Settings.get("editor access")) {
                 openChartEditor();
-
-                // we return here in case the "accept" keybind contains the "ENTER" key
-                return; 
+                return; // avoid conflicts with other keybinds
             }
 
             if (controls.justPressed("accept"))
@@ -273,7 +281,6 @@ class FreeplayMenu extends MusicBeatState {
         detailsText.clipRect = detailsText.clipRect;
 
         detailsText.x = Tools.lerp(detailsText.x, scoreText.x + (scoreText.width * 0.5) - (detailsText.width * 0.5), 24);
-
         updateDifficultyText();
 
         #if ENGINE_SCRIPTING
@@ -300,16 +307,22 @@ class FreeplayMenu extends MusicBeatState {
                 spr.alpha = item.alpha;
         }
 
-        FlxTween.cancelTweensOf(background);
-        FlxTween.color(background, 0.75, background.color, songs[currentSelection].color);
+        oldBgCol = background.color;
+        bgCol = songs[currentSelection].color;
+        bgTimer = 0;
 
         if (playMusic) {
             playMusic = false;
             stopMusic();
         }
 
+        var oldDifficulty:String = difficulties[currentDifficulty];
         difficulties = songs[currentSelection].difficulties;
         currentDifficulty = Std.int(FlxMath.bound(currentDifficulty, 0, difficulties.length - 1));
+
+        if (difficulties.contains(oldDifficulty))
+            currentDifficulty = difficulties.indexOf(oldDifficulty);
+
         updateScoreData();
 
         #if ENGINE_SCRIPTING

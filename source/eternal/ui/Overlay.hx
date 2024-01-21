@@ -1,8 +1,6 @@
 package eternal.ui;
 
 import openfl.system.System;
-import haxe.Timer.stamp as stamp;
-
 import openfl.display.Sprite;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
@@ -17,8 +15,7 @@ class Overlay extends Sprite {
     public var showFramerate:Bool = Settings.get("show framerate");
     public var showMemory:Bool = Settings.get("show memory");
 
-    // TODO: maybe use another method to calculate the frameate?
-    var fps:Array<Float> = [];
+    var frames:Array<Float> = [];
 
     public function new() {
         super();
@@ -58,24 +55,23 @@ class Overlay extends Sprite {
         if (!visible)
             return;
 
-        updateFramerate();
-
         text.text = ""
-            +  ((showFramerate) ? '${Math.min(FlxG.updateFramerate, fps.length)} FPS' : "")
-            +  ((showFramerate && showMemory) ? ' / ' : "")
-            +  ((showMemory) ? FlxStringUtil.formatBytes(System.totalMemory) : '');
-
+            + ((showFramerate) ? '${Math.min(FlxG.updateFramerate, getFramerate())} FPS' : "")
+            + ((showFramerate && showMemory) ? ' / ' : "")
+            + ((showMemory) ? FlxStringUtil.formatBytes(cast(System.totalMemory, Float)) : '');
         text.width = text.textWidth;
 
         background.width = text.width + 20;
         background.visible = showBackground && (showFramerate || showMemory);
     }
 
-    function updateFramerate():Void {
-        var currentTime:Float = stamp();
-        // we're using an array for interpolation
-        fps.push(currentTime);
-        while (fps[0] < currentTime - 1)
-            fps.shift();
+    inline function getFramerate():Int {
+        var ticks:Float = FlxG.game.ticks;
+        frames.push(ticks);
+
+        while (frames[0] < ticks - 1000)
+            frames.shift();
+
+        return frames.length;
     }
 }

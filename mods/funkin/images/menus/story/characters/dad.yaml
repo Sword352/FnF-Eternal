@@ -1,0 +1,5 @@
+image: campaign_menu_UI_characters
+animations: [ { name: "idle", prefix: Dad idle dance BLACK LINE } ]
+
+globalOffsets: [35, 225]
+scale: 0.45

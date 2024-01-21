@@ -1,0 +1,5 @@
+image: campaign_menu_UI_characters
+animations: [{ name: "idle", prefix: spooky dance idle BLACK LINES, indices: [0, 2, 6, 8, 10, 12, 14], fps: 12, loop: true }]
+
+globalOffsets: [100, 120]
+scale: 0.5

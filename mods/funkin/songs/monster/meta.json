@@ -1,0 +1,12 @@
+{
+    "name": "Monster",
+    "rawName": "monster",
+
+    "instFile": "Inst",
+    "voiceFiles": ["Voices"],
+
+    "spectator": "girlfriend",
+    "opponent": "monster",
+    "player": "boyfriend",
+    "stage": "spooky"
+}

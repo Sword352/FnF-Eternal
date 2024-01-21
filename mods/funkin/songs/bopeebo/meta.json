@@ -1,0 +1,13 @@
+{
+    "name": "Bopeebo",
+    "rawName": "bopeebo",
+
+    "instFile": "Inst",
+    "voiceFiles": ["Voices"],
+
+    "opponent": "dad",
+    "spectator": "girlfriend",
+    "player": "boyfriend",
+
+    "stage": "stage"
+}

@@ -13,6 +13,8 @@ scale: [6, 6]
 flip: [true, false]
 antialiasing: false
 
-icon: "bf-pixel"
-cameraOffsets: [0, -150]
+icon: bf-pixel
+noteSkin: pixel
+
+cameraOffsets: [0, -200]
 healthBarColor: [0, 255, 255]

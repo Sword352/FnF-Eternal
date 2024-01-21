@@ -1,1 +1,8 @@
-Test || test || bf-pixel || cyan || Easy/Normal/Hard
+Test || test || bf-pixel || cyan || Normal
+Tutorial || tutorial || gf || #a5004d || Normal
+Bopeebo || bopeebo || dad || #9271fd
+Fresh || fresh || dad || #9271fd
+Dadbattle || dadbattle || dad || #9271fd
+Spookeez || spookeez || spooky || #154c79
+South || south || spooky || #154c79
+Monster || monster || monster || #051650

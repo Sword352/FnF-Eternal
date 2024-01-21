@@ -1,0 +1,13 @@
+{
+    "name": "Fresh",
+    "rawName": "fresh",
+
+    "instFile": "Inst",
+    "voiceFiles": ["Voices"],
+
+    "opponent": "dad",
+    "spectator": "girlfriend",
+    "player": "boyfriend",
+
+    "stage": "stage"
+}

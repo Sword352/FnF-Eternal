@@ -11,7 +11,7 @@ import flixel.FlxSubState;
 
         var path:String = Assets.getPath('data/states/${script}', SCRIPT);
         if (!FileTools.exists(path)) {
-            trace('Could not find state script ${script}!');
+            trace('Could not find state script "${script}"!');
             return;
         }
 
@@ -44,7 +44,7 @@ import flixel.FlxSubState;
 
         var path:String = Assets.getPath('data/substates/${script}', SCRIPT);
         if (!FileTools.exists(path)) {
-            trace('Could not find substate script ${script}!');
+            trace('Could not find substate script "${script}"!');
             return;
         }
 
