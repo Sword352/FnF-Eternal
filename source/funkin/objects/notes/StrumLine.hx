@@ -83,6 +83,7 @@ class StrumLine extends FlxGroup {
          if (!cpu && note.late && !note.missed && !note.goodHit)
             miss(note);
 
+         // TODO: check by time instead of y
          if (note.missed && !note.isSustainNote && ((!note.downscroll && note.y < -note.height) || (note.downscroll && note.y > FlxG.height)))
             notesToRemove.push(note);
 

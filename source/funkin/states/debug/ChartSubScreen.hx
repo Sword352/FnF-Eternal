@@ -109,7 +109,6 @@ class ChartSubScreen extends FlxSubState {
         metronomeSlider.includeInLayout = false;
         metronomeSlider.top = 20;
 
-        // apparently cpp cannot do math from "dynamic" values??
         var vol:Float = Settings.get("CHART_metronomeVolume");
         metronomeSlider.pos = vol * 100;
 
@@ -356,11 +355,16 @@ class ChartSubScreen extends FlxSubState {
         eventDropdown.onChange = (_) -> {
             var event:EventDetails = parent.eventList.get(eventDropdown.value);
 
+            // if we already have a selected event, change the event
             var selectedEvent = parent.selectedEvent;
             if (selectedEvent != null && selectedEvent.data.event != event.name) {
                 selectedEvent.data.event = event.name;
                 selectedEvent.display = (event.display ?? event.name);
-                selectedEvent.data.arguments = [for (a in event.arguments) a.defaultValue];
+
+                if (event.arguments != null)
+                    selectedEvent.data.arguments = [for (a in event.arguments) a.defaultValue];
+                else
+                    selectedEvent.data.arguments = null;
             }
 
             description.text = event.description ?? "No description.";
@@ -371,41 +375,48 @@ class ChartSubScreen extends FlxSubState {
             while (propStorage.length > 0)
                 argumentsEditor.removeComponent(propStorage.shift());
 
-            for (arg in event.arguments) {
-                var propIndex:Int = event.arguments.indexOf(arg);
-                var typeLower:String = arg.type.toLowerCase();
-
-                var prop:Property = new Property();
-                prop.label = arg.name;
-                prop.type = switch (typeLower) {
-                    case "string": (arg.valueList == null) ? "text" : "list";
-                    case "bool": "boolean";
-                    default: typeLower;
-                };
-
-                if (prop.type == "list")
-                    for (entry in arg.valueList)
-                        prop.dataSource.add(entry);
-
-                prop.onChange = (_) -> {
-                    var val:Dynamic = prop.value;
-                    if (prop.type == "text" && cast(prop.value, String).length < 1)
-                        val = null;
-                    else if (typeLower == "int" && prop.value is Float && !(prop.value is Int))
-                        val = prop.value = Math.floor(prop.value);
-
-                    if (selectedEvent != null)
-                        selectedEvent.data.arguments[propIndex] = val;
-                    parent.defaultArgs[propIndex] = val;
+            if (event.arguments != null) {
+                for (arg in event.arguments) {
+                    var propIndex:Int = event.arguments.indexOf(arg);
+                    var typeLower:String = arg.type.toLowerCase();
+    
+                    var prop:Property = new Property();
+                    prop.label = arg.name;
+                    prop.type = switch (typeLower) {
+                        case "string": (arg.valueList == null) ? "text" : "list";
+                        case "bool": "boolean";
+                        default: typeLower;
+                    };
+    
+                    if (prop.type == "list")
+                        for (entry in arg.valueList)
+                            prop.dataSource.add(entry);
+    
+                    prop.onChange = (_) -> {
+                        var val:Dynamic = prop.value;
+                        if (prop.type == "text") {
+                            var str:String = cast prop.value;
+                            if (str.length < 1 || str == "null")
+                                val = null;
+                        }
+                        else if (typeLower == "int" && prop.value is Float && !(prop.value is Int))
+                            val = prop.value = Math.floor(prop.value);
+    
+                        if (selectedEvent != null)
+                            selectedEvent.data.arguments[propIndex] = val;
+    
+                        parent.defaultArgs[propIndex] = val;
+                    }
+    
+                    // if there is a selected event, get the value from it, otherwise use default values
+                    if (selectedEvent != null && selectedEvent.data.event == event.name)
+                        prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.defaultArgs[propIndex];
+                    else
+                        prop.value = parent.defaultArgs[propIndex] ?? event.arguments[propIndex].defaultValue;
+    
+                    argumentsEditor.addComponent(prop);
+                    propStorage.push(prop);
                 }
-
-                if (parent.currentEvent.name == event.name)
-                    prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.defaultArgs[propIndex];
-                else
-                    prop.value = event.arguments[propIndex].defaultValue;
-
-                argumentsEditor.addComponent(prop);
-                propStorage.push(prop);
             }
 
             if (selectedEvent == null) {
@@ -488,6 +499,7 @@ class ChartSubScreen extends FlxSubState {
 
     inline function createPage(text:String):Box {
         var page:Box = new Box();
+        page.percentWidth = page.percentHeight = 100;
         page.text = text;
         menu.addComponent(page);
         return page;

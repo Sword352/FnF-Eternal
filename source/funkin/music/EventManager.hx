@@ -66,14 +66,17 @@ class EventManager extends FlxBasic {
         }
     ];
 
-    public var charactersMap(default, null):Map<String, Character> = [];
-    
+    public var events:Array<ChartEvent>;
+
     #if ENGINE_SCRIPTING
-    public var scriptsMap(default, null):Map<String, HScript> = [];
+    var scriptsMap:Map<String, HScript> = [for (event in defaultEvents) event.name => null];
     #end
 
-    public var loadedEvents(default, null):Array<ChartEvent> = [];
-    public var game(default, null):PlayState;
+    var charactersMap:Map<String, Character> = [];
+
+    var game(get, never):PlayState;
+    inline function get_game():PlayState
+        return PlayState.current;
 
     var lastBpmChange:Float = 0;
     var bpmOffset:Float = 0;
@@ -82,26 +85,23 @@ class EventManager extends FlxBasic {
     var beatOffset:Float = 0;
     var lastTS:Float = 0;
 
-    public function new(game:PlayState):Void {
-        this.game = game;
+    public function new():Void {
         super();
+        visible = false;
     }
 
     override function update(elapsed:Float):Void {
-        while (loadedEvents.length > 0 && Conductor.time >= loadedEvents[0].time)
-            runEvent(loadedEvents.shift());
+        while (events.length > 0 && Conductor.time >= events[0].time)
+            runEvent(events.shift());
     }
 
-    public function loadEvents(events:Array<ChartEvent>):Void {
-        if (events.length < 1)
-            return;
-        
-        loadedEvents = events.copy();
-        loadedEvents.sort((e1, e2) -> FlxSort.byValues(FlxSort.ASCENDING, e1.time, e2.time));
+    public inline function loadEvents(events:Array<ChartEvent>):Void {        
+        this.events = events.copy();
+        this.events.sort((e1, e2) -> Std.int(e1.time - e2.time));
 
         var i:Int = 0;
-        while (i < loadedEvents.length)
-            runPreload(loadedEvents[i++]);
+        while (i < this.events.length)
+            runPreload(this.events[i++]);
     }
 
     public function runEvent(event:ChartEvent):Void {
@@ -164,20 +164,16 @@ class EventManager extends FlxBasic {
 
                 Conductor.stepsPerBeat = event.arguments[0];
                 */
-            #if ENGINE_SCRIPTING
-            case "custom event":
-                var name:String = event.arguments[0];
-                var args:Array<Any> = event.arguments[1];
-
-                if (!scriptsMap.exists(name))
-                    trace('Event script "${name}" was not found!');
-                else {
-                    var script:HScript = scriptsMap.get(name);
-                    script.set("triggered", true);
-                    script.call("onEvent", [event, args]);
-                }
-            #end
             default:
+                #if ENGINE_SCRIPTING
+                // scripted event
+                var script:HScript = scriptsMap.get(event.event);
+                if (script != null) {
+                    script.set("lastEvent", event);
+                    script.set("triggered", true);
+                    script.call("onEvent", event.arguments);
+                }
+                #end
         }
 
         #if ENGINE_SCRIPTING
@@ -199,23 +195,25 @@ class EventManager extends FlxBasic {
                 // preloading
                 if (!charactersMap.exists(newCharacter))
                     charactersMap.set(newCharacter, new Character(0, 0, newCharacter, (whose == 2) ? PLAYER : DEFAULT));
-            #if ENGINE_SCRIPTING
-            case "custom event":
-                var name:String = event.arguments[0];
-                if (!scriptsMap.exists(name)) {
-                    var script:HScript = new HScript(Assets.getPath('data/events/${name}', SCRIPT));
-                    if (script.state != ALIVE)
-                        trace('Failed loading event script "${name}"!');
-                    else {
+            default:
+                #if ENGINE_SCRIPTING
+                if (!scriptsMap.exists(event.event)) {
+                    var path:String = Assets.getPath('data/events/${event.event}', SCRIPT);
+                    if (FileTools.exists(path)) {
+                        var script:HScript = new HScript(path, false);
+                        scriptsMap.set(event.event, script);
                         game.addScript(script);
-                        scriptsMap.set(name, script);
-        
+
                         script.set("triggered", false);
-                        script.call("onPreload", [event.arguments[1]]);   
+                        script.call("onPreload", event.arguments);
+                    }
+                    else {
+                        // no warning since you can code events outside of event scripts
+                        // trace('Failed loading event script "${event.event}"!');
+                        scriptsMap.set(event.event, null);
                     }
                 }
-            #end
-            default:
+                #end
         }
 
         #if ENGINE_SCRIPTING
@@ -230,8 +228,7 @@ class EventManager extends FlxBasic {
             charactersMap = null;
         }
 
-        loadedEvents = null;
-        game = null;
+        events = null;
 
         #if ENGINE_SCRIPTING scriptsMap = null; #end
 

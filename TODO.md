@@ -17,10 +17,11 @@
 - Do all of the TODO stuff that can be found in the code
 
 ### Low Priority
+- Add a multi-atlas feature for all softcoded sprites
+- Add a credits menu
+
 - Better error handling for the story and freeplay menus + on week/song load fail error handling
 - ModState and ModSubState error handling
-
-- Add a credits menu
 
 - Replace the placeholders BF and GF story menu character spritesheets
 - Continue README.md, complete the wiki stuff and move it to proper git wiki
@@ -30,6 +31,7 @@
 - Add softcoded notetypes support
 - Playback rate feature (freeplay only)
 - Extended shader support/tools
+- Add the possibility to enable multiple mods (at the cost of getting some features disableed, like overridable states)
 
   **Future plans**
 - FlxAnimate support?

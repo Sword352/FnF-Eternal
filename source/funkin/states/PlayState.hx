@@ -201,7 +201,7 @@ class PlayState extends MusicBeatState {
       
       cameraZoomBeat = Conductor.beatsPerMeasure;
       
-      eventManager = new EventManager(this);
+      eventManager = new EventManager();
       add(eventManager);
 
       strumLines = new FlxTypedGroup<StrumLine>();
@@ -308,7 +308,7 @@ class PlayState extends MusicBeatState {
 
       // Run the first camera event, then snap the camera's position to it's intended position
       if (song.events.length > 0 && song.events[0].event == "change camera target" && song.events[0].time <= 10)
-         eventManager.runEvent(eventManager.loadedEvents.shift());
+         eventManager.runEvent(eventManager.events.shift());
       else
          cameraObject.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
 
