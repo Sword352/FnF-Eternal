@@ -26,12 +26,8 @@ class NoteSkin {
     }
 
     public static inline function clear():Void {
-        clearWarnings();
-        skins.clear();
-    }
-
-    public static inline function clearWarnings():Void {
         _warnings.splice(0, _warnings.length);
+        skins.clear();
     }
 
     public static inline function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {

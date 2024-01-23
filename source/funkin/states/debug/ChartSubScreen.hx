@@ -424,7 +424,7 @@ class ChartSubScreen extends FlxSubState {
                 parent.currentEvent = event;
             }
         }
-
+        
         for (event in parent.eventList)
             eventDropdown.dataSource.add(event.display ?? event.name);
 

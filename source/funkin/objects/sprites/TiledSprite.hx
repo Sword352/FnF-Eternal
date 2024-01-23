@@ -3,8 +3,15 @@ package funkin.objects.sprites;
 import flixel.graphics.frames.FlxFrame;
 import flixel.addons.display.FlxTiledSprite;
 
+/*
+  TODO:
+  - make scaling not dependant of `repeatX`
+  - fix stretchy texture bug (?)
+*/
+
 // extension of FlxTiledSprite with a fix for scaling
 // @author RapperGF
+
 class TiledSprite extends FlxTiledSprite {
 	override function updateVerticesData():Void {
         if (graphic == null)
@@ -34,7 +41,21 @@ class TiledSprite extends FlxTiledSprite {
         }
 
         if (repeatY) {
-            var tileHeight:Float = height + 2 * 0.1;
+            /*
+            final padding:Float = 0.0;
+            final margin:Float = 0.01;
+            final tileHeight:Float = height + 2 * padding;
+            final scaledTileHeight:Float = tileHeight * scale.y;
+            final uvMargin:Float = margin / frame.sourceSize.y;
+
+            vertices[1] = vertices[3] = -padding;
+            vertices[5] = vertices[7] = tileHeight + padding;
+
+            uvtData[1] = uvtData[3] = (-scrollY / frame.sourceSize.y) + uvMargin;
+            uvtData[5] = uvtData[7] = ((uvtData[1] * frame.sourceSize.y) + scaledTileHeight) * (1 / scale.y) - uvMargin;
+            */
+
+            var tileHeight:Float = height + 0.2;
             var scaledTileHeight:Float = tileHeight * scale.y;
             var uvMargin:Float = 1.0 / frame.sourceSize.y;
 

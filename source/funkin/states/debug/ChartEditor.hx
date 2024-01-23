@@ -1007,7 +1007,11 @@ class EventSprite extends FlxSprite {
     }
 
     override function draw():Void {
-        text.text = '${display ?? data.event}\nArguments: ${data.arguments.join(", ")}';
+        var displayText:String = (display ?? data.event);
+        if (data.arguments != null)
+            displayText += '\nArguments: ${data.arguments.join(", ")}';
+
+        text.text = displayText;
         text.setPosition(x - text.width, y);
 
         if (rect.visible) {

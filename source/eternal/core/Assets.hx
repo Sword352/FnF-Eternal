@@ -180,19 +180,17 @@ class Assets {
 
     // Assets clearing
     inline public static function freeMemory():Void {
-        if (!clearAssets) {
-            NoteSkin.clearWarnings();
+        // Clear the noteskin cache
+        NoteSkin.clear();
+
+        if (!clearAssets)
             return;
-        }
 
         // Clear the cache entirely
         clearCache();
 
         // Clear the OpenFL cache
         OpenFLAssets.cache.clear();
-
-        // Clear the noteskin cache
-        NoteSkin.clear();
 
         // Clear any graphics registered into Flixel's cache
         FlxG.bitmap.dumpCache();

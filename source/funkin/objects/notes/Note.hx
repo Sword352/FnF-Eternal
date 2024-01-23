@@ -284,7 +284,6 @@ class Sustain extends TiledSprite {
    public var parent:Note;
 
    public function new(parent:Note):Void {
-      // TODO: make scaling not dependant of `repeatX`
       super(null, 0, 0, true, true);
 
       tail = new FlxSprite();
