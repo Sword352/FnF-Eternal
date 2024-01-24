@@ -83,8 +83,7 @@ class StrumLine extends FlxGroup {
          if (!cpu && note.late && !note.missed && !note.goodHit)
             miss(note);
 
-         // TODO: check by time instead of y
-         if (note.missed && !note.isSustainNote && ((!note.downscroll && note.y < -note.height) || (note.downscroll && note.y > FlxG.height)))
+         if (note.missed && !note.isSustainNote && note.killIfMissed && Conductor.time > (note.time + (((300 / note.scrollSpeed) / Conductor.playbackRate) + note.lateKillOffset)))
             notesToRemove.push(note);
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
@@ -188,8 +187,7 @@ class StrumLine extends FlxGroup {
 
    public function singCharacters(note:Note):Void {
       for (character in characters) {
-         if ((note.isSustainNote && note.baseVisible) 
-            || (!note.isSustainNote || !Settings.get("disable hold stutter") || character.animation.name != character.singAnimations[note.direction]))
+         if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Settings.get("disable hold stutter"))
             character.sing(note.direction, note.animSuffix);
          else
             character.holdTime = 0;

@@ -1,19 +1,19 @@
 package funkin.objects.stages;
 
-import flixel.util.FlxAxes;
-
-import flixel.addons.display.FlxBackdrop;
 import funkin.objects.sprites.DancingSprite;
 
 #if ENGINE_SCRIPTING
 import eternal.core.scripting.HScript;
 #end
 
-import funkin.states.PlayState;
-
 typedef StageData = {
+    var ?cameraSpeed:Float;
+    var ?cameraZoom:Float;
+    var ?hudZoom:Float;
+
     var ?hideSpectator:Bool;
 
+    // TODO: smaller field names, and rename objects to sprites
     var ?playerPosition:Array<Float>;
     var ?spectatorPosition:Array<Float>;
     var ?opponentPosition:Array<Float>;
@@ -23,91 +23,82 @@ typedef StageData = {
     var ?spectatorCameraOffset:Array<Float>;
     var ?opponentCameraOffset:Array<Float>;
 
-    var ?cameraSpeed:Float;
-    var ?cameraZoom:Float;
-    var ?hudZoom:Float;
-
     var ?objects:Array<StageObject>;
 }
 
+// TODO: maybe add shader support for stage sprites?
 typedef StageObject = {
     var ?name:String; // optional identifier to access the sprite
-
     var ?image:String;
     var ?library:String;
+
     var ?type:String; // sparrow, packer... etc
     var ?layer:String; // foreground / spectator
     var ?rectGraphic:Array<Dynamic>; // makeGraphic()
 
-    // backdrop stuff
-    var ?backdrop:Bool;
-    var ?repeatAxes:String;
-    var ?spacing:Array<Float>;
-    var ?velocity:Array<Float>;
-
     var ?animations:Array<YAMLAnimation>;
-    var ?animationSize:Array<Int>; // used to support animations without atlas
     var ?animationSpeed:Float;
+    var ?frameRect:Array<Int>;
 
     var ?danceAnimations:Array<String>;
     var ?danceBeat:Float;
     
-    var ?position:Array<Float>; // x and y values
-    var ?scrollFactor:Array<Float>;
+    var ?position:Array<Float>;
     var ?parallax:Array<Float>; // same as scrollFactor
+    var ?scrollFactor:Array<Float>;
 
-    var ?alpha:Float;
+    var ?antialiasing:Bool;
     var ?color:Dynamic;
     var ?blend:String;
+    var ?alpha:Float;
 
     var ?scale:Array<Float>;
-    var ?antialiasing:Bool;
     var ?flip:Array<Bool>;
 }
 
-// Only meant to be used in PlayState!
-class SoftcodedStage extends BaseStage {
-    public var stage(default, null):String = "";
+class SoftcodedStage extends Stage {
+    public var stage(default, null):String;
+    public var spriteByName:Map<String, FlxSprite> = [];
 
     #if ENGINE_SCRIPTING
-    public var script(default, null):HScript;
+    public var script:HScript;
     #end
 
-    public var sprites:Map<String, FlxSprite> = [];
-    
-    private var playerPosition:Array<Float>;
-    private var spectatorPosition:Array<Float>;
-    private var opponentPosition:Array<Float>;
-    private var playerCameraOffset:Array<Float>;
-    private var spectatorCameraOffset:Array<Float>;
-    private var opponentCameraOffset:Array<Float>;
-    private var ratingPosition:Array<Float>;
-    private var showSpectator:Bool = true;
+    var spectatorPosition:Array<Float> = [600, 0];
+    var opponentPosition:Array<Float> = [350, 0];
+    var playerPosition:Array<Float> = [800, 0];
+    var ratingPosition:Array<Float> = [500, 0];
 
-    private var foregroundSprites:Array<FlxSprite> = [];
-    private var spectatorFrontSprites:Array<FlxSprite> = [];
-    private var dancingSprites:Array<DancingSprite> = [];
+    var spectatorCameraOffset:Array<Float> = null;
+    var opponentCameraOffset:Array<Float> = null;
+    var playerCameraOffset:Array<Float> = null;
+
+    var dancingSprites:Array<DancingSprite> = [];
+    var spectatorLayer:Array<FlxSprite> = [];
+    var fgSprites:Array<FlxSprite> = [];
+
+    var showSpectator:Bool = true;
     
-    public function new(state:PlayState, stage:String):Void {
+    public function new(stage:String):Void {
         this.stage = stage;
-        super(state);
+        super();
     }
 
     override function create():Void {
-        var basePath:String = 'data/stages/${stage}';
+        if (stage.length < 1)
+            return;
 
+        var basePath:String = 'data/stages/${stage}';
         var path:String = Assets.yaml(basePath);
+
         if (!FileTools.exists(path) || FileTools.isDirectory(path)) {
-            if (stage != null && stage.length > 0)
-                trace('Stage file ${stage}.yaml is missing!');
-            setDefaults();
+            trace('Could not create stage "${stage}"!');
             return;
         }
 
         var data:StageData = Tools.parseYAML(FileTools.getContent(path));
         if (data == null) {
-            trace('Error loading stage data!');
-            setDefaults();
+            trace('Error loading stage data for "${stage}"!');
             return;
         }
 
@@ -115,42 +106,38 @@ class SoftcodedStage extends BaseStage {
         var scriptPath:String = Assets.getPath(basePath, SCRIPT);
         if (FileTools.exists(scriptPath)) {
             script = new HScript(scriptPath, false);
-            PlayState.current.addScript(script);
+            game.addScript(script);
 
             script.set("this", this);
             script.call("onStageSetup");
         }
         #end
 
-        PlayState.current.cameraSpeed = data.cameraSpeed ?? 3;
-        PlayState.current.cameraZoom = data.cameraZoom ?? 1;
-        PlayState.current.hudZoom = data.hudZoom ?? 1;
-
-        PlayState.current.camGame.zoom = PlayState.current.cameraZoom;
-        PlayState.current.camHUD.zoom = PlayState.current.hudZoom;
+        if (data.cameraSpeed != null)
+            camSpeed = data.cameraSpeed;
+        if (data.cameraZoom != null)
+            camZoom = data.cameraZoom;
+        if (data.hudZoom != null)
+            hudZoom = data.hudZoom;
         
         if (data.playerPosition != null)
             playerPosition = arrayCheck(data.playerPosition);
-        else playerPosition = [800, 0];
-
         if (data.spectatorPosition != null)
             spectatorPosition = arrayCheck(data.spectatorPosition);
-        else spectatorPosition = [600, 0];
-
         if (data.opponentPosition != null)
             opponentPosition = arrayCheck(data.opponentPosition);
-        else opponentPosition = [350, 0];
-
         if (data.ratingPosition != null)
             ratingPosition = arrayCheck(data.ratingPosition);
-        else ratingPosition = [500, 0];
+
+        if (data.playerCameraOffset != null)
+            playerCameraOffset = arrayCheck(data.playerCameraOffset);
+        if (data.spectatorCameraOffset != null)
+            spectatorCameraOffset = arrayCheck(data.spectatorCameraOffset);
+        if (data.opponentCameraOffset != null)
+            opponentCameraOffset = arrayCheck(data.opponentCameraOffset);
 
         if (data.hideSpectator != null)
             showSpectator = !data.hideSpectator;
-
-        playerCameraOffset = arrayCheck(data.playerCameraOffset);
-        opponentCameraOffset = arrayCheck(data.opponentCameraOffset);
-        spectatorCameraOffset = arrayCheck(data.spectatorCameraOffset);
 
         // no need to loop if there is no objects
         if (data.objects == null || data.objects.length < 1)
@@ -159,25 +146,12 @@ class SoftcodedStage extends BaseStage {
         for (obj in data.objects) {
             var sprite:FlxSprite = null;
 
-            if (obj.danceAnimations != null && obj.danceAnimations.length > 0) {
-                if (obj.danceBeat == null)
-                    obj.danceBeat = 1;
-
+            if (obj.danceAnimations != null) {
                 var dancingSprite = new DancingSprite();
-                dancingSprite.beat = obj.danceBeat;
                 dancingSprite.danceAnimations = obj.danceAnimations;
+                dancingSprite.beat = obj.danceBeat ?? 1;
                 dancingSprites.push(dancingSprite);
                 sprite = dancingSprite;
-            }
-            else if (obj.backdrop != null && obj.backdrop) {
-                var repeatAxes:FlxAxes = switch ((obj.repeatAxes ?? "").toLowerCase().trim()) {
-                    case "x": X;
-                    case "y": Y;
-                    default: XY;
-                }
-
-                obj.spacing = arrayCheck(obj.spacing);
-                sprite = new FlxBackdrop(null, repeatAxes, obj.spacing[0], obj.spacing[1]);
             }
             else
                 sprite = new OffsetSprite();
@@ -192,8 +166,8 @@ class SoftcodedStage extends BaseStage {
                 case "rect":
                     sprite.makeGraphic(obj.rectGraphic[0], obj.rectGraphic[1], Tools.getColor(obj.rectGraphic[2]));
                 default:
-                    if (obj.animationSize != null && obj.animationSize.length > 1)
-                        sprite.loadGraphic(Assets.image(obj.image, obj.library), true, obj.animationSize[0], obj.animationSize[1]);
+                    if (obj.frameRect != null)
+                        sprite.loadGraphic(Assets.image(obj.image, obj.library), true, obj.frameRect[0], obj.frameRect[1]);
                     else
                         sprite.loadGraphic(Assets.image(obj.image, obj.library));
             }
@@ -210,30 +184,21 @@ class SoftcodedStage extends BaseStage {
             if (obj.blend != null)
                 sprite.blend = obj.blend;
 
-            obj.position = arrayCheck(obj.position);
-            sprite.setPosition(obj.position[0], obj.position[1]);
+            if (obj.position != null)
+                sprite.setPosition(obj.position[0] ?? 0, obj.position[1] ?? 0);            
 
-            obj.scale = arrayCheck(obj.scale, 1);
-            if (obj.scale[0] != 1 || obj.scale[1] != 1) {
-                sprite.scale.set(obj.scale[0], obj.scale[1]);
+            if (obj.scale != null) {
+                sprite.scale.set(obj.scale[0] ?? 1, obj.scale[1] ?? 1);
                 sprite.updateHitbox();
             }
 
-            if (obj.scrollFactor == null && obj.parallax != null && obj.parallax.length > 0)
-                obj.scrollFactor = obj.parallax;
-
-            if (obj.scrollFactor != null && obj.scrollFactor.length > 0) {
-                while (obj.scrollFactor.length < 2)
-                    obj.scrollFactor.push(1);
-                sprite.scrollFactor.set(obj.scrollFactor[0], obj.scrollFactor[1]);
-            }
+            var scrollFactor:Array<Float> = obj.scrollFactor ?? obj.parallax;
+            if (scrollFactor != null)
+                sprite.scrollFactor.set(scrollFactor[0] ?? 0, scrollFactor[1] ?? 0);
 
             if (obj.flip != null) {
-                while (obj.flip.length < 2)
-                    obj.flip.push(false);
-
-                sprite.flipX = obj.flip[0];
-                sprite.flipY = obj.flip[1];
+                sprite.flipX = obj.flip[0] ?? false;
+                sprite.flipY = obj.flip[1] ?? false;
             }
 
             if (obj.alpha != null)
@@ -242,19 +207,11 @@ class SoftcodedStage extends BaseStage {
             if (obj.antialiasing != null)
                 sprite.antialiasing = obj.antialiasing;
 
-            if (obj.velocity != null) {
-                while (obj.velocity.length < 3)
-                    obj.velocity.push(0);
-
-                sprite.velocity.set(obj.velocity[0], obj.velocity[1]);
-                sprite.angularVelocity = obj.velocity[2];
-            }
-
             switch ((obj.layer ?? "").toLowerCase().trim()) {
                 case "foreground" | "fg":
-                    foregroundSprites.push(sprite);
+                    fgSprites.push(sprite);
                 case "spectator" | "front-spectator" | "spectator-front":
-                    spectatorFrontSprites.push(sprite);
+                    spectatorLayer.push(sprite);
                 default:
                     add(sprite);
             }
@@ -272,7 +229,8 @@ class SoftcodedStage extends BaseStage {
                 #if ENGINE_SCRIPTING
                 script?.set(obj.name, sprite);
                 #end
-                sprites.set(obj.name, sprite);
+
+                spriteByName.set(obj.name, sprite);
             }
         }
 
@@ -282,57 +240,70 @@ class SoftcodedStage extends BaseStage {
     }
 
     override function createPost():Void {
-        var spectator:Character = PlayState.current.spectator;
-        var opponent:Character = PlayState.current.opponent;
-        var player:Character = PlayState.current.player;
-
-        for (spr in spectatorFrontSprites) {
+        for (spr in spectatorLayer) {
             if (spectator != null)
-                insert(PlayState.current.members.indexOf(spectator) + 1, spr);
+                addInFront(spr, spectator);
             else
                 add(spr);
         }
 
-        for (spr in foregroundSprites)
+        for (spr in fgSprites)
             add(spr);
 
         if (player != null) {
-            player.data.cameraOffsets[0] += playerCameraOffset[0];
-            player.data.cameraOffsets[1] += playerCameraOffset[1];
             player.setPosition(playerPosition[0], playerPosition[1]);
 
-            if (player.data.globalOffsets != null) {
-                player.x += player.data.globalOffsets[0] ?? 0;
-                player.y += player.data.globalOffsets[1] ?? 0;
+            if (player.globalOffsets != null) {
+                player.x += player.globalOffsets[0] ?? 0;
+                player.y += player.globalOffsets[1] ?? 0;
+            }
+
+            if (playerCameraOffset != null) {
+                if (player.cameraOffsets == null)
+                    player.cameraOffsets = [0, 0];
+                
+                player.cameraOffsets[0] += playerCameraOffset[0];
+                player.cameraOffsets[1] += playerCameraOffset[1];
             }
         }
 
         if (opponent != null && opponent != spectator) {
-            opponent.data.cameraOffsets[0] += opponentCameraOffset[0];
-            opponent.data.cameraOffsets[1] += opponentCameraOffset[1];
             opponent.setPosition(opponentPosition[0], opponentPosition[1]);
 
-            if (opponent.data.globalOffsets != null) {
-                opponent.x += opponent.data.globalOffsets[0] ?? 0;
-                opponent.y += opponent.data.globalOffsets[1] ?? 0;
+            if (opponent.globalOffsets != null) {
+                opponent.x += opponent.globalOffsets[0] ?? 0;
+                opponent.y += opponent.globalOffsets[1] ?? 0;
+            }
+
+            if (opponentCameraOffset != null) {
+                if (opponent.cameraOffsets == null)
+                    opponent.cameraOffsets = [0, 0];
+
+                opponent.cameraOffsets[0] += opponentCameraOffset[0];
+                opponent.cameraOffsets[1] += opponentCameraOffset[1];
             }
         }
 
         if (spectator != null) {
-            spectator.visible = showSpectator;
-            
-            spectator.data.cameraOffsets[0] += spectatorCameraOffset[0];
-            spectator.data.cameraOffsets[1] += spectatorCameraOffset[1];
             spectator.setPosition(spectatorPosition[0], spectatorPosition[1]);
+            spectator.visible = showSpectator;
 
-            if (spectator.data.globalOffsets != null) {
-                spectator.x += spectator.data.globalOffsets[0] ?? 0;
-                spectator.y += spectator.data.globalOffsets[1] ?? 0;
+            if (spectatorCameraOffset != null) {
+                if (spectator.cameraOffsets == null)
+                    spectator.cameraOffsets = [0, 0];
+                
+                spectator.cameraOffsets[0] += spectatorCameraOffset[0];
+                spectator.cameraOffsets[1] += spectatorCameraOffset[1];
+            }
+
+            if (spectator.globalOffsets != null) {
+                spectator.x += spectator.globalOffsets[0] ?? 0;
+                spectator.y += spectator.globalOffsets[1] ?? 0;
             }
         }
 
         if (!Settings.get("judgements on user interface"))
-            PlayState.current.ratingSprites.setPosition(ratingPosition[0], ratingPosition[1]);
+            game.ratingSprites.setPosition(ratingPosition[0], ratingPosition[1]);
     }
 
     override function beatHit(currentBeat:Int):Void {
@@ -341,17 +312,15 @@ class SoftcodedStage extends BaseStage {
     }
 
     override function destroy():Void {
-        super.destroy();
-
-        sprites.clear();
+        spriteByName.clear();
         sprites = null;
 
         playerPosition = null;
         spectatorPosition = null;
         opponentPosition = null;
         ratingPosition = null;
-        foregroundSprites = null;
-        spectatorFrontSprites = null;
+        fgSprites = null;
+        spectatorLayer = null;
         dancingSprites = null;
         playerCameraOffset = null;
         spectatorCameraOffset = null;
@@ -361,14 +330,8 @@ class SoftcodedStage extends BaseStage {
         #if ENGINE_SCRIPTING
         script = null;
         #end
-    }
 
-    inline function setDefaults():Void {
-        playerPosition = [800, 0];
-        spectatorPosition = [600, 0];
-        opponentPosition = [350, 0];
-        ratingPosition = [500, 0];
-        playerCameraOffset = spectatorCameraOffset = opponentCameraOffset = [0, 0];
+        super.destroy();
     }
 
     inline static function arrayCheck(array:Array<Float>, defaultVal:Float = 0):Array<Float> {

@@ -44,6 +44,8 @@ class Note extends OffsetSprite {
 
    public var offsetX:Float = 0;
    public var offsetY:Float = 0;
+
+   public var lateKillOffset:Float = 0;
    public var spawnTimeOffset:Float = 0;
 
    public var alphaMult:Float = 1;
@@ -57,6 +59,7 @@ class Note extends OffsetSprite {
    public var autoClipSustain:Bool = true;
    public var flipSustain:Bool = true;
    public var overrideSustain:Bool = false;
+   public var killIfMissed:Bool = true;
 
    public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
    public var scrollSpeed(get, default):Float = 1;
@@ -91,7 +94,7 @@ class Note extends OffsetSprite {
       if (followAlpha) {
          alpha = receptor.alpha * alphaMult;
          if (isSustainNote)
-            sustain.alpha = alpha - (1 - sustainAlpha);
+            sustain.alpha = sustainAlpha * alpha;
       }
    }
 
@@ -236,7 +239,7 @@ class Note extends OffsetSprite {
 
    inline function get_scrollMult():Float {
       var receptor:Receptor = parentStrumline?.receptors.members[direction];
-      return (followSpeed && parentStrumline != null) ? (receptor?.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
+      return (followSpeed && parentStrumline != null) ? (receptor.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
    }
 
    inline function get_sustainDecrease():Float {

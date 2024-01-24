@@ -56,14 +56,26 @@ class Character extends DancingSprite {
     public var type:CharacterType;
 
     public var singAnimations:Array<String> = defaultAnimations.copy();
-    public var holding:Bool = false;
-
     public var singDuration:Float = 4;
+
     public var animEndTime:Float = 0;
     public var holdTime:Float = 0;
+    public var holding:Bool = false;
+
+    public var cameraOffsets:Array<Float>;
+    public var globalOffsets:Array<Float>;
+
+    public var healthIcon:String = funkin.objects.ui.HealthIcon.DEFAULT_ICON;
+    public var healthBarColor:FlxColor = FlxColor.GRAY;
+
+    public var gameOverProps:GameOverProperties;
+    public var gameOverChar:String = "bf-dead";
+    public var noteSkin:String = "default";
+
+    public var extra:Dynamic = null;
 
     #if ENGINE_SCRIPTING
-    private var lastScriptRef:HScript;
+    var script:HScript;
     #end
 
     public function new(x:Float = 0, y:Float = 0, character:String = "bf", type:CharacterType = DEFAULT):Void {
@@ -96,7 +108,7 @@ class Character extends DancingSprite {
         }
     }
 
-    public function setup(config:CharacterConfig):Void {
+    public inline function setup(config:CharacterConfig):Void {
         frames = switch ((config.atlasType ?? "").toLowerCase().trim()) {
             case "aseprite": Assets.getAseAtlas(config.image);
             case "packer": Assets.getPackerAtlas(config.image);
@@ -111,17 +123,18 @@ class Character extends DancingSprite {
         danceAnimations = config.danceAnimations ?? ["idle"];
         beat = config.danceBeat ?? 2;
 
-        if (config.icon == null && (type == PLAYER || type == DEFAULT))
-            config.icon = funkin.objects.ui.HealthIcon.DEFAULT_ICON;
+        cameraOffsets = config.cameraOffsets;
+        globalOffsets = config.globalOffsets;
+        extra = config.extra;
 
-        if (config.healthBarColor == null && (type == PLAYER || type == DEFAULT))
-            config.healthBarColor = (type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000;
+        healthBarColor = (config.healthBarColor == null) ? ((type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000) : Tools.getColor(config.healthBarColor);
+        healthIcon = config.icon ?? funkin.objects.ui.HealthIcon.DEFAULT_ICON;
 
-        if (config.gameOverCharacter == null && type == PLAYER)
-            config.gameOverCharacter = "bf-dead";
+        gameOverChar = config.gameOverCharacter ?? "bf-dead";
+        noteSkin = config.noteSkin;
 
         if (type == GAMEOVER && config.gameOverProperties != null)
-            config.gameOverProperties = GameOverScreen.formatProperties(config.gameOverProperties);
+            gameOverProps = GameOverScreen.formatProperties(config.gameOverProperties);
 
         forceDance(true);
 
@@ -152,11 +165,6 @@ class Character extends DancingSprite {
             swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
             flipX = !flipX;
         }
-
-        if (config.cameraOffsets == null)
-            config.cameraOffsets = [0, 0];
-        while (config.cameraOffsets.length < 2)
-            config.cameraOffsets.push(0);
     }
 
     public inline function sing(direction:Int, suffix:String = "", forced:Bool = true):Void
@@ -179,23 +187,28 @@ class Character extends DancingSprite {
         }
     }
 
-    override public function dance(currentBeat:Int, forced:Bool = false):Void {
+    override function dance(currentBeat:Int, forced:Bool = false):Void {
         if (danceAnimations.contains(animation.curAnim.name) || type == GAMEOVER)
             super.dance(currentBeat, forced);
     }
 
-    override public function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
+    override function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
         super.playAnimation(name, force, reversed, frame);
         holdTime = 0;
     }
 
-    public inline function getCamDisplace():FlxPoint
-        return getMidpoint().add(data.cameraOffsets[0], data.cameraOffsets[1]);
+    public inline function getCamDisplace():FlxPoint {
+        var point:FlxPoint = getMidpoint();
+        if (cameraOffsets != null)
+            point.add(cameraOffsets[0] ?? 0, cameraOffsets[1] ?? 0);
+
+        return point;
+    }
 
     #if ENGINE_SCRIPTING
     inline function destroyScript():Void {
-        lastScriptRef?.destroy();
-        lastScriptRef = null;
+        script?.destroy();
+        script = null;
     }
     #end
 
@@ -204,9 +217,21 @@ class Character extends DancingSprite {
         destroyScript();
         #end
 
+        cameraOffsets = null;
+        globalOffsets = null;
+
+        gameOverProps = null;
+        gameOverChar = null;
+
+        healthIcon = null;
+        noteSkin = null;
+
         singAnimations = null;
         character = null;
+
+        extra = null;
         data = null;
+        type = null;
 
         super.destroy();
     }
@@ -218,14 +243,15 @@ class Character extends DancingSprite {
                 default:
                     var filePath:String = Assets.yaml('data/characters/${v}');
     
-                    if (FileTools.exists(filePath))
+                    if (FileTools.exists(filePath)) {
                         data = Tools.parseYAML(FileTools.getContent(filePath));
+                        setup(data);
+                    }
                     else {
                         trace('Could not find character "${v}"!');
-                        data = returnDefaultCharacter();
+                        loadDefault();
+                        data = null;
                     }
-    
-                    setup(data);
     
                     #if ENGINE_SCRIPTING
                     destroyScript();
@@ -238,7 +264,7 @@ class Character extends DancingSprite {
                             scr.set("this", this);
                             scr.call("onInit");
     
-                            lastScriptRef = scr;
+                            script = scr;
                         }
                     }
                     #end
@@ -251,45 +277,23 @@ class Character extends DancingSprite {
         return character = v;
     }
 
-    public static function returnDefaultCharacter():CharacterConfig {
-        return {
-            image: "characters/BOYFRIEND",
-            icon: "bf",
-            animations: [
-            {
-                name: "idle",
-                prefix: "BF idle dance",
-                fps: 24,
-                loop: false
-            },
-            {
-                name: "singLEFT",
-                prefix: "BF NOTE LEFT0",
-                fps: 24,
-                loop: false
-            },
-            {
-                name: "singDOWN",
-                prefix: "BF NOTE DOWN0",
-                fps: 24,
-                loop: false
-            },
-            {
-                name: "singUP",
-                prefix: "BF NOTE UP0",
-                fps: 24,
-                loop: false
-            },
-            {
-                name: "singRIGHT",
-                prefix: "BF NOTE RIGHT0",
-                fps: 24,
-                loop: false
-            }],
-            healthBarColor: [49, 176, 209],
-            cameraOffsets: [0, -150],
-            flip: [true, false],
-            playerFlip: true
-        };
+    inline function loadDefault():Void {
+        // simpler version of boyfriend, doesn't contain special animations or anything fancy
+        frames = Assets.getSparrowAtlas("characters/BOYFRIEND");
+
+        animation.addByPrefix("idle",      "BF idle dance",  24, false);
+        animation.addByPrefix("singLEFT",  "BF NOTE LEFT0",  24, false);
+        animation.addByPrefix("singDOWN",  "BF NOTE DOWN0",  24, false);
+        animation.addByPrefix("singUP",    "BF NOTE UP0",    24, false);
+        animation.addByPrefix("singRIGHT", "BF NOTE RIGHT0", 24, false);
+        animation.addByPrefix("singLEFTmiss",  "BF NOTE LEFT MISS",  24, false);
+        animation.addByPrefix("singDOWNmiss",  "BF NOTE DOWN MISS",  24, false);
+        animation.addByPrefix("singUPmiss",    "BF NOTE UP MISS",    24, false);
+        animation.addByPrefix("singRIGHTmiss", "BF NOTE RIGHT MISS", 24, false);
+
+        danceAnimations = ["idle"];
+        cameraOffsets = [-150, -150];
+        
+        forceDance(true);
     }
 }

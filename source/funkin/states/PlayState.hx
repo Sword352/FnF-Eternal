@@ -50,7 +50,7 @@ class PlayState extends MusicBeatState {
    public var spectator:Character;
    public var opponent:Character;
    public var player:Character;
-   public var stage:BaseStage;
+   public var stage:Stage;
 
    public var strumLines:FlxTypedGroup<StrumLine>;
    public var opponentStrumline:StrumLine;
@@ -86,11 +86,15 @@ class PlayState extends MusicBeatState {
    public var rankFC:String = "FC";
    public var rankSDCB:String = "SDCB";
 
-   public var cameraZoomIntensity:Float = 1;
-   public var cameraZoomBeat:Float = 4;
    public var cameraSpeed:Float = 3;
    public var cameraZoom:Float = 1;
    public var hudZoom:Float = 1;
+
+   public var cameraZoomIntensity:Float = 1;
+   public var cameraZoomBeat:Float = 4;
+
+   public var camBeatZoom:Float = 0.03;
+   public var hudBeatZoom:Float = 0.05;
 
    public var cameraObject:FlxObject;
    public var cameraPoint:FlxPoint;
@@ -214,8 +218,8 @@ class PlayState extends MusicBeatState {
       if (song.meta.player != null)
          player = new Character(400, 0, song.meta.player, PLAYER);
 
-      var playerNoteSkin:String = player?.data.noteSkin ?? song.meta.playerNoteSkin ?? "default";
-      var oppNoteSkin:String = opponent?.data.noteSkin ?? song.meta.oppNoteSkin ?? "default";
+      var playerNoteSkin:String = player?.noteSkin ?? song.meta.playerNoteSkin ?? "default";
+      var oppNoteSkin:String = opponent?.noteSkin ?? song.meta.oppNoteSkin ?? "default";
 
       opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true, oppNoteSkin);
       opponentStrumline.scrollSpeed = song.speed;
@@ -231,7 +235,7 @@ class PlayState extends MusicBeatState {
       strumLines.add(playerStrumline);
 
       stage = switch (song.meta.stage.toLowerCase()) {
-         default: new SoftcodedStage(this, song.meta.stage);
+         default: new SoftcodedStage(song.meta.stage);
       }
       add(stage);
 
@@ -422,13 +426,12 @@ class PlayState extends MusicBeatState {
       stage.beatHit(currentBeat);
 
       if (!Settings.get("reduced movements") && Conductor.currentBeat > -1) {
-         hud.beatHit();
-
-         if (currentBeat != 0 && currentBeat % cameraZoomBeat == 0) {
-            if (camGame.zoom < 1.35)
-               camGame.zoom += 0.05 * cameraZoomIntensity;
-            camHUD.zoom += 0.05 * cameraZoomIntensity;
+         if (currentBeat != 0 && currentBeat % cameraZoomBeat == 0 && cameraZoomIntensity != 0) {
+            camGame.zoom += camBeatZoom * cameraZoomIntensity;
+            camHUD.zoom += hudBeatZoom * cameraZoomIntensity;
          }
+
+         hud.beatHit();
       }
 
       super.beatHit(currentBeat);
@@ -472,7 +475,7 @@ class PlayState extends MusicBeatState {
       camSubState.zoom = camGame.zoom;
 
       var playerPosition:FlxPoint = player?.getScreenPosition() ?? FlxPoint.get(cameraPoint.x, cameraPoint.y);
-      openSubState(new GameOverScreen(playerPosition.x, playerPosition.y, player?.data.gameOverCharacter ?? "bf-dead"));
+      openSubState(new GameOverScreen(playerPosition.x, playerPosition.y, player?.gameOverChar ?? "bf-dead"));
       playerPosition.put();
 
       #if ENGINE_SCRIPTING
@@ -492,6 +495,7 @@ class PlayState extends MusicBeatState {
       #end
 
       targetCharacter = cameraTargets[target];
+      stage.onCamFocusChange(target);
 
       #if ENGINE_SCRIPTING
       hxsCall("onCamChangePost", [target]);
@@ -824,8 +828,7 @@ class PlayState extends MusicBeatState {
       if (note != null)
          playMissAnimation(note.direction, note.isSustainNote && !note.baseVisible);
 
-      if (spectator != null && spectator.animation.exists("sad")
-         && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
+      if (spectator != null && spectator.animation.exists("sad") && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
          spectator.playAnimation("sad", true);
          spectator.animEndTime = (Conductor.crochet / 1000);
       }
@@ -839,7 +842,7 @@ class PlayState extends MusicBeatState {
 
    public inline function playMissAnimation(direction:Int, hold:Bool = false):Void {
       for (player in playerStrumline.characters) {
-         if (!hold || !Settings.get("disable hold stutter") || player.animation.name != (player.singAnimations[direction] + "miss"))
+         if (!hold || player.animation.name != (player.singAnimations[direction] + "miss") || !Settings.get("disable hold stutter"))
             player.sing(direction, "miss");
          else
             player.holdTime = 0;

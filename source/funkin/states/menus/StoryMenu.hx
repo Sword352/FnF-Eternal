@@ -467,10 +467,8 @@ private class StoryMenuCharacter extends DancingSprite {
             globalOffsets[0] = data.globalOffsets[0] ?? 0;
             globalOffsets[1] = data.globalOffsets[1] ?? 0;
         }
-        else {
-            globalOffsets[0] = 0;
-            globalOffsets[1] = 0;
-        }
+        else
+            globalOffsets[0] = globalOffsets[1] = 0;
 
         flipX = data.flipX ?? false;
 

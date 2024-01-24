@@ -35,22 +35,22 @@ class GameplayUI extends FlxSpriteGroup {
         healthBarBG.screenCenter(X);
 	    add(healthBarBG);
 
-        var opponentHealthColor:FlxColor = (PlayState.current.opponent == null) ? 0xFFFF0000: Tools.getColor(PlayState.current.opponent.data.healthBarColor);
-        var playerHealthColor:FlxColor = (PlayState.current.player == null) ? 0xFF66FF33 : Tools.getColor(PlayState.current.player.data.healthBarColor);
+        var opponentHealthColor:FlxColor = PlayState.current.opponent?.healthBarColor ?? 0xFFFF0000;
+        var playerHealthColor:FlxColor = PlayState.current.player?.healthBarColor ?? 0xFF66FF33;
 
         healthBar = new FlxBar(healthBarBG.x + 4, 0, RIGHT_TO_LEFT, Std.int(healthBarBG.width - 8), Std.int(healthBarBG.height - 8));
 	    healthBar.createFilledBar(opponentHealthColor, playerHealthColor);
         healthBar.setRange(0, 100);
 	    add(healthBar);
 
-        iconPlayer = new HealthIcon(0, 0, PlayState.current.player?.data.icon ?? HealthIcon.DEFAULT_ICON);
+        iconPlayer = new HealthIcon(0, 0, PlayState.current.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
         iconPlayer.bopping = true;
         iconPlayer.flipX = true;
         iconPlayer.health = 50;
         iconPlayer.state = "neutral";
         add(iconPlayer);
         
-        iconOpponent = new HealthIcon(0, 0, PlayState.current.opponent?.data.icon ?? HealthIcon.DEFAULT_ICON);
+        iconOpponent = new HealthIcon(0, 0, PlayState.current.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
         iconOpponent.bopping = true;
         iconOpponent.health = 50;
         iconOpponent.state = "neutral";
