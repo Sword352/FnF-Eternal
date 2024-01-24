@@ -142,18 +142,12 @@ class Character extends DancingSprite {
             antialiasing = config.antialiasing;
 
         if (config.flip != null) {
-            while (config.flip.length < 2)
-                config.flip.push(false);
-
-            flipX = config.flip[0];
-            flipY = config.flip[1];
+            flipX = config.flip[0] ?? false;
+            flipY = config.flip[1] ?? false;
         }
 
         if (config.scale != null) {
-            while (config.scale.length < 2)
-                config.scale.push(1);
-
-            scale.set(config.scale[0], config.scale[1]);
+            scale.set(config.scale[0] ?? 1, config.scale[1] ?? 1);
             updateHitbox();
 
             // re-apply offsets
