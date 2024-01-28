@@ -3,30 +3,30 @@ package funkin.states;
 import flixel.*;
 import flixel.util.*;
 import flixel.tweens.*;
-import flixel.math.FlxPoint;
-import funkin.objects.Camera;
 
+import flixel.math.FlxPoint;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.music.MusicPlayback;
 import funkin.music.EventManager;
 
-import eternal.ChartLoader;
-import eternal.ChartFormat.Chart;
-import eternal.ChartFormat.ChartEvent;
-
-import funkin.states.substates.*;
-
-import funkin.objects.Rating;
+import funkin.objects.*;
 import funkin.objects.notes.*;
 import funkin.objects.stages.*;
-import funkin.objects.Character;
+
+import funkin.objects.Camera;
 import funkin.objects.ui.GameplayUI;
+import funkin.objects.sprites.RatingSprite;
 
 import funkin.states.menus.StoryMenu;
 import funkin.states.debug.ChartEditor;
 import funkin.states.menus.FreeplayMenu;
+import funkin.states.substates.*;
+
+import eternal.ChartLoader;
+import eternal.ChartFormat.Chart;
+import eternal.ChartFormat.ChartEvent;
 
 import openfl.Lib;
 
@@ -56,8 +56,8 @@ class PlayState extends MusicBeatState {
    public var opponentStrumline:StrumLine;
    public var playerStrumline:StrumLine;
 
-   public var ratingSprites:FlxSpriteGroup;
-   public var comboSprites:FlxSpriteGroup;
+   public var ratingSprites:FlxTypedSpriteGroup<RatingSprite>;
+   public var comboSprites:FlxTypedSpriteGroup<ComboSprite>;
    public var hud:GameplayUI;
 
    public var countdownSprites:Array<String> = [null, 'ui/gameplay/ready', 'ui/gameplay/set', 'ui/gameplay/go'];
@@ -279,14 +279,14 @@ class PlayState extends MusicBeatState {
       if (gameMode == FREEPLAY)
          strumLines.forEach((strumline) -> strumline.tweenReceptors());
 
-      comboSprites = new FlxSpriteGroup();
-      ratingSprites = new FlxSpriteGroup();
+      ratingSprites = new FlxTypedSpriteGroup<RatingSprite>();
+      comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
 
       if (Settings.get("judgements on user interface")) {
-         for (group in [ratingSprites, comboSprites]) {
-            group.cameras = [camHUD];
-            insert(members.indexOf(strumLines), group);
-         }
+         var index:Int = members.indexOf(strumLines);
+         ratingSprites.cameras = comboSprites.cameras = [camHUD];
+         insert(index, ratingSprites);
+         insert(index, comboSprites);
       }
       else {
          add(comboSprites);
@@ -858,6 +858,7 @@ class PlayState extends MusicBeatState {
    }
 
    public function recalculateAccuracy():Void {
+      // TODO: make those getters instead
       if (accuracyNotes != 0 && accuracyMod != 0)
          accuracy = FlxMath.bound(accuracyMod / accuracyNotes, 0, 1);
       accuracyDisplay = FlxMath.roundDecimal(accuracy * 100, 2);
@@ -873,20 +874,11 @@ class PlayState extends MusicBeatState {
          return;
 
       if (Settings.get("disable combo stacking")) {
-         for (spr in ratingSprites) {
-            FlxTween.cancelTweensOf(spr);
+         for (spr in ratingSprites)
             spr.kill();
-         }
-      }
-      
-      var sprite:FlxSprite = ratingSprites.recycle(FlxSprite, null, true, false);
-      if (!sprite.exists) { // check if the sprite is a recycled one to reset its properties
-         sprite.revive();
-         sprite.acceleration.set();
-         sprite.velocity.set();
-         sprite.alpha = 1;
       }
 
+      var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
       sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
       sprite.scale.set(0.7, 0.7);
       sprite.updateHitbox();
@@ -895,20 +887,9 @@ class PlayState extends MusicBeatState {
       if (Settings.get("judgements on user interface"))
          sprite.screenCenter();
 
-      sprite.acceleration.y = 550;
-      sprite.velocity.set(-FlxG.random.float(0, 10), -FlxG.random.float(140, 175));
-      if (Settings.get("reduced movements")) {
-         sprite.acceleration.y *= 0.4;
-         sprite.velocity.y *= 0.4;
-      }
-
+      // is sorting faster? will think of it later
       ratingSprites.remove(sprite, true);
       ratingSprites.insert(ratingSprites.length + 1, sprite);
-
-      FlxTween.tween(sprite, {alpha: 0}, 0.2, {
-         startDelay: Conductor.crochet * 0.001,
-         onComplete: (_) -> sprite.kill()
-      });
    }
 
    public function displayCombo(combo:Int):Void {
@@ -917,28 +898,18 @@ class PlayState extends MusicBeatState {
          return;
       #end
 
-      if (Settings.get("disable combo stacking")) {
-         for (spr in comboSprites) {
-            FlxTween.cancelTweensOf(spr);
-            spr.kill();
-         }
-      }
-
       var separatedCombo:String = Std.string(combo);
-
       if (!Settings.get("simplify combo number"))
          while (separatedCombo.length < 3)
             separatedCombo = "0" + separatedCombo;
 
-      for (i in 0...separatedCombo.length) {
-         var sprite:FlxSprite = comboSprites.recycle(FlxSprite, null, true, false);
-         if (!sprite.exists) { // check if the sprite is a recycled one to reset its properties
-            sprite.revive();
-            sprite.acceleration.set();
-            sprite.velocity.set();
-            sprite.alpha = 1;
-         }
+      if (Settings.get("disable combo stacking")) {
+         for (spr in comboSprites)
+            spr.kill();
+      }
 
+      for (i in 0...separatedCombo.length) {
+         var sprite:ComboSprite = comboSprites.recycle(ComboSprite);
          sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
          sprite.scale.set(0.5, 0.5);
          sprite.updateHitbox();
@@ -951,20 +922,8 @@ class PlayState extends MusicBeatState {
          else
             sprite.setPosition(ratingSprites.x + 43 * (i + 3), ratingSprites.y + 140);
 
-         sprite.acceleration.y = FlxG.random.int(200, 300);
-         sprite.velocity.set(FlxG.random.float(-5, 5), -FlxG.random.int(140, 160));
-         if (Settings.get("reduced movements")) {
-            sprite.acceleration.y *= 0.4;
-            sprite.velocity.y *= 0.4;
-         }
-
          comboSprites.remove(sprite, true);
          comboSprites.insert(comboSprites.length + 1, sprite);
-         
-         FlxTween.tween(sprite, {alpha: 0}, 0.2, {
-            startDelay: Conductor.crochet * 0.002,
-            onComplete: (_) -> sprite.kill()
-         });
       }
    }
 

@@ -313,23 +313,26 @@ class SoftcodedStage extends Stage {
 
     override function destroy():Void {
         spriteByName.clear();
-        sprites = null;
+        spriteByName = null;
 
-        playerPosition = null;
         spectatorPosition = null;
         opponentPosition = null;
+        playerPosition = null;
         ratingPosition = null;
-        fgSprites = null;
-        spectatorLayer = null;
-        dancingSprites = null;
-        playerCameraOffset = null;
+
         spectatorCameraOffset = null;
         opponentCameraOffset = null;
-        stage = null;
+        playerCameraOffset = null;
 
+        dancingSprites = null;
+        spectatorLayer = null;
+        fgSprites = null;
+        
         #if ENGINE_SCRIPTING
         script = null;
         #end
+
+        stage = null;
 
         super.destroy();
     }

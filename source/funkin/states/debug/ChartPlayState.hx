@@ -6,10 +6,9 @@ import flixel.util.FlxStringUtil;
 import flixel.group.FlxSpriteGroup;
 
 import funkin.objects.Rating;
-import funkin.objects.notes.Note;
+import funkin.objects.notes.*;
 import funkin.objects.ui.HealthIcon;
-import funkin.objects.notes.Receptor;
-import funkin.objects.notes.StrumLine;
+import funkin.objects.sprites.RatingSprite;
 
 import eternal.ChartLoader;
 
@@ -32,8 +31,8 @@ class ChartPlayState extends MusicBeatSubState {
     var oppNoteCount:FlxText;
     var infos:FlxText;
 
-    var ratingSprites:FlxSpriteGroup;
-    var comboSprites:FlxSpriteGroup;
+    var ratingSprites:FlxTypedSpriteGroup<RatingSprite>;
+    var comboSprites:FlxTypedSpriteGroup<ComboSprite>;
     var icons:Array<HealthIcon> = [];
 
     var totalPlayerNotes:Int = 0;
@@ -76,10 +75,10 @@ class ChartPlayState extends MusicBeatSubState {
 
         FlxTween.tween(background, {alpha: 0.6}, 0.25);
 
-        comboSprites = new FlxSpriteGroup();
+        comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
         add(comboSprites);
   
-        ratingSprites = new FlxSpriteGroup();
+        ratingSprites = new FlxTypedSpriteGroup<RatingSprite>();
         add(ratingSprites);
 
         for (rating in ratings)
@@ -266,29 +265,19 @@ class ChartPlayState extends MusicBeatSubState {
         missCount++;
     }
 
-    inline function displayCombo():Void {  
-        if (Settings.get("disable combo stacking")) {
-            for (spr in comboSprites) {
-                FlxTween.cancelTweensOf(spr);
-                spr.kill();
-            }
-        }
-  
+    inline function displayCombo():Void {
         var separatedCombo:String = Std.string(combo);
-  
         if (!Settings.get("simplify combo number"))
             while (separatedCombo.length < 3)
                 separatedCombo = "0" + separatedCombo;
+
+        if (Settings.get("disable combo stacking")) {
+            for (spr in comboSprites)
+                spr.kill();
+        }
   
         for (i in 0...separatedCombo.length) {
-            var sprite:FlxSprite = comboSprites.recycle(FlxSprite, null, true, false);
-            if (!sprite.exists) {
-                sprite.revive();
-                sprite.acceleration.set();
-                sprite.velocity.set();
-                sprite.alpha = 1;
-            }
-  
+            var sprite:ComboSprite = comboSprites.recycle(ComboSprite);  
             sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
             sprite.scale.set(0.5, 0.5);
             sprite.updateHitbox();
@@ -296,21 +285,8 @@ class ChartPlayState extends MusicBeatSubState {
             sprite.x += 43 * (i + 1);
             sprite.y += 140;
   
-            sprite.acceleration.y = (FlxG.random.int(200, 300) * (Conductor.playbackRate * Conductor.playbackRate));
-            sprite.velocity.set(FlxG.random.float(-5, 5) * Conductor.playbackRate, -FlxG.random.int(140, 160) * Conductor.playbackRate);
-
-            if (Settings.get("reduced movements")) {
-                sprite.acceleration.y *= 0.4;
-                sprite.velocity.y *= 0.4;
-            }
-  
             comboSprites.remove(sprite, true);
             comboSprites.insert(comboSprites.length + 1, sprite);
-           
-            FlxTween.tween(sprite, {alpha: 0}, 0.2 / Conductor.playbackRate, {
-                startDelay: Conductor.crochet * 0.002 / Conductor.playbackRate,
-                onComplete: (_) -> sprite.kill()
-            });
         }
     }
 
@@ -319,40 +295,18 @@ class ChartPlayState extends MusicBeatSubState {
             return;
 
         if (Settings.get("disable combo stacking")) {
-            for (spr in ratingSprites) {
-                FlxTween.cancelTweensOf(spr);
+            for (spr in ratingSprites)
                 spr.kill();
-            }  
         }
       
-        var sprite:FlxSprite = ratingSprites.recycle(FlxSprite, null, true, false);
-        if (!sprite.exists) {
-            sprite.revive();
-            sprite.acceleration.set();
-            sprite.velocity.set();
-            sprite.alpha = 1;
-        }
-
+        var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
         sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
         sprite.scale.set(0.7, 0.7);
         sprite.updateHitbox();
         sprite.screenCenter();
 
-        sprite.acceleration.y = (550 * (Conductor.playbackRate * Conductor.playbackRate));
-        sprite.velocity.set(-FlxG.random.float(0, 10) * Conductor.playbackRate, -FlxG.random.float(140, 175) * Conductor.playbackRate);
-
-        if (Settings.get("reduced movements")) {
-            sprite.acceleration.y *= 0.4;
-            sprite.velocity.y *= 0.4;
-        }
-
         ratingSprites.remove(sprite, true);
         ratingSprites.insert(ratingSprites.length + 1, sprite);
-
-        FlxTween.tween(sprite, {alpha: 0}, 0.2 / Conductor.playbackRate, {
-            startDelay: Conductor.crochet * 0.001 / Conductor.playbackRate,
-            onComplete: (_) -> sprite.kill()
-        });
    }
 
     inline function updateUI():Void {

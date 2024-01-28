@@ -90,4 +90,9 @@ class Stage extends FlxBasic {
                 func(sprite);
         }
     }
+
+    override function destroy():Void {
+        sprites = null;
+        super.destroy();
+    }
 }

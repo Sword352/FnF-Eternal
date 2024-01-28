@@ -3,6 +3,7 @@ package funkin.music;
 import flixel.sound.FlxSound;
 import flixel.util.FlxSignal.FlxTypedSignal;
 
+// TODO: fix beat delays
 class Conductor {
     public static var time(get, set):Float;
     public static var rawTime(get, set):Float;
@@ -43,6 +44,13 @@ class Conductor {
     static var _prevBeat:Int = -1;
     static var _prevMeas:Int = -1;
 
+    /*
+    static var _stepTmr:Float = 0;
+    static var _fakeStep:Int = 0;
+    static var _fakeBeat:Int = 0;
+    static var _fakeMeas:Int = 0; 
+    */
+
     public static inline function update(elapsed:Float):Void {
         if (!active)
             return;
@@ -79,6 +87,29 @@ class Conductor {
             _prevMeas = measure;
             onMeasure.dispatch(measure);
         }
+
+        /*
+        if (music == null || music.playing) {
+            while (time >= _stepTmr + stepCrochet) {
+                _stepTmr += stepCrochet;
+                onStep.dispatch(++_fakeStep);
+    
+                if (_fakeStep % stepsPerBeat == 0) {
+                    onBeat.dispatch(++_fakeBeat);
+                    if (_fakeMeas % beatsPerMeasure == 0)
+                        onMeasure.dispatch(++_fakeMeas);
+                }
+            }
+        }
+        else {
+            var step:Float = (time / stepCrochet);
+            _stepTmr = stepCrochet * step;
+
+            _fakeStep = Math.floor(step);
+            _fakeBeat = Math.floor(_fakeStep / stepsPerBeat);
+            _fakeMeas = Math.floor(_fakeBeat / beatsPerMeasure);
+        }
+        */
     }
 
     public static inline function reset():Void {
@@ -103,6 +134,8 @@ class Conductor {
 
     public static inline function resetPrevTime(to:Int = -1):Void {
         _prevStep = _prevBeat = _prevMeas = to;
+        // _fakeStep = _fakeBeat = _fakeMeas = to + 1;
+        // _stepTmr = 0;
     }
 
     public static inline function resetCallbacks():Void {
