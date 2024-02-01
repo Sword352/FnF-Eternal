@@ -32,7 +32,6 @@ class StrumLine extends FlxGroup {
    public var onHold(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
    public var onMiss(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
 
-   var removeNextFrame:Array<Note> = [];
    var notesToRemove:Array<Note> = [];
    var lastStep:Int = 0; // used for base game behaviour
 
@@ -62,13 +61,11 @@ class StrumLine extends FlxGroup {
    }
    
    override public function update(elapsed:Float):Void {
-      while (removeNextFrame.length > 0)
-         removeNote(removeNextFrame.shift());
-
       notes.forEachAlive((note) -> {
          var receptor:Receptor = receptors.members[note.direction];
 
-         note.follow(receptor);
+         if (!note.noStrumFollow)
+            note.follow(receptor);
 
          if (cpu && note.canBeHit) {
             note.goodHit = true;
@@ -87,9 +84,6 @@ class StrumLine extends FlxGroup {
             notesToRemove.push(note);
 
          if (note.isSustainNote && (note.goodHit || note.missed)) {
-            if (note.autoClipSustain)
-               note.clipSustainTail(receptor);
-
             if (lastStep != Conductor.currentStep) {
                if (cpu || holdKeys[note.direction]) {
                   receptor.playAnimation("confirm", true);
@@ -101,7 +95,7 @@ class StrumLine extends FlxGroup {
             }
 
             if (note.holdProgress >= note.length)
-               removeNextFrame.push(note);
+               notesToRemove.push(note);
          }
       });
 
@@ -109,6 +103,12 @@ class StrumLine extends FlxGroup {
 
       while (notesToRemove.length > 0)
          removeNote(notesToRemove.shift());
+
+      // only clip the sustain tails here as super.update changes the sustains position
+      notes.forEachAlive((note) -> {
+         if (note.isSustainNote && note.autoClipSustain && (note.goodHit || note.missed))
+            note.clipSustainTail(receptors.members[note.direction]);
+      });
 
       if (cpu) {
          receptors.forEachAlive((receptor) -> {
@@ -134,7 +134,7 @@ class StrumLine extends FlxGroup {
       notes.add(note);
 
       if (notes.members.length > 1)
-         notes.members.sort(sortNotes);
+         notes.members.sort((a, b) -> Std.int(a.time - b.time));
    }
 
    public function removeNote(note:Note):Void {
@@ -241,8 +241,6 @@ class StrumLine extends FlxGroup {
 
    override function destroy():Void {
       notesToRemove = null;
-      removeNextFrame = null;
-
       characters = null;
       holdKeys = null;
       skin = null;
@@ -290,8 +288,4 @@ class StrumLine extends FlxGroup {
 
    inline function get_downscroll():Bool
       return scrollMult < 0;
-
-   inline static function sortNotes(a:Note, b:Note):Int {
-      return Std.int(a.time - b.time);
-   }
 }

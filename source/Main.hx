@@ -1,8 +1,10 @@
 package;
 
+import eternal.ui.Overlay;
+import eternal.ui.SoundTray;
+
 import funkin.states.InitState;
 import openfl.display.Sprite;
-import eternal.ui.Overlay;
 
 class Main extends Sprite {
    public static var game(default, null):GameInstance;
@@ -13,7 +15,7 @@ class Main extends Sprite {
 
       FlxG.save.bind("misc", Tools.savePath);
 
-      game = new GameInstance(0, 0, InitState, 60, 60, true);
+      game = new GameInstance();
       addChild(game);
 
       overlay = new Overlay();
@@ -21,4 +23,9 @@ class Main extends Sprite {
    }
 }
 
-typedef GameInstance = #if ENGINE_CRASH_HANDLER eternal.core.crash.FNFGame #else flixel.FlxGame #end ;
+class GameInstance extends #if ENGINE_CRASH_HANDLER eternal.core.crash.FNFGame #else flixel.FlxGame #end {
+   public function new():Void {
+      super(0, 0, InitState, 60, 60, true);
+      _customSoundTray = SoundTray;
+   }
+}

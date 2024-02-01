@@ -37,9 +37,6 @@ class Tools {
     inline static function get_gameVersion():String
         return openfl.Lib.application.meta["version"];
 
-    inline public static function formatSong(song:String):String
-        return song.toLowerCase().replace(" ", "-");
-
     inline public static function capitalize(value:String, lower:Bool = true):String
         return value.split(" ").map((f) -> {
             var fragment:String = f.substring(1, f.length);
@@ -236,7 +233,7 @@ class Tools {
 	}
 
     static function onFileRefError(_):Void {
-        trace("Error while saving file: " + _fileRef.name);
+        trace('Error while saving file "${_fileRef.name}"!');
         destroyFileRef(null);
     }
 

@@ -200,7 +200,7 @@ class EventManager extends FlxBasic {
                 if (!scriptsMap.exists(event.event)) {
                     var path:String = Assets.getPath('data/events/${event.event}', SCRIPT);
                     if (FileTools.exists(path)) {
-                        var script:HScript = new HScript(path, false);
+                        var script:HScript = new HScript(path);
                         scriptsMap.set(event.event, script);
                         game.addScript(script);
 

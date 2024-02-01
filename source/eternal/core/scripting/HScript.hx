@@ -3,7 +3,6 @@ package eternal.core.scripting;
 #if ENGINE_SCRIPTING
 import hscript.Parser;
 import hscript.Interp;
-import eternal.core.scripting.ScriptableState.IScriptable;
 
 enum ScriptStatus {
     NONE;
@@ -29,8 +28,6 @@ class HScript {
 
         // Eternal
         "Settings" => Settings,
-        "OffsetSprite" => OffsetSprite,
-        "DancingSprite" => funkin.objects.sprites.DancingSprite,
 
         #if ENGINE_DISCORD_RPC
         "DiscordPresence" => DiscordPresence,
@@ -38,14 +35,18 @@ class HScript {
 
         // Funkin
         "Conductor" => Conductor,
+        "OffsetSprite" => OffsetSprite,
+        "DancingSprite" => funkin.objects.sprites.DancingSprite,
 
         // Transition stuff
         "TranitionState" => TransitionState,
         "TransitionSubState" => TransitionSubState,
 
+        #if ENGINE_MODDING
         // Custom state and substate
         "ModState" => eternal.core.scripting.ScriptableState.ModState,
         "ModSubState" => eternal.core.scripting.ScriptableState.ModSubState,
+        #end
 
         // Misc
         "PlayState" => funkin.states.PlayState,
@@ -60,10 +61,9 @@ class HScript {
         "StringTools" => StringTools,
 
 		"Assets" => Assets,
-        "AssetHelper" => Assets, // avoids breaking change (temporary?)
+        "Paths" => eternal.tools.Paths,
         "OpenFLAssets" => openfl.Assets,
         "FileTools" => FileTools,
-        "Paths" => eternal.tools.Paths,
 
         #if sys
         "Sys" => Sys,
@@ -84,13 +84,10 @@ class HScript {
     public var path(default, null):String;
 
     public var object(get, set):Dynamic;
-    public var parent:IScriptable;
+    public var parent:ScriptPack;
 
-    public function new(path:String, checkPath:Bool = true):Void {
-        if (!checkPath)
-            this.path = path;
-        else if (!validPath(path))
-            return;
+    public function new(path:String):Void {
+        this.path = path;
 
         parser = new Parser();
         interp = new Interp();
@@ -100,15 +97,11 @@ class HScript {
 
         try {
             interp.execute(parser.parseString(script, this.path.substring(this.path.lastIndexOf("/") + 1)));
-
-            for (i in defaultImports.keys())
-                set(i, defaultImports.get(i));
-
-            set("closeSCR", destroy);
+            applyPresets();
             state = ALIVE;
         }
         catch (e) {
-            trace('Failed to load script "${path}" [ERROR: ${e.message} - DETAILS: ${e.details()}]');
+            trace('Failed to load script "${path}"! [${e.message}]');
             destroy();
             return;
         }
@@ -144,7 +137,7 @@ class HScript {
         var func:Dynamic = get(funcToCall);
         try return Reflect.callMethod(null, func, args)
         catch (e) {
-            trace('${path}: Failed to call ${funcToCall} [ERROR: ${e.message} - DETAILS: ${e.details()}]');
+            trace('${path}: Failed to call "${funcToCall}"! [${e.message}]');
             return null;
         }
     }
@@ -154,7 +147,7 @@ class HScript {
             call("onDestroy");
 
         if (parent != null) {
-            parent.scriptPack.remove(this);
+            parent.scripts.remove(this);
             parent = null;
         }
         
@@ -165,30 +158,20 @@ class HScript {
         path = null;
     }
 
-    private function validPath(path:String):Bool {
-        for (extension in SCRIPT.getExtensions()) {
-            if (FileTools.exists(path) && path.endsWith(extension)) {
-                this.path = path;
-                return true;
-            }
-            if (FileTools.exists(path + extension)) {
-                this.path = path + extension;
-                return true;
-            }
-        }
+    inline function applyPresets():Void {
+        for (i in defaultImports.keys())
+            set(i, defaultImports.get(i));
 
-        trace('Could not find script at path "${path}"!');
-        destroy();
-        return false;
+        set("closeSCR", destroy);
     }
 
-    private function set_object(v:Dynamic):Dynamic {
+    inline function set_object(v:Dynamic):Dynamic {
 	    if (interp != null)
 	        interp.scriptObject = v;
         return v;
     }
 
-    private function get_object():Dynamic
+    inline function get_object():Dynamic
         return interp?.scriptObject ?? null;
 }
 #end

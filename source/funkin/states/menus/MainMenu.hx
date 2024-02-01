@@ -2,12 +2,14 @@ package funkin.states.menus;
 
 import flixel.FlxObject;
 import flixel.text.FlxText;
-import flixel.math.FlxPoint;
 import flixel.group.FlxSpriteGroup;
 
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.effects.FlxFlicker;
+
+import flixel.math.FlxPoint;
+import flixel.util.FlxSort;
 
 import funkin.objects.Camera;
 import funkin.states.options.OptionsMenu;

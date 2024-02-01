@@ -1,5 +1,7 @@
 package eternal;
 
+// TODO: rewrite mod settings (and maybe the full api as well)
+
 #if ENGINE_MODDING
 import eternal.core.scripting.HScript;
 
@@ -138,7 +140,7 @@ class Settings {
 
         var setters:String = Assets.getPath("data/settings", SCRIPT);
         if (FileTools.exists(setters))
-            setterScript = new HScript(setters, false);
+            setterScript = new HScript(setters);
 
         var customSettings:Array<ModSetting> = Tools.parseYAML(FileTools.getContent(settingConfig));
 
@@ -161,13 +163,13 @@ class Settings {
         }
 
         load();
-        save();
+        // save();
     }
     #end
 
     inline public static function get(key:String):Dynamic {
         #if ENGINE_MODDING
-        var modKey:String = Mods.currentMod.id + "_" + key;
+        var modKey:String = (Mods.currentMod?.id ?? "") + "_" + key;
         if (settings.exists(modKey))
             return settings.get(modKey).value;
         #end
@@ -176,7 +178,7 @@ class Settings {
     }
 }
 
-// setting wrapper used to call `onChange` when the setting's value gets changed.
+// setting wrapper used to call `onChange` when the setting's value gets changed
 private class Setting<T> {
     public var value(default, set):T;
     public var onChange:T->Void = null;

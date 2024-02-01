@@ -157,11 +157,9 @@ class PlayState extends MusicBeatState {
       var timeToLoad:Float = Lib.getTimer();
 
       #if ENGINE_SCRIPTING
-      avoidCallbacks.push("onOpenSubState");
-      avoidCallbacks.push("onCloseSubState");
-
       loadScriptsFrom('songs/${song.meta.rawName}/scripts');
       loadScriptsFrom('data/scripts');
+      noSubstateCalls = true;
       #end
 
       camGame = new Camera();
@@ -227,7 +225,7 @@ class PlayState extends MusicBeatState {
       opponentStrumline.onHold.add(onOpponentHold);
       strumLines.add(opponentStrumline);
 
-      playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085, playerNoteSkin);
+      playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085, false, playerNoteSkin);
       playerStrumline.scrollSpeed = song.speed;
       playerStrumline.onNoteHit.add(botplayNoteHit);
       playerStrumline.onHold.add(onHold);
@@ -599,16 +597,15 @@ class PlayState extends MusicBeatState {
 
    public function startSong(time:Float = 0):Void {
       #if ENGINE_SCRIPTING
-      hxsCall("onSongStart");
+      if (cancellableCall("onSongStart"))
+         return;
       #end
 
       music.play(time);
-      stage.onSongStart();
-
-      if (hud.timer.visible)
-         hud.tweenTimer();
-
       Conductor.music = music.instrumental;
+
+      hud.onSongStart();
+      stage.onSongStart();
 
       #if ENGINE_SCRIPTING
       hxsCall("onSongStartPost");
@@ -673,7 +670,7 @@ class PlayState extends MusicBeatState {
       var possibleNotes:Array<Note> = playerStrumline.notes.members.filter((note) -> note.direction == index && note.canBeHit);
 
       if (possibleNotes.length > 0) {
-         possibleNotes.sort(sortHitNotes);
+         possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
 
          var noteToHit:Note = possibleNotes[0];
          
@@ -1067,6 +1064,9 @@ class PlayState extends MusicBeatState {
       startSong(time);
    }
 
+   inline function set_health(v:Float):Float
+      return health = hud.healthDisplay = FlxMath.bound(v, minHealth, maxHealth);
+
    public static function getRank(game:PlayState):String {
       if (game.playerStrumline.cpu)
          return "";
@@ -1091,12 +1091,6 @@ class PlayState extends MusicBeatState {
 
       return rank;
    }
-
-   public static function sortHitNotes(a:Note, b:Note):Int
-      return FlxSort.byValues(FlxSort.ASCENDING, a.time, b.time);
-
-   inline function set_health(v:Float):Float
-      return health = hud.healthDisplay = FlxMath.bound(v, minHealth, maxHealth);
 }
 
 enum abstract GameMode(String) from String to String {

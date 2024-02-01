@@ -192,7 +192,7 @@ class Mods {
 
         var scriptPath:String = Assets.getPath("data/Init", SCRIPT);
         if (FileTools.exists(scriptPath)) {
-            initScript = new HScript(scriptPath, false);
+            initScript = new HScript(scriptPath);
             initScript.call("init");
         }
         #end

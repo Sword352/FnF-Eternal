@@ -179,7 +179,7 @@ class ChartPlayState extends MusicBeatSubState {
         var possibleNotes:Array<Note> = playerStrumline.notes.members.filter((note) -> note.direction == index && note.canBeHit);
 
         if (possibleNotes.length > 0) {
-            possibleNotes.sort(PlayState.sortHitNotes);
+            possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
 
             var noteToHit:Note = possibleNotes[0];
 

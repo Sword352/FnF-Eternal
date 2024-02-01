@@ -102,10 +102,8 @@ class Character extends DancingSprite {
         if (singAnimations.contains(animation.curAnim.name))
             holdTime += elapsed;
 
-        if (!holding && holdTime >= Conductor.stepCrochet * singDuration * 0.001) {
-            holdTime = 0;
+        if (!holding && holdTime >= Conductor.stepCrochet * singDuration * 0.001)
             forceDance();
-        }
     }
 
     public inline function setup(config:CharacterConfig):Void {
@@ -253,7 +251,7 @@ class Character extends DancingSprite {
                     if (type != DEBUG && FlxG.state is ScriptableState) {
                         var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
                         if (FileTools.exists(scriptPath)) {
-                            var scr:HScript = new HScript(scriptPath, false);
+                            var scr:HScript = new HScript(scriptPath);
                             cast(FlxG.state, ScriptableState).addScript(scr);
                             scr.set("this", this);
                             scr.call("onInit");

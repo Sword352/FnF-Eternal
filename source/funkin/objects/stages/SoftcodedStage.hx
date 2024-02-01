@@ -92,20 +92,20 @@ class SoftcodedStage extends Stage {
         var path:String = Assets.yaml(basePath);
 
         if (!FileTools.exists(path) || FileTools.isDirectory(path)) {
-            trace('Could not create stage "${stage}"!');
+            trace('Could not find stage "${stage}"!');
             return;
         }
 
         var data:StageData = Tools.parseYAML(FileTools.getContent(path));
         if (data == null) {
-            trace('Error loading stage data for "${stage}"!');
+            trace('Error loading stage data "${stage}"!');
             return;
         }
 
         #if ENGINE_SCRIPTING
         var scriptPath:String = Assets.getPath(basePath, SCRIPT);
         if (FileTools.exists(scriptPath)) {
-            script = new HScript(scriptPath, false);
+            script = new HScript(scriptPath);
             game.addScript(script);
 
             script.set("this", this);

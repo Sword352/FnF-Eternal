@@ -60,6 +60,7 @@ class Note extends OffsetSprite {
    public var flipSustain:Bool = true;
    public var overrideSustain:Bool = false;
    public var killIfMissed:Bool = true;
+   public var noStrumFollow:Bool = false;
 
    public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
    public var scrollSpeed(get, default):Float = 1;
@@ -102,12 +103,7 @@ class Note extends OffsetSprite {
       var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
       var tail:FlxSprite = sustain.tail;
 
-      if ((downscroll && tail.y - tail.offset.y * tail.scale.y + tail.height < receptorCenter)
-         || (!downscroll && tail.y + tail.offset.y * tail.scale.y > receptorCenter))
-         return;
-
-      var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get()).set();
-      clipRect.width = (downscroll) ? tail.frameWidth : (tail.width / tail.scale.x);
+      var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get(0, 0, tail.frameWidth));
 
       if (downscroll) {
          clipRect.height = (receptorCenter - tail.y) / tail.scale.y;
@@ -115,7 +111,7 @@ class Note extends OffsetSprite {
       }
       else {
          clipRect.y = (receptorCenter - tail.y) / tail.scale.y;
-			clipRect.height = (tail.height / tail.scale.y) - clipRect.y;
+			clipRect.height = tail.frameHeight - clipRect.y;
       }
 
       tail.clipRect = clipRect;
@@ -300,13 +296,13 @@ class Sustain extends TiledSprite {
       if (tail.exists && tail.active)
          tail.update(elapsed);
 
+      if (!parent.overrideSustain)
+         updateSustain();
+
       super.update(elapsed);
    }
 
    override function draw():Void {
-      if (!parent.overrideSustain)
-         updateSustain();
-
       if (regen)
          regenGraphic();
 

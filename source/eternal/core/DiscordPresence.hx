@@ -76,17 +76,17 @@ class DiscordPresence {
     }
 
     private static inline function onError(errorCode:Int, message:cpp.ConstCharStar):Void {
-        trace('An error has occured while connecting! [ERROR: ${message} - CODE: ${errorCode}]');
+        trace('An error has occured while connecting! [${message} (code: ${errorCode})]');
         shutdown();
     }
 
     private static inline function onDisconnected(errorCode:Int, message:cpp.ConstCharStar):Void {
-        trace('Connection has been lost! [ERROR: ${message} - CODE: ${errorCode}]');
+        trace('Connection has been lost! [${message} (code: ${errorCode})]');
         shutdown();
     }
 }
 
-// wrapper used to automatically update the presence when something gets changed.
+// wrapper used to automatically update the presence when something gets changed
 private class RPCWrapper {
     public var state(default, set):String;
     public var details(default, set):String;

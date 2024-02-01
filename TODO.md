@@ -9,6 +9,7 @@
 
 ### Medium Priority
 - Test/Fix controller inputs
+- Move note inputs to the StrumLine class
 - Gameplay UI tweaks
 
 - Finish the chart editor
@@ -45,10 +46,8 @@
 
 ### Bugs/Issues to Fix
 - Fix sustain rendering bugs/issues
-  - Fix sustain tail not clipping properly (except on low scroll speeds)
   - Make the sustain tails visible when the sustain height is small
   - Fix slightly innacurate upscroll texture scrolling (?)
-  - Fix the small sustail tail gaps
 
 - Fix the press enter sprite's frames on the title screen
 - Fix freezes happening due to GC clearing sessions

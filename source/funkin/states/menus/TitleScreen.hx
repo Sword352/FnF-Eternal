@@ -366,9 +366,9 @@ class TitleScreen extends MusicBeatState {
         }
 
         if (stepSequences != null)
-            stepSequences.sort((s1, s2) -> FlxSort.byValues(FlxSort.ASCENDING, s1.step, s2.step));
+            stepSequences.sort((s1, s2) -> Std.int(s1.step - s2.step));
         if (beatSequences != null)
-            beatSequences.sort((s1, s2) -> FlxSort.byValues(FlxSort.ASCENDING, s1.beat, s2.beat));
+            beatSequences.sort((s1, s2) -> Std.int(s1.beat - s2.beat));
     }
 
     function setupSprites(sprites:Array<TitleSprite>, group:FlxSpriteGroup):Void {

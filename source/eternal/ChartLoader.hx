@@ -8,7 +8,7 @@ import eternal.ChartFormat.SongMetadata;
 import tjson.TJSON as Json;
 
 class ChartLoader {
-    public static function getDefaultMeta():SongMetadata
+    public static inline function getEmptyMeta():SongMetadata
         return {
             name: null,
             rawName: null,
@@ -22,9 +22,9 @@ class ChartLoader {
             voiceFiles: ["Voices"]
         };
     
-    public static function getDummyChart():Chart
+    public static inline function getEmptyChart():Chart
         return {
-            meta: getDefaultMeta(),
+            meta: getEmptyMeta(),
 
             notes: [],
             events: [],
@@ -33,11 +33,11 @@ class ChartLoader {
             bpm: 100
         };
 
-    public static function loadMetaData(song:String):SongMetadata {
-        var path:String = Assets.json('songs/${Tools.formatSong(song)}/meta');
+    public static inline function loadMetadata(song:String):SongMetadata {
+        var path:String = Assets.json('songs/${song}/meta');
         if (!FileTools.exists(path)) {
-            trace('Path to ${song} has not been found, returning default metadata');
-            return getDefaultMeta();
+            trace('Could not find meta file for song "${song}"!');
+            return getEmptyMeta();
         }
 
         var data:SongMetadata = Json.parse(FileTools.getContent(path));
@@ -51,24 +51,27 @@ class ChartLoader {
         return data;
     }
 
-    public static function convertChart(data:Dynamic):Chart {
-        var finalData:Chart = getDummyChart();
+    public static inline function convertChart(data:Dynamic):Chart {
+        var finalData:Chart = {
+            meta: {
+                name: data.song,
+                rawName: data.song.toLowerCase().replace(" ", "-"),
+        
+                player: data.player1,
+                opponent: data.player2,
+                spectator: data.gfVersion ?? data.player3,
+                stage: data.stage ?? "",
+        
+                instFile: "Inst",
+                voiceFiles: (data.needsVoices) ? ["Voices"] : []
+            },
 
-        finalData.speed = data.speed;
-        finalData.bpm = data.bpm;
+            notes: [],
+            events: [],
 
-        finalData.meta = {
-            name: data.song,
-            rawName: Tools.formatSong(data.song),
-
-            player: data.player1,
-            opponent: data.player2,
-            spectator: data.gfVersion ?? data.player3,
-            stage: data.stage ?? "",
-
-            instFile: "Inst",
-            voiceFiles: (data.needsVoices) ? ["Voices"] : []
-        };
+            speed: data.speed,
+            bpm: data.bpm
+        }
 
         // Used to replace some section specific stuff with events
         var currentBPM:Float = data.bpm;
@@ -78,7 +81,7 @@ class ChartLoader {
         for (section in cast(data.notes, Array<Dynamic>)) {
             for (noteData in cast(section.sectionNotes, Array<Dynamic>)) {
                 var direction:Int = noteData[1];
-                if (direction < 0) // ignore psych events (TODO: perhaps convert those into actual events?)
+                if (direction < 0) // ignore psych events
                     continue;
 
                 var shouldHit:Bool = section.mustHitSection;
@@ -104,8 +107,8 @@ class ChartLoader {
             if (intendedTarget != currentTarget) {
                 finalData.events.push({
                     event: "change camera target",
-                    time: time,
-                    arguments: [intendedTarget]
+                    arguments: [intendedTarget],
+                    time: time
                 });
                 currentTarget = intendedTarget;
             }
@@ -114,13 +117,13 @@ class ChartLoader {
             if (intendedBPM != null && intendedBPM != currentBPM) {
                 finalData.events.push({
                     event: "change bpm",
-                    time: time,
-                    arguments: [intendedBPM]
+                    arguments: [intendedBPM],
+                    time: time
                 });
                 currentBPM = intendedBPM;
             }
 
-            time += (((60 / currentBPM) * 1000) / 4) * 16;
+            time += ((60 / currentBPM) * 1000) * 4;
         }
 
         return finalData;
@@ -147,7 +150,6 @@ class ChartLoader {
 
     public static function generateNotes(chart:Chart, minTime:Float = 0, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
         var notes:Array<Note> = [];
-        var i:Int = 0;
 
         for (noteData in chart.notes) {
             if (noteData.time < minTime)
@@ -157,11 +159,10 @@ class ChartLoader {
             note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;
             note.type = noteData.type;
-            note.ID = i++;
             notes.push(note);
         }
 
-        notes.sort((n1, n2) -> FlxSort.byValues(FlxSort.ASCENDING, n1.time, n2.time));
+        notes.sort((n1, n2) -> Std.int(n1.time - n2.time));
         return notes;
     }
 
@@ -178,7 +179,7 @@ class ChartLoader {
             #if sys overwrite = Settings.get("overwrite chart files"); #end
         }
         else if (data.meta == null)
-            data.meta = loadMetaData(song);
+            data.meta = loadMetadata(song);
 
         if (data.meta.stage == null)
             data.meta.stage = "";

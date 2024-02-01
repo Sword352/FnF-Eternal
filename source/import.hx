@@ -4,12 +4,9 @@ package eternal;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.math.FlxMath;
-import flixel.util.FlxSort;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
-
-import funkin.objects.sprites.OffsetSprite;
 
 import eternal.tools.*;
 import eternal.core.Assets;
@@ -27,6 +24,7 @@ import eternal.core.Mods;
 #end
 
 import funkin.music.Conductor;
+import funkin.objects.sprites.OffsetSprite;
 import funkin.music.MusicBeat.MusicBeatState;
 import funkin.music.MusicBeat.MusicBeatSubState;
 
