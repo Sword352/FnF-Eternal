@@ -61,7 +61,7 @@ class HScript {
         "StringTools" => StringTools,
 
 		"Assets" => Assets,
-        "Paths" => eternal.tools.Paths,
+        "Paths" => Assets, // base game compat
         "OpenFLAssets" => openfl.Assets,
         "FileTools" => FileTools,
 
