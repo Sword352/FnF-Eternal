@@ -79,3 +79,33 @@ typedef ChartNote = {
    var ?length:Float;
    var ?type:String;
 }
+
+// using it as dynamic somewhat makes the game crash, this anonymous structure fixes it
+typedef BaseGameChart = {
+   var notes:Array<BaseGameSection>;
+	var song:String;
+
+   var speed:Float;
+	var bpm:Float;
+
+   var stage:String;
+	var player1:String;
+	var player2:String;
+   var player3:String;
+   var gfVersion:String;
+
+   var needsVoices:Bool;
+   var validScore:Bool;
+}
+
+typedef BaseGameSection = {
+	var sectionNotes:Array<Dynamic>;
+	var lengthInSteps:Int;
+	var typeOfSection:Int;
+
+   var mustHitSection:Bool;
+   var changeBPM:Bool;
+   var altAnim:Bool;
+
+	var bpm:Float;
+}

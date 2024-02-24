@@ -24,9 +24,9 @@ import eternal.core.Mods;
 #end
 
 import funkin.music.Conductor;
+import funkin.music.MusicBeatState.MusicBeatState;
+import funkin.music.MusicBeatState.MusicBeatSubState;
 import funkin.objects.sprites.OffsetSprite;
-import funkin.music.MusicBeat.MusicBeatState;
-import funkin.music.MusicBeat.MusicBeatSubState;
 
 import funkin.states.PlayState;
 import funkin.states.Transition.TransitionState;

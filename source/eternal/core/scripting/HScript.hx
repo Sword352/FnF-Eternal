@@ -15,6 +15,7 @@ class HScript {
         // Flixel
 		"FlxG" => flixel.FlxG,
 		"FlxSprite" => flixel.FlxSprite,
+        "FlxText" => flixel.text.FlxText,
 		"FlxSound" => flixel.sound.FlxSound,
 		"FlxTween" => flixel.tweens.FlxTween,
 		"FlxEase" => flixel.tweens.FlxEase,

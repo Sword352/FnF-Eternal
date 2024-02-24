@@ -40,8 +40,7 @@ class HealthIcon extends OffsetSprite {
         
         if (bopping) {
             scale.set(Tools.lerp(scale.x, defaultScaleX, bopSpeed), Tools.lerp(scale.y, defaultScaleY, bopSpeed));
-            if (adjustBop != null)
-                adjustBop();
+            centerOrigin();
         }
 
         super.update(elapsed);
@@ -51,9 +50,7 @@ class HealthIcon extends OffsetSprite {
         var newGraphic:FlxGraphic = Assets.image('icons/${icon}');
         _character = icon;
 
-        if (newGraphic == null) {
-            trace('Could not find icon "${icon}"!');
-            
+        if (newGraphic == null) {            
             newGraphic = Assets.image('icons/${DEFAULT_ICON}');
             _character = DEFAULT_ICON;
         }
@@ -72,13 +69,8 @@ class HealthIcon extends OffsetSprite {
             scale.add(bopIntensity, bopIntensity);
     }
 
-    public dynamic function adjustBop():Void {
-        centerOrigin();
-    }
-
     override function destroy():Void {
         _character = null;
-        adjustBop = null;
         state = null;
         
         super.destroy();

@@ -16,7 +16,7 @@
 - Sword: Director and Lead Coder
 - Glade: Composer and Minor Coding
 - S0ulstive: Artist
-- MemeHoovy: Coder
+- Moxie: Coder
 
 > Contributors
 - PlankDev: Metronome Sound Composer and Helper Coder
@@ -43,4 +43,4 @@
 - leonbrother
 - Unholywanderer04
 - Daniel (skruyo)
-- MemeHoovy
+- Moxie

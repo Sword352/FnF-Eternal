@@ -49,7 +49,7 @@ class StoryMenu extends MusicBeatState {
 
             error = true;
             // persistentUpdate = false; // this does not seems to work??
-            FlxG.switchState(new MainMenu());
+            FlxG.switchState(MainMenu.new);
             return;
         }
 
@@ -186,7 +186,7 @@ class StoryMenu extends MusicBeatState {
             if (controls.justPressed("back")) {
                 allowInputs = false;
                 FlxG.sound.play(Assets.sound("cancelMenu"));
-                FlxG.switchState(new MainMenu());
+                FlxG.switchState(MainMenu.new);
             }
     
             if (controls.justPressed("accept"))
@@ -375,7 +375,7 @@ class StoryMenu extends MusicBeatState {
         TransitionSubState.onComplete.add(() -> PlayState.load(songs.shift(), difficulties[currentDifficulty]));
         PlayState.songPlaylist = songs;
 
-        new FlxTimer().start(1, (_) -> FlxG.switchState(new PlayState()));
+        new FlxTimer().start(1, (_) -> FlxG.switchState(PlayState.new.bind(0)));
 
         #if ENGINE_SCRIPTING
         hxsCall("onAcceptPost");

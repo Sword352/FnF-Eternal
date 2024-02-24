@@ -40,7 +40,7 @@ class Controls {
       #end
    ];
 
-   public static var globalControls:Controls;
+   public static var globalControls(default, null):Controls;
 
    public var saveFile:String;
    public var active:Bool = true;
@@ -54,6 +54,11 @@ class Controls {
    public var onKeyJustReleased(default, null):FlxTypedSignal<KeyCall> = new FlxTypedSignal<KeyCall>();
 
    var heldKeys:Array<Int> = [];
+
+   public static inline function init():Void {
+      globalControls = new Controls("main");
+      reloadVolumeKeys();
+   }
 
    public function new(saveFile:String):Void {
       this.saveFile = saveFile;
@@ -82,7 +87,7 @@ class Controls {
    inline public function anyJustReleased(keys:Array<String>):Bool
       return checkAnyInputs(keys, justReleased);
 
-   private function checkInput(key:String, status:FlxInputState):Bool {
+   function checkInput(key:String, status:FlxInputState):Bool {
       var keybindMap:KeybindSet = keybinds.get(key);
       if (keybindMap == null)
          return false;
@@ -109,7 +114,7 @@ class Controls {
       return false;
    }
 
-   private function checkAnyInputs(keys:Array<String>, func:String->Bool):Bool {
+   function checkAnyInputs(keys:Array<String>, func:String->Bool):Bool {
       for (key in keys)
          if (func(key))
             return true;

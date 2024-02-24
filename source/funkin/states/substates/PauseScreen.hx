@@ -149,12 +149,12 @@ class PauseScreen extends MusicBeatSubState {
                 FlxG.resetState();
             case "go to options":
                 Assets.clearAssets = Settings.get("reload assets");
-                FlxG.switchState(new OptionsMenu(true));
+                FlxG.switchState(OptionsMenu.new.bind(true));
             case "exit to menu":
                 PlayState.lossCounter = 0;
                 FlxG.switchState(switch (PlayState.gameMode) {
-                    case STORY: new StoryMenu();
-                    default: new FreeplayMenu();
+                    case STORY: StoryMenu.new;
+                    default: FreeplayMenu.new;
                 });
         }
 

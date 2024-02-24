@@ -62,7 +62,7 @@ class FreeplayMenu extends MusicBeatState {
 
             error = true;
             // persistentUpdate = false; // this does not seems to work??
-            FlxG.switchState(new MainMenu());
+            FlxG.switchState(MainMenu.new);
             return;
         }
 
@@ -210,11 +210,7 @@ class FreeplayMenu extends MusicBeatState {
             if (items.length > 1 && controls.anyJustPressed(["up", "down"]))
                 changeSelection(controls.lastAction == "up" ? -1 : 1);
 
-            #if ENGINE_SCRIPTING
-            if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"]) && !cancellableCall("onDifficultyChange")) {
-            #else
-            if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) {
-            #end
+            if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"]) #if ENGINE_SCRIPTING && !cancellableCall("onDifficultyChange") #end) {
                 currentDifficulty = FlxMath.wrap(currentDifficulty + ((controls.lastAction == "left") ? -1 : 1), 0, difficulties.length - 1);
                 updateScoreData();
                 
@@ -233,7 +229,7 @@ class FreeplayMenu extends MusicBeatState {
 
             if (controls.justPressed("back")) {
                 allowInputs = false;
-                FlxG.switchState(new MainMenu());
+                FlxG.switchState(MainMenu.new);
             }
 
             if (FlxG.keys.justPressed.SPACE) {
@@ -339,7 +335,7 @@ class FreeplayMenu extends MusicBeatState {
         allowInputs = false;
         
         TransitionSubState.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
-        FlxG.switchState(new PlayState());
+        FlxG.switchState(PlayState.new.bind(0));
     }
 
     inline function openChartEditor():Void {
@@ -355,12 +351,11 @@ class FreeplayMenu extends MusicBeatState {
             chartEditor.chart = PlayState.song;
         });
 
-        FlxG.switchState(chartEditor);
+        FlxG.switchState(() -> chartEditor);
     }
 
-    inline function updateScoreData():Void {
+    inline function updateScoreData():Void
         scoreData = HighScore.get('${songs[currentSelection].rawName}-${difficulties[currentDifficulty]}');
-    }
 
     inline function updateDifficultyText():Void {
         var baseText:String = difficulties[currentDifficulty].toUpperCase();

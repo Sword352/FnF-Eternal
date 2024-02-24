@@ -170,8 +170,6 @@ class Assets {
 
     inline private static function resolveAtlasData(key:String):String {
         #if ENGINE_RUNTIME_ASSETS
-        // TODO: maybe find a better solution?
-        // Replaced assets like the alphabet would make the game freeze for some seconds due to `FileTools.getContent`
         return (key.startsWith(currentDirectory) && currentDirectory != defaultDirectory) ? FileTools.getContent(key) : key;
         #else
         return key;
@@ -276,7 +274,7 @@ enum abstract AssetType(String) from String to String {
 
             case XML:    [".xml"];
             case TEXT:   [".txt"];
-            case JSON:   [".json", ".jsonc"];
+            case JSON:   [".json"];
             case YAML:   [".yaml", ".yml"];
 
             #if ENGINE_SCRIPTING

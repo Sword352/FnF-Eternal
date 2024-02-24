@@ -58,7 +58,6 @@
 	<haxelib name="hxvlc" if="VIDEO_CUTSCENES" />
 
 	<haxelib name="yaml" />
-	<haxelib name="tjson" />
 
 	<haxelib name="hscript" unless="ENGINE_SCRIPTING" />
 	<haxelib name="hscript-improved" rename="hscript" if="ENGINE_SCRIPTING" />

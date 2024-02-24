@@ -20,8 +20,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
     var valueText:FlxText;
     var descriptionText:FlxText;
 
-    var inputHoldTime:Float = 0;
-    var holdLimitation:Float = 0;
+    var holdTime:Float = 0;
 
     public function new(option:String):Void {
         super();
@@ -30,13 +29,13 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         this.title = Tools.capitalize(option);
 
         background = new FlxSprite();
-        background.makeRect(FlxG.width - 200, FlxG.height - 500, FlxColor.BLACK);
+        background.makeRect(FlxG.width - 200, FlxG.height - 500, FlxColor.BLACK, false, "optionmenu_rect");
         background.screenCenter(X);
         background.alpha = 0.6;
         add(background);
 
         separator = new FlxSprite();
-        separator.makeRect(FlxG.width - 250, 15);
+        separator.makeRect(FlxG.width - 250, 15, "optionmenu_sep");
         separator.centerToObject(background);
         add(separator);
 
@@ -75,38 +74,33 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         if (target != 0)
             return;
 
-        if (Controls.globalControls.anyJustPressed(inputs)) {
-            inputHoldTime = 0;
+        if (Controls.globalControls.anyJustPressed(inputs)) {            
+            updateSetting((Controls.globalControls.lastAction == "left") ? -1 : 1);
             FlxG.sound.play(Assets.sound("scrollMenu"));
-            updateBoth((Controls.globalControls.lastAction == "left") ? -1 : 1);
+            holdTime = 0;
         }
 
         if (Controls.globalControls.anyPressed(inputs)) {
-            inputHoldTime += 1 * elapsed;
-            if (inputHoldTime > 0.75) {
-                holdLimitation += 5 * elapsed;
-                if (holdLimitation > (FlxG.keys.pressed.SHIFT ? 0.2 : 0.5)) {
-                    holdLimitation = 0;
-                    updateBoth(Controls.globalControls.lastAction == "left" ? -1 : 1);
-                }
+            var hold:Float = Math.floor(holdTime += elapsed * 1.75) - 0.75;
+            if (hold > 0) {
+                updateSetting((Controls.globalControls.lastAction == "left") ? -1 : 1);
+                holdTime -= (FlxG.keys.pressed.SHIFT ? 0.01 : 0.1);
             }
         }
     }
 
-    inline function updateBoth(mult:Int):Void {
+    inline function updateSetting(mult:Int):Void {
         updateValue(mult);
         updateText();
     }
 
     // override those in subclasses!
-    private function updateValue(mult:Int):Void {}
-    private function updateText():Void {}
+    function updateValue(mult:Int):Void {}
+    function updateText():Void {}
 
     function saveValue(value:Any):Void {
         Settings.settings[option].value = value;
-
-        if (onChange != null)
-            onChange(value);
+        if (onChange != null) onChange(value);
     }
 
     inline function repositionValueText():Void {
@@ -114,26 +108,27 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
     }
 
     override function destroy():Void {
-        super.destroy();
-
         option = null;
         title = null;
         description = null;
 
         inputs = null;
         onChange = null;
+
+        super.destroy();
     }
 
     function set_title(v:String):String {
-        if (exists && nameText != null) {
+        if (v != null && nameText != null) {
             nameText.text = v;
             nameText.x = background.x + 25;
         }
+
         return title = v;
     }
 
     function set_description(v:String):String {
-        if (exists)
+        if (v != null)
             descriptionText.text = v;
         return description = v;
     }

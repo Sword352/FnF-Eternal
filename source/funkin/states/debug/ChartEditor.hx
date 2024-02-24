@@ -31,7 +31,7 @@ import eternal.ChartFormat.Chart;
 import eternal.ChartFormat.ChartNote;
 import eternal.ChartFormat.ChartEvent;
 
-import tjson.TJSON as Json;
+import haxe.Json;
 
 // TODO: make the editor run better in debug mode
 class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements eternal.core.crash.CrashHandler.ICrashListener #end {
@@ -79,7 +79,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var metronome:FlxSound;
 
     var lastBpmChange:Float = 0;
-    var awaitReload:Bool = false;
+    var awaitBPMReload:Bool = false;
     var eventBPM:Bool = false;
 
     var startTime:Float = 0;
@@ -95,6 +95,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function create():Void {
+        /*
         @:privateAccess {
             if (haxe.ui.Toolkit._initialized) {
                 FlxG.signals.postGameStart.add(haxe.ui.core.Screen.instance.onPostGameStart);
@@ -104,7 +105,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             else
                 haxe.ui.Toolkit.init();
         }
-        
+        */
+
         super.create();
 
         FlxG.cameras.reset(new Camera());
@@ -158,7 +160,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S) {
             pauseMusic();
-            Tools.saveData('${difficulty.toLowerCase()}.json', Json.encode(chart, null, false));
+            Tools.saveData('${difficulty.toLowerCase()}.json', Json.stringify(chart));
         }
 
         if (FlxG.keys.justPressed.SPACE) {
@@ -205,9 +207,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         // reposition the follow line
         if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
-            line.y = getYFromTime(music.instrumental.time);
+            line.y = getYFromTime(Conductor.time);
         else
-            line.y = Tools.lerp(line.y, getYFromTime(music.instrumental.time), 12);
+            line.y = Tools.lerp(line.y, getYFromTime(Conductor.time), 12);
 
         if (!music.playing && Conductor.time >= music.instrumental.length) {
             music.instrumental.time = 0;
@@ -221,7 +223,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (beatIndicators.visible) {
             for (ind in beatIndicators) {
-                ind.color = Tools.colorLerp(ind.color, FlxColor.RED, 6);
+                // ind.color = Tools.colorLerp(ind.color, FlxColor.RED, 6);
+                ind.color = FlxColor.interpolate(FlxColor.CYAN, FlxColor.RED, (music.playing) ? (Conductor.decimalBeat - Conductor.currentBeat) : 1);
                 ind.y = line.y - ((line.height + ind.height) * 0.25);
             }
         }
@@ -260,12 +263,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function beatHit(currentBeat:Int):Void {
         if (music.playing) {
+            if (metronome.volume > 0)
+                metronome.play(true);
+
+            /*
             if (beatIndicators.visible)
                 for (ind in beatIndicators)
                     ind.color = FlxColor.CYAN;
-
-            if (metronome.volume > 0)
-                metronome.play(true);
+            */
         }
 
         super.beatHit(currentBeat);
@@ -370,10 +375,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function closeSubState():Void {
-        if (!(subState is TransitionSubState) && awaitReload) {
+        if (!(subState is TransitionSubState) && awaitBPMReload) {
             reloadGrid(false, !eventBPM);
             reloadMeasureMarks();
-            awaitReload = false;
+            awaitBPMReload = false;
         }
 
         super.closeSubState();
@@ -392,7 +397,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         PlayState.song = chart;
         PlayState.currentDifficulty = difficulty;
 
-        FlxG.switchState(new PlayState((FlxG.keys.pressed.SHIFT) ? time : 0));
+        FlxG.switchState(PlayState.new.bind((FlxG.keys.pressed.SHIFT) ? time : 0));
     }
 
     inline function playTest():Void {
@@ -445,9 +450,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function pauseMusic():Void {
+        /*
         if (beatIndicators.visible)
             for (ind in beatIndicators)
                 ind.color = FlxColor.RED;
+        */
 
         music.pause();
         metronome.stop();
@@ -559,8 +566,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             Conductor.bpm = currentBPM;
             lastBpmChange = lastChange;
 
-            awaitReload = (subState != null);
-            if (!awaitReload) {
+            awaitBPMReload = (subState != null);
+            if (!awaitBPMReload) {
                 reloadGrid(false, !eventBPM);
                 reloadMeasureMarks();
             }
@@ -800,7 +807,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Assets.clearAssets = false;
 
         subState.close();
-        FlxG.switchState(new ChartEditor(chart, difficulty));
+        FlxG.switchState(ChartEditor.new.bind(chart, difficulty, 0));
     }
 
     inline public function autoSave():Void {
@@ -853,12 +860,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         FlxG.stage.window.onClose.remove(autoSave);
         super.destroy();
 
+        /*
         // temporary fix for haxeui crash
         @:privateAccess {
             FlxG.signals.postGameStart.remove(haxe.ui.core.Screen.instance.onPostGameStart);
             FlxG.signals.postStateSwitch.remove(haxe.ui.core.Screen.instance.onPostStateSwitch);
             FlxG.signals.preStateCreate.remove(haxe.ui.core.Screen.instance.onPreStateCreate);
         }
+        */
     }
 
     inline function set_selectedNote(v:DebugNote):DebugNote {
@@ -898,11 +907,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public static inline function getTimeFromY(y:Float):Float {
-        return Conductor.stepCrochet * (y / checkerSize);
+        return Conductor.beatOffset.time + Conductor.stepCrochet * ((y / checkerSize) - Conductor.beatOffset.step);
     }
 
     public static inline function getYFromTime(time:Float):Float {
-        return checkerSize * (time / Conductor.stepCrochet);
+        return checkerSize * (Conductor.beatOffset.step + ((time - Conductor.beatOffset.time) / Conductor.stepCrochet));
     }
 
     inline static function getIcon(character:String):String {

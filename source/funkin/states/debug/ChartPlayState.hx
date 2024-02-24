@@ -9,6 +9,7 @@ import funkin.objects.Rating;
 import funkin.objects.notes.*;
 import funkin.objects.ui.HealthIcon;
 import funkin.objects.sprites.RatingSprite;
+import funkin.objects.notes.StrumLine.NoteHit;
 
 import eternal.ChartLoader;
 
@@ -114,7 +115,7 @@ class ChartPlayState extends MusicBeatSubState {
         opponentStrumline.tweenReceptors(0, 0.05);
         playerStrumline.tweenReceptors(0, 0.05);
 
-        notes = ChartLoader.generateNotes(parent.chart, startTime);
+        notes = ChartLoader.generateNotes(parent.chart, startTime, strumlines);
         strumlines = [opponentStrumline, playerStrumline];
 
         Controls.globalControls.onKeyJustPressed.add(onKeyDown);
@@ -147,7 +148,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         while (notes.length > 0)  {
             var note:Note = notes[0];
-            if ((note.time - Conductor.time) > (1800 / note.scrollSpeed))
+            if ((note.time - Conductor.time) > (1800 / note.getScrollSpeed()))
                break;
    
             strumlines[note.strumline].addNote(note);   
@@ -171,35 +172,14 @@ class ChartPlayState extends MusicBeatSubState {
         if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
             return;
 
-        var index:Int = Note.directions.indexOf(action);
-        var receptor:Receptor = playerStrumline.receptors.members[index];
-  
-        playerStrumline.holdKeys[index] = true;
+        var direction:Int = Note.directions.indexOf(action);
+        var noteHit:NoteHit = playerStrumline.keyHit(direction);
 
-        var possibleNotes:Array<Note> = playerStrumline.notes.members.filter((note) -> note.direction == index && note.canBeHit);
-
-        if (possibleNotes.length > 0) {
-            possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
-
-            var noteToHit:Note = possibleNotes[0];
-
-            // Delete stacked notes
-            if (possibleNotes.length > 1) {
-                for (i => note in possibleNotes) {
-                    if (i == 0) continue;
-   
-                    if (Math.abs(note.time - noteToHit.time) <= 10)
-                        playerStrumline.removeNote(note);
-                    else break;
-                }
+        if (noteHit != null) {
+            switch (noteHit) {
+               case NOTE_HIT(note): onNoteHit(note);
+               case MISSED: onMiss();
             }
-
-            onNoteHit(noteToHit);
-        }
-        else {
-            receptor.playAnimation("press", true);
-            if (!Settings.get("ghost tapping"))
-               onMiss();
         }
     }
 
@@ -207,9 +187,7 @@ class ChartPlayState extends MusicBeatSubState {
         if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
             return;
 
-        var index:Int = Note.directions.indexOf(action);
-        playerStrumline.receptors.members[index].playAnimation("static", true);
-        playerStrumline.holdKeys[index] = false;
+        playerStrumline.keyRelease(Note.directions.indexOf(action));
     }
 
     inline function onNoteHit(note:Note):Void  {

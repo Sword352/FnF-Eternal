@@ -33,9 +33,12 @@ class Note extends OffsetSprite {
    public var isSustainNote(get, never):Bool;
    public var sustainDecrease(get, default):Float = 0;
 
-   public var type(default, set):String = "";
+   public var type(default, set):String;
    public var skin(default, set):String;
+
    public var animSuffix:String;
+   public var noSingAnim:Bool = false;
+   public var noMissAnim:Bool = false;
 
    public var followX:Bool = true;
    public var followY:Bool = true;
@@ -141,6 +144,14 @@ class Note extends OffsetSprite {
 
    public inline function resetTypeProps():Void {
       animSuffix = null;
+      noSingAnim = false;
+      noMissAnim = false;
+   }
+
+   public function getScrollSpeed(mult:Float = 1):Float {
+      var receptor:Receptor = parentStrumline?.receptors.members[direction];
+      var speed:Float = (followSpeed && parentStrumline != null) ? ((receptor.scrollSpeed ?? parentStrumline.scrollSpeed) * mult) : (@:bypassAccessor this.scrollSpeed);
+      return Math.abs(speed * scrollMult);
    }
 
    override function update(elapsed:Float):Void {
@@ -187,6 +198,8 @@ class Note extends OffsetSprite {
          switch (v) {
             case "Alt Animation":
                animSuffix = "-alt";
+            case "No Animation":
+               noSingAnim = true;
          }
       }
 
@@ -224,14 +237,11 @@ class Note extends OffsetSprite {
    }
 
    inline function get_distance():Float {
-      return (autoDistance) ? (scrollMult * -((((Conductor.updateInterp) ? Conductor.interpTime : Conductor.time) - time) * scrollSpeed)) : this.distance;
+      if (!autoDistance) return this.distance;
+      return FlxMath.signOf(scrollMult) * -(((Conductor.updateInterp ? Conductor.interpTime : Conductor.time) - time) * scrollSpeed);
    }
 
-   inline function get_scrollSpeed():Float {
-      var receptor:Receptor = parentStrumline?.receptors.members[direction];
-      var speed:Float = Math.abs(((followSpeed && parentStrumline != null) ? (receptor.scrollSpeed ?? parentStrumline.scrollSpeed) : this.scrollSpeed) * 0.45);
-      return speed * Math.abs(scrollMult);
-   }
+   inline function get_scrollSpeed():Float return getScrollSpeed(0.45);
 
    inline function get_scrollMult():Float {
       var receptor:Receptor = parentStrumline?.receptors.members[direction];
@@ -283,7 +293,7 @@ class Sustain extends TiledSprite {
    public var parent:Note;
 
    public function new(parent:Note):Void {
-      super(null, 0, 0, true, true);
+      super(null, 0, 0, false, true);
 
       tail = new FlxSprite();
       alpha = 0.6;
@@ -332,7 +342,7 @@ class Sustain extends TiledSprite {
 
       if (parent.autoClipSustain) {
          // clipRect-like effect
-         scrollY = (parent.holdProgress * ((parent.downscroll) ? 0.001 : 0.3)) * parent.scrollSpeed;
+         scrollY = (parent.holdProgress * ((parent.downscroll) ? 0.001 : -1.5)) * parent.scrollSpeed;
       }
    }
 

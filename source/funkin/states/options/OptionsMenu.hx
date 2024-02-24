@@ -251,7 +251,7 @@ class OptionsMenu extends MusicBeatState {
 
     inline function exit():Void {
         FlxG.sound.play(Assets.sound("cancelMenu"));
-        FlxG.switchState((toPlayState) ? new PlayState() : new MainMenu());
+        FlxG.switchState((toPlayState) ? PlayState.new.bind(0) : MainMenu.new);
     }
 
     override function openSubState(subState:FlxSubState):Void {

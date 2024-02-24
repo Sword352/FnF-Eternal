@@ -103,9 +103,9 @@ class GameOverScreen extends MusicBeatSubState {
             TransitionSubState.skipNextTransIn = true;
 
             FlxG.switchState(switch (PlayState.gameMode) {
-                case STORY: new StoryMenu();
-                case DEBUG: new ChartEditor(PlayState.song, PlayState.currentDifficulty);
-                default: new FreeplayMenu();
+                case STORY: StoryMenu.new;
+                case DEBUG: ChartEditor.new.bind(PlayState.song, PlayState.currentDifficulty, 0);
+                default: FreeplayMenu.new;
             });
         }
 
@@ -156,7 +156,7 @@ class GameOverScreen extends MusicBeatSubState {
         super.destroy();
     }
 
-    public static function formatProperties(properties:GameOverProperties):GameOverProperties {
+    public static inline function formatProperties(properties:GameOverProperties):GameOverProperties {
         if (properties == null) {
             return {
                 music: "gameover/gameOver",

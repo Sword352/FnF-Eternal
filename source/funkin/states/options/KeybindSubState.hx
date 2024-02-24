@@ -238,12 +238,11 @@ class KeybindItem extends FlxText {
     }
 
     override function destroy():Void {
-        super.destroy();
-
         firstKeybind = FlxDestroyUtil.destroy(firstKeybind);
         secondKeybind = FlxDestroyUtil.destroy(secondKeybind);
-
         keybind = null;
+
+        super.destroy();
     }
 
     private static function formatKey(key:Int, gamepad:Bool = false):String {

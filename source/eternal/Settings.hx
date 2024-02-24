@@ -54,16 +54,16 @@ class Settings {
         "framerate" => new Setting<Int>(60, (v) -> Tools.changeFramerateCap(v)),
 
         "show framerate" => new Setting<Bool>(true, (v) -> {
-            if (Main.overlay != null)
-                Main.overlay.showFramerate = v;
+            if (Main.fpsOverlay != null)
+                Main.fpsOverlay.showFps = v;
         }),
         "show memory" => new Setting<Bool>(false, (v) -> {
-            if (Main.overlay != null)
-                Main.overlay.showMemory = v;
+            if (Main.fpsOverlay != null)
+                Main.fpsOverlay.showMem = v;
         }),
         "show overlay background" => new Setting<Bool>(true, (v) -> {
-            if (Main.overlay != null)
-                Main.overlay.showBackground = v;
+            if (Main.fpsOverlay != null)
+                Main.fpsOverlay.showBg = v;
         }),
 
         "disable antialiasing" => new Setting<Bool>(false, (v) -> FlxSprite.defaultAntialiasing = !v),

@@ -1,12 +1,14 @@
 package eternal;
 
 import funkin.objects.notes.Note;
+import funkin.objects.notes.StrumLine;
+
 import eternal.ChartFormat.Chart;
 import eternal.ChartFormat.ChartNote;
 import eternal.ChartFormat.SongMetadata;
+import eternal.ChartFormat.BaseGameChart;
 
-import tjson.TJSON as Json;
-
+import haxe.Json;
 class ChartLoader {
     public static inline function getEmptyMeta():SongMetadata
         return {
@@ -51,7 +53,7 @@ class ChartLoader {
         return data;
     }
 
-    public static inline function convertChart(data:Dynamic):Chart {
+    public static inline function convertChart(data:BaseGameChart):Chart {
         var finalData:Chart = {
             meta: {
                 name: data.song,
@@ -148,18 +150,20 @@ class ChartLoader {
         return output;
     }
 
-    public static function generateNotes(chart:Chart, minTime:Float = 0, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
+    public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
         var notes:Array<Note> = [];
 
         for (noteData in chart.notes) {
-            if (noteData.time < minTime)
-                continue;
+            if (noteData.time < minTime) continue;
             
             var note:Note = new Note(noteData.time, noteData.direction, (noteData.strumline == 1) ? playerSkin : oppSkin);
             note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;
             note.type = noteData.type;
             notes.push(note);
+
+            if (strumLines != null)
+                note.parentStrumline = strumLines[note.strumline];
         }
 
         notes.sort((n1, n2) -> Std.int(n1.time - n2.time));
@@ -195,7 +199,7 @@ class ChartLoader {
 
         #if sys
         if (overwrite)
-            sys.io.File.saveContent(path, Json.encode(data, null, false)); // overwrite the chart json
+            sys.io.File.saveContent(path, Json.stringify(data)); // overwrite the chart json
         #end
 
         return Chart.resolve(data);

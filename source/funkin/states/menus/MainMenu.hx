@@ -165,7 +165,7 @@ class MainMenu extends MusicBeatState {
             if (controls.justPressed("back")) {
                 FlxG.sound.play(Assets.sound("cancelMenu"));
                 TransitionSubState.skipNextTransOut = true;
-                FlxG.switchState(new TitleScreen());
+                FlxG.switchState(TitleScreen.new);
             }
 
             #if ENGINE_MODDING
@@ -243,9 +243,9 @@ class MainMenu extends MusicBeatState {
 
     inline function goToNextState():Void {
         switch (itemList[currentSelection]) {
-            case "story mode": FlxG.switchState(new StoryMenu());
-            case "freeplay": FlxG.switchState(new FreeplayMenu());
-            case "options": FlxG.switchState(new OptionsMenu());
+            case "story mode": FlxG.switchState(StoryMenu.new);
+            case "freeplay": FlxG.switchState(FreeplayMenu.new);
+            case "options": FlxG.switchState(OptionsMenu.new.bind(false));
         }
     }
 

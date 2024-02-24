@@ -97,7 +97,7 @@ class TitleScreen extends MusicBeatState {
 
         pressEnterSprite = new FlxSprite(100, FlxG.height * 0.8);
         pressEnterSprite.frames = Assets.getSparrowAtlas("menus/title/titleEnter");
-        pressEnterSprite.animation.addByPrefix("normal", "Press Enter To Begin", 24);
+        pressEnterSprite.animation.addByPrefix("normal", "Press Enter to Begin", 24);
         pressEnterSprite.animation.addByPrefix("pressed", "ENTER PRESSED", 24);
         pressEnterSprite.animation.play("normal");
         pressEnterSprite.updateHitbox();
@@ -192,7 +192,7 @@ class TitleScreen extends MusicBeatState {
             pressEnterSprite.animation.play("pressed");
             FlxG.sound.play(Assets.sound("confirmMenu"));
 
-            new FlxTimer().start(1, (_) -> FlxG.switchState(new MainMenu()));
+            new FlxTimer().start(1, (_) -> FlxG.switchState(MainMenu.new));
         }
 
         #if ENGINE_SCRIPTING

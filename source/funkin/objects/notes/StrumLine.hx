@@ -1,22 +1,19 @@
 package funkin.objects.notes;
 
 import flixel.tweens.*;
-
 import flixel.util.FlxAxes;
 import flixel.util.FlxSignal;
-
 import flixel.group.FlxGroup.FlxGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 class StrumLine extends FlxGroup {
    public var x(default, set):Float = 0;
    public var y(default, set):Float = 0;
-
-   public var receptors(default, null):FlxTypedGroup<Receptor>;
-   public var splashes(default, null):FlxTypedGroup<Splash>;
-   public var notes(default, null):FlxTypedGroup<Note>;
-   
    public var receptorSpacing(default, set):Float = 112;
+
+   public var receptors:FlxTypedGroup<Receptor>;
+   public var splashes:FlxTypedGroup<Splash>;
+   public var notes:FlxTypedGroup<Note>;
 
    public var downscroll(get, set):Bool;
    public var scrollSpeed:Float = 1;
@@ -26,11 +23,12 @@ class StrumLine extends FlxGroup {
    public var skin(default, set):String;
 
    public var holdKeys:Array<Bool> = [false, false, false, false];
+   public var ghostTap:Bool = Settings.get("ghost tapping");
    public var cpu:Bool = false;
 
-   public var onNoteHit(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
-   public var onHold(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
-   public var onMiss(default, null):FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+   public var onNoteHit:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+   public var onHold:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+   public var onMiss:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
 
    var notesToRemove:Array<Note> = [];
    var lastStep:Int = 0; // used for base game behaviour
@@ -48,7 +46,7 @@ class StrumLine extends FlxGroup {
       add(receptors);
 
       if (!Settings.get("disable note splashes") && !cpu)
-         initSplashes();
+         createSplashes();
 
       notes = new FlxTypedGroup<Note>();
       add(notes);
@@ -63,9 +61,6 @@ class StrumLine extends FlxGroup {
    override public function update(elapsed:Float):Void {
       notes.forEachAlive((note) -> {
          var receptor:Receptor = receptors.members[note.direction];
-
-         if (!note.noStrumFollow)
-            note.follow(receptor);
 
          if (cpu && note.canBeHit) {
             note.goodHit = true;
@@ -97,6 +92,9 @@ class StrumLine extends FlxGroup {
             if (note.holdProgress >= note.length)
                notesToRemove.push(note);
          }
+
+         if (!note.noStrumFollow)
+            note.follow(receptor);
       });
 
       super.update(elapsed);
@@ -130,11 +128,8 @@ class StrumLine extends FlxGroup {
    }
 
    public function addNote(note:Note):Void {
-      note.parentStrumline = this;
       notes.add(note);
-
-      if (notes.members.length > 1)
-         notes.members.sort((a, b) -> Std.int(a.time - b.time));
+      if (notes.members.length > 1) notes.members.sort((a, b) -> Std.int(a.time - b.time));
    }
 
    public function removeNote(note:Note):Void {
@@ -144,12 +139,43 @@ class StrumLine extends FlxGroup {
 
    public function hitNote(note:Note):Void {
       if (note.isSustainNote) {
-         if (!cpu)
-            resizeLength(note);
          note.baseVisible = false;
+         if (!cpu) resizeLength(note);
       }
       else
          notesToRemove.push(note);
+   }
+
+   public inline function keyHit(direction:Int):NoteHit {
+      var receptor:Receptor = receptors.members[direction];
+      for (character in characters) character.holding = true;
+      holdKeys[direction] = true;
+
+      var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == direction && note.canBeHit);
+      if (possibleNotes.length == 0) {
+         receptor.playAnimation("press", true);
+         return (!ghostTap) ? MISSED : null;
+      }
+
+      possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
+
+      var noteToHit:Note = possibleNotes[0];
+
+      if (possibleNotes.length > 1) {
+         for (note in possibleNotes) {
+            if (note == noteToHit) continue;
+            if (Math.abs(note.time - noteToHit.time) < 10) removeNote(note);
+            else break;
+         }
+      }
+
+      return NOTE_HIT(noteToHit);
+   }
+
+   public inline function keyRelease(direction:Int):Void {
+      holdKeys[direction] = false;
+      receptors.members[direction].playAnimation("static", true);
+      for (character in characters) character.holding = holdKeys.contains(true);
    }
 
    inline function miss(note:Note):Void {
@@ -167,25 +193,24 @@ class StrumLine extends FlxGroup {
    // incase the player hits the note early or late
    inline function resizeLength(note:Note):Void {
       note.length += (note.time - Conductor.time);
+      if (note.length < 100) removeNote(note);
    }
 
-   public function setPosition(x:Float = 0, y:Float = 0):StrumLine {
+   public inline function setPosition(x:Float = 0, y:Float = 0):StrumLine {
       this.x = x;
       this.y = y;
       return this;
    }
 
-   public function screenCenter(axes:FlxAxes = XY):StrumLine {
-      if (axes.x)
-         x = FlxG.width * 0.5;
-
-      if (axes.y)
-         y = FlxG.height * 0.5;
-      
+   public inline function screenCenter(axes:FlxAxes = XY):StrumLine {
+      if (axes.x) x = FlxG.width * 0.5;
+      if (axes.y) y = FlxG.height * 0.5;
       return this;
    }
 
    public function singCharacters(note:Note):Void {
+      if (note.noSingAnim) return;
+      
       for (character in characters) {
          if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Settings.get("disable hold stutter"))
             character.sing(note.direction, note.animSuffix);
@@ -197,25 +222,21 @@ class StrumLine extends FlxGroup {
    }
 
    public function tweenReceptors(delay:Float = 0.5, dirDelay:Float = 0.2):Void {
-      if (receptors == null)
-         return;
-
       for (receptor in receptors) {
          receptor.alpha = 0;
          receptor.y -= 10;
          FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
-            ease: FlxEase.circOut,
-            startDelay: delay + (dirDelay * receptor.direction)
+            startDelay: delay + (dirDelay * receptor.direction),
+            ease: FlxEase.circOut
          });
       }
    }
 
-   public function initSplashes(cache:Bool = true):Void {
+   public inline function createSplashes(cache:Bool = true):Void {
       splashes = new FlxTypedGroup<Splash>();
       add(splashes);
 
-      if (cache)
-         cacheSplash();
+      if (cache) cacheSplash();
    }
 
    public inline function cacheSplash():Void {
@@ -224,30 +245,25 @@ class StrumLine extends FlxGroup {
       cachedSplash.kill();
    }
 
-   public function popSplash(direction:Int):Void {
-      if (splashes == null)
-         return;
-
+   public inline function popSplash(direction:Int):Void {
       var splash:Splash = splashes.recycle(Splash, () -> new Splash(skin));
       var receptor:Receptor = receptors.members[direction];
       splash.setPosition(receptor.x, receptor.y);
       splash.pop(direction);
    }
 
-   inline function setReceptorsX(x:Float):Void {
-      if (receptors != null)
-         receptors.forEach((r) -> r.x = x + (receptorSpacing * (r.direction - 2)));
-   }
+   inline function setReceptorsX(x:Float):Void
+      receptors?.forEach((r) -> r.x = x + (receptorSpacing * (r.direction - 2)));
 
    override function destroy():Void {
+      onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
+      onMiss = cast FlxDestroyUtil.destroy(onMiss);
+      onHold = cast FlxDestroyUtil.destroy(onHold);
+
       notesToRemove = null;
       characters = null;
       holdKeys = null;
       skin = null;
-
-      onMiss = cast FlxDestroyUtil.destroy(onMiss);
-      onHold = cast FlxDestroyUtil.destroy(onHold);
-      onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
 
       super.destroy();
    }
@@ -258,16 +274,13 @@ class StrumLine extends FlxGroup {
    }
 
    function set_y(v:Float):Float {
-      if (receptors != null)
-         receptors.forEach((r) -> r.y = v);
+      receptors?.forEach((r) -> r.y = v);
       return y = v;
    }
 
    function set_skin(v:String):String {
       if (v != null) {
-         if (receptors != null)
-            receptors.forEach((r) -> r.skin = v);
-
+         receptors?.forEach((r) -> r.skin = v);
          receptorSpacing = ((v == "default") ? 112 : (eternal.NoteSkin.get(v)?.receptor?.spacing ?? 112));
       }
 
@@ -276,16 +289,20 @@ class StrumLine extends FlxGroup {
 
    function set_receptorSpacing(v:Float):Float {
       receptorSpacing = v;
-      setReceptorsX(this.x);
+      setReceptorsX(x);
       return v;
    }
 
-   function set_downscroll(v:Bool):Bool {
-      if ((v && scrollMult > 0) || (!v && scrollMult < 0))
-         scrollMult *= -1;   
+   inline function set_downscroll(v:Bool):Bool {
+      if ((v && scrollMult > 0) || (!v && scrollMult < 0)) scrollMult = -scrollMult;
       return v;
    }
 
    inline function get_downscroll():Bool
       return scrollMult < 0;
+}
+
+enum NoteHit {
+   NOTE_HIT(note:Note);
+   MISSED;
 }

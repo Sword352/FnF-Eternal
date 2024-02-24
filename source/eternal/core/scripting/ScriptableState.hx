@@ -143,6 +143,7 @@ class ScriptableState extends TransitionState {
 
     override function destroy():Void {
         scriptPack.destroy();
+        scriptPack = null;
         super.destroy();
     }
 }
@@ -208,6 +209,7 @@ class ScriptableSubState extends FlxSubState {
 
     override function destroy():Void {
         scriptPack.destroy();
+        scriptPack = null;
         super.destroy();
     }
 }

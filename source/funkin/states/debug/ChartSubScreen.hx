@@ -8,7 +8,7 @@ import haxe.ui.containers.properties.*;
 import haxe.ui.styles.StyleSheet;
 
 import funkin.music.EventManager.EventDetails;
-import tjson.TJSON as Json;
+import haxe.Json;
 
 class ChartSubScreen extends FlxSubState {
     static var lastPage:Int = 0;
@@ -449,14 +449,14 @@ class ChartSubScreen extends FlxSubState {
         var page:Box = createPage("Save");
 
         var saveChart:Button = createButton("Save Chart");
-        saveChart.onClick = (_) -> Tools.saveData('${parent.difficulty.toLowerCase()}.json', Json.encode(parent.chart, null, false));
+        saveChart.onClick = (_) -> Tools.saveData('${parent.difficulty.toLowerCase()}.json', Json.stringify(parent.chart));
 
         var saveMeta:Button = createButton("Save Song Metadata");
-        saveMeta.onClick = (_) -> Tools.saveData("meta.json", Json.encode(parent.chart.meta, null, false));
+        saveMeta.onClick = (_) -> Tools.saveData("meta.json", Json.stringify(parent.chart.meta));
         saveMeta.top = 25;
 
         var saveEvents:Button = createButton("Save Events");
-        saveEvents.onClick = (_) -> Tools.saveData("events.json", Json.encode(parent.chart.events, null, false));
+        saveEvents.onClick = (_) -> Tools.saveData("events.json", Json.stringify(parent.chart.events));
         saveEvents.top = 50;
 
         var autoSave:Button = createButton("Load Autosave");

@@ -3,7 +3,6 @@ package funkin.states;
 import flixel.*;
 import flixel.util.*;
 import flixel.tweens.*;
-
 import flixel.math.FlxPoint;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -14,6 +13,7 @@ import funkin.music.EventManager;
 import funkin.objects.*;
 import funkin.objects.notes.*;
 import funkin.objects.stages.*;
+import funkin.objects.notes.StrumLine;
 
 import funkin.objects.Camera;
 import funkin.objects.ui.GameplayUI;
@@ -26,19 +26,18 @@ import funkin.states.substates.*;
 
 import eternal.ChartLoader;
 import eternal.ChartFormat.Chart;
-import eternal.ChartFormat.ChartEvent;
 
 import openfl.Lib;
 
 class PlayState extends MusicBeatState {
    public static var current:PlayState;
+   public static var song:Chart;
+
+   public static var songPlaylist:Array<String>;
+   public static var currentDifficulty:String;
 
    public static var gameMode:GameMode = FREEPLAY;
    public static var lossCounter:Int = 0;
-
-   public static var currentDifficulty:String;
-   public static var songPlaylist:Array<String>;
-   public static var song:Chart;
 
    public var eventManager:EventManager;
    public var music:MusicPlayback;
@@ -72,10 +71,10 @@ class PlayState extends MusicBeatState {
    public var misses:Int = 0;
    public var missScoreLoss:Float = 10;
 
-   public var accuracy:Float = 0;
+   public var accuracy(get, never):Float;
+   public var accuracyDisplay(get, never):Float;
    public var accuracyMod:Float = 0;
    public var accuracyNotes:Int = 0;
-   public var accuracyDisplay:Float = 0;
 
    public var health(default, set):Float = 1;
    public var minHealth:Float = 0;
@@ -90,14 +89,12 @@ class PlayState extends MusicBeatState {
    public var cameraZoom:Float = 1;
    public var hudZoom:Float = 1;
 
-   public var cameraZoomIntensity:Float = 1;
-   public var cameraZoomBeat:Float = 4;
-
    public var camBeatZoom:Float = 0.03;
    public var hudBeatZoom:Float = 0.05;
+   public var beatZoomInterval:Float = 4;
 
-   public var cameraObject:FlxObject;
-   public var cameraPoint:FlxPoint;
+   public var camDisplace:FlxObject;
+   public var camPos:FlxPoint;
 
    public var cameraTargets:Array<Character>;
    public var targetCharacter:Character;
@@ -112,8 +109,8 @@ class PlayState extends MusicBeatState {
    public var gf(get, set):Character;
    public var dad(get, set):Character;
 
-   public var camFollow(get, set):FlxPoint;
-   public var camFollowPos(get, set):FlxObject;
+   public var camFollow(get, set):FlxObject;
+   public var camFollowPos(get, set):FlxPoint;
    public var defaultCamZoom(get, set):Float;
 
    public var unspawnNotes(get, set):Array<Note>;
@@ -130,11 +127,11 @@ class PlayState extends MusicBeatState {
    inline function get_defaultCamZoom():Float return cameraZoom;
    inline function set_defaultCamZoom(v:Float):Float return cameraZoom = v;
 
-   inline function get_camFollow():FlxPoint return cameraPoint;
-   inline function set_camFollow(v:FlxPoint):FlxPoint return cameraPoint = v;
+   inline function get_camFollow():FlxObject return camDisplace;
+   inline function set_camFollow(v:FlxObject):FlxObject return camDisplace = v;
    
-   inline function get_camFollowPos():FlxObject return cameraObject;
-   inline function set_camFollowPos(v:FlxObject):FlxObject return cameraObject = v;
+   inline function get_camFollowPos():FlxPoint return camPos;
+   inline function set_camFollowPos(v:FlxPoint):FlxPoint return camPos = v;
 
    inline function get_unspawnNotes():Array<Note> return notes;
    inline function set_unspawnNotes(v:Array<Note>):Array<Note> return notes = v;
@@ -151,10 +148,10 @@ class PlayState extends MusicBeatState {
    }
 
    override public function create():Void {
+      var createTime:Float = Lib.getTimer();
+
       Tools.stopMusic();
       current = this;
-
-      var timeToLoad:Float = Lib.getTimer();
 
       #if ENGINE_SCRIPTING
       loadScriptsFrom('songs/${song.meta.rawName}/scripts');
@@ -174,12 +171,12 @@ class PlayState extends MusicBeatState {
       camSubState.bgColor.alpha = 0;
       FlxG.cameras.add(camSubState, false);
 
-      cameraPoint = FlxPoint.get();
+      camPos = FlxPoint.get();
 
-      cameraObject = new FlxObject(0, 0, 1, 1);
-      cameraObject.visible = false;
-      camGame.follow(cameraObject, LOCKON);
-      add(cameraObject);
+      camDisplace = new FlxObject(0, 0, 1, 1);
+      camGame.follow(camDisplace, LOCKON);
+      camDisplace.visible = false;
+      add(camDisplace);
 
       super.create();
 
@@ -201,7 +198,7 @@ class PlayState extends MusicBeatState {
       Conductor.stepsPerBeat = (song.meta.stepsPerBeat ?? 4);
       Conductor.bpm = song.bpm;
       
-      cameraZoomBeat = Conductor.beatsPerMeasure;
+      beatZoomInterval = Conductor.beatsPerMeasure;
       
       eventManager = new EventManager();
       add(eventManager);
@@ -291,7 +288,7 @@ class PlayState extends MusicBeatState {
          add(ratingSprites);
       }
 
-      notes = ChartLoader.generateNotes(song, startTime, playerNoteSkin, oppNoteSkin);
+      notes = ChartLoader.generateNotes(song, startTime, strumLines.members, playerNoteSkin, oppNoteSkin);
 
       Controls.globalControls.onKeyJustPressed.add(onKeyDown);
       Controls.globalControls.onKeyJustReleased.add(onKeyUp);
@@ -312,13 +309,13 @@ class PlayState extends MusicBeatState {
       if (song.events.length > 0 && song.events[0].event == "change camera target" && song.events[0].time <= 10)
          eventManager.runEvent(eventManager.events.shift());
       else
-         cameraObject.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
+         camDisplace.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
 
       snapCamera();
 
       if (startTime <= 0) {
          #if ENGINE_SCRIPTING
-         if (!cancellableCall("onStartCountdown"))
+         if (!cancellableCall("onCountdownStart"))
          #end
             startCountdown();
       }
@@ -328,7 +325,7 @@ class PlayState extends MusicBeatState {
       persistentUpdate = true;
 
       if (gameMode != DEBUG)
-         trace('${song.meta.name} - Took ${((Lib.getTimer() - timeToLoad) / 1000)}s to load');
+         trace('${song.meta.name} - Took ${((Lib.getTimer() - createTime) / 1000)}s to load');
 
       #if ENGINE_SCRIPTING
       hxsCall("onCreatePost");
@@ -341,7 +338,7 @@ class PlayState extends MusicBeatState {
       #end
 
       updateConductor(elapsed);
-      checkSpawnNotes();
+      spawnNotes();
 
       super.update(elapsed);
 
@@ -351,11 +348,8 @@ class PlayState extends MusicBeatState {
       camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, cameraSpeed);
       camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, cameraSpeed);
 
-      repositionCameraPoint();
-      cameraObject.setPosition(
-         Tools.lerp(cameraObject.x, cameraPoint.x, cameraSpeed),
-         Tools.lerp(cameraObject.y, cameraPoint.y, cameraSpeed)
-      );
+      updateCamPos();
+      updateCamLerp();
 
       #if ENGINE_DISCORD_RPC
       if (music.playing && Conductor.time >= 0 && Conductor.time <= music.instrumental.length)
@@ -376,10 +370,9 @@ class PlayState extends MusicBeatState {
          }
 
          if (controls.justPressed("autoplay")) {
-            validScore = false;
             playerStrumline.cpu = !playerStrumline.cpu;
-            hud.showBotplayMark(playerStrumline.cpu);
             hud.updateScoreText();
+            validScore = false;
          }
       }
 
@@ -390,11 +383,11 @@ class PlayState extends MusicBeatState {
       #end
    }
 
-   public dynamic function checkSpawnNotes():Void {
+   public inline function spawnNotes():Void {
       // TODO: maybe move this into the note class?
       while (notes.length > 0)  {
          var note:Note = notes[0];
-         if ((note.time - Conductor.time) > ((1800 / note.scrollSpeed) + note.spawnTimeOffset))
+         if ((note.time - Conductor.time) > ((1800 / note.getScrollSpeed()) + note.spawnTimeOffset))
             break;
 
          #if ENGINE_SCRIPTING hxsCall("onNoteSpawn", [note]); #end
@@ -423,16 +416,15 @@ class PlayState extends MusicBeatState {
 
       stage.beatHit(currentBeat);
 
-      if (!Settings.get("reduced movements") && Conductor.currentBeat > -1) {
-         if (currentBeat != 0 && currentBeat % cameraZoomBeat == 0 && cameraZoomIntensity != 0) {
-            camGame.zoom += camBeatZoom * cameraZoomIntensity;
-            camHUD.zoom += hudBeatZoom * cameraZoomIntensity;
+      if (Conductor.currentBeat > -1) {
+         if (currentBeat != 0 && currentBeat % beatZoomInterval == 0) {
+            camGame.zoom += camBeatZoom;
+            camHUD.zoom += hudBeatZoom;
          }
 
          hud.beatHit();
+         super.beatHit(currentBeat);
       }
-
-      super.beatHit(currentBeat);
    }
 
    override function measureHit(currentMeasure:Int):Void {
@@ -472,7 +464,7 @@ class PlayState extends MusicBeatState {
 
       camSubState.zoom = camGame.zoom;
 
-      var playerPosition:FlxPoint = player?.getScreenPosition() ?? FlxPoint.get(cameraPoint.x, cameraPoint.y);
+      var playerPosition:FlxPoint = player?.getScreenPosition() ?? FlxPoint.get(camPos.x, camPos.y);
       openSubState(new GameOverScreen(playerPosition.x, playerPosition.y, player?.gameOverChar ?? "bf-dead"));
       playerPosition.put();
 
@@ -483,12 +475,12 @@ class PlayState extends MusicBeatState {
 
    inline public function openChartEditor():Void {
       Assets.clearAssets = Settings.get("reload assets");
-      FlxG.switchState(new ChartEditor(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.time, 0) : 0));
+      FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.time, 0) : 0));
    }
 
-   public function changeCameraTarget(target:Int):Void {
+   public function changeCamTarget(target:Int):Void {
       #if ENGINE_SCRIPTING
-      if (cancellableCall("onCamChange", [target]))
+      if (cancellableCall("onCamTargetChange", [target]))
          return;
       #end
 
@@ -496,36 +488,32 @@ class PlayState extends MusicBeatState {
       stage.onCamFocusChange(target);
 
       #if ENGINE_SCRIPTING
-      hxsCall("onCamChangePost", [target]);
+      hxsCall("onCamTargetChangePost", [target]);
       #end
    }
 
    public inline function snapCamera():Void {
-      repositionCameraPoint();
-      cameraObject.setPosition(
-         cameraPoint.x,
-         cameraPoint.y
-      );
+      updateCamPos();
+      camDisplace.setPosition(camPos.x, camPos.y);
    }
 
-   public inline function repositionCameraPoint():Void {
+   public inline function updateCamPos():Void {
       if (targetCharacter == null)
          return;
 
       var position:FlxPoint = targetCharacter.getCamDisplace();
-      cameraPoint.set(position.x, position.y);
+      camPos.set(position.x, position.y);
       position.put();
    }
 
+   public inline function updateCamLerp():Void {
+      camDisplace.setPosition(
+         Tools.lerp(camDisplace.x, camPos.x, cameraSpeed),
+         Tools.lerp(camDisplace.y, camPos.y, cameraSpeed)
+      );
+   }
+
    public function startCountdown(loops:Int = 4, changeBeat:Bool = true):Void { 
-      for (sprite in countdownSprites)
-         if (sprite != null)
-            Assets.image(sprite);
-
-      for (sound in countdownSounds)
-         if (sound != null)
-            Assets.sound(sound);
-
       if (changeBeat) {
          Conductor.currentBeat = -(loops + 1);
          Conductor.interpTime = Conductor.time;
@@ -636,14 +624,14 @@ class PlayState extends MusicBeatState {
          case STORY:
             if (songPlaylist.length > 0) {
                TransitionSubState.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
-               FlxG.switchState(new PlayState());
+               FlxG.switchState(PlayState.new.bind(0));
             }
             else
-               FlxG.switchState(new StoryMenu());
+               FlxG.switchState(StoryMenu.new);
          case DEBUG:
             openChartEditor();
          default:
-            FlxG.switchState(new FreeplayMenu());
+            FlxG.switchState(FreeplayMenu.new);
       }
    }
 
@@ -659,40 +647,15 @@ class PlayState extends MusicBeatState {
       hxsCall("onKeyPress", [rawID, action]);
       #end
 
-      var index:Int = Note.directions.indexOf(action);
-      var receptor:Receptor = playerStrumline.receptors.members[index];
+      var direction:Int = Note.directions.indexOf(action);
+      var noteHit:NoteHit = playerStrumline.keyHit(direction);
 
-      playerStrumline.holdKeys[index] = true;
-
-      for (player in playerStrumline.characters)
-         player.holding = true;
-
-      var possibleNotes:Array<Note> = playerStrumline.notes.members.filter((note) -> note.direction == index && note.canBeHit);
-
-      if (possibleNotes.length > 0) {
-         possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
-
-         var noteToHit:Note = possibleNotes[0];
-         
-         // Delete stacked notes
-         if (possibleNotes.length > 1) {
-            for (i => note in possibleNotes) {
-               if (i == 0) continue;
-   
-               if (Math.abs(note.time - noteToHit.time) < 10)
-                  playerStrumline.removeNote(note);
-               else break;
-            }
-         }
-
-         goodNoteHit(noteToHit);
-      }
-      else {
-         receptor.playAnimation("press", true);
-
-         if (!Settings.get("ghost tapping")) {
-            playMissAnimation(index);
-            miss(null);
+      if (noteHit != null) {
+         switch (noteHit) {
+            case NOTE_HIT(note): goodNoteHit(note);
+            case MISSED:
+               playMissAnimation(direction);
+               miss(null);
          }
       }
 
@@ -713,13 +676,7 @@ class PlayState extends MusicBeatState {
       hxsCall("onKeyRelease", [rawID, action]);
       #end
 
-      var index:Int = Note.directions.indexOf(action);
-      playerStrumline.holdKeys[index] = false;
-
-      for (player in playerStrumline.characters)
-         player.holding = playerStrumline.holdKeys.contains(true);
-
-      playerStrumline.receptors.members[index].playAnimation("static", true);
+      playerStrumline.keyRelease(Note.directions.indexOf(action));
 
       #if ENGINE_SCRIPTING
       hxsCall("onKeyReleasePost", [rawID, action]);
@@ -748,7 +705,6 @@ class PlayState extends MusicBeatState {
       score += rating.scoreIncrement;
       accuracyMod += rating.accuracyMod;
       accuracyNotes++;
-      recalculateAccuracy();
 
       rating.hits++;
       displayRating(rating);
@@ -818,11 +774,9 @@ class PlayState extends MusicBeatState {
 
       misses++;
       accuracyNotes++;
-
-      recalculateAccuracy();
       hud.updateScoreText();
 
-      if (note != null)
+      if (note != null && !note.noMissAnim)
          playMissAnimation(note.direction, note.isSustainNote && !note.baseVisible);
 
       if (spectator != null && spectator.animation.exists("sad") && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
@@ -852,13 +806,6 @@ class PlayState extends MusicBeatState {
    public inline function checkVocalsVolume():Void {
       if (music.playing && music.vocalsVolume <= 0)
          music.vocalsVolume = 1;
-   }
-
-   public function recalculateAccuracy():Void {
-      // TODO: make those getters instead
-      if (accuracyNotes != 0 && accuracyMod != 0)
-         accuracy = FlxMath.bound(accuracyMod / accuracyNotes, 0, 1);
-      accuracyDisplay = FlxMath.roundDecimal(accuracy * 100, 2);
    }
 
    public function displayRating(rating:Rating):Void {
@@ -992,28 +939,25 @@ class PlayState extends MusicBeatState {
          ratings.shift().destroy();
       ratings = null;
 
-      cameraTargets = null;
       countdownSprites = null;
       countdownSounds = null;
+      cameraTargets = null;
 
       countdownSprite = null;
       countdownTween = null;
 
-      cameraPoint.put();
-      cameraPoint = null;
-
+      camPos = FlxDestroyUtil.put(camPos);
       targetCharacter = null;
 
-      rankFC = null;
       rankSDCB = null;
+      rankFC = null;
 
       super.destroy();
    }
    
    // Helper functions
-   var cacheList:Map<String, AssetType> = [];
 
-   public function cache():Void {
+   public inline function cache():Void {
       // Cache gameover
       /*
       var gameOverCache:Character = new Character(0, 0, player.data.gameOverCharacter, GAMEOVER);
@@ -1039,23 +983,17 @@ class PlayState extends MusicBeatState {
          if (rating.ratingGraphic != null)
             Assets.image('ui/gameplay/${rating.ratingGraphic}');
 
+      // Cache countdown
+      for (sprite in countdownSprites)
+         if (sprite != null)
+            Assets.image(sprite);
+      
+      for (sound in countdownSounds)
+         if (sound != null)
+            Assets.sound(sound);
+
       // Cache pause music
       Assets.music("breakfast");
-
-      // Misc cache, for scripting
-      for (k => v in cacheList) {
-         if (v != IMAGE && v != SOUND)
-            continue;
-
-         switch (v) {
-            case IMAGE: Assets.image(k);
-            case SOUND: Assets.sound(k);
-            default:
-         }
-      }
-
-      cacheList.clear();
-      cacheList = null;
    }
 
    inline public function setTime(time:Float):Void {
@@ -1064,8 +1002,16 @@ class PlayState extends MusicBeatState {
       startSong(time);
    }
 
-   inline function set_health(v:Float):Float
+   inline function set_health(v:Float):Float 
       return health = hud.healthDisplay = FlxMath.bound(v, minHealth, maxHealth);
+
+   inline function get_accuracy():Float {
+      if (accuracyNotes == 0) return 0;
+      return FlxMath.bound(accuracyMod / accuracyNotes, 0, 1);
+   }
+
+   inline function get_accuracyDisplay():Float
+      return FlxMath.roundDecimal(accuracy * 100, 2);
 
    public static function getRank(game:PlayState):String {
       if (game.playerStrumline.cpu)

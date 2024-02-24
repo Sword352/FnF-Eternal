@@ -144,7 +144,7 @@ class EventManager extends FlxBasic {
                         strumline.scrollSpeed = newSpeed;
                 }
             case "change camera target":
-                game.changeCameraTarget(event.arguments[0]);
+                game.changeCamTarget(event.arguments[0]);
             case "change bpm":
                 bpmOffset += ((event.time - lastBpmChange) / Conductor.stepCrochet);
                 lastBpmChange = event.time;
@@ -297,7 +297,7 @@ class EventManager extends FlxBasic {
         if (FileTools.exists(path)) {
             for (file in FileTools.readDirectory(path)) {
                 if (exts.contains(file.substring(file.indexOf("."))))
-                    list.push(tjson.TJSON.parse(FileTools.getContent(path + "/" + file)));
+                    list.push(haxe.Json.parse(FileTools.getContent(path + "/" + file)));
             }
         }
 

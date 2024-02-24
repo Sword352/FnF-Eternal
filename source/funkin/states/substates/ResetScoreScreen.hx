@@ -87,9 +87,8 @@ class ResetScoreScreen extends MusicBeatSubState {
             close();
 
         rotateSine += elapsed * 2;
-
-        text.angle = 5 * Math.sin(rotateSine);
-        text.y -= Math.cos(rotateSine * 2.5);
+        text.angle = 5 * FlxMath.fastSin(rotateSine);
+        text.y -= FlxMath.fastCos(rotateSine * 1.5);
 
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);

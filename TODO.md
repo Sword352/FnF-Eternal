@@ -9,10 +9,13 @@
 
 ### Medium Priority
 - Test/Fix controller inputs
-- Move note inputs to the StrumLine class
+- Add support for custom hscript classes
+- Allow difficulties to be changed in the pause menu (freeplay only)
+- Allow multi-events (2 or more events having the same time value)
 - Gameplay UI tweaks
 
 - Finish the chart editor
+- Finish the crash handler rework
 - Finish the key formatting in `KeybindItem#formatKey`
 
 - Do all of the TODO stuff that can be found in the code
@@ -38,7 +41,6 @@
 - FlxAnimate support?
 - Add modchart tools?
 - Lua scripting implementation?
-- Add "modules" support? (Custom HScript classes...)
 
 - "Debug Mode" option?
   * Possibility to hot reload ModState and ModSubState

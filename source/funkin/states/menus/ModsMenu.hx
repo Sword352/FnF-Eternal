@@ -21,7 +21,6 @@ class ModsMenu extends MusicBeatSubState {
     var bar:FlxSprite;
 
     var cam:FlxCamera;
-
     var allowInputs:Bool = true;
 
     #if ENGINE_SCRIPTING
@@ -159,7 +158,7 @@ class ModsMenu extends MusicBeatSubState {
         camera.fade(FlxColor.BLACK, 0.5, false, () -> {
             FlxG.state.persistentDraw = false;
             TransitionSubState.skipNextTransOut = true;
-            FlxG.switchState(new TitleScreen());
+            FlxG.switchState(TitleScreen.new);
         });
     }
 

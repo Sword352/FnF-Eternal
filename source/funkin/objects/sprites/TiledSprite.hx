@@ -3,14 +3,7 @@ package funkin.objects.sprites;
 import flixel.graphics.frames.FlxFrame;
 import flixel.addons.display.FlxTiledSprite;
 
-/*
-  TODO:
-  - make scaling not dependant of `repeatX`
-  - fix stretchy texture bug (?)
-*/
-
-// extension of FlxTiledSprite with a fix for scaling
-// @author RapperGF
+// FlxTiledSprite extension with scaling support and a fix to make tiles smoother, original by RapperGF
 
 class TiledSprite extends FlxTiledSprite {
 	override function updateVerticesData():Void {
@@ -21,11 +14,11 @@ class TiledSprite extends FlxTiledSprite {
         graphicVisible = true;
         
 		if (repeatX) {
-		   vertices[0] = vertices[6] = 0.0;
-		   vertices[2] = vertices[4] = width;
+		    vertices[0] = vertices[6] = 0.0;
+		    vertices[2] = vertices[4] = width;
 
-		   uvtData[0] = uvtData[6] = -scrollX / frame.sourceSize.x;
-		   uvtData[2] = uvtData[4] = (uvtData[0] + width / frame.sourceSize.x) * (1 / scale.x);
+		    uvtData[0] = uvtData[6] = -scrollX / frame.sourceSize.x;
+		    uvtData[2] = uvtData[4] = (uvtData[0] + width / frame.sourceSize.x) / scale.x;
 		}
         else {
             vertices[0] = vertices[6] = FlxMath.bound(scrollX, 0, width);
@@ -37,33 +30,17 @@ class TiledSprite extends FlxTiledSprite {
             }
 
             uvtData[0] = uvtData[6] = (vertices[0] - scrollX) / frame.sourceSize.x;
-            uvtData[2] = uvtData[4] = uvtData[0] + (vertices[2] - vertices[0]) / frame.sourceSize.x;
+            uvtData[2] = uvtData[4] = (uvtData[0] + (vertices[2] - vertices[0]) / frame.sourceSize.x) / scale.x;
         }
 
         if (repeatY) {
-            /*
-            final padding:Float = 0.0;
-            final margin:Float = 0.01;
-            final tileHeight:Float = height + 2 * padding;
-            final scaledTileHeight:Float = tileHeight * scale.y;
-            final uvMargin:Float = margin / frame.sourceSize.y;
-
-            vertices[1] = vertices[3] = -padding;
-            vertices[5] = vertices[7] = tileHeight + padding;
-
-            uvtData[1] = uvtData[3] = (-scrollY / frame.sourceSize.y) + uvMargin;
-            uvtData[5] = uvtData[7] = ((uvtData[1] * frame.sourceSize.y) + scaledTileHeight) * (1 / scale.y) - uvMargin;
-            */
-
-            var tileHeight:Float = height + 0.2;
-            var scaledTileHeight:Float = tileHeight * scale.y;
             var uvMargin:Float = 1.0 / frame.sourceSize.y;
 
             vertices[1] = vertices[3] = 0.0;
             vertices[5] = vertices[7] = height;
 
             uvtData[1] = uvtData[3] = (-scrollY / frame.sourceSize.y) + uvMargin;
-            uvtData[5] = uvtData[7] = (uvtData[1] * frame.sourceSize.y + (scaledTileHeight - height)) * (1 / frame.sourceSize.y) + uvMargin;
+            uvtData[5] = uvtData[7] = (uvtData[1] * frame.sourceSize.y + (height / scale.y)) / frame.sourceSize.y + uvMargin;
         }
         else {
             vertices[1] = vertices[3] = FlxMath.bound(scrollY, 0, height);
@@ -75,7 +52,7 @@ class TiledSprite extends FlxTiledSprite {
             }
 
             uvtData[1] = uvtData[3] = (vertices[1] - scrollY) / frame.sourceSize.y;
-            uvtData[5] = uvtData[7] = uvtData[1] + (vertices[5] - vertices[1]) / frame.sourceSize.y;
+            uvtData[5] = uvtData[7] = uvtData[1] + ((vertices[5] - vertices[1]) / scale.y) / frame.sourceSize.y;
         }
     }
 }

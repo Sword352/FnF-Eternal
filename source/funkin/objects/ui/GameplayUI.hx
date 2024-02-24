@@ -12,7 +12,6 @@ class GameplayUI extends FlxSpriteGroup {
     public var iconSpacing:Float = 26;
 
     public var scoreText:FlxText;
-    public var botplayMark:FlxText;
     public var timer:FlxText;
 
     public var healthBar:HealthBar;
@@ -23,7 +22,6 @@ class GameplayUI extends FlxSpriteGroup {
     inline function get_game():PlayState
         return PlayState.current;
 
-    var botplayAlpha:Float = 0;
     var visualHealth:Float = 1;
 
     public function new():Void {
@@ -33,16 +31,16 @@ class GameplayUI extends FlxSpriteGroup {
         add(healthBar);
 
         iconPlayer = new HealthIcon(0, 0, game.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        iconPlayer.state = "neutral";
         iconPlayer.bopping = true;
         iconPlayer.flipX = true;
         iconPlayer.health = 50;
-        iconPlayer.state = "neutral";
         add(iconPlayer);
         
         iconOpponent = new HealthIcon(0, 0, game.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        iconOpponent.state = "neutral";
         iconOpponent.bopping = true;
         iconOpponent.health = 50;
-        iconOpponent.state = "neutral";
         add(iconOpponent);
 
         scoreText = new FlxText();
@@ -51,16 +49,6 @@ class GameplayUI extends FlxSpriteGroup {
         scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
         scoreText.screenCenter(X);
         add(scoreText);
-
-        if (PlayState.gameMode != STORY) {
-            botplayMark = new FlxText();
-            botplayMark.setFormat(scoreText.font, 34, FlxColor.WHITE, CENTER);
-            botplayMark.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
-            botplayMark.text = "BOTPLAY";
-            botplayMark.screenCenter(X);
-            botplayMark.visible = false;
-            add(botplayMark);
-        }
 
         if (Settings.get("timer type") != "none") {
             timer = new FlxText();
@@ -100,34 +88,24 @@ class GameplayUI extends FlxSpriteGroup {
             }
             timer.screenCenter(X);
         }
-
-        // update botplay mark
-        if (botplayMark?.visible) {
-            botplayAlpha += elapsed;
-            botplayMark.alpha = 1 - Math.sin(botplayAlpha * Math.PI);
-        }
     }
 
     public inline function updateScoreText():Void {
-        var text:String =
-            'Score: ${game.score}' + scoreDivider
-            + 'Misses: ${game.misses}' + scoreDivider
-            + 'Accuracy: ${game.accuracyDisplay}%'
-        ;
+        if (!game.playerStrumline.cpu) {
+            var text:String =
+                'Score: ${game.score}' + scoreDivider
+              + 'Misses: ${game.misses}' + scoreDivider
+              + 'Accuracy: ${game.accuracyDisplay}%'
+            ;
 
-        var rank:String = PlayState.getRank(game);
+            var rank:String = PlayState.getRank(game);
+            if (rank?.length > 0) text += scoreDivider + rank;
 
-        if (rank != null && rank.length > 0)
-            text += scoreDivider + rank;
+            scoreText.text = text;
+        }
+        else scoreText.text = "[ BOTPLAY ]";
 
-        scoreText.text = text;
         scoreText.screenCenter(X);
-    }
-
-    public inline function showBotplayMark(show:Bool = true):Void {
-        if (!show)
-            botplayAlpha = 1;
-        botplayMark.visible = show;
     }
     
     public inline function reposUI(downscroll:Bool = false):Void {
@@ -136,9 +114,6 @@ class GameplayUI extends FlxSpriteGroup {
 
         iconOpponent.y = healthBar.y - (iconOpponent.frameHeight / 2);
         iconPlayer.y = healthBar.y - (iconPlayer.frameHeight / 2);
-
-        if (botplayMark != null)
-            botplayMark.y = FlxG.height * ((downscroll) ? 0.9 : 0.1);
 
         if (timer != null)
             timer.y = FlxG.height * ((downscroll) ? 0.95 : 0.05);
