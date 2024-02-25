@@ -56,7 +56,7 @@ class FNFGame extends FlxGame {
         TransitionSubState.onComplete.removeAll();
         Tools.stopAllSounds();
         
-        _requestedState = new CrashScreen(func);
+        var _requestedState = new CrashScreen(func);
         switchState();
     }
 }
