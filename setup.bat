@@ -6,7 +6,7 @@ haxelib install flixel
 haxelib install flixel-addons
 haxelib git haxeui-core https://github.com/haxeui/haxeui-core
 haxelib git haxeui-flixel https://github.com/haxeui/haxeui-flixel
-haxelib git yaml https://github.com/swordcube/hx-yaml
+haxelib install yaml
 haxelib git tjson https://github.com/Sword352/TJSON
 haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc
 haxelib git hxCodec https://github.com/polybiusproxy/hxCodec
