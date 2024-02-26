@@ -111,8 +111,8 @@ class CrashHandler {
           // make sure it doesn't close the game
           event.preventDefault();
 
-          TransitionSubState.skipNextTransIn = true;
-          TransitionSubState.onComplete.removeAll();
+          Transition.skipNextTransOut = true;
+          Transition.onComplete.removeAll();
 
           Assets.clearAssets = true;
           Tools.stopAllSounds();

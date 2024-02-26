@@ -334,7 +334,7 @@ class FreeplayMenu extends MusicBeatState {
 
         allowInputs = false;
         
-        TransitionSubState.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
+        Transition.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
         FlxG.switchState(PlayState.new.bind(0));
     }
 
@@ -345,7 +345,7 @@ class FreeplayMenu extends MusicBeatState {
         allowInputs = false;
 
         var chartEditor:ChartEditor = new ChartEditor(null, difficulties[currentDifficulty]);
-        TransitionSubState.onComplete.add(() -> {
+        Transition.onComplete.add(() -> {
             // avoid lag
             PlayState.load(songs[currentSelection].rawName, chartEditor.difficulty);
             chartEditor.chart = PlayState.song;

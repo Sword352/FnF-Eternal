@@ -322,8 +322,6 @@ class PlayState extends MusicBeatState {
       else
          setTime(startTime);
 
-      persistentUpdate = true;
-
       if (gameMode != DEBUG)
          trace('${song.meta.name} - Took ${((Lib.getTimer() - createTime) / 1000)}s to load');
 
@@ -623,7 +621,7 @@ class PlayState extends MusicBeatState {
       switch (gameMode) {
          case STORY:
             if (songPlaylist.length > 0) {
-               TransitionSubState.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
+               Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
                FlxG.switchState(PlayState.new.bind(0));
             }
             else
@@ -887,8 +885,8 @@ class PlayState extends MusicBeatState {
       if (camSubState != null)
          subState.cameras = [camSubState];
       
-      persistentUpdate = false;
       super.openSubState(subState);
+      persistentUpdate = false;
    }
 
    override function closeSubState():Void {

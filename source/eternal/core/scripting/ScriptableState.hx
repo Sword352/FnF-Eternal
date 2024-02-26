@@ -92,11 +92,11 @@ class ScriptableState extends TransitionState {
     public inline function hxsSet(key:String, obj:Dynamic):Void
         scriptPack.hxsSet(key, obj);
 
-    public inline function hxsCall(funcToCall:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.hxsCall(funcToCall, args);
+    public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
+        return scriptPack.hxsCall(func, args);
 
-    public inline function cancellableCall(funcToCall:String, ?args:Array<Dynamic>):Bool
-        return scriptPack.cancellableCall(funcToCall, args);
+    public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
+        return scriptPack.cancellableCall(func, args);
 
     inline function initStateScript():Bool {
         var statePackage:String = Type.getClassName(Type.getClass(this));
@@ -168,11 +168,11 @@ class ScriptableSubState extends FlxSubState {
     public inline function hxsSet(key:String, obj:Dynamic):Void
         scriptPack.hxsSet(key, obj);
 
-    public inline function hxsCall(funcToCall:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.hxsCall(funcToCall, args);
+    public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
+        return scriptPack.hxsCall(func, args);
 
-    public inline function cancellableCall(funcToCall:String, ?args:Array<Dynamic>):Bool
-        return scriptPack.cancellableCall(funcToCall, args);
+    public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
+        return scriptPack.cancellableCall(func, args);
 
     inline function initStateScript():Bool {
         var statePackage:String = Type.getClassName(Type.getClass(this));

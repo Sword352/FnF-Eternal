@@ -94,7 +94,7 @@ class InitState extends FlxState {
       #end
 
       // Go to the titlescreen
-      TransitionSubState.skipNextTransOut = true;
+      Transition.skipNextTransIn = true;
       FlxG.switchState(TitleScreen.new);
    }
 }

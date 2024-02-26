@@ -40,6 +40,7 @@ class HScript {
         "DancingSprite" => funkin.objects.sprites.DancingSprite,
 
         // Transition stuff
+        "Transition" => Transition,
         "TranitionState" => TransitionState,
         "TransitionSubState" => TransitionSubState,
 
@@ -128,17 +129,14 @@ class HScript {
         return interp.variables.exists(key);
     }
 
-    public function call(funcToCall:String, ?args:Array<Dynamic>):Dynamic {
-        if (!exists(funcToCall))
+    public function call(func:String, ?args:Array<Dynamic>):Dynamic {
+        if (!exists(func))
             return null;
 
-        if (args == null)
-            args = [];
-
-        var func:Dynamic = get(funcToCall);
+        var func:Dynamic = get(func);
         try return Reflect.callMethod(null, func, args)
         catch (e) {
-            trace('${path}: Failed to call "${funcToCall}"! [${e.message}]');
+            trace('${path}: Failed to call "${func}"! [${e.message}]');
             return null;
         }
     }

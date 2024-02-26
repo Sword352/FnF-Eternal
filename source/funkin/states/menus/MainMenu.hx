@@ -164,7 +164,7 @@ class MainMenu extends MusicBeatState {
 
             if (controls.justPressed("back")) {
                 FlxG.sound.play(Assets.sound("cancelMenu"));
-                TransitionSubState.skipNextTransOut = true;
+                Transition.skipNextTransIn = true;
                 FlxG.switchState(TitleScreen.new);
             }
 

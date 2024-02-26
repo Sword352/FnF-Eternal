@@ -99,8 +99,8 @@ class GameOverScreen extends MusicBeatSubState {
         if (controls.justPressed("back")) {
             Tools.stopMusic();
 
+            Transition.skipNextTransOut = true;
             PlayState.lossCounter = 0;
-            TransitionSubState.skipNextTransIn = true;
 
             FlxG.switchState(switch (PlayState.gameMode) {
                 case STORY: StoryMenu.new;

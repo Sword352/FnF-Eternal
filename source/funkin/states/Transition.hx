@@ -4,97 +4,113 @@ import flixel.FlxState;
 import flixel.FlxSubState;
 
 import flixel.FlxCamera;
-import flixel.tweens.FlxTween;
+import flixel.tweens.FlxEase;
 
 import flixel.util.FlxSignal;
 import flixel.util.FlxGradient;
 
-class TransitionState extends FlxState {
-    public var transitionDuration:Float = 0.35;
+class Transition {
+    public static final onComplete:FlxSignal = new FlxSignal();
+    public static var skipNextTransOut:Bool = false;
+    public static var skipNextTransIn:Bool = false;
+}
 
+class TransitionState extends FlxState {
     override function create():Void {
         super.create();
-        openSubState(new TransitionSubState(OUT, transitionDuration));
+
+        if (!Transition.skipNextTransIn)
+            openSubState(new TransitionSubState(IN));
+        Transition.skipNextTransIn = false;
     }
 
     override function startOutro(onOutroComplete:() -> Void):Void {
-        openSubState(new TransitionSubState(IN, transitionDuration));
-        TransitionSubState.onComplete.add(onOutroComplete);
+        if (Transition.skipNextTransOut) {
+            Transition.skipNextTransOut = false;
+            onOutroComplete();
+            return;
+        }
+
+        if (subState != null && subState is TransitionSubState)
+            cast(subState, TransitionSubState).reset(OUT);
+        else
+            openSubState(new TransitionSubState(OUT));
+        
+        Transition.onComplete.add(onOutroComplete);
     }
 }
 
 class TransitionSubState extends FlxSubState {
-    public static final onComplete:FlxSignal = new FlxSignal();
-    public static var skipNextTransOut:Bool = false;
-    public static var skipNextTransIn:Bool = false;
-
-    public var duration:Float = 0.35;
-
-    var transitionCamera:FlxCamera;
     var type:TransitionType;
+    var cam:FlxCamera;
 
     var gradient:FlxSprite;
     var rect:FlxSprite;
 
-    public function new(type:TransitionType = IN, duration:Float = 0.35):Void {
-        super();
+    var scale:Float = 0;
+    var _wasUpdating:Bool;
+
+    public function new(type:TransitionType = IN):Void {
         this.type = type;
-        this.duration = duration;
+        super();
     }
 
     override function create():Void {
         super.create();
 
-        if (skipNextTransIn && type == IN) {
-            skipNextTransIn = false;
-            finish();
-            return;
-        }
+        _wasUpdating = _parentState.persistentUpdate;
+        _parentState.persistentUpdate = true;
 
-        if (skipNextTransOut && type == OUT) {
-            skipNextTransOut = false;
-            finish();
-            return;
-        }
-
-        transitionCamera = new FlxCamera();
-        transitionCamera.bgColor.alpha = 0;
-        cameras = [transitionCamera];
-        FlxG.cameras.add(transitionCamera, false);
+        cam = new FlxCamera();
+        cam.bgColor.alpha = 0;
+        cameras = [cam];
+        FlxG.cameras.add(cam, false);
 
         rect = new FlxSprite();
-        rect.makeRect(FlxG.width, FlxG.height * 1.2, FlxColor.BLACK);
-
-        gradient = FlxGradient.createGradientFlxSprite(FlxG.width, 90, [FlxColor.BLACK, FlxColor.TRANSPARENT]);
-
-        var top:Float = -(rect.height + gradient.height);
-        var bottom:Float = FlxG.height - rect.height;
-        
-        rect.y = (type == IN) ? top : bottom;
-        gradient.y = -gradient.height;
-
+        rect.makeRect(FlxG.width, FlxG.height + 90, FlxColor.BLACK);
+        rect.y = -rect.height;
         add(rect);
-        add(gradient);
 
-        FlxTween.tween(rect, {y: (type == IN) ? bottom : top}, duration, {onComplete: (_) -> finish()});
+        gradient = FlxGradient.createGradientFlxSprite(1, 90, [FlxColor.BLACK, FlxColor.BLACK, FlxColor.TRANSPARENT]);
+        gradient.flipY = (type == IN);
+        gradient.y = -gradient.height;
+        gradient.scale.x = FlxG.width;
+        gradient.updateHitbox();
+        gradient.screenCenter(X);
+        add(gradient);
     }
 
     override function update(elapsed:Float):Void {
-        // the FlxTween update callback simply won't do the trick
-        if (gradient != null)
-            gradient.y = rect.y + rect.height - 5;
-        super.update(elapsed);
+        var animScale:Float = FlxEase.smoothStepInOut(scale);
+        scale += elapsed * 2;
+
+        switch (type) {
+            case IN:
+                rect.y = (FlxG.height + gradient.height) * animScale;
+                gradient.y = rect.y - gradient.height * 0.5;
+            case OUT:
+                gradient.y = FlxMath.lerp(-gradient.height, FlxG.height, animScale);
+                rect.y = gradient.y - rect.height + gradient.height * 0.5;
+        }
+
+        if (scale >= 1)
+            finish();
+    }
+
+    // reset and re-use the transition
+    public function reset(type:TransitionType):Void {
+        this.type = type;
+        gradient.flipY = (type == IN);
+        scale = 0;
     }
 
     inline function finish():Void {
-        onComplete.dispatch();
-        onComplete.removeAll();
+        Transition.onComplete.dispatch();
+        Transition.onComplete.removeAll();
 
-        if (type == OUT) {
-            if (transitionCamera != null)
-                FlxG.cameras.remove(transitionCamera);
-
-            FlxG.state.persistentUpdate = true;
+        if (type == IN) {
+            if (cam != null) FlxG.cameras.remove(cam);
+            FlxG.state.persistentUpdate = _wasUpdating;
             close();
         }
     }

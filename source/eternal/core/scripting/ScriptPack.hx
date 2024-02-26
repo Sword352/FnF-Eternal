@@ -50,13 +50,13 @@ class ScriptPack {
         imports.set(key, obj);
     }
 
-    public function hxsCall(funcToCall:String, ?args:Array<Dynamic>):Dynamic {
+    public function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic {
         if (scripts == null || scripts.length < 1)
             return null;
 
         var returnValue:Dynamic = null;
         for (i in scripts) {
-            var call:Dynamic = i.call(funcToCall, args);
+            var call:Dynamic = i.call(func, args);
             if (call != null) // avoid conflicts with voids (they would most likely return null)
                 returnValue = call;
         }
@@ -64,9 +64,19 @@ class ScriptPack {
         return returnValue;
     }
 
-    public function cancellableCall(funcToCall:String, ?args:Array<Dynamic>):Bool {
-        var ret:Dynamic = hxsCall(funcToCall, args);
-        return ret != null && ret is Bool && cast(ret, Bool) == false;
+    public function cancellableCall(func:String, ?args:Array<Dynamic>):Bool {
+        var call:CancellableCall = new CancellableCall();
+
+        if (args == null) args = [];
+        args.push(call);
+
+        var ret:Dynamic = hxsCall(func, args);
+
+        // backward compatibility with the old method, cancel the call if the output is false
+        if (ret != null && ret is Bool)
+            call.cancelled = (cast(ret, Bool) == false);
+
+        return call.cancelled;
     }
 
     public function destroy():Void {

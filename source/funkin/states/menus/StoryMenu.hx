@@ -76,8 +76,6 @@ class StoryMenu extends MusicBeatState {
         Conductor.bpm = 102;
 
         // load menu characters
-        var cacheHelper:FlxSprite = null;
-
         for (week in weeks) {
             if (week.characters == null)
                 continue;
@@ -86,19 +84,16 @@ class StoryMenu extends MusicBeatState {
                 if (character == "#NONE" || charactersData.exists(character))
                     continue;
 
-                if (cacheHelper == null) {
-                    cacheHelper = new FlxSprite();
-                    cacheHelper.alpha = 0.00001;
-                    add(cacheHelper);
-                }
-
-                var data:Dynamic = Tools.parseYAML(FileTools.getContent(Assets.yaml('images/menus/story/characters/${character}')));
+                var data:StoryCharacterData = Tools.parseYAML(FileTools.getContent(Assets.yaml('images/menus/story/characters/${character}')));
                 charactersData.set(character, data);
 
-                // does this really cache all spritesheets?
-                // TODO: test if it does
-                cacheHelper.frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
-                @:privateAccess cacheHelper.drawComplex(camera);
+                // TODO: find a better solution, this should be good for now
+                var cache:FlxSprite = new FlxSprite();
+                cache.frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
+                cache.alpha = 0.000001;
+                add(cache);
+
+                @:privateAccess cache.drawComplex(camera);
             }
         }
 
@@ -372,7 +367,7 @@ class StoryMenu extends MusicBeatState {
                 character.playAnimation("confirm", true);
 
         var songs:Array<String> = [for (s in weeks[currentSelection].songs) s.folder];
-        TransitionSubState.onComplete.add(() -> PlayState.load(songs.shift(), difficulties[currentDifficulty]));
+        Transition.onComplete.add(() -> PlayState.load(songs.shift(), difficulties[currentDifficulty]));
         PlayState.songPlaylist = songs;
 
         new FlxTimer().start(1, (_) -> FlxG.switchState(PlayState.new.bind(0)));
@@ -448,13 +443,11 @@ class StoryMenu extends MusicBeatState {
 }
 
 private class StoryMenuCharacter extends DancingSprite {
-    var globalOffsets:Array<Float> = [0, 0];
+    var globalOffsets:Array<Float>;
     var character:String;
 
     public function setup(character:String, data:StoryCharacterData):Void {
-        if (this.character == character)
-            return;
-
+        if (this.character == character) return;
         this.character = character;
 
         frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
@@ -463,13 +456,7 @@ private class StoryMenuCharacter extends DancingSprite {
         danceAnimations = data.danceAnimations ?? ["idle"];
         beat = data.danceBeat ?? 1;
 
-        if (data.globalOffsets != null) {
-            globalOffsets[0] = data.globalOffsets[0] ?? 0;
-            globalOffsets[1] = data.globalOffsets[1] ?? 0;
-        }
-        else
-            globalOffsets[0] = globalOffsets[1] = 0;
-
+        globalOffsets = data.globalOffsets ?? [0, 0];
         flipX = data.flipX ?? false;
 
         scale.set(data.scale ?? 1, data.scale ?? 1);
@@ -483,7 +470,7 @@ private class StoryMenuCharacter extends DancingSprite {
 
     override function forceDance(forced:Bool = false):Void {
         super.forceDance(forced);
-        offset.add(globalOffsets[0], globalOffsets[1]);
+        offset.add(globalOffsets[0] ?? 0, globalOffsets[1] ?? 0);
     }
 
     override function destroy():Void {

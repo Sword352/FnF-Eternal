@@ -49,7 +49,7 @@ class ModExceptionScreen extends FlxState {
         if (FlxG.keys.justPressed.R) {
             Mods.refreshMods();
             if (Mods.mods.length > 0) {
-                TransitionSubState.skipNextTransOut = TitleScreen.firstTime;
+                Transition.skipNextTransIn = TitleScreen.firstTime;
                 FlxG.switchState((TitleScreen.firstTime) ? TitleScreen.new : MainMenu.new);
             }
         }

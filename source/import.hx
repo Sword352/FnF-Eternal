@@ -29,6 +29,7 @@ import funkin.music.MusicBeatState.MusicBeatSubState;
 import funkin.objects.sprites.OffsetSprite;
 
 import funkin.states.PlayState;
+import funkin.states.Transition;
 import funkin.states.Transition.TransitionState;
 import funkin.states.Transition.TransitionSubState;
 

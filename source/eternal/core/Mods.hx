@@ -168,7 +168,7 @@ class Mods {
         _loadMod(null);
             
         if (!(FlxG.state is ModExceptionScreen)) {
-            TransitionSubState.skipNextTransOut = TransitionSubState.skipNextTransIn = true;
+            Transition.skipNextTransOut = Transition.skipNextTransIn = true;
             FlxG.switchState(ModExceptionScreen.new);
         }
     }

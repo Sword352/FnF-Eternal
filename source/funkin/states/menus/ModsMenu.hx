@@ -152,12 +152,11 @@ class ModsMenu extends MusicBeatSubState {
     }
 
     inline function goToTitleScreen():Void {
-        TransitionSubState.skipNextTransIn = TransitionSubState.skipNextTransOut = true;
+        Transition.skipNextTransIn = Transition.skipNextTransOut = true;
         TitleScreen.firstTime = true;
 
         camera.fade(FlxColor.BLACK, 0.5, false, () -> {
             FlxG.state.persistentDraw = false;
-            TransitionSubState.skipNextTransOut = true;
             FlxG.switchState(TitleScreen.new);
         });
     }
