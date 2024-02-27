@@ -5,7 +5,7 @@ import flixel.math.FlxPoint;
 import funkin.objects.sprites.DancingSprite;
 
 import funkin.states.substates.GameOverScreen;
-import funkin.states.substates.GameOverScreen.GameOverProperties;
+import funkin.states.substates.GameOverScreen.GameOverData;
 
 #if ENGINE_SCRIPTING
 import eternal.core.scripting.HScript;
@@ -34,8 +34,8 @@ typedef CharacterConfig = {
     var ?noteSkin:String;
     var ?healthBarColor:Dynamic;
 
-    var ?gameOverCharacter:String;
-    var ?gameOverProperties:GameOverProperties;
+    var ?gameOverChar:String;
+    var ?gameOverData:GameOverData;
 
     var ?playerFlip:Bool;    
     var ?extra:Dynamic;
@@ -68,10 +68,10 @@ class Character extends DancingSprite {
     public var healthIcon:String = funkin.objects.ui.HealthIcon.DEFAULT_ICON;
     public var healthBarColor:FlxColor = FlxColor.GRAY;
 
-    public var gameOverProps:GameOverProperties;
     public var gameOverChar:String = "bf-dead";
-    public var noteSkin:String = "default";
+    public var gameOverData:GameOverData;
 
+    public var noteSkin:String = "default";
     public var extra:Dynamic = null;
 
     #if ENGINE_SCRIPTING
@@ -128,11 +128,11 @@ class Character extends DancingSprite {
         healthBarColor = (config.healthBarColor == null) ? ((type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000) : Tools.getColor(config.healthBarColor);
         healthIcon = config.icon ?? funkin.objects.ui.HealthIcon.DEFAULT_ICON;
 
-        gameOverChar = config.gameOverCharacter ?? "bf-dead";
+        gameOverChar = config.gameOverChar ?? "bf-dead";
         noteSkin = config.noteSkin;
 
-        if (type == GAMEOVER && config.gameOverProperties != null)
-            gameOverProps = GameOverScreen.formatProperties(config.gameOverProperties);
+        if (type == GAMEOVER && config.gameOverData != null)
+            gameOverData = GameOverScreen.formatData(config.gameOverData);
 
         forceDance(true);
 
@@ -212,7 +212,7 @@ class Character extends DancingSprite {
         cameraOffsets = null;
         globalOffsets = null;
 
-        gameOverProps = null;
+        gameOverData = null;
         gameOverChar = null;
 
         healthIcon = null;

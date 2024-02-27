@@ -46,10 +46,6 @@ class GeneralOptionSubState extends BaseOptionSubState {
         addOption(option);
         #end
 
-        var option = new BoolOptionItem("reduced movements");
-        option.description = "Whether to reduce movements, such as zoom on beats and icon bops.";
-        addOption(option);
-
         var option = new BoolOptionItem("disable flashing lights");
         option.description = "Whether to disable flashing lights. It is highly recommended to\nenable this option if you are epileptical!";
         addOption(option);

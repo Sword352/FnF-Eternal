@@ -495,7 +495,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline public function getBPMInfo():String
-        return 'BPM: ${Conductor.bpm} (${chart.bpm})';
+        return 'BPM: ${Conductor.bpm} (${chart.meta.bpm})';
 
     inline public function reloadGrid(updateMeasures:Bool = true, resetTime:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
@@ -541,7 +541,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public inline function updateCurrentBPM():Void {
-        var currentBPM:Float = chart.bpm;
+        var currentBPM:Float = chart.meta.bpm;
         var stepOffset:Float = 0;
         var lastChange:Float = 0;
 
@@ -595,7 +595,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         Conductor.beatsPerMeasure = chart.meta.beatsPerMeasure ?? 4;
         Conductor.stepsPerBeat = chart.meta.stepsPerBeat ?? 4;
-        Conductor.bpm = chart.bpm;
+        Conductor.bpm = chart.meta.bpm;
 
         Conductor.music = music.instrumental;
     }

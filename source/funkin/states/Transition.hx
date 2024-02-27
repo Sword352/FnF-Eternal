@@ -59,7 +59,7 @@ class TransitionSubState extends FlxSubState {
         super.create();
 
         _wasUpdating = _parentState.persistentUpdate;
-        _parentState.persistentUpdate = true;
+        _parentState.persistentUpdate = (!(_parentState is PlayState) || type == IN);
 
         cam = new FlxCamera();
         cam.bgColor.alpha = 0;
@@ -67,11 +67,11 @@ class TransitionSubState extends FlxSubState {
         FlxG.cameras.add(cam, false);
 
         rect = new FlxSprite();
-        rect.makeRect(FlxG.width, FlxG.height + 90, FlxColor.BLACK);
+        rect.makeRect(FlxG.width, FlxG.height + 100, FlxColor.BLACK);
         rect.y = -rect.height;
         add(rect);
 
-        gradient = FlxGradient.createGradientFlxSprite(1, 90, [FlxColor.BLACK, FlxColor.BLACK, FlxColor.TRANSPARENT]);
+        gradient = FlxGradient.createGradientFlxSprite(1, 200, [FlxColor.BLACK, FlxColor.BLACK, FlxColor.TRANSPARENT]);
         gradient.flipY = (type == IN);
         gradient.y = -gradient.height;
         gradient.scale.x = FlxG.width;
@@ -81,8 +81,7 @@ class TransitionSubState extends FlxSubState {
     }
 
     override function update(elapsed:Float):Void {
-        var animScale:Float = FlxEase.smoothStepInOut(scale);
-        scale += elapsed * 2;
+        var animScale:Float = FlxEase.smoothStepInOut(scale += elapsed * 2);
 
         switch (type) {
             case IN:
@@ -117,6 +116,6 @@ class TransitionSubState extends FlxSubState {
 }
 
 enum abstract TransitionType(String) from String to String {
-    var IN = "in";
+    var IN  =  "in";
     var OUT = "out";
 }

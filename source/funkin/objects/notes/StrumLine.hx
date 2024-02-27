@@ -161,10 +161,11 @@ class StrumLine extends FlxGroup {
 
       var noteToHit:Note = possibleNotes[0];
 
+      // Remove notes with a 0-1ms distance (TODO: think about this)
       if (possibleNotes.length > 1) {
          for (note in possibleNotes) {
             if (note == noteToHit) continue;
-            if (Math.abs(note.time - noteToHit.time) < 10) removeNote(note);
+            if (Math.abs(note.time - noteToHit.time) < 1) removeNote(note);
             else break;
          }
       }

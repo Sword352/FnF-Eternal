@@ -30,11 +30,6 @@ class RatingSprite extends OffsetSprite {
         velocity.set(-(FlxG.random.float(0, 10) * pb), -(FlxG.random.float(140, 175) * pb));
         acceleration.y = (600 * (pb * pb));
 
-        if (Settings.get("reduced movements")) {
-            acceleration.y *= 0.4;
-            velocity.y *= 0.4;
-        }
-
         alphaTmr = -((Conductor.crochet * 0.001) / pb);
         alpha = 1;
     }
@@ -46,11 +41,6 @@ class ComboSprite extends RatingSprite {
 
         velocity.set(FlxG.random.float(-5, 5) * pb, -(FlxG.random.int(140, 160) * pb));
         acceleration.y = (FlxG.random.int(200, 300) * (pb * pb));
-
-        if (Settings.get("reduced movements")) {
-            acceleration.y *= 0.4;
-            velocity.y *= 0.4;
-        }
 
         alphaTmr = -((Conductor.crochet * 0.002) / pb);
         alpha = 1;

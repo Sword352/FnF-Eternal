@@ -27,7 +27,7 @@ icon: "iconimage"
 cameraOffsets: [0, 0]
 healthBarColor: [0, 100, 255]
 
-gameOverCharacter: "" # you can specify the game over character here
-gameOverProperties: {} # you can specify custom gameover screen properties (music, bpm...) here
+gameOverChar: "" # you can specify the game over character here
+gameOverData: {} # you can specify custom gameover screen properties (music, bpm...) here
 
 extra: {} # if you need extra data

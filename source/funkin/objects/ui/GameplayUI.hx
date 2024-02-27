@@ -98,7 +98,7 @@ class GameplayUI extends FlxSpriteGroup {
               + 'Accuracy: ${game.accuracyDisplay}%'
             ;
 
-            var rank:String = PlayState.getRank(game);
+            var rank:String = game.rank;
             if (rank?.length > 0) text += scoreDivider + rank;
 
             scoreText.text = text;
@@ -120,8 +120,7 @@ class GameplayUI extends FlxSpriteGroup {
     }
 
     public inline function onSongStart():Void {
-        if (timer == null)
-            return;
+        if (timer == null) return;
 
         timer.alpha = 0;
         FlxTween.tween(timer, {alpha: 0.7}, 0.35);

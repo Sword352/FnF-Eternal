@@ -110,19 +110,17 @@ class ScriptableState extends TransitionState {
     }
 
     override function openSubState(SubState:FlxSubState):Void {
-        if (!noSubstateCalls)
-            hxsCall("onOpenSubState", [SubState]);
+        if (!noSubstateCalls) hxsCall("onSubStateOpened", [SubState]);
 
         super.openSubState(SubState);
-        hxsCall("onOpenSubStatePost", [SubState]);
+        hxsCall("onSubStateOpenedPost", [SubState]);
     }
 
     override function closeSubState():Void {
-        if (!noSubstateCalls)
-            hxsCall("onCloseSubState");
+        if (!noSubstateCalls) hxsCall("onSubStateClosed");
 
         super.closeSubState();
-        hxsCall("onCloseSubStatePost");
+        hxsCall("onSubStateClosedPost");
     }
 
     override function onFocusLost():Void {
@@ -134,8 +132,7 @@ class ScriptableState extends TransitionState {
     }
  
     override function draw():Void {
-        if (cancellableCall("onDraw"))
-           return;
+        if (cancellableCall("onDraw")) return;
 
         super.draw();
         hxsCall("onDrawPost");

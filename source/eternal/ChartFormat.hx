@@ -1,46 +1,30 @@
 package eternal;
 
-import funkin.states.substates.GameOverScreen.GameOverProperties;
-
-// TODO: move `speed` and `bpm` to `SongMetadata`
+import funkin.states.substates.GameOverScreen.GameOverData;
 
 @:structInit class Chart {
-   public var meta:SongMetadata;
-
    public var notes:Array<ChartNote>;
    public var events:Array<ChartEvent>;
-
-   public var speed:Float;
-   public var bpm:Float;
+   public var meta:SongMetadata;
 
    public inline function toStruct():Dynamic {
       return {
-         meta: this.meta,
-
          notes: this.notes.copy(),
          events: this.events.copy(),
-
-         speed: this.speed,
-         bpm: this.bpm
+         meta: this.meta
       };
    }
 
    public static inline function fromStruct(struct:Dynamic):Chart {
       return {
-         meta: struct.meta,
-
          notes: struct.notes,
          events: struct.events,
-
-         speed: struct.speed,
-         bpm: struct.bpm
+         meta: struct.meta
       };
    }
 
    public static inline function resolve(data:Dynamic):Chart {
-      if (data is Chart)
-         return data;
-
+      if (data is Chart) return data;
       return fromStruct(data);
    }
 }
@@ -52,8 +36,11 @@ typedef SongMetadata = {
    var instFile:String;
    var voiceFiles:Array<String>;
 
-   var ?stepsPerBeat:Int;
+   var bpm:Float;
+   var scrollSpeed:Float;
+
    var ?beatsPerMeasure:Int;
+   var ?stepsPerBeat:Int;
 
    var ?player:String;
    var ?opponent:String;
@@ -63,7 +50,7 @@ typedef SongMetadata = {
    var ?playerNoteSkin:String;
    var ?oppNoteSkin:String;
 
-   var ?gameOverProperties:GameOverProperties;
+   var ?gameOverData:GameOverData;
 }
 
 typedef ChartEvent = {

@@ -21,18 +21,17 @@ class ChartLoader {
             stage: null,
 
             instFile: "Inst",
-            voiceFiles: ["Voices"]
+            voiceFiles: ["Voices"],
+
+            scrollSpeed: 1,
+            bpm: 100
         };
     
     public static inline function getEmptyChart():Chart
         return {
-            meta: getEmptyMeta(),
-
             notes: [],
             events: [],
-
-            speed: 1,
-            bpm: 100
+            meta: getEmptyMeta()
         };
 
     public static inline function loadMetadata(song:String):SongMetadata {
@@ -65,14 +64,14 @@ class ChartLoader {
                 stage: data.stage ?? "",
         
                 instFile: "Inst",
-                voiceFiles: (data.needsVoices) ? ["Voices"] : []
+                voiceFiles: (data.needsVoices) ? ["Voices"] : [],
+
+                scrollSpeed: data.speed,
+                bpm: data.bpm
             },
 
             notes: [],
-            events: [],
-
-            speed: data.speed,
-            bpm: data.bpm
+            events: []
         }
 
         // Used to replace some section specific stuff with events
@@ -131,12 +130,13 @@ class ChartLoader {
         return finalData;
     }
 
+    /*
     public static function convertToLegacy(chart:Chart):Dynamic {
         var output:Dynamic = {
             song: {
                 song: chart.meta.rawName,
-                speed: chart.speed,
-                bpm: chart.bpm,
+                speed: chart.meta.speed,
+                bpm: chart.meta.bpm,
                 notes: [],
 
                 player1: chart.meta.player,
@@ -149,6 +149,7 @@ class ChartLoader {
 
         return output;
     }
+    */
 
     public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
         var notes:Array<Note> = [];
@@ -178,8 +179,8 @@ class ChartLoader {
         var data:Dynamic = Json.parse(FileTools.getContent(path));
         #if sys var overwrite:Bool = false; #end
 
-        if (data.song != null) { // chart is from an engine using base game chart format
-            data = convertChart(data.song);
+        if (data.song != null) {
+            data = convertChart(data.song); // conver charts that uses fnf legacy format
             #if sys overwrite = Settings.get("overwrite chart files"); #end
         }
         else if (data.meta == null)
@@ -196,6 +197,10 @@ class ChartLoader {
             else
                 data.events = [];
         }
+
+        // backward compat
+        if (data.speed != null) data.meta.scrollSpeed = data.speed;
+        if (data.bpm != null) data.meta.bpm = data.bpm;
 
         #if sys
         if (overwrite)

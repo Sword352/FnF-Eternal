@@ -12,7 +12,7 @@ class GameOverScreen extends MusicBeatSubState {
     var cameraObject:FlxObject;
     var character:Character;
 
-    var data:GameOverProperties;
+    var data:GameOverData;
     var characterStr:String;
     var position:FlxPoint;
 
@@ -46,7 +46,7 @@ class GameOverScreen extends MusicBeatSubState {
         #end
 
         character = new Character(position.x, position.y, characterStr, GAMEOVER);
-        data = formatProperties(character.gameOverProps ?? PlayState.song.meta.gameOverProperties);
+        data = formatData(character.gameOverData ?? PlayState.song.meta.gameOverData);
         add(character);
 
         cameraObject = new FlxObject(0, 0, 1, 1);
@@ -156,45 +156,33 @@ class GameOverScreen extends MusicBeatSubState {
         super.destroy();
     }
 
-    public static inline function formatProperties(properties:GameOverProperties):GameOverProperties {
-        if (properties == null) {
+    public static inline function formatData(data:GameOverData):GameOverData {
+        if (data == null) {
             return {
                 music: "gameover/gameOver",
-                bpm: 100,
                 confirmSound: "gameplay/gameOverEnd",
                 deathSound: "gameplay/fnf_loss_sfx",
                 fadeColor: "black",
                 fadeDuration: 2,
-                cameraSpeed: 6
+                cameraSpeed: 6,
+                bpm: 100
             };
         }
 
-        if (properties.music == null)
-            properties.music = "gameover/gameOver";
+        if (data.music == null) data.music = "gameover/gameOver";
+        if (data.confirmSound == null) data.confirmSound = "gameplay/gameOverEnd";
+        if (data.deathSound == null) data.deathSound = "gameplay/fnf_loss_sfx";
+        if (data.bpm == null) data.bpm = 100;
 
-        if (properties.bpm == null)
-            properties.bpm = 100;
+        if (data.fadeDuration == null) data.fadeDuration = 2;
+        if (data.fadeColor == null) data.fadeColor = "black";
+        if (data.cameraSpeed == null) data.cameraSpeed = 6;
 
-        if (properties.confirmSound == null)
-            properties.confirmSound = "gameplay/gameOverEnd";
-
-        if (properties.deathSound == null)
-            properties.deathSound = "gameplay/fnf_loss_sfx";
-
-        if (properties.fadeColor == null)
-            properties.fadeColor = "black";
-
-        if (properties.fadeDuration == null)
-            properties.fadeDuration = 2;
-
-        if (properties.cameraSpeed == null)
-            properties.cameraSpeed = 6;
-
-        return properties;
+        return data;
     }
 }
 
-typedef GameOverProperties = {
+typedef GameOverData = {
     var ?music:String;
     var ?bpm:Float;
 

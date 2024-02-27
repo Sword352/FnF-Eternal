@@ -90,7 +90,7 @@ class ChartPlayState extends MusicBeatSubState {
             Assets.image('ui/gameplay/num${i}');
 
         opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true);
-        opponentStrumline.scrollSpeed = parent.chart.speed /** parent.music.pitch*/;
+        opponentStrumline.scrollSpeed = parent.chart.meta.scrollSpeed /** parent.music.pitch*/;
         opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         add(opponentStrumline);
   

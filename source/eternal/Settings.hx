@@ -69,8 +69,6 @@ class Settings {
         "disable antialiasing" => new Setting<Bool>(false, (v) -> FlxSprite.defaultAntialiasing = !v),
         "silent soundtray" => new Setting<Bool>(false, (v) -> FlxG.game.soundTray.silent = v),
         "auto pause" => new Setting<Bool>(true, (v) -> FlxG.autoPause = v),
-
-        "reduced movements" => new Setting<Bool>(false),
         "disable flashing lights" => new Setting<Bool>(false),
 
         #if ENGINE_DISCORD_RPC

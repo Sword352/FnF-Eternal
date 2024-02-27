@@ -266,7 +266,7 @@ class ChartSubScreen extends FlxSubState {
     inline function createMetaPage():Void {
         var oldBeats:Int = Conductor.beatsPerMeasure;
         var oldSteps:Int = Conductor.stepsPerBeat;
-        var oldBPM:Float = parent.chart.bpm;
+        var oldBPM:Float = parent.chart.meta.bpm;
 
         var page:Box = createPage("Meta");
 
@@ -317,10 +317,10 @@ class ChartSubScreen extends FlxSubState {
         bpmStepper.left = 5;
         bpmStepper.top = 80;
 
-        bpmStepper.value = parent.chart.bpm;
+        bpmStepper.value = parent.chart.meta.bpm;
         bpmStepper.onChange = (_) -> {
-            parent.chart.bpm = bpmStepper.pos;
-            bpmChanged = (parent.chart.bpm != oldBPM);
+            parent.chart.meta.bpm = bpmStepper.pos;
+            bpmChanged = (parent.chart.meta.bpm != oldBPM);
         };
 
         page.addComponent(signature);

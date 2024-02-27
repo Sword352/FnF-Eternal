@@ -52,12 +52,8 @@ class Conductor {
     */
 
     public static inline function update(elapsed:Float):Void {
-        if (!active)
-            return;
-
-        if (updateInterp)
-            updateTime(elapsed);
-
+        if (!active) return;
+        if (updateInterp) updateTime(elapsed);
         updateCallbacks();
     }
 
@@ -69,8 +65,7 @@ class Conductor {
 
     public static inline function updateCallbacks():Void {
         var step:Int = currentStep;
-        if (step <= _prevStep)
-            return;
+        if (step <= _prevStep) return;
         
         _prevStep = step;
         onStep.dispatch(step);

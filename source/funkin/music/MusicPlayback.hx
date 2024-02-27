@@ -9,21 +9,19 @@ class MusicPlayback extends FlxBasic {
 
     public var instrumental:FlxSound;
     public var mainVocals:FlxSound;
-
-    public var musics(default, null):Array<FlxSound> = [];
-    public var vocals(default, null):Array<FlxSound> = [];
+    public var musics:Array<FlxSound> = [];
+    public var vocals:Array<FlxSound> = [];
 
     public var vocalsVolume(default, set):Float = 1;
     public var pitch(default, set):Float = 1;
 
-    public var onSongEnd(default, null):FlxSignal;
+    public var onSongEnd:FlxSignal = new FlxSignal();
     public var playing(get, never):Bool;
     
     public function new(song:String):Void {
         super();
-
         this.song = song;
-        onSongEnd = new FlxSignal();
+        active = visible = false;
     }
 
     public function setupInstrumental(file:String):Void {
@@ -34,8 +32,7 @@ class MusicPlayback extends FlxBasic {
 
     public function createVoice(file:String):Void {
         var voice:FlxSound = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
-        if (vocals.length < 1)
-            mainVocals = voice;
+        if (vocals.length < 1) mainVocals = voice;
 
         musics.push(voice);
         vocals.push(voice);
