@@ -42,9 +42,12 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (spr => type in spriteTrackers) {
             spr.y = y;
             switch (type) {
-                case LEFT: spr.x = x - (spr.width + 10);
-                case RIGHT: spr.x = x + width + 10;
-                case CENTER: spr.x = x + (width * 0.5);
+                case LEFT:
+                    spr.x = x - (spr.width + 10);
+                case RIGHT:
+                    spr.x = x + width + 10;
+                case CENTER:
+                    spr.x = x + (width * 0.5);
             }
         }
     }
@@ -71,7 +74,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
 
         spriteTrackers?.clear();
         spriteTrackers = null;
-        
+
         super.destroy();
     }
 
@@ -80,8 +83,8 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (member in _sprites) {
             if (member == null || !member.exists)
                 continue;
-                
-            var minX:Float = member.x;                
+
+            var minX:Float = member.x;
             if (minX < value)
                 value = minX;
         }
@@ -90,15 +93,15 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
 
     override function findMaxXHelper():Float {
         var value:Float = Math.NEGATIVE_INFINITY;
-		for (member in _sprites) {
-			if (member == null || !member.exists)
-				continue;
-			
-			var maxX:Float = member.x + member.width;
-			if (maxX > value)
-				value = maxX;
-		}
-		return value;
+        for (member in _sprites) {
+            if (member == null || !member.exists)
+                continue;
+
+            var maxX:Float = member.x + member.width;
+            if (maxX > value)
+                value = maxX;
+        }
+        return value;
     }
 
     override function findMinYHelper():Float {
@@ -106,7 +109,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (member in _sprites) {
             if (member == null || !member.exists)
                 continue;
-                
+
             var minY:Float = member.y;
             if (minY < value)
                 value = minY;
@@ -119,8 +122,8 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         for (member in _sprites) {
             if (member == null || !member.exists)
                 continue;
-                
-            var maxY:Float = member.y + member.height;                
+
+            var maxY:Float = member.y + member.height;
             if (maxY > value)
                 value = maxY;
         }
@@ -148,12 +151,11 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
                 xPos = 0;
                 yPos += spacing.y * scale.y;
                 continue;
-            }
-            else if (character == " ") {
+            } else if (character == " ") {
                 xPos += spacing.x * scale.x;
                 continue;
             }
-      
+
             recycled = true;
 
             var newCharacter:AlphabetCharacter = recycle(AlphabetCharacter, () -> {
@@ -176,7 +178,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphabetCharacter> {
         return text = v;
     }
 
-    function set_bold(v:Bool):Bool {        
+    function set_bold(v:Bool):Bool {
         if (bold != v)
             forEach((c) -> c.setup(c.character, v));
         return bold = v;

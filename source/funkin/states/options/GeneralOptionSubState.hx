@@ -21,7 +21,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         var option = new BoolOptionItem("show framerate");
         option.description = "If enabled, show the framerate in the framerate overlay.";
         addOption(option);
-        
+
         var option = new BoolOptionItem("show memory");
         option.description = "[BETA] If enabled, show the memory usage in the framerate overlay.";
         addOption(option);
@@ -49,7 +49,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         var option = new BoolOptionItem("disable flashing lights");
         option.description = "Whether to disable flashing lights. It is highly recommended to\nenable this option if you are epileptical!";
         addOption(option);
-        
+
         sound = FlxG.sound.list.recycle(FlxSound);
 
         boyfriend = new FlxSprite();
@@ -70,10 +70,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
     override function update(elapsed:Float):Void {
         super.update(elapsed);
 
-        boyfriend.scale.set(
-            Tools.lerp(boyfriend.scale.x, 0.25, 12),
-            Tools.lerp(boyfriend.scale.y, 0.25, 12)
-        );
+        boyfriend.scale.set(Tools.lerp(boyfriend.scale.x, 0.25, 12), Tools.lerp(boyfriend.scale.y, 0.25, 12));
 
         if (boyfriend.visible && FlxG.mouse.overlaps(boyfriend) && FlxG.mouse.justPressed) {
             if (sound.playing)
@@ -84,7 +81,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
 
             sound.loadEmbedded(Assets.sound('options/sound${selectedSound}')).play();
             boyfriend.scale.set(FlxG.random.float(0.3, 0.5), FlxG.random.float(0.3, 0.5));
-        } 
+        }
     }
 
     function onChangeAntialiasing(i:Bool):Void

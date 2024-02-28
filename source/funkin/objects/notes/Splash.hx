@@ -1,6 +1,7 @@
 package funkin.objects.notes;
 
 import eternal.NoteSkin;
+import funkin.objects.sprites.OffsetSprite;
 
 class Splash extends OffsetSprite {
     public var skin(default, set):String;
@@ -29,7 +30,8 @@ class Splash extends OffsetSprite {
 
     override function update(elapsed:Float):Void {
         super.update(elapsed);
-        if (animation.curAnim.finished) kill();
+        if (animation.curAnim.finished)
+            kill();
     }
 
     override function destroy():Void {

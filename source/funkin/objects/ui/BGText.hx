@@ -8,7 +8,7 @@ class BGText extends FlxText {
 
     public var background(default, null):FlxSprite;
 
-	public function new(x:Float = 0, y:Float = 0, ?text:String, size:Int = 8) {
+    public function new(x:Float = 0, y:Float = 0, ?text:String, size:Int = 8) {
         super(x, y, 0, text, size, false);
 
         background = new FlxSprite();

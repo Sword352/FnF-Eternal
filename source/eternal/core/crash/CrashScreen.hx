@@ -3,13 +3,12 @@ package eternal.core.crash;
 #if ENGINE_CRASH_HANDLER
 import flixel.FlxCamera;
 import flixel.FlxSubState;
-
 import flixel.text.FlxText;
 import flixel.math.FlxRect;
 import flixel.tweens.FlxTween;
 
-import eternal.ui.ScrollBar;
 import funkin.states.menus.MainMenu;
+import eternal.ui.ScrollBar;
 
 class CrashScreen extends FlxSubState {
     var questionMark:FlxSprite;
@@ -52,12 +51,12 @@ class CrashScreen extends FlxSubState {
         topText.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         topText.resizeText();
         add(topText);
-        
+
         topText.applyMarkup(topText.text, [new FlxTextFormatMarkerPair(new FlxTextFormat(FlxColor.RED), "<>")]);
         callstack.screenCenter(Y);
         topText.screenCenter(X);
 
-        var fullBottomText:String = #if sys 'Saved crash log to "${CrashHandler.lastReport.crashLog}"\n' #else "" #end ;
+        var fullBottomText:String = #if sys 'Saved crash log to "${CrashHandler.lastReport.crashLog}"\n' #else "" #end;
         fullBottomText += "Press SPACE to open the github repository page in your browser\n";
         fullBottomText += "Press ENTER to go back to the main menu";
         #if sys fullBottomText += "\nPress ESCAPE to close the game"; #end

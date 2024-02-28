@@ -4,8 +4,9 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 
-import funkin.states.substates.ResetScoreScreen;
+import funkin.objects.sprites.OffsetSprite;
 import funkin.objects.sprites.DancingSprite;
+import funkin.states.substates.ResetScoreScreen;
 
 class StoryMenu extends MusicBeatState {
     var weekSprites:FlxSpriteGroup;
@@ -183,10 +184,10 @@ class StoryMenu extends MusicBeatState {
                 FlxG.sound.play(Assets.sound("cancelMenu"));
                 FlxG.switchState(MainMenu.new);
             }
-    
+
             if (controls.justPressed("accept"))
                 accept();
-    
+
             if (weekSprites.length > 1 && controls.anyJustPressed(["up", "down"]))
                 changeSelection((controls.lastAction == "up") ? -1 : 1);
 
@@ -265,7 +266,7 @@ class StoryMenu extends MusicBeatState {
         tagline.x = FlxG.width - tagline.width - 10;
 
         var oldDifficulty:String = (difficulties != null) ? difficulties[currentDifficulty] : null;
-        
+
         difficulties = weeks[currentSelection].difficulties;
         currentDifficulty = Std.int(FlxMath.bound(currentDifficulty, 0, difficulties.length - 1));
 
@@ -290,11 +291,10 @@ class StoryMenu extends MusicBeatState {
             for (i in 0...characters.members.length) {
                 var characterString:String = intendedCharacters[i];
                 var character:StoryMenuCharacter = characters.members[i];
-    
+
                 character.visible = (characterString != null && characterString != "#NONE");
-                if (!character.visible)
-                    continue;
-    
+                if (!character.visible) continue;
+
                 character.setup(characterString, charactersData.get(characterString));
                 character.x = (FlxG.width * 0.25) * (i + 1) - 150;
                 character.centerToObject(yellowOverlay, Y);
@@ -342,7 +342,7 @@ class StoryMenu extends MusicBeatState {
         difficultySprite.alpha = 0;
         FlxTween.tween(difficultySprite, {y: rightArrow.y + 15, alpha: 1}, 0.07);
     }
-    
+
     inline function updateScore():Void {
         intendedScore = 0;
 
@@ -403,9 +403,7 @@ class StoryMenu extends MusicBeatState {
                     f += ".yml";
                 return f;
             });
-        }
-        else
-            foundWeeks = FileTools.readDirectory(allWeeks);
+        } else foundWeeks = FileTools.readDirectory(allWeeks);
 
         for (file in foundWeeks) {
             var data = Tools.parseYAML(FileTools.getContent(allWeeks + "/" + file));
@@ -464,7 +462,7 @@ private class StoryMenuCharacter extends DancingSprite {
 
         forceDance(true);
         animation.finish();
-        
+
         currentDance = 0;
     }
 

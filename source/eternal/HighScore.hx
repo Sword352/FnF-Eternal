@@ -2,7 +2,12 @@ package eternal;
 
 class HighScore {
     public static var scoreMap(default, null):Map<String, ScoreMeasure> = [];
-    public static final defaultMeasure:ScoreMeasure = {score: 0, misses: 0, accuracy: 0, rank: "?"};
+    public static final defaultMeasure:ScoreMeasure = {
+        score: 0,
+        misses: 0,
+        accuracy: 0,
+        rank: "?"
+    };
 
     public static function set(song:String, data:ScoreMeasure):Void {
         #if ENGINE_MODDING
@@ -21,10 +26,8 @@ class HighScore {
         #if ENGINE_MODDING
         song = Mods.currentMod.id + "_" + song;
         #end
-        
-        if (!scoreMap.exists(song))
-            return defaultMeasure;
-        return scoreMap.get(song);
+
+        return scoreMap.get(song) ?? defaultMeasure;
     }
 
     public static function load():Void {

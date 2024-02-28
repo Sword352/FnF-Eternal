@@ -3,7 +3,7 @@ package funkin.objects.stages;
 import flixel.FlxBasic;
 import funkin.states.PlayState;
 import eternal.ChartFormat.ChartEvent;
-    
+
 class Stage extends FlxBasic {
     public var sprites:Array<FlxSprite> = [];
 
@@ -34,7 +34,7 @@ class Stage extends FlxBasic {
     var hudZoom(get, set):Float;
     inline function get_hudZoom():Float return game.hudZoom;
     inline function set_hudZoom(v):Float return game.hudZoom = game.camHUD.zoom = v;
-    
+
     public function new():Void {
         super();
         visible = false;
@@ -44,7 +44,7 @@ class Stage extends FlxBasic {
 
     public function create():Void {}
     override function update(elapsed:Float):Void {}
-    
+
     public function createPost():Void {}
     public function updatePost(elapsed:Float):Void {}
 

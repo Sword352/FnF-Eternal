@@ -1,13 +1,13 @@
 package eternal;
 
+import funkin.objects.sprites.OffsetSprite;
+
 class NoteSkin {
     static var skins:Map<String, NoteSkinConfig> = [];
     static var _warnings:Array<String> = [];
 
     public static function get(skin:String):NoteSkinConfig {
-        if (!skins.exists(skin))
-            load(skin);
-
+        if (!skins.exists(skin)) load(skin);
         return skins.get(skin);
     }
 
@@ -42,7 +42,7 @@ class NoteSkin {
             var lower:String = direction.toLowerCase();
             var upper:String = direction.toUpperCase();
 
-            // copy the animations to not mess with the original ones
+            // copy the animations to not mess with the original ones (TODO: find a smarter way for string interolation)
             animations = [
                 for (animation in skin.animations) {
                     name: animation.name.replace("${dir}", lower).replace("${DIR}", upper),
@@ -87,9 +87,11 @@ typedef NoteSkinConfig = {
 }
 
 typedef NoteConfig = GenericSkin;
+
 typedef ReceptorConfig = GenericSkin & {
     var ?spacing:Float;
 }
+
 typedef SplashConfig = GenericSkin & {
     var ?speedVariation:Array<Float>;
     var ?maxVariation:Int;
@@ -102,7 +104,7 @@ private typedef GenericSkin = {
 
     var ?library:String;
     var ?atlasType:String;
-    
+
     var ?frameRect:Array<Int>;
     var ?centeredOffsets:Bool;
 

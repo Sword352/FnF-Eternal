@@ -7,7 +7,7 @@ import flixel.text.FlxText;
 class ModExceptionScreen extends FlxState {
     override function create():Void {
         Tools.stopAllSounds();
-        
+
         super.create();
 
         var background:FlxSprite = new FlxSprite();
@@ -42,7 +42,7 @@ class ModExceptionScreen extends FlxState {
         if (FlxG.keys.justPressed.ESCAPE) {
             #if ENGINE_DISCORD_RPC
             DiscordPresence.shutdown();
-            #end 
+            #end
             Sys.exit(0);
         }
 

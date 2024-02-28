@@ -37,7 +37,7 @@ class DiscordPresence {
     public static function connect(id:String):Void {
         var handlers:DiscordEventHandlers = DiscordEventHandlers.create();
         handlers.ready = cpp.Function.fromStaticFunction(onReady);
-		handlers.errored = cpp.Function.fromStaticFunction(onError);
+        handlers.errored = cpp.Function.fromStaticFunction(onError);
         handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
         Discord.Initialize(id, cpp.RawPointer.addressOf(handlers), 1, null);
 

@@ -17,7 +17,7 @@ class MusicPlayback extends FlxBasic {
 
     public var onSongEnd:FlxSignal = new FlxSignal();
     public var playing(get, never):Bool;
-    
+
     public function new(song:String):Void {
         super();
         this.song = song;
@@ -32,7 +32,8 @@ class MusicPlayback extends FlxBasic {
 
     public function createVoice(file:String):Void {
         var voice:FlxSound = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
-        if (vocals.length < 1) mainVocals = voice;
+        if (vocals.length < 1)
+            mainVocals = voice;
 
         musics.push(voice);
         vocals.push(voice);
@@ -62,7 +63,7 @@ class MusicPlayback extends FlxBasic {
         var time:Float = Conductor.rawTime;
 
         for (music in musics) {
-            if (Conductor.music != music && music.playing && Math.abs(music.time - time) > (20 * pitch))
+            if (Conductor.music != music && music.playing && Math.abs(music.time - time) > (5 * pitch))
                 music.time = time;
         }
     }
@@ -84,7 +85,7 @@ class MusicPlayback extends FlxBasic {
         musics = null;
         vocals = null;
         song = null;
-        
+
         super.destroy();
     }
 

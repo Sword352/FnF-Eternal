@@ -2,31 +2,24 @@ package eternal;
 
 import funkin.objects.notes.Note;
 import funkin.objects.notes.StrumLine;
-
-import eternal.ChartFormat.Chart;
-import eternal.ChartFormat.ChartNote;
-import eternal.ChartFormat.SongMetadata;
-import eternal.ChartFormat.BaseGameChart;
-
+import eternal.ChartFormat;
 import haxe.Json;
+
 class ChartLoader {
     public static inline function getEmptyMeta():SongMetadata
         return {
             name: null,
             rawName: null,
-
             player: null,
             opponent: null,
             spectator: null,
             stage: null,
-
             instFile: "Inst",
             voiceFiles: ["Voices"],
-
             scrollSpeed: 1,
             bpm: 100
         };
-    
+
     public static inline function getEmptyChart():Chart
         return {
             notes: [],
@@ -57,12 +50,12 @@ class ChartLoader {
             meta: {
                 name: data.song,
                 rawName: data.song.toLowerCase().replace(" ", "-"),
-        
+
                 player: data.player1,
                 opponent: data.player2,
                 spectator: data.gfVersion ?? data.player3,
                 stage: data.stage ?? "",
-        
+
                 instFile: "Inst",
                 voiceFiles: (data.needsVoices) ? ["Voices"] : [],
 
@@ -131,32 +124,33 @@ class ChartLoader {
     }
 
     /*
-    public static function convertToLegacy(chart:Chart):Dynamic {
-        var output:Dynamic = {
-            song: {
-                song: chart.meta.rawName,
-                speed: chart.meta.speed,
-                bpm: chart.meta.bpm,
-                notes: [],
+        public static function convertToLegacy(chart:Chart):Dynamic {
+            var output:Dynamic = {
+                song: {
+                    song: chart.meta.rawName,
+                    speed: chart.meta.speed,
+                    bpm: chart.meta.bpm,
+                    notes: [],
 
-                player1: chart.meta.player,
-                player2: chart.meta.opponent,
+                    player1: chart.meta.player,
+                    player2: chart.meta.opponent,
 
-                needsVoices: (chart.meta.voiceFiles.length > 0),
-                validScore: true
-            }
-        };
+                    needsVoices: (chart.meta.voiceFiles.length > 0),
+                    validScore: true
+                }
+            };
 
-        return output;
-    }
+            return output;
+        }
     */
-
-    public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>, playerSkin:String = "default", oppSkin:String = "default"):Array<Note> {
+    
+    public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>, playerSkin:String = "default",
+            oppSkin:String = "default"):Array<Note> {
         var notes:Array<Note> = [];
 
         for (noteData in chart.notes) {
             if (noteData.time < minTime) continue;
-            
+
             var note:Note = new Note(noteData.time, noteData.direction, (noteData.strumline == 1) ? playerSkin : oppSkin);
             note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;

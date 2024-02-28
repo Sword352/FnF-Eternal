@@ -11,6 +11,7 @@ import flixel.util.FlxGradient;
 
 class Transition {
     public static final onComplete:FlxSignal = new FlxSignal();
+    public static var noPersistentUpdate:Bool = false;
     public static var skipNextTransOut:Bool = false;
     public static var skipNextTransIn:Bool = false;
 }
@@ -35,13 +36,14 @@ class TransitionState extends FlxState {
             cast(subState, TransitionSubState).reset(OUT);
         else
             openSubState(new TransitionSubState(OUT));
-        
+
         Transition.onComplete.add(onOutroComplete);
     }
 }
 
 class TransitionSubState extends FlxSubState {
-    var type:TransitionType;
+    public var type:TransitionType;
+
     var cam:FlxCamera;
 
     var gradient:FlxSprite;
@@ -59,7 +61,8 @@ class TransitionSubState extends FlxSubState {
         super.create();
 
         _wasUpdating = _parentState.persistentUpdate;
-        _parentState.persistentUpdate = (!(_parentState is PlayState) || type == IN);
+        _parentState.persistentUpdate = !Transition.noPersistentUpdate;
+        Transition.noPersistentUpdate = false;
 
         cam = new FlxCamera();
         cam.bgColor.alpha = 0;
@@ -108,7 +111,8 @@ class TransitionSubState extends FlxSubState {
         Transition.onComplete.removeAll();
 
         if (type == IN) {
-            if (cam != null) FlxG.cameras.remove(cam);
+            if (cam != null)
+                FlxG.cameras.remove(cam);
             FlxG.state.persistentUpdate = _wasUpdating;
             close();
         }
@@ -116,6 +120,6 @@ class TransitionSubState extends FlxSubState {
 }
 
 enum abstract TransitionType(String) from String to String {
-    var IN  =  "in";
+    var IN = "in";
     var OUT = "out";
 }

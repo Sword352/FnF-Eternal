@@ -1,5 +1,6 @@
 package funkin.objects.stages;
 
+import funkin.objects.sprites.OffsetSprite;
 import funkin.objects.sprites.DancingSprite;
 
 #if ENGINE_SCRIPTING
@@ -42,7 +43,7 @@ typedef StageObject = {
 
     var ?danceAnimations:Array<String>;
     var ?danceBeat:Float;
-    
+
     var ?position:Array<Float>;
     var ?parallax:Array<Float>; // same as scrollFactor
     var ?scrollFactor:Array<Float>;
@@ -78,7 +79,7 @@ class SoftcodedStage extends Stage {
     var fgSprites:Array<FlxSprite> = [];
 
     var showSpectator:Bool = true;
-    
+
     public function new(stage:String):Void {
         this.stage = stage;
         super();
@@ -119,7 +120,7 @@ class SoftcodedStage extends Stage {
             camZoom = data.cameraZoom;
         if (data.hudZoom != null)
             hudZoom = data.hudZoom;
-        
+
         if (data.playerPosition != null)
             playerPosition = arrayCheck(data.playerPosition);
         if (data.spectatorPosition != null)
@@ -152,8 +153,7 @@ class SoftcodedStage extends Stage {
                 dancingSprite.beat = obj.danceBeat ?? 1;
                 dancingSprites.push(dancingSprite);
                 sprite = dancingSprite;
-            }
-            else
+            } else
                 sprite = new OffsetSprite();
 
             switch ((obj.type ?? "").toLowerCase().trim()) {
@@ -185,7 +185,7 @@ class SoftcodedStage extends Stage {
                 sprite.blend = obj.blend;
 
             if (obj.position != null)
-                sprite.setPosition(obj.position[0] ?? 0, obj.position[1] ?? 0);            
+                sprite.setPosition(obj.position[0] ?? 0, obj.position[1] ?? 0);
 
             if (obj.scale != null) {
                 sprite.scale.set(obj.scale[0] ?? 1, obj.scale[1] ?? 1);
@@ -261,7 +261,7 @@ class SoftcodedStage extends Stage {
             if (playerCameraOffset != null) {
                 if (player.cameraOffsets == null)
                     player.cameraOffsets = [0, 0];
-                
+
                 player.cameraOffsets[0] += playerCameraOffset[0];
                 player.cameraOffsets[1] += playerCameraOffset[1];
             }
@@ -291,7 +291,7 @@ class SoftcodedStage extends Stage {
             if (spectatorCameraOffset != null) {
                 if (spectator.cameraOffsets == null)
                     spectator.cameraOffsets = [0, 0];
-                
+
                 spectator.cameraOffsets[0] += spectatorCameraOffset[0];
                 spectator.cameraOffsets[1] += spectatorCameraOffset[1];
             }
@@ -327,7 +327,7 @@ class SoftcodedStage extends Stage {
         dancingSprites = null;
         spectatorLayer = null;
         fgSprites = null;
-        
+
         #if ENGINE_SCRIPTING
         script = null;
         #end

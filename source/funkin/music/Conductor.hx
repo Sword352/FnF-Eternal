@@ -15,11 +15,11 @@ class Conductor {
     public static var active:Bool = true;
     public static var updateInterp:Bool = false;
     public static var music:FlxSound;
-    
+
     public static var bpm(default, set):Float = 100;
     public static var crochet(default, null):Float = 600;
     public static var stepCrochet(default, null):Float = 150;
-    
+
     public static var currentStep(get, set):Int;
     public static var currentBeat(get, set):Int;
     public static var currentMeasure(get, set):Int;
@@ -45,12 +45,11 @@ class Conductor {
     static var _prevMeas:Int = -1;
 
     /*
-    static var _stepTmr:Float = 0;
-    static var _fakeStep:Int = 0;
-    static var _fakeBeat:Int = 0;
-    static var _fakeMeas:Int = 0; 
-    */
-
+        static var _stepTmr:Float = 0;
+        static var _fakeStep:Int = 0;
+        static var _fakeBeat:Int = 0;
+        static var _fakeMeas:Int = 0; 
+     */
     public static inline function update(elapsed:Float):Void {
         if (!active) return;
         if (updateInterp) updateTime(elapsed);
@@ -58,6 +57,7 @@ class Conductor {
     }
 
     public static inline function updateTime(elapsed:Float):Void {
+        // TODO: make this more synced to the music time
         interpTime += elapsed * playbackRate * 1000;
         if (music != null && Math.abs(time - interpTime) > (20 * playbackRate))
             interpTime = time;
@@ -66,7 +66,7 @@ class Conductor {
     public static inline function updateCallbacks():Void {
         var step:Int = currentStep;
         if (step <= _prevStep) return;
-        
+
         _prevStep = step;
         onStep.dispatch(step);
 
@@ -84,27 +84,27 @@ class Conductor {
         }
 
         /*
-        if (music == null || music.playing) {
-            while (time >= _stepTmr + stepCrochet) {
-                _stepTmr += stepCrochet;
-                onStep.dispatch(++_fakeStep);
-    
-                if (_fakeStep % stepsPerBeat == 0) {
-                    onBeat.dispatch(++_fakeBeat);
-                    if (_fakeMeas % beatsPerMeasure == 0)
-                        onMeasure.dispatch(++_fakeMeas);
-                }
-            }
-        }
-        else {
-            var step:Float = (time / stepCrochet);
-            _stepTmr = stepCrochet * step;
+                if (music == null || music.playing) {
+                    while (time >= _stepTmr + stepCrochet) {
+                        _stepTmr += stepCrochet;
+                        onStep.dispatch(++_fakeStep);
 
-            _fakeStep = Math.floor(step);
-            _fakeBeat = Math.floor(_fakeStep / stepsPerBeat);
-            _fakeMeas = Math.floor(_fakeBeat / beatsPerMeasure);
-        }
-        */
+                        if (_fakeStep % stepsPerBeat == 0) {
+                            onBeat.dispatch(++_fakeBeat);
+                            if (_fakeMeas % beatsPerMeasure == 0)
+                                onMeasure.dispatch(++_fakeMeas);
+                        }
+                    }
+                }
+                else {
+                    var step:Float = (time / stepCrochet);
+                    _stepTmr = stepCrochet * step;
+
+                    _fakeStep = Math.floor(step);
+                    _fakeBeat = Math.floor(_fakeStep / stepsPerBeat);
+                    _fakeMeas = Math.floor(_fakeBeat / beatsPerMeasure);
+                }
+         */
     }
 
     public static inline function reset():Void {
@@ -159,7 +159,7 @@ class Conductor {
         else if (updateInterp)
             interpTime = v;
 
-        return v; 
+        return v;
     }
 
     static function get_rawTime():Float {
@@ -199,16 +199,19 @@ class Conductor {
 
     static function get_currentStep():Int
         return Math.floor(decimalStep);
+
     static function set_currentStep(v:Int):Int
         return Math.floor(set_decimalStep(v));
 
     static function get_currentBeat():Int
         return Math.floor(decimalBeat);
+
     static function set_currentBeat(v:Int):Int
         return Math.floor(set_decimalBeat(v));
 
     static function get_currentMeasure():Int
         return Math.floor(decimalMeasure);
+
     static function set_currentMeasure(v:Int):Int
         return Math.floor(set_decimalMeasure(v));
 

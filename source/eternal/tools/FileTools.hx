@@ -35,12 +35,12 @@ class FileTools {
         for (possibleFile in Assets.list().filter((f) -> f.contains(path))) {
             var file:String = possibleFile.replace('${path}/', "");
             if (file.contains("/"))
-               file = file.replace(file.substring(file.indexOf("/"), file.length), "");
+                file = file.replace(file.substring(file.indexOf("/"), file.length), "");
 
             if (!files.contains(file))
-               files.push(file);
+                files.push(file);
         }
-  
+
         files.sort((a, b) -> {
             a = a.toUpperCase();
             b = b.toUpperCase();

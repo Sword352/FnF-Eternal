@@ -34,7 +34,7 @@ class ModsMenu extends MusicBeatSubState {
             close();
             return;
         }
-        
+
         super.create();
 
         cam = new FlxCamera();
@@ -124,8 +124,7 @@ class ModsMenu extends MusicBeatSubState {
                     Tools.stopMusic();
                     goToTitleScreen();
                 }
-                else
-                    close();
+                else close();
             }
         }
 
@@ -302,7 +301,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         if (allowInputs) {
             if (controls.justPressed("back"))
                 close();
-    
+
             if (Mods.currentMod != modReference && controls.justPressed("accept"))
                 accept();
         }
@@ -329,8 +328,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         if (Mods.currentMod == modReference) {
             confirmText.text = "ENABLED";
             confirmText.color = FlxColor.LIME;
-        }
-        else {
+        } else {
             confirmText.text = "PRESS ACCEPT TO ENABLE";
             confirmText.color = FlxColor.WHITE;
         }
@@ -367,10 +365,7 @@ class ModItem extends FlxSprite {
         x = Tools.lerp(x, ((FlxG.width - width) / 2) + (target * 240), 10);
         alpha = Tools.lerp(alpha, val, 10);
 
-        scale.set(
-            Tools.lerp(scale.x, val, 10),
-            Tools.lerp(scale.y, val, 10)
-        );
+        scale.set(Tools.lerp(scale.x, val, 10), Tools.lerp(scale.y, val, 10));
         updateHitbox();
         offset.set();
     }

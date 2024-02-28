@@ -33,7 +33,7 @@ class MusicBeatState extends State {
     override public function update(elapsed:Float):Void {
         if (activeConductor)
             updateConductor(elapsed);
-        
+
         super.update(elapsed);
     }
 
@@ -44,7 +44,7 @@ class MusicBeatState extends State {
         #end
 
         Conductor.update(elapsed);
-        
+
         #if ENGINE_SCRIPTING
         hxsCall("onConductorUpdatePost", [elapsed]);
         #end
@@ -72,19 +72,21 @@ class MusicBeatState extends State {
 
     public function beatHit(currentBeat:Int):Void
         hxsCall("onBeatHit", [currentBeat]);
-    
+
     public function measureHit(currentMeasure:Int):Void
         hxsCall("onMeasureHit", [currentMeasure]);
     #else
     public function stepHit(currentStep:Int):Void {}
+
     public function beatHit(currentBeat:Int):Void {}
+
     public function measureHit(currentMeasure:Int):Void {}
     #end
 }
 
 class MusicBeatSubState extends SubState {
     var controls:Controls = Controls.globalControls;
-    
+
     public function new():Void {
         super();
 
@@ -100,7 +102,7 @@ class MusicBeatSubState extends SubState {
         #end
 
         Conductor.update(elapsed);
-        
+
         #if ENGINE_SCRIPTING
         hxsCall("onConductorUpdatePost", [elapsed]);
         #end
@@ -112,12 +114,14 @@ class MusicBeatSubState extends SubState {
 
     public function beatHit(currentBeat:Int):Void
         hxsCall("onBeatHit", [currentBeat]);
-    
+
     public function measureHit(currentMeasure:Int):Void
         hxsCall("onMeasureHit", [currentMeasure]);
     #else
     public function stepHit(currentStep:Int):Void {}
+
     public function beatHit(currentBeat:Int):Void {}
+
     public function measureHit(currentMeasure:Int):Void {}
     #end
 
@@ -127,7 +131,7 @@ class MusicBeatSubState extends SubState {
         Conductor.onMeasure.remove(measureHit);
 
         controls = null;
-        
+
         super.destroy();
     }
 }

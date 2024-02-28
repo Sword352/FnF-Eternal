@@ -1,6 +1,7 @@
 package funkin.states.menus;
 
 import funkin.objects.ui.Alphabet;
+import funkin.objects.sprites.OffsetSprite;
 import funkin.objects.sprites.DancingSprite;
 
 import flixel.group.FlxSpriteGroup;
@@ -14,12 +15,12 @@ typedef TitleSprite = {
     var ?library:String;
 
     var ?animations:Array<YAMLAnimation>;
-    var ?animationSize:Array<Int>;
     var ?animationSpeed:Float;
+    var ?frameRect:Array<Int>;
 
     var ?danceAnimations:Array<String>;
     var ?danceBeat:Float;
-    
+
     var ?position:Array<Float>;
     var ?alpha:Float;
     var ?scale:Array<Float>;
@@ -91,7 +92,7 @@ class TitleScreen extends MusicBeatState {
         }
 
         postRenderSprites = new FlxSpriteGroup();
-        
+
         if (alphabetGroup != null)
             add(alphabetGroup);
 
@@ -158,7 +159,7 @@ class TitleScreen extends MusicBeatState {
         for (group in [spritesGroup, preRenderSprites, postRenderSprites]) {
             if (group == null || group.length < 1)
                 continue;
-            
+
             for (spr in group)
                 if (spr is DancingSprite)
                     cast(spr, DancingSprite).dance(currentBeat, true);
@@ -184,12 +185,11 @@ class TitleScreen extends MusicBeatState {
         if (!skippedIntro) {
             clearSequences();
             skipIntro();
-        }
-        else {
-            flash();
+        } else {
             allowInputs = false;
+            flash();
 
-            pressEnterSprite.animation.play("pressed");
+            pressEnterSprite.animation.play("pressed", true);
             FlxG.sound.play(Assets.sound("confirmMenu"));
 
             new FlxTimer().start(1, (_) -> FlxG.switchState(MainMenu.new));
@@ -228,9 +228,7 @@ class TitleScreen extends MusicBeatState {
                 if (alphabetGroup != null && alphabetGroup.countLiving() > 0) {
                     var lastAlphabet:Alphabet = alphabetGroup.getLast((alphabet) -> alphabet.exists);
                     ngSprite.y = lastAlphabet.y + lastAlphabet.height - (ngSprite.height * 0.15);
-                }
-                else
-                    ngSprite.screenCenter(Y);
+                } else ngSprite.screenCenter(Y);
                 ngSprite.visible = true;
             case "hide logo":
                 if (ngSprite != null)
@@ -383,9 +381,7 @@ class TitleScreen extends MusicBeatState {
                 dancingSpr.danceAnimations = data.danceAnimations;
                 dancingSpr.beat = data.danceBeat ?? 1;
                 sprite = dancingSpr;
-            }
-            else
-                sprite = new OffsetSprite();
+            } else sprite = new OffsetSprite();
 
             switch ((data.type ?? "").toLowerCase().trim()) {
                 case "sparrow":
@@ -396,12 +392,12 @@ class TitleScreen extends MusicBeatState {
                     sprite.frames = Assets.getAseAtlas(data.image, data.library);
                 default:
                     var graphic = Assets.image(data.image, data.library);
-                    if (data.animationSize != null && data.animationSize.length > 1)
-                        sprite.loadGraphic(graphic, true, data.animationSize[0], data.animationSize[1]);
+                    if (data.frameRect != null)
+                        sprite.loadGraphic(graphic, true, data.frameRect[0], data.frameRect[1]);
                     else
                         sprite.loadGraphic(graphic);
             }
- 
+
             if (data.animationSpeed != null)
                 sprite.animation.timeScale = data.animationSpeed;
 
@@ -419,7 +415,7 @@ class TitleScreen extends MusicBeatState {
                 if (sprite.animation.curAnim != null) {
                     sprite.playAnimation(sprite.animation.curAnim.name, true);
                     sprite.animation.finish();
-                }     
+                }
             }
 
             if (data.position != null) {
@@ -462,7 +458,7 @@ class TitleScreen extends MusicBeatState {
         logo.updateHitbox();
 
         postRenderSprites.add(logo);
-        
+
         var girlfriend:DancingSprite = new DancingSprite(FlxG.width * 0.4, FlxG.height * 0.07);
         girlfriend.frames = Assets.getSparrowAtlas("menus/title/gfDanceTitle");
         girlfriend.animation.addByIndices("left", "gfDance", [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
@@ -473,7 +469,7 @@ class TitleScreen extends MusicBeatState {
         girlfriend.animation.finish();
         girlfriend.currentDance = 0;
         girlfriend.updateHitbox();
-        
+
         postRenderSprites.add(girlfriend);
     }
 
@@ -485,7 +481,7 @@ class TitleScreen extends MusicBeatState {
     static function getDefaultSequences():Array<TitleSequence> {
         return [
             {beat: 1, action: "create text", arguments: ["The eternal team"]},
-            {beat: 3, action: "add text",    arguments: ["present"]},
+            {beat: 3, action: "add text", arguments: ["present"]},
             {beat: 4, action: "delete text"},
             {beat: 5, action: "create text", arguments: ["Not in association", "with"]},
             {beat: 7, action: "add text", arguments: ["newgrounds"]},

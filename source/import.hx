@@ -8,30 +8,19 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
 
-import eternal.tools.*;
-import eternal.core.Assets;
-
 import eternal.Controls;
-import eternal.Settings;
 import eternal.HighScore;
+import eternal.Settings;
+import eternal.core.Assets;
+import eternal.tools.*;
 
-#if ENGINE_DISCORD_RPC
-import eternal.core.DiscordPresence;
-#end
-
-#if ENGINE_MODDING
-import eternal.core.Mods;
-#end
+#if ENGINE_MODDING import eternal.core.Mods; #end
+#if ENGINE_DISCORD_RPC import eternal.core.DiscordPresence; #end
 
 import funkin.music.Conductor;
-import funkin.music.MusicBeatState.MusicBeatState;
-import funkin.music.MusicBeatState.MusicBeatSubState;
-import funkin.objects.sprites.OffsetSprite;
-
+import funkin.music.MusicBeatState;
 import funkin.states.PlayState;
 import funkin.states.Transition;
-import funkin.states.Transition.TransitionState;
-import funkin.states.Transition.TransitionSubState;
 
 using eternal.tools.Tools;
 using StringTools;

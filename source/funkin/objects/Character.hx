@@ -3,7 +3,6 @@ package funkin.objects;
 import flixel.math.FlxPoint;
 
 import funkin.objects.sprites.DancingSprite;
-
 import funkin.states.substates.GameOverScreen;
 import funkin.states.substates.GameOverScreen.GameOverData;
 
@@ -37,7 +36,7 @@ typedef CharacterConfig = {
     var ?gameOverChar:String;
     var ?gameOverData:GameOverData;
 
-    var ?playerFlip:Bool;    
+    var ?playerFlip:Bool;
     var ?extra:Dynamic;
 }
 
@@ -234,20 +233,19 @@ class Character extends DancingSprite {
                 // case "name" to hardcode your characters
                 default:
                     var filePath:String = Assets.yaml('data/characters/${v}');
-    
+
                     if (FileTools.exists(filePath)) {
                         data = Tools.parseYAML(FileTools.getContent(filePath));
                         setup(data);
-                    }
-                    else {
+                    } else {
                         trace('Could not find character "${v}"!');
                         loadDefault();
                         data = null;
                     }
-    
+
                     #if ENGINE_SCRIPTING
                     destroyScript();
-    
+
                     if (type != DEBUG && FlxG.state is ScriptableState) {
                         var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
                         if (FileTools.exists(scriptPath)) {
@@ -255,7 +253,7 @@ class Character extends DancingSprite {
                             cast(FlxG.state, ScriptableState).addScript(scr);
                             scr.set("this", this);
                             scr.call("onInit");
-    
+
                             script = scr;
                         }
                     }
@@ -273,19 +271,19 @@ class Character extends DancingSprite {
         // simpler version of boyfriend, doesn't contain special animations or anything fancy
         frames = Assets.getSparrowAtlas("characters/BOYFRIEND");
 
-        animation.addByPrefix("idle",      "BF idle dance",  24, false);
-        animation.addByPrefix("singLEFT",  "BF NOTE LEFT0",  24, false);
-        animation.addByPrefix("singDOWN",  "BF NOTE DOWN0",  24, false);
-        animation.addByPrefix("singUP",    "BF NOTE UP0",    24, false);
+        animation.addByPrefix("idle", "BF idle dance", 24, false);
+        animation.addByPrefix("singLEFT", "BF NOTE LEFT0", 24, false);
+        animation.addByPrefix("singDOWN", "BF NOTE DOWN0", 24, false);
+        animation.addByPrefix("singUP", "BF NOTE UP0", 24, false);
         animation.addByPrefix("singRIGHT", "BF NOTE RIGHT0", 24, false);
-        animation.addByPrefix("singLEFTmiss",  "BF NOTE LEFT MISS",  24, false);
-        animation.addByPrefix("singDOWNmiss",  "BF NOTE DOWN MISS",  24, false);
-        animation.addByPrefix("singUPmiss",    "BF NOTE UP MISS",    24, false);
+        animation.addByPrefix("singLEFTmiss", "BF NOTE LEFT MISS", 24, false);
+        animation.addByPrefix("singDOWNmiss", "BF NOTE DOWN MISS", 24, false);
+        animation.addByPrefix("singUPmiss", "BF NOTE UP MISS", 24, false);
         animation.addByPrefix("singRIGHTmiss", "BF NOTE RIGHT MISS", 24, false);
 
         danceAnimations = ["idle"];
         cameraOffsets = [-150, -150];
-        
+
         forceDance(true);
     }
 }

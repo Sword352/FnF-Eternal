@@ -63,7 +63,7 @@ import flixel.FlxSubState;
         super.update(elapsed);
         hxsCall("onUpdatePost", [elapsed]);
     }
-    
+
     override function destroy():Void {
         controls = null;
         super.destroy();
@@ -104,20 +104,22 @@ class ScriptableState extends TransitionState {
 
         if (!FileTools.exists(path))
             return false;
-        
+
         loadScript(path);
         return true;
     }
 
     override function openSubState(SubState:FlxSubState):Void {
-        if (!noSubstateCalls) hxsCall("onSubStateOpened", [SubState]);
+        if (!noSubstateCalls)
+            hxsCall("onSubStateOpened", [SubState]);
 
         super.openSubState(SubState);
         hxsCall("onSubStateOpenedPost", [SubState]);
     }
 
     override function closeSubState():Void {
-        if (!noSubstateCalls) hxsCall("onSubStateClosed");
+        if (!noSubstateCalls)
+            hxsCall("onSubStateClosed");
 
         super.closeSubState();
         hxsCall("onSubStateClosedPost");
@@ -130,9 +132,10 @@ class ScriptableState extends TransitionState {
     override function onFocus():Void {
         hxsCall("onFocus");
     }
- 
+
     override function draw():Void {
-        if (cancellableCall("onDraw")) return;
+        if (cancellableCall("onDraw"))
+            return;
 
         super.draw();
         hxsCall("onDrawPost");
@@ -177,7 +180,7 @@ class ScriptableSubState extends FlxSubState {
 
         if (!FileTools.exists(path))
             return false;
-        
+
         loadScript(path);
         return true;
     }
@@ -195,10 +198,10 @@ class ScriptableSubState extends FlxSubState {
     override function onFocus():Void {
         hxsCall("onFocus");
     }
- 
+
     override function draw():Void {
         if (cancellableCall("onDraw"))
-           return;
+            return;
 
         super.draw();
         hxsCall("onDrawPost");

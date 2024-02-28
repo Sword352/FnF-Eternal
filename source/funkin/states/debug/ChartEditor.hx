@@ -6,11 +6,9 @@ import funkin.objects.Camera;
 
 import flixel.text.FlxText;
 import flixel.addons.display.FlxTiledSprite;
-
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-
 import flixel.util.FlxGradient;
 import flixel.util.FlxStringUtil;
 import flixel.addons.display.FlxGridOverlay;
@@ -20,6 +18,7 @@ import funkin.music.EventManager.EventManager;
 import funkin.music.EventManager.EventDetails;
 
 import eternal.ui.HelpButton;
+
 // import eternal.ui.NoteViewer;
 import haxe.ui.components.HorizontalSlider;
 
@@ -96,16 +95,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function create():Void {
         /*
-        @:privateAccess {
-            if (haxe.ui.Toolkit._initialized) {
-                FlxG.signals.postGameStart.add(haxe.ui.core.Screen.instance.onPostGameStart);
-                FlxG.signals.postStateSwitch.add(haxe.ui.core.Screen.instance.onPostStateSwitch);
-                FlxG.signals.preStateCreate.add(haxe.ui.core.Screen.instance.onPreStateCreate);
+            @:privateAccess {
+                if (haxe.ui.Toolkit._initialized) {
+                    FlxG.signals.postGameStart.add(haxe.ui.core.Screen.instance.onPostGameStart);
+                    FlxG.signals.postStateSwitch.add(haxe.ui.core.Screen.instance.onPostStateSwitch);
+                    FlxG.signals.preStateCreate.add(haxe.ui.core.Screen.instance.onPreStateCreate);
+                }
+                else
+                    haxe.ui.Toolkit.init();
             }
-            else
-                haxe.ui.Toolkit.init();
-        }
-        */
+         */
 
         super.create();
 
@@ -137,7 +136,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         FlxG.stage.window.onClose.add(autoSave);
     }
 
-    override function update(elapsed:Float):Void {        
+    override function update(elapsed:Float):Void {
         if (FlxG.keys.justPressed.TAB) {
             openSubState(new ChartSubScreen(this));
             return;
@@ -215,7 +214,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             music.instrumental.time = 0;
             line.y = 0;
         }
-        
+
         if (receptors.visible) {
             for (receptor in receptors)
                 receptor.y = line.y - (receptor.height * 0.5);
@@ -267,10 +266,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 metronome.play(true);
 
             /*
-            if (beatIndicators.visible)
-                for (ind in beatIndicators)
-                    ind.color = FlxColor.CYAN;
-            */
+                if (beatIndicators.visible)
+                    for (ind in beatIndicators)
+                        ind.color = FlxColor.CYAN;
+             */
         }
 
         super.beatHit(currentBeat);
@@ -286,8 +285,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         // no existing note found, create one
         if (existingNote == null) {
             var note:DebugNote = notes.recycle(DebugNote);
-            note.setPosition(mouseCursor.x, getMouseY()); 
-            note.data = { time: getTimeFromY(note.y), strumline: strumline, direction: direction, length: 0 };
+            note.setPosition(mouseCursor.x, getMouseY());
+            note.data = {
+                time: getTimeFromY(note.y),
+                strumline: strumline,
+                direction: direction,
+                length: 0
+            };
             chart.notes.push(note.data);
 
             selectedNote = note;
@@ -311,7 +315,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (existingEvent == null) {
             var event:EventSprite = events.recycle(EventSprite);
             event.setPosition(checkerboard.x - checkerSize, getMouseY());
-            event.data = { time: getTimeFromY(event.y), event: currentEvent.name, arguments: defaultArgs };
+            event.data = {
+                time: getTimeFromY(event.y),
+                event: currentEvent.name,
+                arguments: defaultArgs
+            };
             event.display = (currentEvent.display ?? currentEvent.name);
             chart.events.push(event.data);
 
@@ -362,15 +370,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function openSubState(SubState:FlxSubState):Void {
-        if (SubState is TransitionSubState) {
-            super.openSubState(SubState);
-            return;
+        if (!(SubState is TransitionSubState)) {
+            SubState.camera = uiCamera;
+            pauseMusic();
         }
+        else
+            Transition.noPersistentUpdate = (cast(SubState, TransitionSubState).type == OUT);
 
-        persistentUpdate = false;
-        pauseMusic();
-
-        SubState.camera = uiCamera;
         super.openSubState(SubState);
     }
 
@@ -390,7 +396,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         music.stop();
         autoSave();
 
-        persistentUpdate = false;
         FlxG.mouse.visible = false;
         Assets.clearAssets = Settings.get("reload assets");
 
@@ -406,31 +411,25 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         music.stop();
         autoSave();
 
-        persistentUpdate = false;
         FlxG.mouse.visible = false;
-
         openSubState(new ChartPlayState(this, (FlxG.keys.pressed.SHIFT) ? time : 0));
     }
 
     inline function openHelpPage():Void {
-        openSubState(
-            new HelpSubState(
-                "SPACE: Play/Stop music\n"
-                + "UP/DOWN/Mouse wheel: Increase/Decrease music time (faster if SHIFT pressed)\n"
-                + "Mouse click on grid: Place a note/event\n"
-                + "Q/E: Increase/Decrease selected note hold length (faster if SHIFT pressed)\n"
-                + "CTRL + Mouse click: Select hovered note/event\n"
-                + "SHIFT (hold): Un-snap cursor to grid\n"
-                + "Z (hold): Delete hovered notes/events\n\n"
+        openSubState(new HelpSubState("SPACE: Play/Stop music\n"
+            + "UP/DOWN/Mouse wheel: Increase/Decrease music time (faster if SHIFT pressed)\n"
+            + "Mouse click on grid: Place a note/event\n"
+            + "Q/E: Increase/Decrease selected note hold length (faster if SHIFT pressed)\n"
+            + "CTRL + Mouse click: Select hovered note/event\n"
+            + "SHIFT (hold): Un-snap cursor to grid\n"
+            + "Z (hold): Delete hovered notes/events\n\n"
 
-                + "TAB: Open Sub-screen\n"
-                + "ESCAPE: Play chart in the chart editor\n"
-                + "ESCAPE+SHIFT: Play chart in the chart editor at current time\n"
-                + "ENTER: Play chart\n"
-                + "ENTER+SHIFT: Play chart at current time\n"
-                + "CTRL+S: Save chart"
-            )
-        );
+            + "TAB: Open Sub-screen\n"
+            + "ESCAPE: Play chart in the chart editor\n"
+            + "ESCAPE+SHIFT: Play chart in the chart editor at current time\n"
+            + "ENTER: Play chart\n"
+            + "ENTER+SHIFT: Play chart at current time\n"
+            + "CTRL+S: Save chart"));
     }
 
     inline function killNote(note:DebugNote):Void {
@@ -451,10 +450,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     inline function pauseMusic():Void {
         /*
-        if (beatIndicators.visible)
-            for (ind in beatIndicators)
-                ind.color = FlxColor.RED;
-        */
+            if (beatIndicators.visible)
+                for (ind in beatIndicators)
+                    ind.color = FlxColor.RED;
+         */
 
         music.pause();
         metronome.stop();
@@ -464,14 +463,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (!musicText.visible)
             return;
 
-        musicText.text =
-        '${getTimeInfo()}\n\n'
-        + 'Step: ${Conductor.currentStep}\n'
-        + 'Beat: ${Conductor.currentBeat}\n'
-        + 'Measure: ${Conductor.currentMeasure}\n\n'
-        + '${getBPMInfo()}\n'
-        + 'Time Signature: ${Conductor.getSignature()}'
-        ;
+        musicText.text = '${getTimeInfo()}\n\n' + 'Step: ${Conductor.currentStep}\n' + 'Beat: ${Conductor.currentBeat}\n'
+            + 'Measure: ${Conductor.currentMeasure}\n\n' + '${getBPMInfo()}\n' + 'Time Signature: ${Conductor.getSignature()}';
 
         musicText.x = FlxG.width - musicText.width - 5;
 
@@ -580,13 +573,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (chart.meta.voiceFiles.length > 0)
             for (voiceFile in chart.meta.voiceFiles)
-               music.createVoice(voiceFile);
+                music.createVoice(voiceFile);
 
         music.onSongEnd.add(() -> {
             Conductor.resetPrevTime();
             line.y = 0;
         });
-        
+
         music.instrumental.time = startTime;
         add(music);
 
@@ -704,10 +697,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(background);
 
         var cols:Array<FlxColor> = [FlxColor.PURPLE, 0xFF350D35];
-		var gradient:FlxSprite = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height, cols, 1, 45);
+        var gradient:FlxSprite = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height, cols, 1, 45);
         gradient.scrollFactor.set();
-		gradient.alpha = 0.4;
         gradient.active = false;
+        gradient.alpha = 0.4;
         add(gradient);
     }
 
@@ -783,11 +776,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         add(helpButton);
 
         /*
-        noteViewer = new NoteViewer(-40, 0);
-        noteViewer.screenCenter(Y);
-        noteViewer.camera = uiCamera;
-        add(noteViewer);
-        */
+            noteViewer = new NoteViewer(-40, 0);
+            noteViewer.screenCenter(Y);
+            noteViewer.camera = uiCamera;
+            add(noteViewer);
+         */
     }
 
     inline public function loadAutoSave():Void {
@@ -796,14 +789,14 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Tools.invokeTempSave((save) -> {
             var saveMap:Map<String, Dynamic> = save.data.charts;
             if (saveMap != null && saveMap.exists(chart.meta.rawName))
-                chart = eternal.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));           
+                chart = eternal.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));
         }, "chart_autosave");
 
         if (oldChart == chart)
             return;
 
         // perhaps it's better to not switch states at all?
-        
+
         Assets.clearAssets = false;
 
         subState.close();
@@ -861,13 +854,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         super.destroy();
 
         /*
-        // temporary fix for haxeui crash
-        @:privateAccess {
-            FlxG.signals.postGameStart.remove(haxe.ui.core.Screen.instance.onPostGameStart);
-            FlxG.signals.postStateSwitch.remove(haxe.ui.core.Screen.instance.onPostStateSwitch);
-            FlxG.signals.preStateCreate.remove(haxe.ui.core.Screen.instance.onPreStateCreate);
-        }
-        */
+            // temporary fix for haxeui crash
+            @:privateAccess {
+                FlxG.signals.postGameStart.remove(haxe.ui.core.Screen.instance.onPostGameStart);
+                FlxG.signals.postStateSwitch.remove(haxe.ui.core.Screen.instance.onPostStateSwitch);
+                FlxG.signals.preStateCreate.remove(haxe.ui.core.Screen.instance.onPreStateCreate);
+            }
+         */
     }
 
     inline function set_selectedNote(v:DebugNote):DebugNote {
@@ -963,7 +956,7 @@ class DebugNote extends FlxSprite {
 
     override function draw():Void {
         if (data.length > 0) {
-            sustain.x = x + (width - sustain.width) * 0.5; 
+            sustain.x = x + (width - sustain.width) * 0.5;
             sustain.y = y + height * 0.5;
 
             sustain.color = sustainColors[data.direction];

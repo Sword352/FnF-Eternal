@@ -17,11 +17,7 @@ import funkin.states.options.OptionsMenu;
 class MainMenu extends MusicBeatState {
     static var lastSelection:Int = 0;
 
-    var itemList:Array<String> = [
-        "story mode",
-        "freeplay",
-        "options"
-    ];
+    var itemList:Array<String> = ["story mode", "freeplay", "options"];
 
     var background:FlxSprite;
     var flicker:FlxSprite;
@@ -58,28 +54,27 @@ class MainMenu extends MusicBeatState {
             return;
         }
         #end
-        
+
         Tools.playMusicCheck("freakyMenu");
-        
+
         FlxG.cameras.reset(new Camera());
 
         background = new FlxSprite();
         background.loadGraphic(Assets.image("menus/menuBG"));
+        background.scrollFactor.set(0, 0.17);
         background.scale.set(1.2, 1.2);
         background.updateHitbox();
         background.screenCenter();
-        background.scrollFactor.set(0, 0.17);
         add(background);
 
         if (!Settings.get("disable flashing lights")) {
-            flicker = new FlxSprite();
-            flicker.loadGraphic(Assets.image("menus/menuDesat"));
+            flicker = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
+            flicker.scrollFactor.set(0, background.scrollFactor.y);
+            flicker.color = 0xFFfd719b;
             flicker.scale.set(1.2, 1.2);
             flicker.updateHitbox();
             flicker.screenCenter();
-            flicker.scrollFactor.set(0, background.scrollFactor.y);
             flicker.visible = false;
-            flicker.color = 0xFFfd719b;
             add(flicker);
         }
 
@@ -87,10 +82,8 @@ class MainMenu extends MusicBeatState {
         if (Tools.devState.length > 0)
             devState = ' (${Tools.devState})';
 
-        bottomText = new FlxText(5, 0, 0,
-            #if ENGINE_MODDING 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\n' + #end
-            'Eternal Engine v${Tools.gameVersion}${devState}'
-        );
+        bottomText = new FlxText(5, 0, 0, #if ENGINE_MODDING 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\n' + #end
+            'Eternal Engine v${Tools.gameVersion}${devState}');
         bottomText.setFormat(Assets.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
         bottomText.scrollFactor.set();
@@ -106,10 +99,10 @@ class MainMenu extends MusicBeatState {
             item.frames = Assets.getSparrowAtlas('menus/main/${itemList[i]}');
             item.animation.addByPrefix("normal", "basic", 24);
             item.animation.addByPrefix("selected", "white", 24);
-            item.animation.play("normal");
+            item.animation.play("normal", true);
             item.updateHitbox();
             item.screenCenter();
-            item.y += (-item.height / 2) + itemSpacing * (i - Math.floor(itemList.length / 2));
+            item.y += itemSpacing * (i - itemList.length / 2) + 25;
             item.ID = i;
             items.add(item);
         }
@@ -127,8 +120,6 @@ class MainMenu extends MusicBeatState {
         itemOrder = items.members.copy();
         currentSelection = lastSelection % itemList.length;
         changeSelection();
-
-        persistentUpdate = true;
 
         #if ENGINE_SCRIPTING
         hxsCall("onCreatePost");
@@ -149,10 +140,7 @@ class MainMenu extends MusicBeatState {
         #end
 
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
-        cameraTarget.setPosition(
-            Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed),
-            Tools.lerp(cameraTarget.y, itemMidpoint.y, cameraSpeed)
-        );
+        cameraTarget.setPosition(Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed), Tools.lerp(cameraTarget.y, itemMidpoint.y, cameraSpeed));
         itemMidpoint.put();
 
         if (allowInputs) {
@@ -169,10 +157,8 @@ class MainMenu extends MusicBeatState {
             }
 
             #if ENGINE_MODDING
-            if (subState == null && controls.justPressed("open mods")) {
-                persistentUpdate = false;
+            if (subState == null && controls.justPressed("open mods"))
                 openSubState(new ModsMenu());
-            }
             #end
         }
 
@@ -191,7 +177,7 @@ class MainMenu extends MusicBeatState {
 
         for (item in itemOrder) {
             var selected:Bool = (item.ID == currentSelection);
-            var scale:Float = (selected) ? 0.9 : 1;
+            var scale:Float = (selected) ? 0.85 : 1;
 
             item.animation.play((selected) ? "selected" : "normal");
             item.scale.set(scale, scale);
@@ -200,12 +186,8 @@ class MainMenu extends MusicBeatState {
         }
 
         items.members.sort((s1, s2) -> {
-            if (s1.ID == currentSelection)
-                return 1;
-
-            if (s2.ID == currentSelection)
-                return -1;
-
+            if (s1.ID == currentSelection) return 1;
+            if (s2.ID == currentSelection) return -1;
             return FlxSort.byY(FlxSort.ASCENDING, s1, s2);
         });
 
@@ -243,9 +225,12 @@ class MainMenu extends MusicBeatState {
 
     inline function goToNextState():Void {
         switch (itemList[currentSelection]) {
-            case "story mode": FlxG.switchState(StoryMenu.new);
-            case "freeplay": FlxG.switchState(FreeplayMenu.new);
-            case "options": FlxG.switchState(OptionsMenu.new.bind(false));
+            case "story mode":
+                FlxG.switchState(StoryMenu.new);
+            case "freeplay":
+                FlxG.switchState(FreeplayMenu.new);
+            case "options":
+                FlxG.switchState(OptionsMenu.new.bind(false));
         }
     }
 

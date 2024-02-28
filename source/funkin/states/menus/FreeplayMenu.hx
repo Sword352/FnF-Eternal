@@ -8,7 +8,6 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import funkin.objects.ui.BGText;
 import funkin.objects.ui.Alphabet;
 import funkin.objects.ui.HealthIcon;
-
 import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 
@@ -107,7 +106,8 @@ class FreeplayMenu extends MusicBeatState {
             items.add(item);
             item.doIntro();
         }
-        
+
+        // TODO: do not use BGText
         scoreText = new BGText(FlxG.width * 0.7, 5);
         scoreText.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, RIGHT);
         scoreText.automaticScale = scoreText.automaticPosition = false;
@@ -159,7 +159,7 @@ class FreeplayMenu extends MusicBeatState {
             }
             else {
                 text.y = instructionSep.y;
-                if (odd) 
+                if (odd)
                     text.y += ((instructionSep.height - text.height) * Math.floor(i / 2));
 
                 text.x = (right) ? (instructionSep.x - text.width - 15) : (instructionSep.x + 15);
@@ -213,7 +213,7 @@ class FreeplayMenu extends MusicBeatState {
             if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"]) #if ENGINE_SCRIPTING && !cancellableCall("onDifficultyChange") #end) {
                 currentDifficulty = FlxMath.wrap(currentDifficulty + ((controls.lastAction == "left") ? -1 : 1), 0, difficulties.length - 1);
                 updateScoreData();
-                
+
                 #if ENGINE_SCRIPTING
                 hxsCall("onDifficultyChangePost");
                 #end
@@ -247,7 +247,7 @@ class FreeplayMenu extends MusicBeatState {
                 screen.onReset = updateScoreData;
                 openSubState(screen);
             }
-    
+
             if (FlxG.keys.justPressed.CONTROL)
                 showDetails = !showDetails;
         }
@@ -264,10 +264,8 @@ class FreeplayMenu extends MusicBeatState {
         scoreText.x = Tools.lerp(scoreText.x, FlxG.width - scoreText.width - 6, 24);
 
         scoreBG.x = FlxG.width - scoreBG.scale.x * 0.5;
-        scoreBG.scale.set(
-            Tools.lerp(scoreBG.scale.x, FlxG.width - scoreText.x + 6, 24),
-            Tools.lerp(scoreBG.scale.y, (showDetails) ? 5.5 : 1, 6 * ((showDetails) ? 1 : 0.75))
-        );
+        scoreBG.scale.set(Tools.lerp(scoreBG.scale.x, FlxG.width - scoreText.x + 6, 24),
+            Tools.lerp(scoreBG.scale.y, (showDetails) ? 5.5 : 1, 6 * ((showDetails) ? 1 : 0.75)));
 
         detailsText.text = 'MISSES: ${scoreData.misses}\nACCURACY: ${FlxMath.roundDecimal(lerpAccuracy, 2)}%';
         if (scoreData.rank.length > 0)
@@ -298,7 +296,7 @@ class FreeplayMenu extends MusicBeatState {
         for (item in items) {
             item.target = items.members.indexOf(item) - currentSelection;
             item.alpha = (item.ID == currentSelection) ? 1 : 0.6;
-            
+
             for (spr in item.spriteTrackers.keys())
                 spr.alpha = item.alpha;
         }
@@ -333,7 +331,7 @@ class FreeplayMenu extends MusicBeatState {
         #end
 
         allowInputs = false;
-        
+
         Transition.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
         FlxG.switchState(PlayState.new.bind(0));
     }

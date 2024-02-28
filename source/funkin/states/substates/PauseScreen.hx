@@ -7,16 +7,13 @@ import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.ui.Alphabet;
-
 import funkin.states.menus.StoryMenu;
 import funkin.states.menus.FreeplayMenu;
 import funkin.states.options.OptionsMenu;
 
 class PauseScreen extends MusicBeatSubState {
     // in case i do difficulty stuff later
-    var itemLists:Map<String, Array<String>> = [
-        "default" => ["Resume", "Restart Song", "Go To Options", "Exit To Menu"]
-    ];
+    var itemLists:Map<String, Array<String>> = ["default" => ["Resume", "Restart Song", "Go To Options", "Exit To Menu"]];
 
     var currentList:Array<String>;
     var currentSelection:Int = 0;
@@ -31,7 +28,7 @@ class PauseScreen extends MusicBeatSubState {
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
     #end
-    
+
     override function create():Void {
         super.create();
 
@@ -47,12 +44,12 @@ class PauseScreen extends MusicBeatSubState {
 
         // Caching
         Assets.sound("scrollMenu");
-        
+
         background = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
         background.alpha = 0;
         add(background);
-        
+
         items = new FlxTypedGroup<Alphabet>();
         add(items);
 
@@ -60,7 +57,7 @@ class PauseScreen extends MusicBeatSubState {
 
         songText = new FlxText(0, 15);
         songText.setFormat(Assets.font('vcr'), 32);
-		songText.updateHitbox();
+        songText.updateHitbox();
         songText.text = '${PlayState.song.meta.name} (${PlayState.currentDifficulty.toUpperCase()})';
         songText.x = FlxG.width - songText.width - 10;
         songText.alpha = 0;
@@ -68,7 +65,7 @@ class PauseScreen extends MusicBeatSubState {
 
         lossCounter = new FlxText(0, 47);
         lossCounter.setFormat(songText.font, 32);
-		lossCounter.updateHitbox();
+        lossCounter.updateHitbox();
         lossCounter.text = 'Lost: ${PlayState.lossCounter}';
         lossCounter.x = FlxG.width - lossCounter.width - 10;
         lossCounter.alpha = 0;
@@ -85,7 +82,7 @@ class PauseScreen extends MusicBeatSubState {
         hxsCall("onCreatePost");
         #end
     }
-    
+
     override function update(elapsed:Float):Void {
         #if ENGINE_SCRIPTING
         hxsCall("onUpdate", [elapsed]);
@@ -112,7 +109,7 @@ class PauseScreen extends MusicBeatSubState {
         hxsCall("onUpdatePost", [elapsed]);
         #end
     }
-    
+
     inline function changeSelection(i:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [i]))
@@ -120,7 +117,7 @@ class PauseScreen extends MusicBeatSubState {
         #end
 
         currentSelection = FlxMath.wrap(currentSelection + i, 0, currentList.length - 1);
-        
+
         for (i in items) {
             i.target = items.members.indexOf(i) - currentSelection;
             i.alpha = (i.ID == currentSelection) ? 1 : 0.6;
@@ -141,7 +138,7 @@ class PauseScreen extends MusicBeatSubState {
         #end
 
         switch (item.toLowerCase()) {
-            case "resume": 
+            case "resume":
                 close();
             case "restart song":
                 Assets.clearAssets = Settings.get("reload assets");
@@ -190,7 +187,7 @@ class PauseScreen extends MusicBeatSubState {
 
         currentList = null;
         itemLists = null;
-        
+
         super.destroy();
     }
 }

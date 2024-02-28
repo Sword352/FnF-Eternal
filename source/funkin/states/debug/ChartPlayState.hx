@@ -21,7 +21,7 @@ import eternal.ChartLoader;
  * - Do less copy-paste and make the code cleaner
  */
 class ChartPlayState extends MusicBeatSubState {
-    var strumlines:Array<StrumLine>;
+    var strumLines:Array<StrumLine>;
     var opponentStrumline:StrumLine;
     var playerStrumline:StrumLine;
     var notes:Array<Note>;
@@ -42,10 +42,9 @@ class ChartPlayState extends MusicBeatSubState {
     var missCount:Int = 0;
     var combo:Int = 0;
 
+    var health(default, set):Float = 1;
     var accuracyNotes:Int = 0;
     var accuracyMod:Float = 0;
-    
-    var health(default, set):Float = 1;
 
     var startTimer:FlxTimer;
     var startTime:Float;
@@ -78,7 +77,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
         add(comboSprites);
-  
+
         ratingSprites = new FlxTypedSpriteGroup<RatingSprite>();
         add(ratingSprites);
 
@@ -93,7 +92,7 @@ class ChartPlayState extends MusicBeatSubState {
         opponentStrumline.scrollSpeed = parent.chart.meta.scrollSpeed /** parent.music.pitch*/;
         opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         add(opponentStrumline);
-  
+
         playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
         playerStrumline.onNoteHit.add(onBotplayNoteHit);
@@ -115,8 +114,8 @@ class ChartPlayState extends MusicBeatSubState {
         opponentStrumline.tweenReceptors(0, 0.05);
         playerStrumline.tweenReceptors(0, 0.05);
 
-        notes = ChartLoader.generateNotes(parent.chart, startTime, strumlines);
-        strumlines = [opponentStrumline, playerStrumline];
+        strumLines = [opponentStrumline, playerStrumline];
+        notes = ChartLoader.generateNotes(parent.chart, startTime, strumLines);
 
         Controls.globalControls.onKeyJustPressed.add(onKeyDown);
         Controls.globalControls.onKeyJustReleased.add(onKeyUp);
@@ -146,12 +145,12 @@ class ChartPlayState extends MusicBeatSubState {
         Conductor.update(elapsed);
         parent.updateCurrentBPM();
 
-        while (notes.length > 0)  {
+        while (notes.length > 0) {
             var note:Note = notes[0];
             if ((note.time - Conductor.time) > (1800 / note.getScrollSpeed()))
-               break;
-   
-            strumlines[note.strumline].addNote(note);   
+                break;
+
+            strumLines[note.strumline].addNote(note);
             notes.shift();
         }
 
@@ -177,8 +176,10 @@ class ChartPlayState extends MusicBeatSubState {
 
         if (noteHit != null) {
             switch (noteHit) {
-               case NOTE_HIT(note): onNoteHit(note);
-               case MISSED: onMiss();
+                case NOTE_HIT(note):
+                    onNoteHit(note);
+                case MISSED:
+                    onMiss();
             }
         }
     }
@@ -190,7 +191,7 @@ class ChartPlayState extends MusicBeatSubState {
         playerStrumline.keyRelease(Note.directions.indexOf(action));
     }
 
-    inline function onNoteHit(note:Note):Void  {
+    inline function onNoteHit(note:Note):Void {
         note.goodHit = true;
         note.checked = true;
 
@@ -209,7 +210,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         combo++;
         if (rating.displayCombo && combo > 0)
-           displayCombo();
+            displayCombo();
 
         if (rating.displayNoteSplash && !Settings.get("disable note splashes"))
             playerStrumline.popSplash(note.direction);
@@ -253,16 +254,16 @@ class ChartPlayState extends MusicBeatSubState {
             for (spr in comboSprites)
                 spr.kill();
         }
-  
+
         for (i in 0...separatedCombo.length) {
-            var sprite:ComboSprite = comboSprites.recycle(ComboSprite);  
+            var sprite:ComboSprite = comboSprites.recycle(ComboSprite);
             sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
             sprite.scale.set(0.5, 0.5);
             sprite.updateHitbox();
             sprite.screenCenter();
             sprite.x += 43 * (i + 1);
             sprite.y += 140;
-  
+
             comboSprites.remove(sprite, true);
             comboSprites.insert(comboSprites.length + 1, sprite);
         }
@@ -276,7 +277,7 @@ class ChartPlayState extends MusicBeatSubState {
             for (spr in ratingSprites)
                 spr.kill();
         }
-      
+
         var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
         sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
         sprite.scale.set(0.7, 0.7);
@@ -285,18 +286,16 @@ class ChartPlayState extends MusicBeatSubState {
 
         ratingSprites.remove(sprite, true);
         ratingSprites.insert(ratingSprites.length + 1, sprite);
-   }
+    }
 
     inline function updateUI():Void {
         var acc:String = "N/A";
         if (accuracyNotes > 0 && accuracyMod > 0)
             acc = FlxMath.roundDecimal(FlxMath.bound(accuracyMod / accuracyNotes, 0, 1) * 100, 2) + "%";
-        
-        infos.text =
-            '${parent.getTimeInfo()} - ${parent.getBPMInfo()}\n'
+
+        infos.text = '${parent.getTimeInfo()} - ${parent.getBPMInfo()}\n'
             + 'Step: ${Conductor.currentStep} - Beat: ${Conductor.currentBeat} - Measure: ${Conductor.currentMeasure}\n'
-            + 'Misses: ${missCount} - Accuracy: ${acc} - Botplay: ${(playerStrumline.cpu) ? 'ON' : 'OFF'}'
-        ;
+            + 'Misses: ${missCount} - Accuracy: ${acc} - Botplay: ${(playerStrumline.cpu) ? 'ON' : 'OFF'}';
         infos.screenCenter(X);
 
         for (text in [oppNoteCount, playerNoteCount]) {
@@ -317,7 +316,7 @@ class ChartPlayState extends MusicBeatSubState {
 
             icon.x = (i == 0) ? ((infos.x - icon.offset.x) - icon.width - 5) : (infos.x + infos.width + 5);
             icon.health = (health * 50);
-            
+
             if (i == 0)
                 icon.health = (100 - icon.health);
         }
@@ -370,7 +369,7 @@ class ChartPlayState extends MusicBeatSubState {
                             icon.alpha = text.alpha;
                 };
             }
-        }    
+        }
     }
 
     override function destroy():Void {
@@ -380,7 +379,7 @@ class ChartPlayState extends MusicBeatSubState {
         while (ratings.length > 0)
             ratings.shift().destroy();
 
-        strumlines = null;
+        strumLines = null;
         startTimer = null;
         ratings = null;
         notes = null;

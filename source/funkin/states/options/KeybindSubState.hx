@@ -2,7 +2,6 @@ package funkin.states.options;
 
 import flixel.text.FlxText;
 import flixel.group.FlxGroup.FlxTypedGroup;
-
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
@@ -62,9 +61,9 @@ class KeybindSubState extends MusicBeatSubState {
         #end
 
         if (allowInputs) {
-            if (controls.anyJustPressed(["up", "down"])) 
+            if (controls.anyJustPressed(["up", "down"]))
                 changeSelection(controls.lastAction == "up" ? -1 : 1);
-    
+
             if (controls.anyJustPressed(["left", "right"])) {
                 horizontalSelection = FlxMath.wrap(horizontalSelection + (controls.lastAction == "left" ? -1 : 1), 0, 2);
                 FlxG.sound.play(Assets.sound("scrollMenu"));
@@ -74,7 +73,7 @@ class KeybindSubState extends MusicBeatSubState {
             if (controls.justPressed("accept") && horizontalSelection != 1) {
                 allowInputs = false;
                 changing = true;
-    
+
                 itemGroup.forEach((t) -> {
                     if (t.ID != currentSelection)
                         t.alpha = 0;
@@ -82,11 +81,11 @@ class KeybindSubState extends MusicBeatSubState {
                         (horizontalSelection == 0 ? t.secondKeybind : t.firstKeybind).alpha = 0;
                 });
 
-                // we're returning here so it does not set the keybind directly
                 #if ENGINE_SCRIPTING
                 hxsCall("onUpdatePost", [elapsed]);
                 #end
 
+                // we're returning here so it does not instantly detect the keybind
                 return;
             }
         }
@@ -96,9 +95,7 @@ class KeybindSubState extends MusicBeatSubState {
                 changing = false;
                 allowInputs = true;
                 changeSelection();
-            }
-            else
-                close();
+            } else close();
         }
 
         if (!changing) {
@@ -154,7 +151,7 @@ class KeybindSubState extends MusicBeatSubState {
 
             item.target = itemGroup.members.indexOf(item) - currentSelection;
             item.alpha = (selected && horizontalSelection == 1) ? 1 : 0.6;
-            
+
             item.firstKeybind.alpha = (selected && horizontalSelection == 0) ? 1 : 0.6;
             item.secondKeybind.alpha = (selected && horizontalSelection == 2) ? 1 : 0.6;
         }
@@ -210,7 +207,7 @@ class KeybindItem extends FlxText {
     override function update(elapsed:Float):Void {
         for (text in [this, firstKeybind, secondKeybind])
             text.y = Tools.lerp(text.y, (FlxG.height - text.height) * 0.4 + target * 80, 15);
-        
+
         firstKeybind.x = Tools.lerp(firstKeybind.x, FlxG.width * 0.35 - firstKeybind.width, 15);
     }
 
@@ -252,37 +249,37 @@ class KeybindItem extends FlxText {
         if (gamepad) {
             return switch (key) {
                 case LEFT_STICK_DIGITAL_LEFT: "L. LEFT";
-			    case LEFT_STICK_DIGITAL_RIGHT: "L. RIGHT";
-			    case LEFT_STICK_DIGITAL_UP: "L. UP";
-			    case LEFT_STICK_DIGITAL_DOWN: "L. DOWN";
+                case LEFT_STICK_DIGITAL_RIGHT: "L. RIGHT";
+                case LEFT_STICK_DIGITAL_UP: "L. UP";
+                case LEFT_STICK_DIGITAL_DOWN: "L. DOWN";
                 case LEFT_STICK_CLICK: "L. STICK";
                 case RIGHT_STICK_DIGITAL_LEFT: "R. LEFT";
-			    case RIGHT_STICK_DIGITAL_RIGHT: "R. RIGHT";
-			    case RIGHT_STICK_DIGITAL_UP: "R. UP";
-			    case RIGHT_STICK_DIGITAL_DOWN: "R. DOWN";
+                case RIGHT_STICK_DIGITAL_RIGHT: "R. RIGHT";
+                case RIGHT_STICK_DIGITAL_UP: "R. UP";
+                case RIGHT_STICK_DIGITAL_DOWN: "R. DOWN";
                 case RIGHT_STICK_CLICK: "R. STICK";
                 case GUIDE: switch (FlxG.gamepads.lastActive.model) {
-                    case PS4: "PS";
-                    case XINPUT: "XB";
-                    default: "HOME";
-                }
+                        case PS4: "PS";
+                        case XINPUT: "XB";
+                        default: "HOME";
+                    }
                 case A: switch (FlxG.gamepads.lastActive.model) {
-                    case PS4: "X";
-					default: "A";
-                }
+                        case PS4: "X";
+                        default: "A";
+                    }
                 case B: switch (FlxG.gamepads.lastActive.model) {
-                    case PS4: "O";
-                    case XINPUT: "A";
-                    default: "B";
-                }
+                        case PS4: "O";
+                        case XINPUT: "A";
+                        default: "B";
+                    }
                 case X: switch (FlxG.gamepads.lastActive.model) {
-                    case PS4: "SQUARE";
-                    default: "X";
-                }
+                        case PS4: "SQUARE";
+                        default: "X";
+                    }
                 case Y: switch (FlxG.gamepads.lastActive.model) {
-                    case PS4: "TRIANGLE";
-                    default: "Y";
-                }
+                        case PS4: "TRIANGLE";
+                        default: "Y";
+                    }
                 default: FlxGamepadInputID.toStringMap.get(key).replace("_", " ");
             }
         }

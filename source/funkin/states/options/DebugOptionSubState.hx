@@ -17,7 +17,7 @@ class DebugOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, overwrite the file of charts using the FNF Legacy chart format once\nthey get loaded.";
         addOption(option);
         #end
-        
+
         super.create();
     }
 }

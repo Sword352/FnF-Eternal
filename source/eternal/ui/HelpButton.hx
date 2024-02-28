@@ -40,12 +40,12 @@ class HelpButton extends FlxSprite {
         if (flickerTmr > 0) {
             flickerTmr -= elapsed;
             flickerDly += elapsed;
-    
+
             if (flickerDly >= (flickerDuration / flickerCount)) {
                 flickerDly = 0;
                 flicker();
             }
-    
+
             if (flickerTmr <= 0) {
                 if (onClick != null)
                     onClick();

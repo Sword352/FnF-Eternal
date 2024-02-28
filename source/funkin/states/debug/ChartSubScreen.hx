@@ -87,7 +87,7 @@ class ChartSubScreen extends FlxSubState {
         if (!bpmChanged) {
             if (stepsChanged)
                 parent.reloadGrid(!beatsChanged);
-            
+
             if (beatsChanged)
                 parent.reloadMeasureMarks();
         }
@@ -150,7 +150,7 @@ class ChartSubScreen extends FlxSubState {
         pitchSlider.step = 0.05;
         pitchSlider.min = 0.1;
         pitchSlider.max = 5;
-        
+
         pitchSlider.includeInLayout = false;
         pitchSlider.top = 100;
 
@@ -179,7 +179,7 @@ class ChartSubScreen extends FlxSubState {
             var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.meta.voiceFiles[i]}"');
             muteVoice.top = muteInst.top + 25 * (i + 1);
             muteVoice.left = 200;
-            
+
             muteVoice.onChange = (_) -> parent.music.vocals[i].volume = (muteVoice.selected) ? 0 : 1;
             muteVoice.selected = (parent.music.vocals[i].volume < 1);
             page.addComponent(muteVoice);
@@ -273,38 +273,38 @@ class ChartSubScreen extends FlxSubState {
         // time signature
         var signature:Label = createText('Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)');
         signature.left = 5;
-        
+
         var beatsPerMeasure:NumberStepper = createNumStepper();
         beatsPerMeasure.left = 5;
         beatsPerMeasure.top = 25;
-        
+
         var stepsPerBeat:NumberStepper = createNumStepper();
         stepsPerBeat.left = 95;
         stepsPerBeat.top = 25;
-        
+
         beatsPerMeasure.value = oldBeats;
         beatsPerMeasure.onChange = (_) -> {
             var val:Float = beatsPerMeasure.value;
             if (!(val is Int))
                 beatsPerMeasure.value = Math.floor(val);
-        
+
             Conductor.beatsPerMeasure = beatsPerMeasure.value;
             parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
             beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
-        
+
             signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
         };
-        
+
         stepsPerBeat.value = oldSteps;
         stepsPerBeat.onChange = (_) -> {
             var val:Float = stepsPerBeat.value;
             if (!(val is Int))
                 stepsPerBeat.value = Math.floor(val);
-        
-            Conductor.stepsPerBeat = stepsPerBeat.value;        
+
+            Conductor.stepsPerBeat = stepsPerBeat.value;
             parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
             stepsChanged = (Conductor.stepsPerBeat != oldSteps);
-        
+
             signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
         };
 
@@ -370,7 +370,7 @@ class ChartSubScreen extends FlxSubState {
             description.text = event.description ?? "No description.";
             description.validateNow();
             description.left = menu.width - description.width - 15;
-            
+
             // rebuild the arguments editor
             while (propStorage.length > 0)
                 argumentsEditor.removeComponent(propStorage.shift());
@@ -379,7 +379,7 @@ class ChartSubScreen extends FlxSubState {
                 for (arg in event.arguments) {
                     var propIndex:Int = event.arguments.indexOf(arg);
                     var typeLower:String = arg.type.toLowerCase();
-    
+
                     var prop:Property = new Property();
                     prop.label = arg.name;
                     prop.type = switch (typeLower) {
@@ -387,11 +387,11 @@ class ChartSubScreen extends FlxSubState {
                         case "bool": "boolean";
                         default: typeLower;
                     };
-    
+
                     if (prop.type == "list")
                         for (entry in arg.valueList)
                             prop.dataSource.add(entry);
-    
+
                     prop.onChange = (_) -> {
                         var val:Dynamic = prop.value;
                         if (prop.type == "text") {
@@ -401,19 +401,19 @@ class ChartSubScreen extends FlxSubState {
                         }
                         else if (typeLower == "int" && prop.value is Float && !(prop.value is Int))
                             val = prop.value = Math.floor(prop.value);
-    
+
                         if (selectedEvent != null)
                             selectedEvent.data.arguments[propIndex] = val;
-    
+
                         parent.defaultArgs[propIndex] = val;
                     }
-    
+
                     // if there is a selected event, get the value from it, otherwise use default values
                     if (selectedEvent != null && selectedEvent.data.event == event.name)
                         prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.defaultArgs[propIndex];
                     else
                         prop.value = parent.defaultArgs[propIndex] ?? event.arguments[propIndex].defaultValue;
-    
+
                     argumentsEditor.addComponent(prop);
                     propStorage.push(prop);
                 }
@@ -424,7 +424,7 @@ class ChartSubScreen extends FlxSubState {
                 parent.currentEvent = event;
             }
         }
-        
+
         for (event in parent.eventList)
             eventDropdown.dataSource.add(event.display ?? event.name);
 

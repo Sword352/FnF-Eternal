@@ -8,7 +8,6 @@ import flixel.tweens.FlxTween;
 
 import funkin.objects.ui.Alphabet;
 import funkin.objects.sprites.CheckerboardBG;
-
 import funkin.states.menus.MainMenu;
 
 typedef OptionCategory = {
@@ -75,11 +74,11 @@ class OptionsMenu extends MusicBeatState {
         Tools.playMusicCheck((toPlayState) ? "chillFresh" : "freakyMenu");
         Conductor.bpm = (toPlayState) ? 117 : 102;
 
-		background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
+        background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
         background.scale.set(1.15, 1.15);
-		background.screenCenter();
         background.color = 0x3E3E7A;
-		add(background);
+        background.screenCenter();
+        add(background);
 
         backdrop = new CheckerboardBG(200, 200, 0xFF120E7A, FlxColor.TRANSPARENT);
         backdrop.alpha = 0.4;
@@ -118,7 +117,7 @@ class OptionsMenu extends MusicBeatState {
             categoryText.spriteTrackers.set(icon, (left) ? LEFT : RIGHT);
             categoryIcons.push(icon);
         }
-        
+
         changeSelection();
 
         #if ENGINE_SCRIPTING
@@ -139,14 +138,11 @@ class OptionsMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        background.scale.set(
-            Tools.lerp(background.scale.x, 1, 6),
-            Tools.lerp(background.scale.y, 1, 6)
-        );
+        background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
 
         if (allowInputs) {
             // TODO: perhaps better inputs, this should be good for now
-            if (controls.anyJustPressed(["up", "down"]))      
+            if (controls.anyJustPressed(["up", "down"]))
                 changeSelection((controls.lastAction == "up") ? -2 : 2);
 
             if (controls.anyJustPressed(["left", "right"])) {
@@ -272,7 +268,7 @@ class OptionsMenu extends MusicBeatState {
                 FlxTween.tween(text, {x: FlxG.width * ((left) ? 0.1 : 0.9) - ((left) ? 0 : text.width)}, 0.75, {ease: FlxEase.circInOut});
             }
         }
-        
+
         allowInputs = true;
     }
 

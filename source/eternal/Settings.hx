@@ -1,7 +1,6 @@
 package eternal;
 
 // TODO: rewrite mod settings (and maybe the full api as well)
-
 #if ENGINE_MODDING
 import eternal.core.scripting.HScript;
 
@@ -14,7 +13,7 @@ typedef ModSetting = {
 
     var ?type:String;
     var ?defaultVal:Dynamic;
-    
+
     var ?min:Float;
     var ?max:Float;
     var ?step:Float;
@@ -40,7 +39,6 @@ class Settings {
         "ghost tapping" => new Setting<Bool>(false),
         "centered strumline" => new Setting<Bool>(false),
         "disable hold stutter" => new Setting<Bool>(false),
-
         "hold notes behind receptors" => new Setting<Bool>(false),
         "disable combo stacking" => new Setting<Bool>(false),
         "disable note splashes" => new Setting<Bool>(false),
@@ -49,10 +47,8 @@ class Settings {
         "hide user interface" => new Setting<Bool>(false),
         "smooth health bar" => new Setting<Bool>(true),
         "timer type" => new Setting<String>("none"),
-
         // General settings
         "framerate" => new Setting<Int>(60, (v) -> Tools.changeFramerateCap(v)),
-
         "show framerate" => new Setting<Bool>(true, (v) -> {
             if (Main.fpsOverlay != null)
                 Main.fpsOverlay.showFps = v;
@@ -61,27 +57,24 @@ class Settings {
             if (Main.fpsOverlay != null)
                 Main.fpsOverlay.showMem = v;
         }),
-        "show overlay background" => new Setting<Bool>(true, (v) -> {
-            if (Main.fpsOverlay != null)
-                Main.fpsOverlay.showBg = v;
-        }),
-
+        "show overlay background" => new Setting<Bool>(true,
+            (v) -> {
+                if (Main.fpsOverlay != null)
+                    Main.fpsOverlay.showBg = v;
+            }
+        ),
         "disable antialiasing" => new Setting<Bool>(false, (v) -> FlxSprite.defaultAntialiasing = !v),
         "silent soundtray" => new Setting<Bool>(false, (v) -> FlxG.game.soundTray.silent = v),
         "auto pause" => new Setting<Bool>(true, (v) -> FlxG.autoPause = v),
         "disable flashing lights" => new Setting<Bool>(false),
-
         #if ENGINE_DISCORD_RPC
         "disable discord rpc" => new Setting<Bool>(false, (v) -> DiscordPresence.presence.hide(v)),
         #end
-
         "audio offset" => new Setting<Float>(0, (v) -> Conductor.offset = v),
-
         // Debug settings
         "editor access" => new Setting<Bool>(false),
         #if sys "overwrite chart files" => new Setting<Bool>(true), #end
         "reload assets" => new Setting<Bool>(false),
-
         // Chart editor preferences
         "CHART_autoSave" => new Setting<Bool>(true),
         "CHART_metronomeVolume" => new Setting<Float>(0),

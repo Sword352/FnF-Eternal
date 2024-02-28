@@ -64,7 +64,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
     override function update(elapsed:Float):Void {
         background.y = Tools.lerp(background.y, 75 + 240 * target, 10);
         separator.centerToObject(background, Y);
-        
+
         nameText.y = separator.y - nameText.height - 15;
         valueText.y = separator.y - valueText.height - 15;
         descriptionText.y = separator.y + separator.height + 15;
@@ -74,7 +74,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         if (target != 0)
             return;
 
-        if (Controls.globalControls.anyJustPressed(inputs)) {            
+        if (Controls.globalControls.anyJustPressed(inputs)) {
             updateSetting((Controls.globalControls.lastAction == "left") ? -1 : 1);
             FlxG.sound.play(Assets.sound("scrollMenu"));
             holdTime = 0;

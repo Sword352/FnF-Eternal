@@ -5,7 +5,6 @@ import flixel.FlxObject;
 import flixel.FlxCamera;
 
 // Temporary until flixel 6.0.0, official target follow bug (on low framerates) fix
-
 class Camera extends FlxCamera {
     public function new(x:Int = 0, y:Int = 0, width:Int = 0, height:Int = 0, zoom:Float = 0):Void {
         super(x, y, width, height, zoom);
@@ -18,13 +17,13 @@ class Camera extends FlxCamera {
             updateFollow();
             updateLerp(elapsed);
         }
-    
+
         updateScroll();
         updateFlash(elapsed);
         updateFade(elapsed);
-    
+
         flashSprite.filters = filtersEnabled ? filters : null;
-    
+
         updateFlashSpritePosition();
         updateShake(elapsed);
     }
@@ -36,31 +35,27 @@ class Camera extends FlxCamera {
             target.getMidpoint(_point);
             _point.addPoint(targetOffset);
             _scrollTarget.set(_point.x - width * 0.5, _point.y - height * 0.5);
-        }
-        else {
+        } else {
             var edge:Float;
             var targetX:Float = target.x + targetOffset.x;
             var targetY:Float = target.y + targetOffset.y;
-    
+
             if (style == SCREEN_BY_SCREEN) {
                 if (targetX >= viewRight) {
                     _scrollTarget.x += viewWidth;
-                }
-                else if (targetX + target.width < viewLeft) {
+                } else if (targetX + target.width < viewLeft) {
                     _scrollTarget.x -= viewWidth;
                 }
-    
+
                 if (targetY >= viewBottom) {
                     _scrollTarget.y += viewHeight;
-                }
-                else if (targetY + target.height < viewTop) {
+                } else if (targetY + target.height < viewTop) {
                     _scrollTarget.y -= viewHeight;
                 }
-                    
+
                 // without this we see weird behavior when switching to SCREEN_BY_SCREEN at arbitrary scroll positions
                 bindScrollPos(_scrollTarget);
-            }
-            else {
+            } else {
                 edge = targetX - deadzone.x;
                 if (_scrollTarget.x > edge) {
                     _scrollTarget.x = edge;
@@ -69,7 +64,7 @@ class Camera extends FlxCamera {
                 if (_scrollTarget.x < edge) {
                     _scrollTarget.x = edge;
                 }
-    
+
                 edge = targetY - deadzone.y;
                 if (_scrollTarget.y > edge) {
                     _scrollTarget.y = edge;
@@ -79,14 +74,14 @@ class Camera extends FlxCamera {
                     _scrollTarget.y = edge;
                 }
             }
-    
+
             if ((target is FlxSprite)) {
                 if (_lastTargetPosition == null) {
                     _lastTargetPosition = FlxPoint.get(target.x, target.y); // Creates this point.
                 }
                 _scrollTarget.x += (target.x - _lastTargetPosition.x) * followLead.x;
                 _scrollTarget.y += (target.y - _lastTargetPosition.y) * followLead.y;
-    
+
                 _lastTargetPosition.x = target.x;
                 _lastTargetPosition.y = target.y;
             }
@@ -100,8 +95,7 @@ class Camera extends FlxCamera {
 
         if (adjustedLerp >= 1) {
             scroll.copyFrom(_scrollTarget); // no easing
-        }
-        else {
+        } else {
             scroll.x += (_scrollTarget.x - scroll.x) * adjustedLerp;
             scroll.y += (_scrollTarget.y - scroll.y) * adjustedLerp;
         }

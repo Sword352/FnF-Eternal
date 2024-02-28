@@ -7,303 +7,304 @@ import flixel.group.FlxGroup.FlxGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
 class StrumLine extends FlxGroup {
-   public var x(default, set):Float = 0;
-   public var y(default, set):Float = 0;
-   public var receptorSpacing(default, set):Float = 112;
+    public var x(default, set):Float = 0;
+    public var y(default, set):Float = 0;
+    public var receptorSpacing(default, set):Float = 112;
 
-   public var receptors:FlxTypedGroup<Receptor>;
-   public var splashes:FlxTypedGroup<Splash>;
-   public var notes:FlxTypedGroup<Note>;
+    public var receptors:FlxTypedGroup<Receptor>;
+    public var splashes:FlxTypedGroup<Splash>;
+    public var notes:FlxTypedGroup<Note>;
 
-   public var downscroll(get, set):Bool;
-   public var scrollSpeed:Float = 1;
-   public var scrollMult:Float = 1;
+    public var downscroll(get, set):Bool;
+    public var scrollSpeed:Float = 1;
+    public var scrollMult:Float = 1;
 
-   public var characters:Array<Character> = [];
-   public var skin(default, set):String;
+    public var characters:Array<Character> = [];
+    public var skin(default, set):String;
 
-   public var holdKeys:Array<Bool> = [false, false, false, false];
-   public var ghostTap:Bool = Settings.get("ghost tapping");
-   public var cpu:Bool = false;
+    public var holdKeys:Array<Bool> = [false, false, false, false];
+    public var ghostTap:Bool = Settings.get("ghost tapping");
+    public var cpu:Bool = false;
 
-   public var onNoteHit:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
-   public var onHold:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
-   public var onMiss:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+    public var onNoteHit:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+    public var onHold:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
+    public var onMiss:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
 
-   var notesToRemove:Array<Note> = [];
-   var lastStep:Int = 0; // used for base game behaviour
+    var notesToRemove:Array<Note> = [];
+    var lastStep:Int = 0; // used for base game behaviour
 
-   public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, skin:String = "default"):Void {
-      super();
-      
-      this.x = x;
-      this.y = y;
+    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, skin:String = "default"):Void {
+        super();
 
-      this.cpu = cpu;
-      this.skin = skin;
-      
-      receptors = new FlxTypedGroup<Receptor>();
-      add(receptors);
+        this.x = x;
+        this.y = y;
 
-      if (!Settings.get("disable note splashes") && !cpu)
-         createSplashes();
+        this.cpu = cpu;
+        this.skin = skin;
 
-      notes = new FlxTypedGroup<Note>();
-      add(notes);
+        receptors = new FlxTypedGroup<Receptor>();
+        add(receptors);
 
-      for (i in 0...4) {
-         var receptor:Receptor = new Receptor(i, skin);
-         receptor.setPosition(x + (receptorSpacing * (i - 2)), y);
-         receptors.add(receptor);
-      }
-   }
-   
-   override public function update(elapsed:Float):Void {
-      notes.forEachAlive((note) -> {
-         var receptor:Receptor = receptors.members[note.direction];
+        if (!Settings.get("disable note splashes") && !cpu)
+            createSplashes();
 
-         if (cpu && note.canBeHit) {
-            note.goodHit = true;
-            onNoteHit.dispatch(note);
+        notes = new FlxTypedGroup<Note>();
+        add(notes);
 
-            receptor.playAnimation("confirm", true);
-            singCharacters(note);
+        for (i in 0...4) {
+            var receptor:Receptor = new Receptor(i, skin);
+            receptor.setPosition(x + (receptorSpacing * (i - 2)), y);
+            receptors.add(receptor);
+        }
+    }
 
-            hitNote(note);
-         }
+    override public function update(elapsed:Float):Void {
+        notes.forEachAlive((note) -> {
+            var receptor:Receptor = receptors.members[note.direction];
 
-         if (!cpu && note.late && !note.missed && !note.goodHit)
-            miss(note);
+            if (cpu && note.canBeHit) {
+                note.goodHit = true;
+                onNoteHit.dispatch(note);
 
-         if (note.missed && !note.isSustainNote && note.killIfMissed && Conductor.time > (note.time + (((300 / note.scrollSpeed) / Conductor.playbackRate) + note.lateKillOffset)))
-            notesToRemove.push(note);
+                receptor.playAnimation("confirm", true);
+                singCharacters(note);
 
-         if (note.isSustainNote && (note.goodHit || note.missed)) {
-            if (lastStep != Conductor.currentStep) {
-               if (cpu || holdKeys[note.direction]) {
-                  receptor.playAnimation("confirm", true);
-                  singCharacters(note);
-                  onHold.dispatch(note);
-               }
-               else
-                  onMiss.dispatch(note);
+                hitNote(note);
             }
 
-            if (note.holdProgress >= note.length)
-               notesToRemove.push(note);
-         }
+            if (!cpu && note.late && !note.missed && !note.goodHit)
+                miss(note);
 
-         if (!note.noStrumFollow)
-            note.follow(receptor);
-      });
+            if (note.missed && !note.isSustainNote && note.killIfMissed
+                && Conductor.time > (note.time + (((400 / note.getScrollSpeed()) / Conductor.playbackRate) + note.lateKillOffset)))
+                notesToRemove.push(note);
 
-      super.update(elapsed);
+            if (note.isSustainNote && (note.goodHit || note.missed)) {
+                if (lastStep != Conductor.currentStep) {
+                    if (cpu || holdKeys[note.direction]) {
+                        receptor.playAnimation("confirm", true);
+                        singCharacters(note);
+                        onHold.dispatch(note);
+                    } else
+                        onMiss.dispatch(note);
+                }
 
-      while (notesToRemove.length > 0)
-         removeNote(notesToRemove.shift());
+                if (note.holdProgress >= note.length)
+                    notesToRemove.push(note);
+            }
 
-      // only clip the sustain tails here as super.update changes the sustains position
-      notes.forEachAlive((note) -> {
-         if (note.isSustainNote && note.autoClipSustain && (note.goodHit || note.missed))
-            note.clipSustainTail(receptors.members[note.direction]);
-      });
+            if (!note.noStrumFollow)
+                note.follow(receptor);
+        });
 
-      if (cpu) {
-         receptors.forEachAlive((receptor) -> {
-            if (receptor.animation.curAnim.name.startsWith("confirm") && receptor.animation.curAnim.finished)
-               receptor.playAnimation("static", true);
-         });
-      }
+        super.update(elapsed);
 
-      lastStep = Conductor.currentStep;
-   }
+        while (notesToRemove.length > 0)
+            removeNote(notesToRemove.shift());
 
-   override function draw():Void {
-      notes.forEachExists((note) -> {
-         if (note.isSustainNote && note.sustain.visible && note.holdBehindStrum)
-            note.sustain.draw();
-      });
+        // only clip the sustain tails here as super.update changes the sustains position
+        notes.forEachAlive((note) -> {
+            if (note.isSustainNote && note.autoClipSustain && (note.goodHit || note.missed))
+                note.clipSustainTail(receptors.members[note.direction]);
+        });
 
-      super.draw();
-   }
+        if (cpu) {
+            receptors.forEachAlive((receptor) -> {
+                if (receptor.animation.curAnim.name.startsWith("confirm") && receptor.animation.curAnim.finished)
+                    receptor.playAnimation("static", true);
+            });
+        }
 
-   public function addNote(note:Note):Void {
-      notes.add(note);
-      if (notes.members.length > 1) notes.members.sort((a, b) -> Std.int(a.time - b.time));
-   }
+        lastStep = Conductor.currentStep;
+    }
 
-   public function removeNote(note:Note):Void {
-      notes.remove(note, true);
-      note.destroy();
-   }
+    override function draw():Void {
+        notes.forEachExists((note) -> {
+            if (note.isSustainNote && note.sustain.visible && note.holdBehindStrum)
+                note.sustain.draw();
+        });
 
-   public function hitNote(note:Note):Void {
-      if (note.isSustainNote) {
-         note.baseVisible = false;
-         if (!cpu) resizeLength(note);
-      }
-      else
-         notesToRemove.push(note);
-   }
+        super.draw();
+    }
 
-   public inline function keyHit(direction:Int):NoteHit {
-      var receptor:Receptor = receptors.members[direction];
-      for (character in characters) character.holding = true;
-      holdKeys[direction] = true;
+    public function addNote(note:Note):Void {
+        notes.add(note);
+        if (notes.members.length > 1)
+            notes.members.sort((a, b) -> Std.int(a.time - b.time));
+    }
 
-      var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == direction && note.canBeHit);
-      if (possibleNotes.length == 0) {
-         receptor.playAnimation("press", true);
-         return (!ghostTap) ? MISSED : null;
-      }
+    public function removeNote(note:Note):Void {
+        notes.remove(note, true);
+        note.destroy();
+    }
 
-      possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
+    public function hitNote(note:Note):Void {
+        if (note.isSustainNote) {
+            note.baseVisible = false;
+            if (!cpu) resizeLength(note);
+        } else
+            notesToRemove.push(note);
+    }
 
-      var noteToHit:Note = possibleNotes[0];
+    public inline function keyHit(direction:Int):NoteHit {
+        var receptor:Receptor = receptors.members[direction];
+        for (character in characters) character.holding = true;
+        holdKeys[direction] = true;
 
-      // Remove notes with a 0-1ms distance (TODO: think about this)
-      if (possibleNotes.length > 1) {
-         for (note in possibleNotes) {
-            if (note == noteToHit) continue;
-            if (Math.abs(note.time - noteToHit.time) < 1) removeNote(note);
-            else break;
-         }
-      }
+        var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == direction && note.canBeHit);
+        if (possibleNotes.length == 0) {
+            receptor.playAnimation("press", true);
+            return (!ghostTap) ? MISSED : null;
+        }
 
-      return NOTE_HIT(noteToHit);
-   }
+        possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
 
-   public inline function keyRelease(direction:Int):Void {
-      holdKeys[direction] = false;
-      receptors.members[direction].playAnimation("static", true);
-      for (character in characters) character.holding = holdKeys.contains(true);
-   }
+        var noteToHit:Note = possibleNotes[0];
 
-   inline function miss(note:Note):Void {
-      if (note.isSustainNote) {
-         note.baseVisible = false;
-         resizeLength(note);
-      }
-      else 
-         note.alphaMult = note.lateAlpha;
+        // Remove notes with a 0-1ms distance (TODO: think about this)
+        if (possibleNotes.length > 1) {
+            for (note in possibleNotes) {
+                if (note == noteToHit) continue;
+                if (Math.abs(note.time - noteToHit.time) < 1) removeNote(note);
+                else break;
+            }
+        }
 
-      note.missed = true;
-      onMiss.dispatch(note);
-   }
+        return NOTE_HIT(noteToHit);
+    }
 
-   // incase the player hits the note early or late
-   inline function resizeLength(note:Note):Void {
-      note.length += (note.time - Conductor.time);
-      if (note.length < 100) removeNote(note);
-   }
+    public inline function keyRelease(direction:Int):Void {
+        holdKeys[direction] = false;
+        receptors.members[direction].playAnimation("static", true);
+        for (character in characters) character.holding = holdKeys.contains(true);
+    }
 
-   public inline function setPosition(x:Float = 0, y:Float = 0):StrumLine {
-      this.x = x;
-      this.y = y;
-      return this;
-   }
+    inline function miss(note:Note):Void {
+        if (note.isSustainNote) {
+            note.baseVisible = false;
+            resizeLength(note);
+        } else
+            note.alphaMult = note.lateAlpha;
 
-   public inline function screenCenter(axes:FlxAxes = XY):StrumLine {
-      if (axes.x) x = FlxG.width * 0.5;
-      if (axes.y) y = FlxG.height * 0.5;
-      return this;
-   }
+        note.missed = true;
+        onMiss.dispatch(note);
+    }
 
-   public function singCharacters(note:Note):Void {
-      if (note.noSingAnim) return;
-      
-      for (character in characters) {
-         if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Settings.get("disable hold stutter"))
-            character.sing(note.direction, note.animSuffix);
-         else
-            character.holdTime = 0;
+    // incase the player hits the note early or late
+    inline function resizeLength(note:Note):Void {
+        note.length += (note.time - Conductor.time);
+        if (note.length < 100) removeNote(note);
+    }
 
-         character.currentDance = 0;
-      }
-   }
+    public inline function setPosition(x:Float = 0, y:Float = 0):StrumLine {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
 
-   public function tweenReceptors(delay:Float = 0.5, dirDelay:Float = 0.2):Void {
-      for (receptor in receptors) {
-         receptor.alpha = 0;
-         receptor.y -= 10;
-         FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
-            startDelay: delay + (dirDelay * receptor.direction),
-            ease: FlxEase.circOut
-         });
-      }
-   }
+    public inline function screenCenter(axes:FlxAxes = XY):StrumLine {
+        if (axes.x) x = FlxG.width * 0.5;
+        if (axes.y) y = FlxG.height * 0.5;
+        return this;
+    }
 
-   public inline function createSplashes(cache:Bool = true):Void {
-      splashes = new FlxTypedGroup<Splash>();
-      add(splashes);
+    public function singCharacters(note:Note):Void {
+        if (note.noSingAnim) return;
 
-      if (cache) cacheSplash();
-   }
+        for (character in characters) {
+            if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Settings.get("disable hold stutter"))
+                character.sing(note.direction, note.animSuffix);
+            else
+                character.holdTime = 0;
 
-   public inline function cacheSplash():Void {
-      var cachedSplash:Splash = new Splash(skin);
-      splashes.add(cachedSplash);
-      cachedSplash.kill();
-   }
+            character.currentDance = 0;
+        }
+    }
 
-   public inline function popSplash(direction:Int):Void {
-      var splash:Splash = splashes.recycle(Splash, () -> new Splash(skin));
-      var receptor:Receptor = receptors.members[direction];
-      splash.setPosition(receptor.x, receptor.y);
-      splash.pop(direction);
-   }
+    public function tweenReceptors(delay:Float = 0.5, dirDelay:Float = 0.2):Void {
+        for (receptor in receptors) {
+            receptor.alpha = 0;
+            receptor.y -= 10;
+            FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
+                startDelay: delay + (dirDelay * receptor.direction),
+                ease: FlxEase.circOut
+            });
+        }
+    }
 
-   inline function setReceptorsX(x:Float):Void
-      receptors?.forEach((r) -> r.x = x + (receptorSpacing * (r.direction - 2)));
+    public inline function createSplashes(cache:Bool = true):Void {
+        splashes = new FlxTypedGroup<Splash>();
+        add(splashes);
 
-   override function destroy():Void {
-      onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
-      onMiss = cast FlxDestroyUtil.destroy(onMiss);
-      onHold = cast FlxDestroyUtil.destroy(onHold);
+        if (cache)
+            cacheSplash();
+    }
 
-      notesToRemove = null;
-      characters = null;
-      holdKeys = null;
-      skin = null;
+    public inline function cacheSplash():Void {
+        var cachedSplash:Splash = new Splash(skin);
+        splashes.add(cachedSplash);
+        cachedSplash.kill();
+    }
 
-      super.destroy();
-   }
+    public inline function popSplash(direction:Int):Void {
+        var splash:Splash = splashes.recycle(Splash, () -> new Splash(skin));
+        var receptor:Receptor = receptors.members[direction];
+        splash.setPosition(receptor.x, receptor.y);
+        splash.pop(direction);
+    }
 
-   function set_x(v:Float):Float {
-      setReceptorsX(v);
-      return x = v;
-   }
+    inline function setReceptorsX(x:Float):Void
+        receptors?.forEach((r) -> r.x = x + (receptorSpacing * (r.direction - 2)));
 
-   function set_y(v:Float):Float {
-      receptors?.forEach((r) -> r.y = v);
-      return y = v;
-   }
+    override function destroy():Void {
+        onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
+        onMiss = cast FlxDestroyUtil.destroy(onMiss);
+        onHold = cast FlxDestroyUtil.destroy(onHold);
 
-   function set_skin(v:String):String {
-      if (v != null) {
-         receptors?.forEach((r) -> r.skin = v);
-         receptorSpacing = ((v == "default") ? 112 : (eternal.NoteSkin.get(v)?.receptor?.spacing ?? 112));
-      }
+        notesToRemove = null;
+        characters = null;
+        holdKeys = null;
+        skin = null;
 
-      return skin = v;
-   }
+        super.destroy();
+    }
 
-   function set_receptorSpacing(v:Float):Float {
-      receptorSpacing = v;
-      setReceptorsX(x);
-      return v;
-   }
+    function set_x(v:Float):Float {
+        setReceptorsX(v);
+        return x = v;
+    }
 
-   inline function set_downscroll(v:Bool):Bool {
-      if ((v && scrollMult > 0) || (!v && scrollMult < 0)) scrollMult = -scrollMult;
-      return v;
-   }
+    function set_y(v:Float):Float {
+        receptors?.forEach((r) -> r.y = v);
+        return y = v;
+    }
 
-   inline function get_downscroll():Bool
-      return scrollMult < 0;
+    function set_skin(v:String):String {
+        if (v != null) {
+            receptors?.forEach((r) -> r.skin = v);
+            receptorSpacing = ((v == "default") ? 112 : (eternal.NoteSkin.get(v)?.receptor?.spacing ?? 112));
+        }
+
+        return skin = v;
+    }
+
+    function set_receptorSpacing(v:Float):Float {
+        receptorSpacing = v;
+        setReceptorsX(x);
+        return v;
+    }
+
+    inline function set_downscroll(v:Bool):Bool {
+        if ((v && scrollMult > 0) || (!v && scrollMult < 0))
+            scrollMult = -scrollMult;
+        return v;
+    }
+
+    inline function get_downscroll():Bool
+        return scrollMult < 0;
 }
 
 enum NoteHit {
-   NOTE_HIT(note:Note);
-   MISSED;
+    NOTE_HIT(note:Note);
+    MISSED;
 }

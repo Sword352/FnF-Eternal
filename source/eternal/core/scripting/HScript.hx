@@ -13,30 +13,27 @@ enum ScriptStatus {
 class HScript {
     public static final defaultImports:Map<String, Dynamic> = [
         // Flixel
-		"FlxG" => flixel.FlxG,
-		"FlxSprite" => flixel.FlxSprite,
+        "FlxG" => flixel.FlxG,
+        "FlxSprite" => flixel.FlxSprite,
         "FlxText" => flixel.text.FlxText,
-		"FlxSound" => flixel.sound.FlxSound,
-		"FlxTween" => flixel.tweens.FlxTween,
-		"FlxEase" => flixel.tweens.FlxEase,
-		"FlxTimer" => flixel.util.FlxTimer,
-		"FlxMath" => flixel.math.FlxMath,
+        "FlxSound" => flixel.sound.FlxSound,
+        "FlxTween" => flixel.tweens.FlxTween,
+        "FlxEase" => flixel.tweens.FlxEase,
+        "FlxTimer" => flixel.util.FlxTimer,
+        "FlxMath" => flixel.math.FlxMath,
         "FlxPoint" => flixel.math.FlxPoint.FlxPoint_HSC,
-		"FlxGroup" => flixel.group.FlxGroup,
+        "FlxGroup" => flixel.group.FlxGroup,
         "FlxAxes" => flixel.util.FlxAxes.FlxAxes_HSC,
-		"FlxColor" => flixel.util.FlxColor.FlxColor_HSC,
+        "FlxColor" => flixel.util.FlxColor.FlxColor_HSC,
         "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
 
         // Eternal
         "Settings" => Settings,
-
-        #if ENGINE_DISCORD_RPC
-        "DiscordPresence" => DiscordPresence,
-        #end
+        #if ENGINE_DISCORD_RPC "DiscordPresence" => DiscordPresence, #end
 
         // Funkin
         "Conductor" => Conductor,
-        "OffsetSprite" => OffsetSprite,
+        "OffsetSprite" => funkin.objects.sprites.OffsetSprite,
         "DancingSprite" => funkin.objects.sprites.DancingSprite,
 
         // Transition stuff
@@ -46,8 +43,7 @@ class HScript {
 
         #if ENGINE_MODDING
         // Custom state and substate
-        "ModState" => eternal.core.scripting.ScriptableState.ModState,
-        "ModSubState" => eternal.core.scripting.ScriptableState.ModSubState,
+        "ModState" => eternal.core.scripting.ScriptableState.ModState, "ModSubState" => eternal.core.scripting.ScriptableState.ModSubState,
         #end
 
         // Misc
@@ -57,28 +53,25 @@ class HScript {
 
         // Tools
         "Std" => Std,
-		"Math" => Math,
-
+        "Math" => Math,
         "Tools" => Tools,
         "StringTools" => StringTools,
 
-		"Assets" => Assets,
+        "Assets" => Assets,
         "Paths" => Assets, // base game compat
         "OpenFLAssets" => openfl.Assets,
         "FileTools" => FileTools,
 
         #if sys
-        "Sys" => Sys,
-        "File" => sys.io.File,
-        "FileSystem" => sys.FileSystem,
+        "Sys" => Sys, "File" => sys.io.File, "FileSystem" => sys.FileSystem,
         #end
 
         "Reflect" => Reflect,
         "Type" => Type,
-	];
+    ];
 
     public var state(default, null):ScriptStatus = NONE;
-    
+
     public var parser(default, null):Parser;
     public var interp(default, null):Interp;
 
@@ -94,7 +87,7 @@ class HScript {
         parser = new Parser();
         interp = new Interp();
         parser.allowJSON = parser.allowMetadata = parser.allowTypes = true;
-		interp.allowPublicVariables = interp.allowStaticVariables = true;
+        interp.allowPublicVariables = interp.allowStaticVariables = true;
         script = FileTools.getContent(this.path);
 
         try {
@@ -149,7 +142,7 @@ class HScript {
             parent.scripts.remove(this);
             parent = null;
         }
-        
+
         state = DEAD;
         parser = null;
         interp = null;
@@ -165,8 +158,8 @@ class HScript {
     }
 
     inline function set_object(v:Dynamic):Dynamic {
-	    if (interp != null)
-	        interp.scriptObject = v;
+        if (interp != null)
+            interp.scriptObject = v;
         return v;
     }
 

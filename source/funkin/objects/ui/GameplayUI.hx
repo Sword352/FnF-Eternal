@@ -36,7 +36,7 @@ class GameplayUI extends FlxSpriteGroup {
         iconPlayer.flipX = true;
         iconPlayer.health = 50;
         add(iconPlayer);
-        
+
         iconOpponent = new HealthIcon(0, 0, game.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
         iconOpponent.state = "neutral";
         iconOpponent.bopping = true;
@@ -45,7 +45,7 @@ class GameplayUI extends FlxSpriteGroup {
 
         scoreText = new FlxText();
         scoreText.setFormat(Assets.font("vcr"), 20, FlxColor.WHITE, CENTER);
-	    scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
+        scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
         scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
         scoreText.screenCenter(X);
         add(scoreText);
@@ -57,14 +57,14 @@ class GameplayUI extends FlxSpriteGroup {
             add(timer);
         }
 
-	    reposUI(Settings.get("downscroll"));
+        reposUI(Settings.get("downscroll"));
     }
-    
+
     override function update(elapsed:Float):Void {
         // update health bar
-	    if (smoothHealth)
+        if (smoothHealth)
             visualHealth = Tools.lerp(visualHealth, healthDisplay, 12);
-	    else
+        else
             visualHealth = healthDisplay;
 
         healthBar.pt = (1 - (visualHealth * 0.5));
@@ -92,14 +92,11 @@ class GameplayUI extends FlxSpriteGroup {
 
     public inline function updateScoreText():Void {
         if (!game.playerStrumline.cpu) {
-            var text:String =
-                'Score: ${game.score}' + scoreDivider
-              + 'Misses: ${game.misses}' + scoreDivider
-              + 'Accuracy: ${game.accuracyDisplay}%'
-            ;
+            var text:String = 'Score: ${game.score}' + scoreDivider + 'Misses: ${game.misses}' + scoreDivider + 'Accuracy: ${game.accuracyDisplay}%';
 
             var rank:String = game.rank;
-            if (rank?.length > 0) text += scoreDivider + rank;
+            if (rank?.length > 0)
+                text += scoreDivider + rank;
 
             scoreText.text = text;
         }
@@ -107,7 +104,7 @@ class GameplayUI extends FlxSpriteGroup {
 
         scoreText.screenCenter(X);
     }
-    
+
     public inline function reposUI(downscroll:Bool = false):Void {
         healthBar.y = FlxG.height * ((downscroll) ? 0.1 : 0.875);
         scoreText.y = healthBar.y + 50;
@@ -120,15 +117,16 @@ class GameplayUI extends FlxSpriteGroup {
     }
 
     public inline function onSongStart():Void {
-        if (timer == null) return;
+        if (timer == null)
+            return;
 
         timer.alpha = 0;
         FlxTween.tween(timer, {alpha: 0.7}, 0.35);
     }
 
     public inline function beatHit():Void {
-	    iconPlayer.bop();
-	    iconOpponent.bop();
+        iconPlayer.bop();
+        iconOpponent.bop();
     }
 
     override function destroy():Void {

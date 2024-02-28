@@ -23,7 +23,7 @@ class ArrayOptionItem<V> extends BaseOptionItem<Array<V>> {
     }
 
     override function destroy():Void {
-        super.destroy();
         list = null;
+        super.destroy();
     }
 }

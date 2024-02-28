@@ -2,7 +2,6 @@ package eternal.ui;
 
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
-
 import openfl.text.TextField;
 import openfl.text.TextFormat;
 
@@ -53,14 +52,14 @@ class SoundTray extends FlxSoundTray {
         var elapsed:Float = (ms * 0.001);
 
         if (_timer > 0)
-			_timer -= elapsed;
-		else if (intendedY > -height) {
-			intendedY -= elapsed * height * 4;
-			if (intendedY <= -height) {
-				active = visible = false;
+            _timer -= elapsed;
+        else if (intendedY > -height) {
+            intendedY -= elapsed * height * 4;
+            if (intendedY <= -height) {
+                active = visible = false;
                 saveSoundPreferences();
-			}
-		}
+            }
+        }
 
         if (intendedY != y)
             y = Tools.lerp(y, intendedY, 24);
@@ -68,12 +67,12 @@ class SoundTray extends FlxSoundTray {
 
     override function show(up:Bool = false):Void {
         var volume:Int = (FlxG.sound.muted) ? 0 : Math.floor(FlxG.sound.volume * 100);
-		var globalVolume:Int = (FlxG.sound.muted) ? 0 : Math.round(FlxG.sound.volume * 10);
+        var globalVolume:Int = (FlxG.sound.muted) ? 0 : Math.round(FlxG.sound.volume * 10);
 
         for (i in 0..._bars.length)
             _bars[i].alpha = (i < globalVolume) ? 1 : 0.5;
 
-		text.text = 'VOLUME: ${volume}%';
+        text.text = 'VOLUME: ${volume}%';
 
         if (!silent)
             FlxG.sound.play((up) ? volumeUpSound : volumeDownSound);

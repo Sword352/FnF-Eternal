@@ -1,5 +1,7 @@
 package funkin.objects.sprites;
 
+import funkin.objects.sprites.OffsetSprite;
+
 class RatingSprite extends OffsetSprite {
     var alphaTmr:Float;
 
@@ -23,7 +25,7 @@ class RatingSprite extends OffsetSprite {
         super.revive();
         setProps();
     }
-    
+
     function setProps():Void {
         var pb:Float = Conductor.playbackRate;
 

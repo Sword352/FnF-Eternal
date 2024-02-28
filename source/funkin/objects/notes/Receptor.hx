@@ -1,6 +1,7 @@
 package funkin.objects.notes;
 
 import eternal.NoteSkin;
+import funkin.objects.sprites.OffsetSprite;
 
 class Receptor extends OffsetSprite {
     public static final mainAnimations:Array<String> = ["static", "press", "confirm"];
@@ -12,7 +13,7 @@ class Receptor extends OffsetSprite {
 
     public var scrollSpeed:Null<Float> = null;
     public var scrollMult:Null<Float> = null;
-    
+
     public function new(direction:Int = 0, skin:String = "default"):Void {
         super();
 
@@ -48,9 +49,9 @@ class Receptor extends OffsetSprite {
                     var dir:String = Note.directions[direction];
                     for (anim in mainAnimations)
                         animation.addByPrefix('${anim} ${dir}', '${dir} ${anim}', 24, false);
-            
+
                     playAnimation("static", true);
-            
+
                     scale.set(0.7, 0.7);
                     updateHitbox();
 
@@ -64,7 +65,7 @@ class Receptor extends OffsetSprite {
 
                     var skinData:ReceptorConfig = config.receptor;
                     var dir:String = Note.directions[direction];
-                    
+
                     NoteSkin.applyGenericSkin(this, skinData, "static " + dir, dir);
                     centeredOffsets = (skinData.centeredOffsets ?? false);
             }

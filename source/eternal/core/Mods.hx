@@ -166,7 +166,7 @@ class Mods {
 
     inline private static function goToErrorScreen():Void {
         _loadMod(null);
-            
+
         if (!(FlxG.state is ModExceptionScreen)) {
             Transition.skipNextTransOut = Transition.skipNextTransIn = true;
             FlxG.switchState(ModExceptionScreen.new);
@@ -204,7 +204,7 @@ class Mods {
     public var folder:String;
     public var id:String;
 
-    public var description:String;    
+    public var description:String;
     public var license:String;
     public var apiVersion:String;
 
@@ -228,7 +228,7 @@ enum abstract ModApiState(String) from String to String {
     var UPDATED = "Updated";
     var NONE = "None";
 
-    public function isOutdated():Bool 
+    public function isOutdated():Bool
         return this == OUTDATED_BUILD || this == OUTDATED_MOD;
 
     public function getHandle():String {

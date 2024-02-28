@@ -5,9 +5,8 @@ import flixel.graphics.frames.FlxAtlasFrames;
 
 import openfl.media.Sound;
 import openfl.display.BitmapData;
-
-import openfl.system.System;
 import openfl.Assets as OpenFLAssets;
+import openfl.system.System;
 
 class Assets {
     // Directories
@@ -88,7 +87,7 @@ class Assets {
         if (FileTools.exists(modPath))
             return modPath;
         #end
-        
+
         return type.cycleExtensions(defaultDirectory + basePath);
     }
 
@@ -135,13 +134,13 @@ class Assets {
 
     public static function createGraphic(path:String, ?library:String, ?key:String):FlxGraphic {
         var realPath:String = getPath(path, IMAGE, library);
-        
-        var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else OpenFLAssets.getBitmapData(realPath) #end ;
+
+        var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else OpenFLAssets.getBitmapData(realPath) #end;
         if (bitmap == null) {
             trace('Invalid graphic path "${realPath}"!');
             return null;
         }
-        
+
         var graphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key ?? path, true);
         graphic.persist = true;
         return graphic;
@@ -157,7 +156,7 @@ class Assets {
             return null;
         }
 
-        var sound:Sound = #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end ;
+        var sound:Sound = #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end;
         OpenFLAssets.cache.setSound(path, sound);
         return sound;
     }
@@ -216,7 +215,7 @@ class Assets {
             loadedSounds.remove(key);
         }
     }
-    
+
     public static function clearGraphics():Void {
         @:privateAccess
         for (key in FlxG.bitmap._cache.keys()) {
@@ -268,23 +267,23 @@ enum abstract AssetType(String) from String to String {
 
     public function getExtensions():Array<String> {
         return switch (this:AssetType) {
-            case IMAGE:  [".png"];
-            case SOUND:  [".ogg", ".wav", #if web "mp3" #end];
-            case FONT:   [".ttf", ".otf"];
+            case IMAGE: [".png"];
+            case SOUND: [".ogg", ".wav", #if web "mp3" #end];
+            case FONT:  [".ttf", ".otf"];
 
-            case XML:    [".xml"];
-            case TEXT:   [".txt"];
-            case JSON:   [".json"];
-            case YAML:   [".yaml", ".yml"];
+            case XML:   [".xml"];
+            case TEXT:  [".txt"];
+            case JSON:  [".json"];
+            case YAML:  [".yaml", ".yml"];
 
             #if ENGINE_SCRIPTING
             case SCRIPT: [".hx", ".hxs", ".hscript"];
             #end
             #if VIDEO_CUTSCENES
-            case VIDEO: [".mp4", ".webm", ".mov", ".avi"];
+            case VIDEO:  [".mp4", ".webm", ".mov", ".avi"];
             #end
 
-            case NONE:   [""];
+            case NONE: [""];
         }
     }
 

@@ -1,7 +1,6 @@
 package funkin.music;
 
 import flixel.FlxBasic;
-
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase.EaseFunction;
@@ -12,7 +11,6 @@ import funkin.objects.Character;
 #if ENGINE_SCRIPTING
 import eternal.core.scripting.HScript;
 #end
-
 import eternal.ChartFormat.ChartEvent;
 
 // TODO: switch character int values to strings (0 -> "opponent", etc)
@@ -95,7 +93,7 @@ class EventManager extends FlxBasic {
             runEvent(events.shift());
     }
 
-    public inline function loadEvents(events:Array<ChartEvent>):Void {        
+    public inline function loadEvents(events:Array<ChartEvent>):Void {
         this.events = events.copy();
         this.events.sort((e1, e2) -> Std.int(e1.time - e2.time));
 
@@ -125,7 +123,7 @@ class EventManager extends FlxBasic {
                 var character:Character = getCharacter(event.arguments[0]);
                 if (character == null)
                     return;
-                
+
                 var newCharacter:Character = charactersMap.get(event.arguments[1]);
                 var oldAnim:String = character.animation.curAnim.name;
 
@@ -154,16 +152,16 @@ class EventManager extends FlxBasic {
                 Conductor.bpm = event.arguments[0];
             case "change time signature":
                 /*
-                stepOffset += ((event.time - lastTS) / Conductor.stepCrochet);
-                beatOffset += ((event.time - lastTS) / Conductor.crochet);
-                lastTS = event.time;
+                    stepOffset += ((event.time - lastTS) / Conductor.stepCrochet);
+                    beatOffset += ((event.time - lastTS) / Conductor.crochet);
+                    lastTS = event.time;
 
-                Conductor.beatOffset.step = stepOffset;
-                Conductor.beatOffset.beat = beatOffset;
-                Conductor.beatOffset.time = lastTS;
+                    Conductor.beatOffset.step = stepOffset;
+                    Conductor.beatOffset.beat = beatOffset;
+                    Conductor.beatOffset.time = lastTS;
 
-                Conductor.stepsPerBeat = event.arguments[0];
-                */
+                    Conductor.stepsPerBeat = event.arguments[0];
+                 */
             default:
                 #if ENGINE_SCRIPTING
                 // scripted event
@@ -187,7 +185,7 @@ class EventManager extends FlxBasic {
         #if ENGINE_SCRIPTING
         game.hxsCall("onEventPreload", [event]);
         #end
-        
+
         switch (event.event.toLowerCase().trim()) {
             case "change character":
                 var whose:Int = event.arguments[0];
@@ -248,44 +246,44 @@ class EventManager extends FlxBasic {
             return FlxEase.linear;
 
         return switch (ease.toLowerCase().trim()) {
-			case 'backin': return FlxEase.backIn;
-			case 'backinout': return FlxEase.backInOut;
-			case 'backout': return FlxEase.backOut;
-			case 'bouncein': return FlxEase.bounceIn;
-			case 'bounceinout': return FlxEase.bounceInOut;
-			case 'bounceout': return FlxEase.bounceOut;
-			case 'circin': return FlxEase.circIn;
-			case 'circinout': return FlxEase.circInOut;
-			case 'circout': return FlxEase.circOut;
-			case 'cubein': return FlxEase.cubeIn;
-			case 'cubeinout': return FlxEase.cubeInOut;
-			case 'cubeout': return FlxEase.cubeOut;
-			case 'elasticin': return FlxEase.elasticIn;
-			case 'elasticinout': return FlxEase.elasticInOut;
-			case 'elasticout': return FlxEase.elasticOut;
-			case 'expoin': return FlxEase.expoIn;
-			case 'expoinout': return FlxEase.expoInOut;
-			case 'expoout': return FlxEase.expoOut;
-			case 'quadin': return FlxEase.quadIn;
-			case 'quadinout': return FlxEase.quadInOut;
-			case 'quadout': return FlxEase.quadOut;
-			case 'quartin': return FlxEase.quartIn;
-			case 'quartinout': return FlxEase.quartInOut;
-			case 'quartout': return FlxEase.quartOut;
-			case 'quintin': return FlxEase.quintIn;
-			case 'quintinout': return FlxEase.quintInOut;
-			case 'quintout': return FlxEase.quintOut;
-			case 'sinein': return FlxEase.sineIn;
-			case 'sineinout': return FlxEase.sineInOut;
-			case 'sineout': return FlxEase.sineOut;
-			case 'smoothstepin': return FlxEase.smoothStepIn;
-			case 'smoothstepinout': return FlxEase.smoothStepInOut;
-			case 'smoothstepout': return FlxEase.smoothStepInOut;
-			case 'smootherstepin': return FlxEase.smootherStepIn;
-			case 'smootherstepinout': return FlxEase.smootherStepInOut;
-			case 'smootherstepout': return FlxEase.smootherStepOut;
+            case 'backin': return FlxEase.backIn;
+            case 'backinout': return FlxEase.backInOut;
+            case 'backout': return FlxEase.backOut;
+            case 'bouncein': return FlxEase.bounceIn;
+            case 'bounceinout': return FlxEase.bounceInOut;
+            case 'bounceout': return FlxEase.bounceOut;
+            case 'circin': return FlxEase.circIn;
+            case 'circinout': return FlxEase.circInOut;
+            case 'circout': return FlxEase.circOut;
+            case 'cubein': return FlxEase.cubeIn;
+            case 'cubeinout': return FlxEase.cubeInOut;
+            case 'cubeout': return FlxEase.cubeOut;
+            case 'elasticin': return FlxEase.elasticIn;
+            case 'elasticinout': return FlxEase.elasticInOut;
+            case 'elasticout': return FlxEase.elasticOut;
+            case 'expoin': return FlxEase.expoIn;
+            case 'expoinout': return FlxEase.expoInOut;
+            case 'expoout': return FlxEase.expoOut;
+            case 'quadin': return FlxEase.quadIn;
+            case 'quadinout': return FlxEase.quadInOut;
+            case 'quadout': return FlxEase.quadOut;
+            case 'quartin': return FlxEase.quartIn;
+            case 'quartinout': return FlxEase.quartInOut;
+            case 'quartout': return FlxEase.quartOut;
+            case 'quintin': return FlxEase.quintIn;
+            case 'quintinout': return FlxEase.quintInOut;
+            case 'quintout': return FlxEase.quintOut;
+            case 'sinein': return FlxEase.sineIn;
+            case 'sineinout': return FlxEase.sineInOut;
+            case 'sineout': return FlxEase.sineOut;
+            case 'smoothstepin': return FlxEase.smoothStepIn;
+            case 'smoothstepinout': return FlxEase.smoothStepInOut;
+            case 'smoothstepout': return FlxEase.smoothStepInOut;
+            case 'smootherstepin': return FlxEase.smootherStepIn;
+            case 'smootherstepinout': return FlxEase.smootherStepInOut;
+            case 'smootherstepout': return FlxEase.smootherStepOut;
             default: FlxEase.linear;
-		};
+        };
     }
 
     public static function getEventList():Map<String, EventDetails> {
@@ -309,5 +307,10 @@ typedef EventDetails = {
     var name:String;
     var ?display:String;
     var ?description:String;
-    var ?arguments:Array<{name:String, type:String, defaultValue:Dynamic, ?valueList:Array<String>}>;
+    var ?arguments:Array<{
+        name:String,
+        type:String,
+        defaultValue:Dynamic,
+        ?valueList:Array<String>
+    }>;
 }

@@ -28,7 +28,7 @@ class HealthBar extends FlxSpriteGroup {
 
         oppSide.clipRect = FlxRect.get(0, 0, oppSide.frameWidth * pt, oppSide.height);
         x = (FlxG.width - oppSide.width) * 0.5;
-        
+
         moves = false;
     }
 

@@ -5,7 +5,6 @@ import yaml.Parser;
 
 import flixel.FlxObject;
 import flixel.text.FlxText;
-
 import flixel.util.FlxAxes;
 import flixel.util.FlxSave;
 import flixel.tweens.FlxTween;
@@ -13,6 +12,8 @@ import flixel.tweens.FlxTween;
 import openfl.events.Event;
 import openfl.net.FileReference;
 import openfl.events.IOErrorEvent;
+
+import funkin.objects.sprites.OffsetSprite;
 
 typedef YAMLAnimation = {
     var name:String;
@@ -32,8 +33,9 @@ class Tools {
     public static final githubURL:String = "https://github.com/Sword352/FNF-EternalEngine";
 
     public static final devState:String = "ALPHA";
-    
+
     public static var gameVersion(get, never):String;
+
     inline static function get_gameVersion():String
         return openfl.Lib.application.meta["version"];
 
@@ -46,18 +48,16 @@ class Tools {
     inline public static function parseYAML(content:String):Dynamic
         return Yaml.parse(content, Parser.options().useObjects());
 
-
     // used to avoid a flixel warning
     inline public static function changeFramerateCap(newFramerate:Int):Void {
-		if (newFramerate > FlxG.updateFramerate) {
-			FlxG.updateFramerate = newFramerate;
-			FlxG.drawFramerate = newFramerate;
-		}
-		else {
-			FlxG.drawFramerate = newFramerate;
-			FlxG.updateFramerate = newFramerate;
-		}
-	}
+        if (newFramerate > FlxG.updateFramerate) {
+            FlxG.updateFramerate = newFramerate;
+            FlxG.drawFramerate = newFramerate;
+        } else {
+            FlxG.drawFramerate = newFramerate;
+            FlxG.updateFramerate = newFramerate;
+        }
+    }
 
     inline public static function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
         if (object == null || base == null)
@@ -70,8 +70,8 @@ class Tools {
         return object;
     }
 
-    inline public static function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE,
-        unique:Bool = true, ?key:String):FlxSprite {
+    inline public static function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE, unique:Bool = true,
+            ?key:String):FlxSprite {
         sprite.makeGraphic(1, 1, col, unique, key);
         sprite.scale.set(width, height);
         sprite.updateHitbox();
@@ -93,7 +93,7 @@ class Tools {
             FlxG.sound.music.destroy();
             FlxG.sound.music = null;
         }
-        
+
         if (FlxG.sound.list != null)
             while (FlxG.sound.list.length > 0)
                 FlxG.sound.list.remove(FlxG.sound.list.members[0], true).destroy();
@@ -158,12 +158,12 @@ class Tools {
             return;
 
         var offsetSprite:Bool = (sprite is OffsetSprite);
-        
+
         for (animation in animations) {
             var speed:Float = animation.speed ?? 1;
             var loop:Bool = animation.loop ?? false;
             var fps:Float = animation.fps ?? 24;
-            
+
             try {
                 if (animation.indices != null)
                     sprite.animation.addByIndices(animation.name, animation.prefix, animation.indices, "", fps, loop);
@@ -171,17 +171,14 @@ class Tools {
                     sprite.animation.addByPrefix(animation.name, animation.prefix, fps, loop);
                 else
                     sprite.animation.add(animation.name, animation.frames, fps, loop);
-    
+
                 sprite.animation.getByName(animation.name).timeScale = speed;
-    
+
                 if (animation.offsets != null) {
-                    while (animation.offsets.length < 2)
-                        animation.offsets.push(0);
-    
                     if (offsetSprite)
-                        cast(sprite, OffsetSprite).addOffset(animation.name, animation.offsets[0], animation.offsets[1]);
+                        cast(sprite, OffsetSprite).addOffset(animation.name, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0);
                     else
-                        sprite.frames.setFramesOffsetByPrefix(animation.prefix, animation.offsets[0], animation.offsets[1], false);
+                        sprite.frames.setFramesOffsetByPrefix(animation.prefix, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0, false);
                 }
             }
             catch (e) {}
@@ -221,26 +218,26 @@ class Tools {
     // Mostly used in editors
     static var _fileRef:FileReference;
 
-	public static function saveData(fileName:String, data:String):Void {
+    public static function saveData(fileName:String, data:String):Void {
         if (data == null || data.length < 1)
             return;
 
         _fileRef = new FileReference();
         _fileRef.addEventListener(Event.CANCEL, destroyFileRef);
-		_fileRef.addEventListener(Event.COMPLETE, destroyFileRef);
-		_fileRef.addEventListener(IOErrorEvent.IO_ERROR, onFileRefError);
-		_fileRef.save(data.trim(), fileName);
-	}
+        _fileRef.addEventListener(Event.COMPLETE, destroyFileRef);
+        _fileRef.addEventListener(IOErrorEvent.IO_ERROR, onFileRefError);
+        _fileRef.save(data.trim(), fileName);
+    }
 
     static function onFileRefError(_):Void {
         trace('Error while saving file "${_fileRef.name}"!');
         destroyFileRef(null);
     }
 
-	static function destroyFileRef(_):Void {
+    static function destroyFileRef(_):Void {
         _fileRef.removeEventListener(Event.CANCEL, destroyFileRef);
-		_fileRef.removeEventListener(Event.COMPLETE, destroyFileRef);
-		_fileRef.removeEventListener(IOErrorEvent.IO_ERROR, onFileRefError);
-		_fileRef = null;
-	}
+        _fileRef.removeEventListener(Event.COMPLETE, destroyFileRef);
+        _fileRef.removeEventListener(IOErrorEvent.IO_ERROR, onFileRefError);
+        _fileRef = null;
+    }
 }

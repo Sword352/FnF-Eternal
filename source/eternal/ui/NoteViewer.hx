@@ -3,8 +3,8 @@ package eternal.ui;
 import flixel.text.FlxText;
 import flixel.group.FlxSpriteGroup.FlxSpriteGroup;
 
-import haxe.ui.components.NumberStepper;
 import funkin.states.debug.ChartEditor.DebugNote;
+import haxe.ui.components.NumberStepper;
 
 class NoteViewer extends FlxSpriteGroup {
     public var noteToView:DebugNote;
@@ -64,18 +64,14 @@ class NoteViewer extends FlxSpriteGroup {
     }
 
     override function update(elapsed:Float):Void {
-        infos.text = 
-        'Direction: ${noteToView.data.direction}\n'
-        + 'Strumline: ${noteToView.data.strumline}\n'
-        + 'Length: ${noteToView.data.length}'
-        ;
+        infos.text = 'Direction: ${noteToView.data.direction}\n' + 'Strumline: ${noteToView.data.strumline}\n' + 'Length: ${noteToView.data.length}';
     }
 
     public function view(note:DebugNote):Void {
-        lengthStepper.hidden   = (note == null);
+        lengthStepper.hidden = (note == null);
         lengthStepper.disabled = (note == null);
-        lengthStepper.active   = (note != null);
-        visible = active       = (note != null);
+        lengthStepper.active = (note != null);
+        visible = active = (note != null);
 
         noteToView = note;
         if (note == null)

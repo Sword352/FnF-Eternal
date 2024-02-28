@@ -8,7 +8,7 @@ class BoolOptionItem extends BaseOptionItem<Bool> {
     static var OFF_MARKUP = new FlxTextFormatMarkerPair(new FlxTextFormat(FlxColor.RED), '<>');
 
     var value:Bool = false;
-    
+
     public function new(option:String):Void {
         super(option);
 

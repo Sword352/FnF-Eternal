@@ -1,6 +1,7 @@
 package funkin.objects.ui;
 
 import flixel.graphics.FlxGraphic;
+import funkin.objects.sprites.OffsetSprite;
 
 class HealthIcon extends OffsetSprite {
     public static final animations:Array<String> = ["neutral", "losing", "winning"];
@@ -18,7 +19,7 @@ class HealthIcon extends OffsetSprite {
 
     public var character(get, set):String;
     var _character:String;
-    
+
     public function new(x:Float = 0, y:Float = 0, icon:String = "face") {
         super(x, y);
 
@@ -33,11 +34,10 @@ class HealthIcon extends OffsetSprite {
                     state = "winning";
                 else if (health < 80 && state != "neutral")
                     state = "neutral";
-            }
-            else if (state != "losing")
+            } else if (state != "losing")
                 state = "losing";
         }
-        
+
         if (bopping) {
             scale.set(Tools.lerp(scale.x, defaultScaleX, bopSpeed), Tools.lerp(scale.y, defaultScaleY, bopSpeed));
             centerOrigin();
@@ -50,14 +50,14 @@ class HealthIcon extends OffsetSprite {
         var newGraphic:FlxGraphic = Assets.image('icons/${icon}');
         _character = icon;
 
-        if (newGraphic == null) {            
+        if (newGraphic == null) {
             newGraphic = Assets.image('icons/${DEFAULT_ICON}');
             _character = DEFAULT_ICON;
         }
 
         var size:Int = findSize(icon);
         loadGraphic(newGraphic, true, Std.int(newGraphic.width / size), newGraphic.height);
-        
+
         for (i in 0...size)
             animation.add(animations[i], [i], 0);
 
@@ -72,7 +72,7 @@ class HealthIcon extends OffsetSprite {
     override function destroy():Void {
         _character = null;
         state = null;
-        
+
         super.destroy();
     }
 
