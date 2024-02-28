@@ -86,7 +86,9 @@ typedef NoteSkinConfig = {
     var splash:SplashConfig;
 }
 
-typedef NoteConfig = GenericSkin;
+typedef NoteConfig = GenericSkin & {
+    var ?sustainAlpha:Float;   
+};
 
 typedef ReceptorConfig = GenericSkin & {
     var ?spacing:Float;

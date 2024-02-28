@@ -228,6 +228,7 @@ class Note extends OffsetSprite {
 
                     var dir:String = directions[direction];
                     NoteSkin.applyGenericSkin(this, config.note, dir, dir);
+                    sustainAlpha = config.note.sustainAlpha ?? 0.6;
             }
         }
 
