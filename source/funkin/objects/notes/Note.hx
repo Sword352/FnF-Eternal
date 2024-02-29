@@ -240,7 +240,7 @@ class Note extends OffsetSprite {
             return this.distance;
 
         var conductorTime:Float = (Conductor.updateInterp ? Conductor.interpTime : Conductor.time);
-        return FlxMath.signOf(scrollMult) * -((conductorTime - time) * scrollSpeed);
+        return FlxMath.signOf(scrollMult) * ((time - conductorTime) * scrollSpeed);
     }
 
     inline function get_scrollSpeed():Float

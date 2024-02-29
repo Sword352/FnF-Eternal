@@ -154,6 +154,25 @@ class HScript {
         for (i in defaultImports.keys())
             set(i, defaultImports.get(i));
 
+        // allows to load modules from other scripts
+        set("importModule", (module:String) -> {
+            var path:String = Assets.getPath(module, SCRIPT);
+            if (!FileTools.exists(path)) {
+                trace('Could not find module "${module}"!');
+                return;
+            }
+
+            var moduleScript:HScript = new HScript(path);
+            if (moduleScript.state != ALIVE) return;
+
+            for (customClass in moduleScript.interp.customClasses.keys())
+                set(customClass, moduleScript.interp.customClasses.get(customClass));
+
+            // add the script to the pack as well in case it has code outside of classes
+            parent?.addScript(moduleScript);
+        });
+
+        // allows to close the script at any time
         set("closeSCR", destroy);
     }
 

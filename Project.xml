@@ -80,9 +80,13 @@
 		<!-- Allow HScript error reporting at parse time -->
 		<define name="hscriptPos" />
 
+		<!-- Allow HScript custom classes (makes compiling slower) -->
+		<!-- Comment this out if you wish to disable that! -->
+		<define name="CUSTOM_CLASSES" />
+
 		<!-- Disable dead code elimination to compile unused stuff, at the cost of compile time -->
 		<!-- Comment this out if you wish to disable that! -->
-		<haxeflag name="-dce" value="no" unless="hl" /> <!-- A problem with Haxe itself makes DCE impossible to disable on HL -->
+		<haxeflag name="-dce" value="no" unless="hl" />
 
 		<!-- Run the import macro that will compile some additional classes -->
 		<!-- Comment this out if you wish to disable that! -->

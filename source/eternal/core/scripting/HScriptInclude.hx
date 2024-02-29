@@ -15,6 +15,8 @@ class HScriptInclude {
         #if sys "sys" => #if hl ["sys.ssl", "sys.net", "sys.db", "sys.Http"], #else null,
         #end #end // some stuff can't compile on HL due to failing to load "ssl.hdll"
         #if hxvlc "hxvlc.flixel" => null, #end
+        "openfl.display" => null,
+        
         // Classes
         "StringBuf" => null
     ];
