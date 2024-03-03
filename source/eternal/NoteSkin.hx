@@ -87,8 +87,9 @@ typedef NoteSkinConfig = {
 }
 
 typedef NoteConfig = GenericSkin & {
+    var ?tiledSustain:Bool;
     var ?sustainAlpha:Float;   
-};
+}
 
 typedef ReceptorConfig = GenericSkin & {
     var ?spacing:Float;

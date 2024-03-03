@@ -40,6 +40,14 @@ class ScriptPack {
         for (i in imports.keys())
             script.set(i, imports.get(i));
 
+        script.set("loadScriptsFrom", loadScriptsFrom);
+        script.set("loadScript", loadScript);
+        script.set("addScript", addScript);
+
+        script.set("cancellableCall", cancellableCall);
+        script.set("hxsCall", hxsCall);
+        script.set("hxsSet", hxsSet);
+
         scripts.push(script);
         return script;
     }
@@ -51,8 +59,7 @@ class ScriptPack {
     }
 
     public function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic {
-        if (scripts == null || scripts.length < 1)
-            return null;
+        if (scripts == null || scripts.length == 0) return null;
 
         var returnValue:Dynamic = null;
         for (i in scripts) {
@@ -65,6 +72,8 @@ class ScriptPack {
     }
 
     public function cancellableCall(func:String, ?args:Array<Dynamic>):Bool {
+        if (scripts == null || scripts.length == 0) return false;
+
         var call:CancellableCall = new CancellableCall();
 
         if (args == null) args = [];

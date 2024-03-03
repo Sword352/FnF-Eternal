@@ -89,7 +89,7 @@ class StrumLine extends FlxGroup {
                         onMiss.dispatch(note);
                 }
 
-                if (note.holdProgress >= note.length)
+                if (Conductor.time >= note.time + note.length)
                     notesToRemove.push(note);
             }
 
@@ -100,12 +100,12 @@ class StrumLine extends FlxGroup {
         super.update(elapsed);
 
         while (notesToRemove.length > 0)
-            removeNote(notesToRemove.shift());
+            removeNote(notesToRemove.pop());
 
-        // only clip the sustain tails here as super.update changes the sustains position
+        // only clip the sustain here as super.update changes the sustains position
         notes.forEachAlive((note) -> {
-            if (note.isSustainNote && note.autoClipSustain && (note.goodHit || note.missed))
-                note.clipSustainTail(receptors.members[note.direction]);
+            if (note.isSustainNote && (note.goodHit || note.missed) && note.autoClipSustain && (cpu || holdKeys[note.direction]))
+                note.clipSustain(receptors.members[note.direction]);
         });
 
         if (cpu) {
@@ -182,7 +182,7 @@ class StrumLine extends FlxGroup {
     inline function miss(note:Note):Void {
         if (note.isSustainNote) {
             note.baseVisible = false;
-            resizeLength(note);
+            // resizeLength(note);
         } else
             note.alphaMult = note.lateAlpha;
 
@@ -192,8 +192,11 @@ class StrumLine extends FlxGroup {
 
     // incase the player hits the note early or late
     inline function resizeLength(note:Note):Void {
+        if (note == null) return;
+
         note.length += (note.time - Conductor.time);
         if (note.length < 100) removeNote(note);
+        note.time = Conductor.time;
     }
 
     public inline function setPosition(x:Float = 0, y:Float = 0):StrumLine {

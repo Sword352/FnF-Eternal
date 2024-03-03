@@ -910,11 +910,11 @@ class PlayState extends MusicBeatState {
 
         // Destroy remaining notes
         while (notes.length > 0)
-            notes.shift().destroy();
+            notes.pop().destroy();
         notes = null;
 
         while (ratings.length > 0)
-            ratings.shift().destroy();
+            ratings.pop().destroy();
         ratings = null;
 
         countdownGraphics = null;

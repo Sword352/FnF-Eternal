@@ -152,8 +152,8 @@ class ChartLoader {
             if (noteData.time < minTime) continue;
 
             var note:Note = new Note(noteData.time, noteData.direction, (noteData.strumline == 1) ? playerSkin : oppSkin);
-            note.length = note.initialLength = noteData.length;
             note.strumline = noteData.strumline;
+            note.length = noteData.length;
             note.type = noteData.type;
             notes.push(note);
 

@@ -373,7 +373,7 @@ class ChartSubScreen extends FlxSubState {
 
             // rebuild the arguments editor
             while (propStorage.length > 0)
-                argumentsEditor.removeComponent(propStorage.shift());
+                argumentsEditor.removeComponent(propStorage.pop());
 
             if (event.arguments != null) {
                 for (arg in event.arguments) {

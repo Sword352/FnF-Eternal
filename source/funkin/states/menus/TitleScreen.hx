@@ -200,14 +200,9 @@ class TitleScreen extends MusicBeatState {
         #end
     }
 
-    function clearSequences():Void {
-        if (beatSequences != null)
-            while (beatSequences.length > 0)
-                beatSequences.shift();
-
-        if (stepSequences != null)
-            while (stepSequences.length > 0)
-                stepSequences.shift();
+    inline function clearSequences():Void {
+        beatSequences?.splice(0, beatSequences.length);
+        stepSequences?.splice(0, stepSequences.length);
     }
 
     function runSequence(seq:TitleSequence):Void {

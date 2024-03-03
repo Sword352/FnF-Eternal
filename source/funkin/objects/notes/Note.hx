@@ -26,12 +26,8 @@ class Note extends OffsetSprite {
     public var strumline:Int = 0;
 
     public var length(default, set):Float = 0;
-    public var holdProgress(get, never):Float;
-    public var initialLength:Float = 0;
-
     public var sustain(default, null):Sustain;
     public var isSustainNote(get, never):Bool;
-    public var sustainDecrease(get, default):Float = 0;
 
     public var type(default, set):String;
     public var skin(default, set):String;
@@ -56,6 +52,7 @@ class Note extends OffsetSprite {
     public var sustainAlpha:Float = 0.6;
 
     public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
+    public var quantizeSustain:Bool = false;
     public var baseVisible:Bool = true;
 
     public var autoDistance:Bool = true;
@@ -70,9 +67,6 @@ class Note extends OffsetSprite {
     public var distance(get, default):Float = 0;
 
     public var downscroll(get, never):Bool;
-
-    // not really useful in gameplay, just a helper boolean
-    public var checked:Bool = false;
 
     public function new(time:Float = 0, direction:Int = 0, skin:String = "default"):Void {
         super();
@@ -89,11 +83,8 @@ class Note extends OffsetSprite {
         if (followX)
             x = receptor.x + offsetX;
 
-        if (followY) {
-            y = receptor.y + offsetY;
-            if (!isSustainNote || baseVisible)
-                y += distance;
-        }
+        if (followY)
+            y = receptor.y + offsetY + distance;
 
         if (followAlpha) {
             alpha = receptor.alpha * alphaMult;
@@ -102,21 +93,27 @@ class Note extends OffsetSprite {
         }
     }
 
-    public function clipSustainTail(receptor:FlxSprite):Void {
+    public function clipSustain(receptor:FlxSprite):Void {
         var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
         var tail:FlxSprite = sustain.tail;
 
-        var clipRect:FlxRect = (tail.clipRect ?? FlxRect.get(0, 0, tail.frameWidth));
+        var tailRect:FlxRect = (tail.clipRect ?? FlxRect.get(0, 0, tail.frameWidth));
+        var sustainRect:FlxRect = (sustain.clipRect ?? FlxRect.get());
 
         if (downscroll) {
-            clipRect.height = (receptorCenter - tail.y) / tail.scale.y;
-            clipRect.y = tail.frameHeight - clipRect.height;
+            sustainRect.height = sustain.height - Math.max(sustain.y + sustain.height - receptorCenter, 0);
+            tailRect.height = (receptorCenter - tail.y) / tail.scale.y;
+            tailRect.y = tail.frameHeight - tailRect.height;
         } else {
-            clipRect.y = (receptorCenter - tail.y) / tail.scale.y;
-            clipRect.height = tail.frameHeight - clipRect.y;
+            sustainRect.y = Math.max(receptorCenter - sustain.y, 0);
+            sustainRect.height = sustain.height - sustainRect.y;
+
+            tailRect.y = (receptorCenter - tail.y) / tail.scale.y;
+            tailRect.height = tail.frameHeight - tailRect.y;
         }
 
-        tail.clipRect = clipRect;
+        sustain.clipRect = sustainRect;
+        tail.clipRect = tailRect;
     }
 
     public inline function findRating(ratings:Array<Rating>):Rating {
@@ -228,6 +225,8 @@ class Note extends OffsetSprite {
 
                     var dir:String = directions[direction];
                     NoteSkin.applyGenericSkin(this, config.note, dir, dir);
+
+                    quantizeSustain = config.note.tiledSustain ?? false;
                     sustainAlpha = config.note.sustainAlpha ?? 0.6;
             }
         }
@@ -251,10 +250,6 @@ class Note extends OffsetSprite {
         return (followSpeed && parentStrumline != null) ? (receptor.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
     }
 
-    inline function get_sustainDecrease():Float {
-        return (autoClipSustain) ? holdProgress : this.sustainDecrease;
-    }
-
     inline function get_late():Bool {
         return this.late || (Conductor.time - time) > safeZoneOffset;
     }
@@ -264,9 +259,6 @@ class Note extends OffsetSprite {
 
     inline function get_isSustainNote():Bool
         return sustain != null;
-
-    inline function get_holdProgress():Float
-        return FlxMath.bound(Conductor.time - time, 0, length);
 
     function get_canBeHit():Bool {
         if (goodHit || missed)
@@ -317,11 +309,7 @@ class Sustain extends TiledSprite {
     }
 
     override function draw():Void {
-        if (regen)
-            regenGraphic();
-
-        if (height > 0)
-            super.draw();
+        super.draw();
 
         if (tail.exists && tail.visible)
             tail.draw();
@@ -335,7 +323,13 @@ class Sustain extends TiledSprite {
     }
 
     inline function updateSustain():Void {
-        height = ((parent.length - parent.sustainDecrease) * parent.scrollSpeed) - tail.height;
+        height = (parent.length * parent.scrollSpeed) - tail.height;
+
+        // quantize the sustain, useful for noteskins with patterns
+        if (!parent.downscroll && parent.quantizeSustain)  {
+            var tileHeight:Float = graphic.height * scale.y;
+            height = Math.fround(height / tileHeight) * tileHeight;
+        }
 
         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
         if (parent.downscroll)
@@ -343,11 +337,6 @@ class Sustain extends TiledSprite {
 
         tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
         flipY = (parent.flipSustain && parent.downscroll);
-
-        if (parent.autoClipSustain) {
-            // clipRect-like effect
-            scrollY = (parent.holdProgress * ((parent.downscroll) ? 0.001 : -1.5)) * parent.scrollSpeed;
-        }
     }
 
     public inline function reloadGraphic():Void {

@@ -193,12 +193,10 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function onNoteHit(note:Note):Void {
         note.goodHit = true;
-        note.checked = true;
+        note.ID = -1;
 
         playerStrumline.receptors.members[note.direction].playAnimation("confirm", true);
-        playerStrumline.hitNote(note);
         totalPlayerNotes++;
-
         health += 0.023;
 
         var rating:Rating = note.findRating(ratings);
@@ -214,12 +212,13 @@ class ChartPlayState extends MusicBeatSubState {
 
         if (rating.displayNoteSplash && !Settings.get("disable note splashes"))
             playerStrumline.popSplash(note.direction);
+
+        playerStrumline.hitNote(note);
     }
 
     inline function onBotplayNoteHit(note:Note):Void {
-        note.checked = true;
+        note.ID = -1;
         totalPlayerNotes++;
-
         health += 0.023;
     }
 
@@ -232,9 +231,9 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     inline function onMiss(?note:Note):Void {
-        if (note != null && !note.checked) {
+        if (note != null && note.ID != -1) {
             totalPlayerNotes++;
-            note.checked = true;
+            note.ID = -1;
         }
 
         health -= 0.0475;
@@ -374,10 +373,10 @@ class ChartPlayState extends MusicBeatSubState {
 
     override function destroy():Void {
         while (notes.length > 0)
-            notes.shift().destroy();
+            notes.pop().destroy();
 
         while (ratings.length > 0)
-            ratings.shift().destroy();
+            ratings.pop().destroy();
 
         strumLines = null;
         startTimer = null;

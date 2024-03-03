@@ -11,7 +11,7 @@ enum ScriptStatus {
 }
 
 class HScript {
-    public static final defaultImports:Map<String, Dynamic> = [
+    public static final importPresets:Map<String, Dynamic> = [
         // Flixel
         "FlxG" => flixel.FlxG,
         "FlxSprite" => flixel.FlxSprite,
@@ -70,7 +70,11 @@ class HScript {
         "Type" => Type,
     ];
 
+    // allows for static variables in scripts
+    public static final sharedFields:Map<String, Dynamic> = [];
+
     public var state(default, null):ScriptStatus = NONE;
+    // public var priority(default, set):Int = -1; // TODO
 
     public var parser(default, null):Parser;
     public var interp(default, null):Interp;
@@ -88,6 +92,7 @@ class HScript {
         interp = new Interp();
         parser.allowJSON = parser.allowMetadata = parser.allowTypes = true;
         interp.allowPublicVariables = interp.allowStaticVariables = true;
+        interp.staticVariables = sharedFields;
         script = FileTools.getContent(this.path);
 
         try {
@@ -103,22 +108,17 @@ class HScript {
     }
 
     public function get(key:String):Null<Dynamic> {
-        if (state == DEAD)
-            return null;
+        if (state == DEAD) return null;
         return interp.variables.get(key);
     }
 
     public function set(key:String, obj:Dynamic):Dynamic {
-        if (state == DEAD)
-            return obj;
-
-        interp.variables.set(key, obj);
+        if (state != DEAD) interp.variables.set(key, obj);
         return obj;
     }
 
     public function exists(key:String):Bool {
-        if (state == DEAD)
-            return false;
+        if (state == DEAD) return false;
         return interp.variables.exists(key);
     }
 
@@ -151,8 +151,8 @@ class HScript {
     }
 
     inline function applyPresets():Void {
-        for (i in defaultImports.keys())
-            set(i, defaultImports.get(i));
+        for (i in importPresets.keys())
+            set(i, importPresets.get(i));
 
         // allows to load modules from other scripts
         set("importModule", (module:String) -> {
@@ -173,7 +173,7 @@ class HScript {
         });
 
         // allows to close the script at any time
-        set("closeSCR", destroy);
+        set("closeScript", destroy);
     }
 
     inline function set_object(v:Dynamic):Dynamic {

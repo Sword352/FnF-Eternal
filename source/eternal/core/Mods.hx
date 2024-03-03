@@ -31,8 +31,7 @@ class Mods {
     }
 
     public static function refreshMods(checkCurrentMod:Bool = true):Void {
-        while (mods.length > 0)
-            mods.shift();
+        mods.splice(0, mods.length);
 
         if (!FileTools.exists(MODS_PATH)) {
             FileTools.createDirectory(MODS_PATH);
@@ -184,6 +183,9 @@ class Mods {
         #end
 
         #if ENGINE_SCRIPTING
+        // clear all the static variables
+        HScript.sharedFields.clear();
+        
         // reload init script
         if (initScript != null) {
             initScript.destroy();

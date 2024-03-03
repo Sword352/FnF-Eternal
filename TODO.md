@@ -46,9 +46,4 @@
   * In-game traces overlay
 
 ### Bugs/Issues to Fix
-- Fix sustain rendering bugs/issues
-  - Make the sustain tails visible when the sustain height is small
-  - Fix slightly innacurate upscroll texture scrolling (?)
-
-- Fix the press enter sprite's frames on the title screen
 - Fix freezes happening due to GC clearing sessions

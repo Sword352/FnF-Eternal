@@ -123,7 +123,7 @@ class Settings {
         setterScript = null;
 
         while (modSettings.length > 0)
-            settings.remove(modSettings.shift().backendKey);
+            settings.remove(modSettings.pop().backendKey);
 
         var settingConfig:String = Assets.yaml("data/settings");
         if (!FileTools.exists(settingConfig))

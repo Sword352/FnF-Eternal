@@ -93,10 +93,10 @@ class Assets {
 
     public static function filterPath(path:String, type:AssetType):String {
         var extensions:Array<String> = type.getExtensions();
-        var ext:String = extensions.shift();
+        var ext:String = extensions.pop();
 
         while (!FileTools.exists(path + ext) && extensions.length > 0)
-            ext = extensions.shift();
+            ext = extensions.pop();
 
         return path + ext;
     }
