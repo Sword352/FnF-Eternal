@@ -144,17 +144,9 @@ class MainMenu extends MusicBeatState {
         itemMidpoint.put();
 
         if (allowInputs) {
-            if (controls.anyJustPressed(["up", "down"]))
-                changeSelection((controls.lastAction == "up") ? -1 : 1);
-
-            if (controls.justPressed("accept"))
-                accept();
-
-            if (controls.justPressed("back")) {
-                FlxG.sound.play(Assets.sound("cancelMenu"));
-                Transition.skipNextTransIn = true;
-                FlxG.switchState(TitleScreen.new);
-            }
+            if (controls.anyJustPressed(["up", "down"])) changeSelection(controls.lastAction == "up" ? -1 : 1);
+            if (controls.justPressed("accept")) accept();
+            if (controls.justPressed("back")) leave();
 
             #if ENGINE_MODDING
             if (subState == null && controls.justPressed("open mods"))
@@ -221,6 +213,13 @@ class MainMenu extends MusicBeatState {
         #if ENGINE_SCRIPTING
         hxsCall("onAcceptPost");
         #end
+    }
+
+    inline function leave():Void {
+        FlxG.sound.play(Assets.sound("cancelMenu"));
+        FlxG.switchState(TitleScreen.new);
+        Transition.skipNextTransIn = true;
+        allowInputs = false;
     }
 
     inline function goToNextState():Void {

@@ -107,7 +107,6 @@ class Note extends OffsetSprite {
         } else {
             sustainRect.y = Math.max(receptorCenter - sustain.y, 0);
             sustainRect.height = sustain.height - sustainRect.y;
-
             tailRect.y = (receptorCenter - tail.y) / tail.scale.y;
             tailRect.height = tail.frameHeight - tailRect.y;
         }
@@ -212,7 +211,7 @@ class Note extends OffsetSprite {
                     frames = Assets.getSparrowAtlas("notes/notes");
                     animation.addByPrefix(dir, '${dir}0', 0);
                     animation.addByPrefix(dir + " hold", '${dir} hold piece', 0);
-                    animation.addByPrefix(dir + " end", '${dir} hold end', 0);
+                    animation.addByPrefix(dir + " tail", '${dir} hold end', 0);
                     playAnimation(dir, true);
 
                     scale.set(0.7, 0.7);
@@ -285,7 +284,7 @@ class Note extends OffsetSprite {
 }
 
 class Sustain extends TiledSprite {
-    public var tail(default, null):FlxSprite;
+    public var tail:FlxSprite;
     public var parent:Note;
 
     public function new(parent:Note):Void {
@@ -323,20 +322,24 @@ class Sustain extends TiledSprite {
     }
 
     inline function updateSustain():Void {
-        height = (parent.length * parent.scrollSpeed) - tail.height;
+        var finalHeight:Float = (parent.length * parent.scrollSpeed) - tail.height;
 
         // quantize the sustain, useful for noteskins with patterns
         if (!parent.downscroll && parent.quantizeSustain)  {
             var tileHeight:Float = graphic.height * scale.y;
-            height = Math.fround(height / tileHeight) * tileHeight;
+            finalHeight = Math.fround(finalHeight / tileHeight) * tileHeight;
         }
 
+        height = finalHeight;
+
         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
-        if (parent.downscroll)
-            y -= height;
+        if (parent.downscroll) y -= height;
 
         tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
-        flipY = (parent.flipSustain && parent.downscroll);
+
+        var flip:Bool = (parent.flipSustain && parent.downscroll);
+        if (parent.flipY) flip = !flip;
+        flipY = flip;
     }
 
     public inline function reloadGraphic():Void {
@@ -350,13 +353,14 @@ class Sustain extends TiledSprite {
 
         tail.frames = parent.frames;
         tail.animation.copyFrom(parent.animation);
-        tail.animation.play(dir + " end", true);
+        tail.animation.play(dir + " tail", true);
 
         scale.set(parent.scale.x, parent.scale.y);
         tail.scale.set(scale.x, scale.y);
         updateHitbox();
 
-        antialiasing = tail.antialiasing = parent.antialiasing;
+        antialiasing = parent.antialiasing;
+        flipX = parent.flipX;
     }
 
     override function updateHitbox():Void {
@@ -365,39 +369,37 @@ class Sustain extends TiledSprite {
     }
 
     override function set_height(v:Float):Float {
-        if (!regen)
-            regen = (v != height && v > 0);
-
+        if (!regen) regen = (v != height && v > 0);
         return height = v;
     }
 
+    override function set_antialiasing(v:Bool):Bool {
+        if (tail != null) tail.antialiasing = v;
+        return super.set_antialiasing(v);
+    }
+
+    override function set_alpha(v:Float):Float {
+        if (tail != null) tail.alpha = v;
+        return super.set_alpha(v);
+    }
+
     override function set_flipX(v:Bool):Bool {
-        if (tail != null)
-            tail.flipX = v;
+        if (tail != null) tail.flipX = v;
         return super.set_flipX(v);
     }
 
     override function set_flipY(v:Bool):Bool {
-        if (tail != null)
-            tail.flipY = v;
+        if (tail != null) tail.flipY = v;
         return super.set_flipY(v);
     }
 
-    override function set_alpha(v:Float):Float {
-        if (tail != null)
-            tail.alpha = v;
-        return super.set_alpha(v);
-    }
-
     override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (tail != null)
-            tail.cameras = v;
+        if (tail != null) tail.cameras = v;
         return super.set_cameras(v);
     }
 
     override function set_camera(v:FlxCamera):FlxCamera {
-        if (tail != null)
-            tail.camera = v;
+        if (tail != null) tail.camera = v;
         return super.set_camera(v);
     }
 }

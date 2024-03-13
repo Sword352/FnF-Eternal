@@ -6,12 +6,16 @@ import flixel.group.FlxSpriteGroup.FlxSpriteGroup;
 class BaseOptionItem<T> extends FlxSpriteGroup {
     public var option:String;
     public var target:Int = 0;
-    public var onChange:T->Void = null;
 
     public var title(default, set):String;
     public var description(default, set):String;
+    public var onChange:T->Void = null;
 
     public var inputs:Array<String> = ["left", "right"];
+
+    var controls(get, never):Controls;
+    inline function get_controls():Controls
+        return Controls.globalControls;
 
     var background:FlxSprite;
     var separator:FlxSprite;
@@ -70,20 +74,20 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         descriptionText.y = separator.y + separator.height + 15;
 
         super.update(elapsed);
+        if (target == 0) handleInputs(elapsed);
+    }
 
-        if (target != 0)
-            return;
-
-        if (Controls.globalControls.anyJustPressed(inputs)) {
-            updateSetting((Controls.globalControls.lastAction == "left") ? -1 : 1);
+    function handleInputs(elapsed:Float):Void {
+        if (controls.anyJustPressed(inputs)) {
+            updateSetting((controls.lastAction == "left") ? -1 : 1);
             FlxG.sound.play(Assets.sound("scrollMenu"));
             holdTime = 0;
         }
 
-        if (Controls.globalControls.anyPressed(inputs)) {
+        if (controls.anyPressed(inputs)) {
             var hold:Float = Math.floor(holdTime += elapsed * 1.75) - 0.75;
             if (hold > 0) {
-                updateSetting((Controls.globalControls.lastAction == "left") ? -1 : 1);
+                updateSetting((controls.lastAction == "left") ? -1 : 1);
                 holdTime -= (FlxG.keys.pressed.SHIFT ? 0.01 : 0.1);
             }
         }

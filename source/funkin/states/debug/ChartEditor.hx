@@ -402,7 +402,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         PlayState.song = chart;
         PlayState.currentDifficulty = difficulty;
 
-        FlxG.switchState(PlayState.new.bind((FlxG.keys.pressed.SHIFT) ? time : 0));
+        var time:Float = (FlxG.keys.pressed.SHIFT ? time : 0);
+        FlxG.switchState(Assets.clearAssets ? LoadingScreen.new.bind(time) : PlayState.new.bind(time));
     }
 
     inline function playTest():Void {

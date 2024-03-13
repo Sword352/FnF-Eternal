@@ -1,7 +1,6 @@
 ### High Priority
 - Dialogue cutscenes implementation
 - Add unlockable weeks/songs support
-- Finish the Alphabet
 
 - Finish the built-in events
 - Finish the audio offset support
@@ -24,11 +23,9 @@
 - Add softcoded notetypes support
 - Add a credits menu
 
-- Better error handling for the story and freeplay menus + on week/song load fail error handling
-- ModState and ModSubState error handling
-
+- Better error handling for the story menu, ModState and ModSubState
 - Replace the placeholders BF and GF story menu character spritesheets
-- Continue README.md, complete the wiki stuff and move it to proper git wiki
+- Continue README and wiki stuff, add git wiki
 
 ### After GB Release
 - Add note colors support

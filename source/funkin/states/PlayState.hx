@@ -100,7 +100,7 @@ class PlayState extends MusicBeatState {
     public var notes:Array<Note>;
 
     public var validScore:Bool = (gameMode != DEBUG);
-    var startTime:Float;
+    public var startTime:Float;
 
     // ======= Base game compatibility ==============
     public var boyfriend(get, set):Character;
@@ -137,8 +137,8 @@ class PlayState extends MusicBeatState {
     // ==============================================
 
     public function new(startTime:Float = 0):Void {
-        super();
         this.startTime = startTime;
+        super();
     }
 
     inline public static function load(song:String, diff:String = "normal"):Void {
@@ -147,7 +147,7 @@ class PlayState extends MusicBeatState {
     }
 
     override public function create():Void {
-        var createTime:Float = Lib.getTimer();
+        var createTime:Float = LoadingScreen.getLoadTime();
 
         Tools.stopMusic();
         current = this;
@@ -294,7 +294,7 @@ class PlayState extends MusicBeatState {
         Conductor.updateInterp = true;
         activeConductor = false;
 
-        cache();
+        // cache();
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.getHandle()})';
@@ -589,7 +589,7 @@ class PlayState extends MusicBeatState {
             case STORY:
                 if (songPlaylist.length > 0) {
                     Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
-                    FlxG.switchState(PlayState.new.bind(0));
+                    FlxG.switchState(LoadingScreen.new.bind(0));
                 }
                 else
                     FlxG.switchState(StoryMenu.new);
@@ -796,8 +796,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        if (rating.ratingGraphic == null)
-            return;
+        if (rating.image == null) return;
 
         if (Settings.get("disable combo stacking")) {
             for (spr in ratingSprites)
@@ -805,7 +804,7 @@ class PlayState extends MusicBeatState {
         }
 
         var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
-        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
+        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.image}'));
         sprite.scale.set(0.7, 0.7);
         sprite.updateHitbox();
 
@@ -913,10 +912,6 @@ class PlayState extends MusicBeatState {
             notes.pop().destroy();
         notes = null;
 
-        while (ratings.length > 0)
-            ratings.pop().destroy();
-        ratings = null;
-
         countdownGraphics = null;
         countdownSounds = null;
         countdownSprite = null;
@@ -946,6 +941,7 @@ class PlayState extends MusicBeatState {
             gameOverCache.destroy();
          */
 
+         /*
         // Cache commonly used graphics and sounds
         Assets.getSparrowAtlas("ui/alphabet");
 
@@ -954,10 +950,11 @@ class PlayState extends MusicBeatState {
 
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}');
+        */
 
         for (rating in ratings)
-            if (rating.ratingGraphic != null)
-                Assets.image('ui/gameplay/${rating.ratingGraphic}');
+            if (rating.image != null)
+                Assets.image('ui/gameplay/${rating.image}');
 
         // Cache countdown
         for (sprite in countdownGraphics)
@@ -969,7 +966,7 @@ class PlayState extends MusicBeatState {
                 Assets.sound(sound);
 
         // Cache pause music
-        Assets.music("breakfast");
+        // Assets.music("breakfast");
     }
 
     inline public function setTime(time:Float):Void {
@@ -995,9 +992,7 @@ class PlayState extends MusicBeatState {
 
         for (rating in ratings) {
             if (rating.rank == null || rating.hits < 1) continue;
-            if ((rating.missThreshold != null && misses < rating.missThreshold)
-                || (rating.missExceed != null && misses > rating.missExceed))
-                rank = rating.rank;
+            if (misses < rating.missThreshold) rank = rating.rank;
         }
 
         if (rank.length < 1) {

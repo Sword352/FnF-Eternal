@@ -82,8 +82,8 @@ class ChartPlayState extends MusicBeatSubState {
         add(ratingSprites);
 
         for (rating in ratings)
-            if (rating.ratingGraphic != null)
-                Assets.image('ui/gameplay/${rating.ratingGraphic}');
+            if (rating.image != null)
+                Assets.image('ui/gameplay/${rating.image}');
 
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}');
@@ -269,8 +269,7 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     inline function displayRating(rating:Rating):Void {
-        if (rating.ratingGraphic == null)
-            return;
+        if (rating.image == null) return;
 
         if (Settings.get("disable combo stacking")) {
             for (spr in ratingSprites)
@@ -278,7 +277,7 @@ class ChartPlayState extends MusicBeatSubState {
         }
 
         var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
-        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.ratingGraphic}'));
+        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.image}'));
         sprite.scale.set(0.7, 0.7);
         sprite.updateHitbox();
         sprite.screenCenter();
@@ -374,9 +373,6 @@ class ChartPlayState extends MusicBeatSubState {
     override function destroy():Void {
         while (notes.length > 0)
             notes.pop().destroy();
-
-        while (ratings.length > 0)
-            ratings.pop().destroy();
 
         strumLines = null;
         startTimer = null;

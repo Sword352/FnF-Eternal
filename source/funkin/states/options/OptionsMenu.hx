@@ -1,10 +1,7 @@
 package funkin.states.options;
 
 import flixel.FlxSubState;
-import flixel.group.FlxGroup.FlxTypedGroup;
-
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
+import flixel.group.FlxSpriteGroup;
 
 import funkin.objects.ui.Alphabet;
 import funkin.objects.sprites.CheckerboardBG;
@@ -13,15 +10,13 @@ import funkin.states.menus.MainMenu;
 typedef OptionCategory = {
     var name:String;
     var action:Void->Void;
-    var ?skipOutro:Bool;
+    var ?noSound:Bool;
 }
 
 class OptionsMenu extends MusicBeatState {
     public var background:FlxSprite;
     var backdrop:CheckerboardBG;
-
-    var categoryTexts:FlxTypedGroup<Alphabet>;
-    var categoryIcons:Array<FlxSprite> = [];
+    var uiGroup:FlxSpriteGroup;
 
     var categories:Array<OptionCategory>;
     var currentSelection:Int = 0;
@@ -34,11 +29,12 @@ class OptionsMenu extends MusicBeatState {
     #end
 
     public function new(toPlayState:Bool = false):Void {
-        super();
         this.toPlayState = toPlayState;
+        super();
     }
 
     override function create():Void {
+        persistentUpdate = true;
         super.create();
 
         categories = [
@@ -47,7 +43,7 @@ class OptionsMenu extends MusicBeatState {
             {name: "Adjust offset", action: goToOffset},
             {name: "Keybinds", action: goToKeybind},
             {name: "Debug", action: goToDebug},
-            {name: "Exit", action: exit, skipOutro: true},
+            {name: "Exit", action: exit, noSound: true},
         ];
 
         #if ENGINE_MODDING
@@ -71,8 +67,8 @@ class OptionsMenu extends MusicBeatState {
         DiscordPresence.presence.details = "In the options";
         #end
 
-        Tools.playMusicCheck((toPlayState) ? "chillFresh" : "freakyMenu");
-        Conductor.bpm = (toPlayState) ? 117 : 102;
+        Tools.playMusicCheck(toPlayState ? "chillFresh" : "freakyMenu");
+        Conductor.bpm = (toPlayState ? 117 : 102);
 
         background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
         background.scale.set(1.15, 1.15);
@@ -81,12 +77,12 @@ class OptionsMenu extends MusicBeatState {
         add(background);
 
         backdrop = new CheckerboardBG(200, 200, 0xFF120E7A, FlxColor.TRANSPARENT);
-        backdrop.alpha = 0.4;
         backdrop.velocity.x = 50;
+        backdrop.alpha = 0.4;
         add(backdrop);
 
-        categoryTexts = new FlxTypedGroup<Alphabet>();
-        add(categoryTexts);
+        uiGroup = new FlxSpriteGroup();
+        add(uiGroup);
 
         for (i in 0...categories.length) {
             var image:String = 'menus/options/icon_${categories[i].name.toLowerCase().replace(" ", "-")}';
@@ -95,11 +91,9 @@ class OptionsMenu extends MusicBeatState {
 
             var left:Bool = (i % 2 == 0);
 
-            var categoryText:Alphabet = new Alphabet(FlxG.width * ((left) ? 0.1 : 0.9));
+            var categoryText:Alphabet = new Alphabet(FlxG.width * (left ? 0.1 : 0.9));
             categoryText.scale.set(0.7, 0.7);
             categoryText.text = categories[i].name;
-            categoryText.ID = i;
-            categoryTexts.add(categoryText);
 
             categoryText.screenCenter(Y);
             categoryText.y += 100 * Math.floor(((i + 1) / 2) - (categories.length / 2)) + (categoryText.height * 2);
@@ -107,15 +101,17 @@ class OptionsMenu extends MusicBeatState {
             if (!left)
                 categoryText.x -= categoryText.width;
 
-            var icon:FlxSprite = new FlxSprite(0, 0, Assets.image(image));
+            var icon:FlxSprite = new FlxSprite(0, categoryText.y, Assets.image(image));
             icon.scale.set(0.5, 0.5);
             icon.updateHitbox();
-            icon.offset.y += icon.height * 0.25;
-            icon.ID = i;
             add(icon);
 
-            categoryText.spriteTrackers.set(icon, (left) ? LEFT : RIGHT);
-            categoryIcons.push(icon);
+            icon.x = (left ? categoryText.x - (icon.width + 10) : categoryText.x + categoryText.width + 10);
+            icon.offset.y += icon.height * 0.25;
+            categoryText.ID = icon.ID = i;
+
+            uiGroup.add(categoryText);
+            uiGroup.add(icon);
         }
 
         changeSelection();
@@ -141,18 +137,15 @@ class OptionsMenu extends MusicBeatState {
         background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
 
         if (allowInputs) {
-            // TODO: perhaps better inputs, this should be good for now
-            if (controls.anyJustPressed(["up", "down"]))
-                changeSelection((controls.lastAction == "up") ? -2 : 2);
+            if (controls.anyJustPressed(["up", "down"])) changeSelection((controls.lastAction == "up") ? -2 : 2);
 
             if (controls.anyJustPressed(["left", "right"])) {
                 var odd:Bool = (currentSelection % 2 == 0);
                 var change:Int = (odd) ? 1 : -1;
 
                 if (categories.length % 2 == 0 && ((odd && controls.lastAction == "right") || (!odd && controls.lastAction == "left")))
-                    change += 2 * ((odd) ? -1 : 1);
+                    change += 2 * -change;
 
-                // changeSelection((odd) ? 1 : -1);
                 changeSelection(change);
             }
 
@@ -175,17 +168,14 @@ class OptionsMenu extends MusicBeatState {
         #end
     }
 
-    private function changeSelection(i:Int = 0):Void {
+    inline function changeSelection(i:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [i]))
             return;
         #end
 
         currentSelection = FlxMath.wrap(currentSelection + i, 0, categories.length - 1);
-        categoryTexts.forEach((text) -> text.alpha = (text.ID == currentSelection) ? 1 : 0.6);
-
-        for (icon in categoryIcons)
-            icon.alpha = (icon.ID == currentSelection) ? 1 : 0.6;
+        uiGroup.forEach((element) -> element.alpha = (element.ID == currentSelection ? 1 : 0.4));
 
         if (i != 0)
             FlxG.sound.play(Assets.sound("scrollMenu"));
@@ -195,24 +185,15 @@ class OptionsMenu extends MusicBeatState {
         #end
     }
 
-    private function accept():Void {
+    inline function accept():Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onAccept"))
             return;
         #end
 
-        var currentCategory:OptionCategory = categories[currentSelection];
-        if (skipOutro(currentCategory)) {
-            currentCategory.action();
-            return;
-        }
-
-        FlxG.sound.play(Assets.sound("confirmMenu"));
-
-        for (text in categoryTexts)
-            FlxTween.tween(text, {x: ((text.ID % 2 == 0) ? -(text.width + 15) : FlxG.width)}, 0.75, {ease: FlxEase.circInOut});
-
-        new FlxTimer().start(0.85, (_) -> categories[currentSelection].action());
+        var category:OptionCategory = categories[currentSelection];
+        if (!category.noSound) FlxG.sound.play(Assets.sound("scrollMenu"));
+        category.action();
 
         #if ENGINE_SCRIPTING
         hxsCall("onAcceptPost");
@@ -247,46 +228,26 @@ class OptionsMenu extends MusicBeatState {
 
     inline function exit():Void {
         FlxG.sound.play(Assets.sound("cancelMenu"));
-        FlxG.switchState((toPlayState) ? PlayState.new.bind(0) : MainMenu.new);
+        FlxG.switchState(toPlayState ? (Assets.clearAssets ? LoadingScreen.new.bind(0) : PlayState.new.bind(0)) : MainMenu.new);
     }
 
     override function openSubState(subState:FlxSubState):Void {
+        if (uiGroup != null && !(subState is TransitionSubState)) uiGroup.visible = false;
         super.openSubState(subState);
-        persistentUpdate = true;
     }
 
     override function closeSubState():Void {
         var transition:Bool = (subState is TransitionSubState);
         super.closeSubState();
 
-        if (transition)
-            return;
-
-        if (!skipOutro(categories[currentSelection])) {
-            for (text in categoryTexts) {
-                var left:Bool = (text.ID % 2 == 0);
-                FlxTween.tween(text, {x: FlxG.width * ((left) ? 0.1 : 0.9) - ((left) ? 0 : text.width)}, 0.75, {ease: FlxEase.circInOut});
-            }
+        if (!transition) {
+            uiGroup.visible = true;
+            allowInputs = true;
         }
-
-        allowInputs = true;
     }
 
     override function destroy():Void {
-        if (toPlayState)
-            Tools.stopMusic();
-
         categories = null;
         super.destroy();
-    }
-
-    private function skipOutro(category:OptionCategory):Bool {
-        #if ENGINE_SCRIPTING
-        var possibleValue:Dynamic = hxsCall("skipOutro", [category]);
-        if (possibleValue != null && possibleValue is Bool)
-            return possibleValue;
-        #end
-
-        return category.skipOutro ?? false;
     }
 }

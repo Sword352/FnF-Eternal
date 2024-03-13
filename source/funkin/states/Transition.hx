@@ -14,6 +14,7 @@ class Transition {
     public static var noPersistentUpdate:Bool = false;
     public static var skipNextTransOut:Bool = false;
     public static var skipNextTransIn:Bool = false;
+    public static var openOnSubState:Bool = false;
 }
 
 class TransitionState extends FlxState {
@@ -21,7 +22,7 @@ class TransitionState extends FlxState {
         super.create();
 
         if (!Transition.skipNextTransIn)
-            openSubState(new TransitionSubState(IN));
+            openTransition(new TransitionSubState(IN));
         Transition.skipNextTransIn = false;
     }
 
@@ -35,9 +36,20 @@ class TransitionState extends FlxState {
         if (subState != null && subState is TransitionSubState)
             cast(subState, TransitionSubState).reset(OUT);
         else
-            openSubState(new TransitionSubState(OUT));
+            openTransition(new TransitionSubState(OUT));
 
         Transition.onComplete.add(onOutroComplete);
+    }
+
+    inline function openTransition(transition:TransitionSubState):Void {
+        var parent:FlxState = this;
+
+        if (Transition.openOnSubState)
+            while (parent.subState != null)
+                parent = parent.subState;
+
+        Transition.openOnSubState = false;
+        parent.openSubState(transition);
     }
 }
 

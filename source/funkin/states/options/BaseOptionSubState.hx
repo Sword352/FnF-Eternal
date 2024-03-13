@@ -7,8 +7,6 @@ class BaseOptionSubState extends MusicBeatSubState {
     var optionsGroup:FlxTypedGroup<BaseOptionItem<Any>>;
     var currentSelection:Int = 0;
 
-    var allowInputs:Bool = true;
-
     public function new():Void {
         super();
         optionsGroup = new FlxTypedGroup<BaseOptionItem<Any>>();
@@ -42,20 +40,15 @@ class BaseOptionSubState extends MusicBeatSubState {
 
         super.update(elapsed);
 
-        if (allowInputs && optionsGroup.length > 1 && controls.anyJustPressed(["up", "down"]))
-            changeSelection((controls.lastAction == "up") ? -1 : 1);
-
-        if (allowInputs && controls.justPressed("back")) {
-            allowInputs = false;
-            close();
-        }
+        if (optionsGroup.length > 1 && controls.anyJustPressed(["up", "down"])) changeSelection((controls.lastAction == "up") ? -1 : 1);
+        if (controls.justPressed("back")) leave();
 
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);
         #end
     }
 
-    private function changeSelection(i:Int = 0):Void {
+    function changeSelection(i:Int = 0):Void {
         #if ENGINE_SCRIPTING
         if (cancellableCall("onSelectionChange", [i]))
             return;
@@ -64,8 +57,8 @@ class BaseOptionSubState extends MusicBeatSubState {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, optionsGroup.length - 1);
 
         for (item in optionsGroup) {
-            item.target = optionsGroup.members.indexOf(item) - currentSelection;
             item.alpha = (item.ID == currentSelection) ? 1 : 0.6;
+            item.target = item.ID - currentSelection;
         }
 
         if (i != 0)
@@ -76,8 +69,9 @@ class BaseOptionSubState extends MusicBeatSubState {
         #end
     }
 
-    override function close():Void {
+    inline function leave():Void {
+        FlxG.sound.play(Assets.sound("cancelMenu"));
         Settings.save();
-        super.close();
+        close();
     }
 }

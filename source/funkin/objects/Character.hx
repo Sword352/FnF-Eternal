@@ -16,6 +16,8 @@ typedef CharacterConfig = {
     var animations:Array<YAMLAnimation>;
 
     var ?atlasType:String;
+    var ?library:String;
+
     var ?antialiasing:Bool;
     var ?flip:Array<Bool>;
     var ?scale:Array<Float>;
@@ -106,12 +108,7 @@ class Character extends DancingSprite {
     }
 
     public inline function setup(config:CharacterConfig):Void {
-        frames = switch ((config.atlasType ?? "").toLowerCase().trim()) {
-            case "aseprite": Assets.getAseAtlas(config.image);
-            case "packer": Assets.getPackerAtlas(config.image);
-            default: Assets.getSparrowAtlas(config.image);
-        }
-
+        frames = Assets.getFrames(config.image, config.atlasType, config.library);
         Tools.addYamlAnimations(this, config.animations);
 
         singAnimations = config.singAnimations ?? singAnimations;

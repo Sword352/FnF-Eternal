@@ -148,8 +148,11 @@ class Assets {
 
     public static function createSound(path:String, ?library:String):Sound {
         var realPath:String = getPath(path, SOUND, library);
+
+        /*
         if (realPath.contains(":"))
             realPath = realPath.substring(realPath.indexOf(":") + 1);
+        */
 
         if (!FileTools.exists(realPath)) {
             trace('Invalid sound path "${realPath}"!');
@@ -161,13 +164,13 @@ class Assets {
         return sound;
     }
 
-    inline public static function registerSound(key:String, asset:Sound):Void
+    public inline static function registerSound(key:String, asset:Sound):Void
         loadedSounds.set(key, asset);
 
-    inline public static function registerGraphic(key:String, asset:FlxGraphic):Void
+    public inline static function registerGraphic(key:String, asset:FlxGraphic):Void
         loadedGraphics.set(key, asset);
 
-    inline private static function resolveAtlasData(key:String):String {
+    inline static function resolveAtlasData(key:String):String {
         #if ENGINE_RUNTIME_ASSETS
         return (key.startsWith(currentDirectory) && currentDirectory != defaultDirectory) ? FileTools.getContent(key) : key;
         #else

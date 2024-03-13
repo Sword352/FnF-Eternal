@@ -2,74 +2,56 @@ package funkin.states.menus;
 
 import flixel.text.FlxText;
 import flixel.sound.FlxSound;
-import flixel.tweens.FlxTween;
+import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
-import funkin.objects.ui.BGText;
 import funkin.objects.ui.Alphabet;
 import funkin.objects.ui.HealthIcon;
 import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 
 class FreeplayMenu extends MusicBeatState {
-    var background:FlxSprite;
+    public var background:Background;
+    public var items:FlxTypedGroup<Alphabet>;
+    public var icons:FlxTypedGroup<HealthIcon>;
 
-    var bgTimer:Float = 0;
-    var oldBgCol:FlxColor;
-    var bgCol:FlxColor;
+    public var scoreText:FlxText;
+    public var scoreBG:FlxSprite;
+    public var difficultyText:FlxText;
+    public var instructions:Instructions;
+    public var extraInfo:ExtraInfo;
 
-    var items:FlxTypedGroup<Alphabet>;
+    public var songs:Array<SongStructure>;
+    public var difficulties:Array<String> = [];
+    public var selection:Int = 0;
+    public var difficulty:Int = 0;
 
-    var scoreText:BGText;
-    var scoreBG:FlxSprite;
+    public var playInst:Bool = false;
+    public var inst:FlxSound;
 
-    var detailsText:FlxText;
-    var difficultyText:FlxText;
+    public var scoreData:ScoreMeasure;
+    public var lerpScore:Float;
 
-    var instructionBG:FlxSprite;
-    var instructionSep:FlxSprite;
-    var instructionTexts:Array<FlxText> = []; // for scripting purposes
-
-    var songs:Array<SongStructure>;
-    var currentSelection:Int = 0;
-
-    var difficulties:Array<String> = [];
-    var currentDifficulty:Int = 0;
-
-    var playMusic:Bool = false;
-    var music:FlxSound;
-
-    var showDetails:Bool = false;
     var allowInputs:Bool = true;
-
-    var scoreData:ScoreMeasure;
-
-    var lerpScore:Float;
-    var lerpAccuracy:Float;
+    var error:Bool = false;
 
     #if ENGINE_SCRIPTING
     var overrideCode:Bool = false;
     #end
 
-    var error:Bool = false;
-
     override function create():Void {
         songs = loadFreeplaySongs();
 
         if (songs == null || songs.length < 1) {
-            trace("Error loading freeplay songs, going back to the Main Menu.");
-
+            trace("Error loading freeplay songs!");
             error = true;
-            // persistentUpdate = false; // this does not seems to work??
-            FlxG.switchState(MainMenu.new);
-            return;
         }
-
-        PlayState.gameMode = FREEPLAY;
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "Freeplay Menu";
         #end
+
+        PlayState.gameMode = FREEPLAY;
 
         super.create();
 
@@ -83,101 +65,79 @@ class FreeplayMenu extends MusicBeatState {
         }
         #end
 
-        background = new FlxSprite().loadGraphic(Assets.image("menus/menuDesat"));
+        background = new Background(this);
         add(background);
+
+        if (error) {
+            // show a notice
+            var overlay:FlxSprite = new FlxSprite();
+            overlay.makeRect(FlxG.width, FlxG.height - 100, FlxColor.BLACK);
+            overlay.screenCenter(Y);
+            overlay.alpha = 0.6;
+            add(overlay);
+
+            var text:Alphabet = new Alphabet(0, 0, "NO SONGS FOUND!");
+            text.screenCenter();
+            add(text);
+
+            var goBack:Alphabet = new Alphabet(0, 0, "", false);
+            goBack.scale.set(0.4, 0.4);
+            goBack.text = 'Press ${controls.listKeys("back", " or ")} to go back to the Main Menu.';
+            goBack.y = overlay.y + overlay.height - goBack.height - 10;
+            goBack.x = overlay.width - goBack.width - 10;
+            add(goBack);
+
+            background.intendedColor = background.color = FlxColor.RED;
+
+            #if ENGINE_SCRIPTING
+            hxsCall("onCreatePost");
+            #end
+
+            return;
+        }
 
         items = new FlxTypedGroup<Alphabet>();
         add(items);
 
-        for (songData in songs) {
-            var i:Int = songs.indexOf(songData);
+        icons = new FlxTypedGroup<HealthIcon>();
+        add(icons);
 
-            var item:Alphabet = new Alphabet(0, 0, songData.name);
+        for (i in 0...songs.length) {
+            var data:SongStructure = songs[i];
+
+            var item:Alphabet = new Alphabet(0, 0, data.name);
+            item.target = item.ID = i;
             item.menuItem = true;
-            item.target = i;
-            item.ID = i;
-
-            var icon:HealthIcon = new HealthIcon(0, 0, songData.icon);
-            icon.offset.y = icon.frameHeight * 0.25;
-            icon.healthAnim = false;
-            item.spriteTrackers.set(icon, RIGHT);
-            add(icon);
-
-            items.add(item);
             item.doIntro();
+            items.add(item);
+
+            var icon:HealthIcon = new HealthIcon(0, 0, data.icon);
+            icon.healthAnim = false;
+            icon.ID = i;
+            icons.add(icon);
         }
 
-        // TODO: do not use BGText
-        scoreText = new BGText(FlxG.width * 0.7, 5);
-        scoreText.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, RIGHT);
-        scoreText.automaticScale = scoreText.automaticPosition = false;
-        scoreText.background.makeGraphic(1, 66, 0x99000000);
-        scoreBG = scoreText.background;
-        add(scoreText);
+        scoreBG = new FlxSprite();
+        scoreBG.makeRect(1, 66, 0x99000000);
+        add(scoreBG);
 
+        scoreText = new FlxText(FlxG.width * 0.7, 5);
+        scoreText.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, RIGHT);
+        add(scoreText);
+        
         difficultyText = new FlxText(scoreText.x, scoreText.y + 36, 0, "", 24);
         difficultyText.font = scoreText.font;
         add(difficultyText);
 
-        var instructionText:Array<String> = ["SPACE: play/stop instrumental"];
-        var sepScale:Float = 0.25;
-        var sepY:Float = 0.65;
+        extraInfo = new ExtraInfo(this);
+        add(extraInfo);
 
-        if (Settings.get("editor access")) {
-            instructionText.push("ENTER + SHIFT: open song in chart editor");
-            sepScale = sepY = 0.5;
-        }
+        instructions = new Instructions();
+        add(instructions);
 
-        instructionText.push("CTRL: show/hide song score details");
-        instructionText.push("R: reset song score");
-
-        instructionBG = new FlxSprite();
-        instructionBG.makeRect(FlxG.width, 70, FlxColor.BLACK);
-        instructionBG.y = FlxG.height - instructionBG.height;
-        instructionBG.alpha = 0.4;
-        add(instructionBG);
-
-        instructionSep = new FlxSprite();
-        instructionSep.makeRect(1.75, instructionBG.height * sepScale);
-        instructionSep.y = instructionBG.y + (instructionBG.height - instructionSep.height) * sepY;
-        instructionSep.screenCenter(X);
-        add(instructionSep);
-
-        var odd:Bool = ((instructionText.length % 2) == 0);
-
-        for (i in 0...instructionText.length) {
-            var center:Bool = (!odd && i == 0);
-            var right:Bool = ((i % 2) == 0);
-
-            var text:FlxText = new FlxText();
-            text.setFormat(scoreText.font, 18, FlxColor.WHITE, (center) ? CENTER : ((right) ? RIGHT : LEFT));
-            text.text = instructionText[i];
-
-            if (center) {
-                text.y = instructionSep.y - text.height;
-                text.screenCenter(X);
-            }
-            else {
-                text.y = instructionSep.y;
-                if (odd)
-                    text.y += ((instructionSep.height - text.height) * Math.floor(i / 2));
-
-                text.x = (right) ? (instructionSep.x - text.width - 15) : (instructionSep.x + 15);
-            }
-
-            instructionTexts.push(text);
-            add(text);
-        }
-
-        detailsText = new FlxText(0, scoreText.y + 104);
-        detailsText.setFormat(scoreText.font, 32, FlxColor.WHITE, RIGHT);
-        detailsText.clipRect = flixel.math.FlxRect.get();
-        add(detailsText);
-
-        music = FlxG.sound.list.recycle(FlxSound);
+        inst = FlxG.sound.list.recycle(FlxSound);
         Tools.playMusicCheck("freakyMenu");
 
-        persistentUpdate = true;
         changeSelection();
 
         #if ENGINE_SCRIPTING
@@ -186,9 +146,6 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        if (error)
-            return;
-
         #if ENGINE_SCRIPTING
         hxsCall("onUpdate", [elapsed]);
         super.update(elapsed);
@@ -201,81 +158,57 @@ class FreeplayMenu extends MusicBeatState {
         super.update(elapsed);
         #end
 
-        if (background.color != bgCol) {
-            background.color = FlxColor.interpolate(oldBgCol, bgCol, bgTimer / 0.75);
-            bgTimer = Math.min(bgTimer + elapsed, 0.75);
+        if (error) {
+            if (allowInputs && controls.justPressed("back")) leave();
+            #if ENGINE_SCRIPTING hxsCall("onUpdatePost", [elapsed]); #end
+            return;
         }
 
         if (allowInputs) {
-            if (items.length > 1 && controls.anyJustPressed(["up", "down"]))
-                changeSelection(controls.lastAction == "up" ? -1 : 1);
-
-            if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"]) #if ENGINE_SCRIPTING && !cancellableCall("onDifficultyChange") #end) {
-                currentDifficulty = FlxMath.wrap(currentDifficulty + ((controls.lastAction == "left") ? -1 : 1), 0, difficulties.length - 1);
-                updateScoreData();
-
-                #if ENGINE_SCRIPTING
-                hxsCall("onDifficultyChangePost");
-                #end
-            }
+            if (items.length > 1 && controls.anyJustPressed(["up", "down"])) changeSelection(controls.lastAction == "up" ? -1 : 1);
+            if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) changeDiff(controls.lastAction == "left" ? -1 : 1);
 
             if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER && Settings.get("editor access")) {
                 openChartEditor();
+
+                #if ENGINE_SCRIPTING
+                hxsCall("onUpdatePost", [elapsed]);
+                #end
+
                 return; // avoid conflicts with other keybinds
             }
 
-            if (controls.justPressed("accept"))
-                accept();
+            if (controls.justPressed("accept")) accept();
+            if (controls.justPressed("back")) leave();
 
-            if (controls.justPressed("back")) {
-                allowInputs = false;
-                FlxG.switchState(MainMenu.new);
-            }
+            if (FlxG.keys.justPressed.R && subState == null) openResetScreen();
+            if (FlxG.keys.justPressed.CONTROL) extraInfo.show = !extraInfo.show;
 
             if (FlxG.keys.justPressed.SPACE) {
-                playMusic = !playMusic;
-                (playMusic) ? playInstrumental() : stopMusic();
+                playInst = !playInst;
+                (playInst) ? playInstrumental() : stopInst();
             }
-
-            if (FlxG.keys.justPressed.R) {
-                persistentUpdate = false;
-
-                var screen:ResetScoreScreen = new ResetScoreScreen();
-                screen.songs = [songs[currentSelection].rawName];
-                screen.difficulty = difficulties[currentDifficulty];
-                screen.display = '"${songs[currentSelection].name}" with difficulty "${screen.difficulty}"';
-                screen.onReset = updateScoreData;
-                openSubState(screen);
-            }
-
-            if (FlxG.keys.justPressed.CONTROL)
-                showDetails = !showDetails;
         }
 
-        lerpScore = Math.floor(Tools.lerp(lerpScore, scoreData.score, 24));
-        if (lerpScore != scoreData.score && Math.abs(lerpScore - scoreData.score) <= 10)
-            lerpScore = scoreData.score;
+        icons.forEach((icon) -> iconFollow(icon, items.members[icon.ID]));
 
-        lerpAccuracy = Tools.lerp(lerpAccuracy, scoreData.accuracy, 6);
-        if (lerpAccuracy != scoreData.accuracy && Math.abs(lerpAccuracy - scoreData.accuracy) <= 5)
-            lerpAccuracy = scoreData.accuracy;
+        if (lerpScore != scoreData.score) {
+            lerpScore = Math.floor(Tools.lerp(lerpScore, scoreData.score, 24));
+            if (Math.abs(lerpScore - scoreData.score) <= 10)
+                lerpScore = scoreData.score;
+        }
 
         scoreText.text = "HIGH SCORE: " + lerpScore;
-        scoreText.x = Tools.lerp(scoreText.x, FlxG.width - scoreText.width - 6, 24);
+        scoreText.x = Tools.lerp(scoreText.x, FlxG.width - scoreText.width - 3, 24);
 
+        scoreBG.scale.x = Tools.lerp(scoreBG.scale.x, scoreText.width + 6, 24);
         scoreBG.x = FlxG.width - scoreBG.scale.x * 0.5;
-        scoreBG.scale.set(Tools.lerp(scoreBG.scale.x, FlxG.width - scoreText.x + 6, 24),
-            Tools.lerp(scoreBG.scale.y, (showDetails) ? 5.5 : 1, 6 * ((showDetails) ? 1 : 0.75)));
 
-        detailsText.text = 'MISSES: ${scoreData.misses}\nACCURACY: ${FlxMath.roundDecimal(lerpAccuracy, 2)}%';
-        if (scoreData.rank.length > 0)
-            detailsText.text += '\nRANK: ${scoreData.rank}';
+        var diffText:String = difficulties[difficulty].toUpperCase();
+        if (difficulties.length > 1) diffText = "< " + diffText + " >";
 
-        detailsText.clipRect.setSize(detailsText.width, detailsText.height * (scoreBG.scale.y - 4));
-        detailsText.clipRect = detailsText.clipRect;
-
-        detailsText.x = Tools.lerp(detailsText.x, scoreText.x + (scoreText.width * 0.5) - (detailsText.width * 0.5), 24);
-        updateDifficultyText();
+        difficultyText.text = diffText;
+        difficultyText.centerToObject(scoreBG, X);
 
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);
@@ -288,39 +221,50 @@ class FreeplayMenu extends MusicBeatState {
             return;
         #end
 
+        var maxSelect:Int = items.length - 1;
+        var oldSelect:Int = selection;
+        var doTween:Bool = false;
+
         if (change != 0) {
-            currentSelection = FlxMath.wrap(currentSelection + change, 0, items.length - 1);
+            selection = FlxMath.wrap(selection + change, 0, maxSelect);
+            doTween = ((selection == 0 && oldSelect == maxSelect) || (selection == maxSelect && oldSelect == 0));
             FlxG.sound.play(Assets.sound("scrollMenu"));
         }
 
         for (item in items) {
-            item.target = items.members.indexOf(item) - currentSelection;
-            item.alpha = (item.ID == currentSelection) ? 1 : 0.6;
+            var icon:HealthIcon = icons.members[item.ID];
 
-            for (spr in item.spriteTrackers.keys())
-                spr.alpha = item.alpha;
+            item.target = item.ID - selection;
+            item.alpha = icon.alpha = (item.target == 0) ? 1 : 0.6;
+
+            if (doTween) {
+                item.snapToPosition();
+                iconFollow(icon, item);
+                item.doIntro();
+            }
         }
 
-        oldBgCol = background.color;
-        bgCol = songs[currentSelection].color;
-        bgTimer = 0;
+        var oldDiff:String = difficulties[difficulty];
+        difficulties = songs[selection].difficulties;
+        difficulty = Std.int(FlxMath.bound(difficulty, 0, difficulties.length - 1));
+        if (difficulties.contains(oldDiff)) difficulty = difficulties.indexOf(oldDiff);
 
-        if (playMusic) {
-            playMusic = false;
-            stopMusic();
-        }
-
-        var oldDifficulty:String = difficulties[currentDifficulty];
-        difficulties = songs[currentSelection].difficulties;
-        currentDifficulty = Std.int(FlxMath.bound(currentDifficulty, 0, difficulties.length - 1));
-
-        if (difficulties.contains(oldDifficulty))
-            currentDifficulty = difficulties.indexOf(oldDifficulty);
-
+        background.intendedColor = songs[selection].color;
         updateScoreData();
 
         #if ENGINE_SCRIPTING
         hxsCall("onSelectionChangePost", [change]);
+        #end
+    }
+
+    inline function changeDiff(i:Int):Void {
+        #if ENGINE_SCRIPTING if (cancellableCall("onDifficultyChange")) return; #end
+
+        difficulty = FlxMath.wrap(difficulty + i, 0, difficulties.length - 1);
+        updateScoreData();
+
+        #if ENGINE_SCRIPTING
+        hxsCall("onDifficultyChangePost");
         #end
     }
 
@@ -332,8 +276,31 @@ class FreeplayMenu extends MusicBeatState {
 
         allowInputs = false;
 
-        Transition.onComplete.add(() -> PlayState.load(songs[currentSelection].rawName, difficulties[currentDifficulty]));
-        FlxG.switchState(PlayState.new.bind(0));
+        Transition.onComplete.add(() -> PlayState.load(songs[selection].rawName, difficulties[difficulty]));
+        FlxG.switchState(LoadingScreen.new.bind(0));
+    }
+
+    inline function leave():Void {
+        if (FlxG.keys.pressed.SHIFT && inst.playing) {
+            FlxG.sound.music.fadeTween?.cancel();
+            FlxG.sound.music.destroy();
+            FlxG.sound.music = inst;
+            inst.persist = true;
+        }
+
+        FlxG.sound.play(Assets.sound("cancelMenu"));
+        allowInputs = false;
+
+        FlxG.switchState(MainMenu.new);
+    }
+
+    inline function openResetScreen():Void {
+        var screen:ResetScoreScreen = new ResetScoreScreen();
+        screen.songs = [songs[selection].rawName];
+        screen.difficulty = difficulties[difficulty];
+        screen.display = '"${songs[selection].name}" with difficulty "${screen.difficulty}"';
+        screen.onReset = updateScoreData;
+        openSubState(screen);
     }
 
     inline function openChartEditor():Void {
@@ -342,73 +309,83 @@ class FreeplayMenu extends MusicBeatState {
         PlayState.gameMode = DEBUG;
         allowInputs = false;
 
-        var chartEditor:ChartEditor = new ChartEditor(null, difficulties[currentDifficulty]);
+        var chartEditor:ChartEditor = new ChartEditor(null, difficulties[difficulty]);
         Transition.onComplete.add(() -> {
             // avoid lag
-            PlayState.load(songs[currentSelection].rawName, chartEditor.difficulty);
+            PlayState.load(songs[selection].rawName, chartEditor.difficulty);
             chartEditor.chart = PlayState.song;
         });
 
         FlxG.switchState(() -> chartEditor);
     }
 
-    inline function updateScoreData():Void
-        scoreData = HighScore.get('${songs[currentSelection].rawName}-${difficulties[currentDifficulty]}');
+    inline function updateScoreData():Void {
+        scoreData = HighScore.get('${songs[selection].rawName}-${difficulties[difficulty]}');
+    }
 
-    inline function updateDifficultyText():Void {
-        var baseText:String = difficulties[currentDifficulty].toUpperCase();
-
-        if (difficulties.length > 1) {
-            var max:Int = difficulties.length - 1;
-
-            if (currentDifficulty == 0 || currentDifficulty != max)
-                baseText += " >";
-            if (currentDifficulty != 0)
-                baseText = "< " + baseText;
-        }
-
-        difficultyText.text = baseText;
-        difficultyText.x = Math.floor(scoreText.background.x + scoreText.background.width * 0.5) - (difficultyText.width * 0.5);
+    inline function iconFollow(icon:HealthIcon, item:Alphabet):Void {
+        icon.setPosition(item.x + item.width + 10, item.y + (item.height - icon.height) * 0.5);
     }
 
     inline function playInstrumental():Void {
-        if (music == null)
-            return;
+        if (inst == null) return;
 
         FlxG.sound.music.fadeOut(0.5, 0);
 
         #if (target.threaded)
-        sys.thread.Thread.create(playNextSong);
+        sys.thread.Thread.create(loadInst);
         #else
-        playNextSong();
+        loadInst();
         #end
     }
 
-    inline function stopMusic():Void {
-        if (music == null)
-            return;
+    inline function stopInst():Void {
+        if (inst == null) return;
 
-        music.fadeOut(0.5, 0, ((_) -> music.pause()));
+        inst.fadeOut(0.5, 0, ((_) -> inst.pause()));
         FlxG.sound.music.fadeOut(0.5, 1);
     }
 
-    inline function playNextSong():Void {
-        music.loadEmbedded(Assets.songAudio(songs[currentSelection].rawName, "song/Inst"));
-        music.volume = 0;
-        music.play();
-        music.fadeOut(0.5, 1);
+    inline function loadInst():Void {
+        // get the corresponding inst file
+        var finalAsset:openfl.media.Sound = null;
+
+        try {
+            var song:String = songs[selection].rawName;
+            var meta:String = Assets.json('songs/${song}/meta');
+    
+            var chartFile:String = FileTools.getContent(Assets.json('songs/${song}/charts/${difficulties[difficulty]}'));
+            if (!chartFile.contains("instFile") && FileTools.exists(meta))
+                chartFile = FileTools.getContent(meta);
+    
+            var data:Dynamic = haxe.Json.parse(chartFile);
+            var file:String = (data.song != null ? "Inst" : (data.instFile ?? data.meta.instFile));
+            finalAsset = Assets.songAudio(song, "song/" + file);
+        }
+        catch (e) {
+            // fallback
+            trace('Failed to load instrumental! [${e.message}]');
+            finalAsset = Assets.music("chillFresh");
+        }
+
+        inst.loadEmbedded(finalAsset);
+        inst.volume = 0;
+        inst.play();
+        inst.fadeOut(0.5, 1);
     }
 
     override function destroy():Void {
-        if (music != null) {
-            FlxG.sound.list.remove(music, true);
-            music.destroy();
+        if (inst != null && inst != FlxG.sound.music) {
+            FlxG.sound.list.remove(inst, true);
+            inst.destroy();
+
+            if (FlxG.sound.music.fadeTween != null)
+                FlxG.sound.music.fadeTween.cancel();
+            FlxG.sound.music.volume = 1;
         }
 
         songs = null;
         difficulties = null;
-
-        instructionTexts = null;
         scoreData = null;
 
         super.destroy();
@@ -441,6 +418,140 @@ class FreeplayMenu extends MusicBeatState {
         }
 
         return list;
+    }
+}
+
+class Background extends FlxSprite {
+    public var intendedColor(default, set):FlxColor;
+    var oldColor:FlxColor;
+
+    var parent:FreeplayMenu;
+    var tmr:Float;
+
+    public function new(parent:FreeplayMenu):Void {
+        super(0, 0, Assets.image("menus/menuDesat"));
+        this.parent = parent;
+    }
+
+    override function update(elapsed:Float):Void {
+        if (color != intendedColor) {
+            color = FlxColor.interpolate(oldColor, intendedColor, tmr / 0.75);
+            tmr = Math.min(tmr + elapsed, 0.75);
+        }
+        
+        super.update(elapsed);
+    }
+
+    function set_intendedColor(v:FlxColor):FlxColor {
+        tmr = 0;
+        oldColor = color;
+        return intendedColor = v;
+    }
+}
+
+class Instructions extends FlxSpriteGroup {
+    public function new():Void {
+        super();
+
+        var instructionText:Array<String> = ["SPACE: play/stop instrumental", "CTRL: show/hide song score details", "R: reset song score"];
+        var sepScale:Float = 0.25;
+        var sepY:Float = 0.65;
+
+        if (Settings.get("editor access")) {
+            instructionText.insert(1, "ENTER + SHIFT: open song in chart editor");
+            sepScale = sepY = 0.5;
+        }
+
+        var odd:Bool = ((instructionText.length % 2) == 0);
+
+        var background:FlxSprite = new FlxSprite();
+        background.makeRect(FlxG.width, 70, FlxColor.BLACK);
+        background.y = FlxG.height - background.height;
+        background.alpha = 0.4;
+        add(background);
+
+        var separator:FlxSprite = new FlxSprite();
+        separator.makeRect(1.75, background.height * sepScale);
+        separator.y = background.y + (background.height - separator.height) * sepY;
+        separator.screenCenter(X);
+        add(separator);
+
+        for (i in 0...instructionText.length) {
+            var center:Bool = (!odd && i == 0);
+            var right:Bool = ((i % 2) == 0);
+
+            var text:FlxText = new FlxText();
+            text.setFormat(Assets.font("vcr"), 18, FlxColor.WHITE, (center) ? CENTER : ((right) ? RIGHT : LEFT));
+            text.text = instructionText[i];
+
+            if (center) {
+                text.y = separator.y - text.height;
+                text.screenCenter(X);
+            }
+            else {
+                text.y = separator.y;
+                if (odd) text.y += ((separator.height - text.height) * Math.floor(i / 2));
+                text.x = (right) ? (separator.x - text.width - 15) : (separator.x + 15);
+            }
+            
+            add(text);
+        }
+    }
+}
+
+class ExtraInfo extends FlxSpriteGroup {
+    public var show:Bool = false;
+    public var background:FlxSprite;
+    public var text:FlxText;
+
+    var parent:FreeplayMenu;
+    var lerpAccuracy:Float;
+
+    public function new(parent:FreeplayMenu):Void {
+        super();
+
+        this.parent = parent;
+
+        background = new FlxSprite();
+        background.makeRect(1, 1, FlxColor.BLACK);
+        background.alpha = 0.6;
+        add(background);
+
+        text = new FlxText();
+        text.setFormat(parent.scoreText.font, 32, FlxColor.WHITE, RIGHT);
+        text.text = 'MISSES: 0\nACCURACY: 0%\nRANK: ?';
+        add(text);
+
+        setPosition(FlxG.width, parent.scoreText.y + 80);
+        updateBgScale();
+    }
+
+    override function update(elapsed:Float):Void {
+        x = Tools.lerp(x, (show) ? FlxG.width - background.width : FlxG.width - 3, 24);
+        if (!show) return;
+
+        if (lerpAccuracy != parent.scoreData.accuracy) {
+            lerpAccuracy = Tools.lerp(lerpAccuracy, parent.scoreData.accuracy, 6);
+            if (Math.abs(lerpAccuracy - parent.scoreData.accuracy) <= 5)
+                lerpAccuracy = parent.scoreData.accuracy;
+        }
+        
+        var fullText:String = 'MISSES: ${parent.scoreData.misses}\nACCURACY: ${FlxMath.roundDecimal(lerpAccuracy, 2)}%';
+        if (parent.scoreData.rank.length > 0) fullText += '\nRANK: ${parent.scoreData.rank}';
+        text.text = fullText;
+
+        updateBgScale();
+        background.centerToObject(text);
+    }
+
+    inline function updateBgScale():Void {
+        background.scale.set(text.width + 10, text.height + 10);
+        background.updateHitbox();
+    }
+
+    override function destroy():Void {
+        parent = null;
+        super.destroy();
     }
 }
 

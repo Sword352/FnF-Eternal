@@ -2,103 +2,85 @@ package funkin.objects;
 
 class Rating {
     public var name:String;
-
-    public var scoreIncrement:Null<Float>;
-    public var accuracyMod:Null<Float>;
-    public var hitWindow:Null<Float>;
-
     public var rank:String;
-    public var hits:Null<Int>;
-    public var missThreshold:Null<Int>;
-    public var missExceed:Null<Int>;
+    public var image:String;
 
-    public var ratingGraphic:String;
-    public var causesMiss:Null<Bool>;
-    public var displayNoteSplash:Null<Bool>;
-    public var displayCombo:Null<Bool>;
+    public var scoreIncrement:Float = 0;
+    public var accuracyMod:Float = 0;
+    public var hitWindow:Float = 0;
 
-    public function new(?name:String):Void {
-        reset();
-        if (name != null)
-            this.name = name;
+    public var hits:Int = 0;
+    public var missThreshold:Int = 0;
+
+    public var causesMiss:Bool;
+    public var displayNoteSplash:Bool;
+    public var displayCombo:Bool;
+
+    public function new(name:String = "sick"):Void {
+        this.name = name;
+        reset();            
     }
 
     public function copy(copyHits:Bool = false):Rating {
         var rating:Rating = new Rating(name);
-        rating.scoreIncrement = scoreIncrement;
-        rating.accuracyMod = accuracyMod;
-        rating.hitWindow = hitWindow;
-        rating.rank = rank;
-        rating.ratingGraphic = ratingGraphic;
         rating.displayNoteSplash = displayNoteSplash;
-        rating.displayCombo = displayCombo;
+        rating.scoreIncrement = scoreIncrement;
         rating.missThreshold = missThreshold;
-        rating.missExceed = missExceed;
+        rating.displayCombo = displayCombo;
+        if (copyHits) rating.hits = hits;
+        rating.accuracyMod = accuracyMod;
         rating.causesMiss = causesMiss;
-        if (copyHits)
-            rating.hits = hits;
+        rating.hitWindow = hitWindow;
+        rating.image = image;
+        rating.rank = rank;
         return rating;
     }
 
     public function reset():Void {
-        name = "sick";
         scoreIncrement = 350;
         accuracyMod = 1;
         hitWindow = 40;
-        ratingGraphic = "sick";
+
+        image = "sick";
         rank = "SFC";
+
         displayNoteSplash = true;
         displayCombo = true;
-        missThreshold = 1;
-        missExceed = null;
         causesMiss = false;
-        hits = 0;
-    }
 
-    public function destroy():Void {
-        name = null;
-        scoreIncrement = null;
-        accuracyMod = null;
-        hitWindow = null;
-        ratingGraphic = null;
-        rank = null;
-        displayNoteSplash = null;
-        displayCombo = null;
-        missThreshold = null;
-        missExceed = null;
-        causesMiss = null;
-        hits = null;
+        missThreshold = 1;
+        hits = 0;
     }
 
     public static function getDefaultList():Array<Rating> {
         var list:Array<Rating> = [new Rating()];
 
         var good:Rating = new Rating("good");
+        good.displayNoteSplash = false;
         good.scoreIncrement = 200;
+        good.missThreshold = 1;
         good.accuracyMod = 0.7;
         good.hitWindow = 85;
+        good.image = "good";
         good.rank = "GFC";
-        good.ratingGraphic = "good";
-        good.displayNoteSplash = false;
-        good.missThreshold = 1;
         list.push(good);
 
         var bad:Rating = new Rating("bad");
+        bad.displayNoteSplash = false;
         bad.scoreIncrement = 100;
+        bad.missThreshold = 1;
         bad.accuracyMod = 0.3;
         bad.hitWindow = 125;
-        bad.ratingGraphic = "bad";
-        bad.displayNoteSplash = false;
-        bad.missThreshold = 1;
+        bad.image = "bad";
         list.push(bad);
 
         var shit:Rating = new Rating("shit");
+        shit.displayNoteSplash = false;
         shit.scoreIncrement = 50;
+        shit.missThreshold = 1;
         shit.accuracyMod = 0;
         shit.hitWindow = 140;
-        shit.ratingGraphic = "shit";
-        shit.displayNoteSplash = false;
-        shit.missThreshold = 1;
+        shit.image = "shit";
         list.push(shit);
 
         return list;

@@ -60,13 +60,10 @@ class Tools {
     }
 
     inline public static function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
-        if (object == null || base == null)
-            return object;
+        if (object == null || base == null) return object;
 
-        if (axes.x)
-            object.x = base.x + (base.width / 2) - (object.width / 2);
-        if (axes.y)
-            object.y = base.y + (base.height / 2) - (object.height / 2);
+        if (axes.x) object.x = base.x + ((base.width - object.width) * 0.5);
+        if (axes.y) object.y = base.y + ((base.height - object.height) * 0.5);
         return object;
     }
 

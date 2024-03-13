@@ -3,6 +3,8 @@ package eternal;
 import funkin.objects.sprites.OffsetSprite;
 
 class NoteSkin {
+    public static var clearData:Bool = true;
+
     static var skins:Map<String, NoteSkinConfig> = [];
     static var _warnings:Array<String> = [];
 
@@ -26,8 +28,12 @@ class NoteSkin {
     }
 
     public static inline function clear():Void {
-        _warnings.splice(0, _warnings.length);
-        skins.clear();
+        if (clearData) {
+            _warnings.splice(0, _warnings.length);
+            skins.clear();
+        }
+
+        clearData = true;
     }
 
     public static inline function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {
@@ -101,7 +107,7 @@ typedef SplashConfig = GenericSkin & {
     var ?alpha:Float;
 }
 
-private typedef GenericSkin = {
+typedef GenericSkin = {
     var image:String;
     var animations:Array<YAMLAnimation>;
 

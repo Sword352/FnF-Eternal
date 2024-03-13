@@ -7,7 +7,7 @@ import funkin.objects.sprites.DancingSprite;
 import eternal.core.scripting.HScript;
 #end
 
-typedef StageData = {
+typedef StageConfig = {
     var ?cameraSpeed:Float;
     var ?cameraZoom:Float;
     var ?hudZoom:Float;
@@ -97,7 +97,7 @@ class SoftcodedStage extends Stage {
             return;
         }
 
-        var data:StageData = Tools.parseYAML(FileTools.getContent(path));
+        var data:StageConfig = Tools.parseYAML(FileTools.getContent(path));
         if (data == null) {
             trace('Error loading stage data "${stage}"!');
             return;
@@ -141,7 +141,7 @@ class SoftcodedStage extends Stage {
             showSpectator = !data.hideSpectator;
 
         // no need to loop if there is no objects
-        if (data.objects == null || data.objects.length < 1)
+        if (data.objects == null || data.objects.length == 0)
             return;
 
         for (obj in data.objects) {

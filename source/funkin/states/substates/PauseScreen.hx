@@ -141,14 +141,22 @@ class PauseScreen extends MusicBeatSubState {
             case "resume":
                 close();
             case "restart song":
-                Assets.clearAssets = Settings.get("reload assets");
+                Assets.clearAssets = Transition.openOnSubState = Settings.get("reload assets");
                 Transition.skipNextTransIn = Transition.skipNextTransOut = !Assets.clearAssets;
-                FlxG.resetState();
+
+                if (!Assets.clearAssets) FlxG.resetState();
+                else {
+                    Transition.noPersistentUpdate = true;
+                    FlxG.switchState(LoadingScreen.new.bind(PlayState.current.startTime));
+                }
             case "go to options":
+                Transition.openOnSubState = Transition.noPersistentUpdate = true;
                 Assets.clearAssets = Settings.get("reload assets");
                 FlxG.switchState(OptionsMenu.new.bind(true));
             case "exit to menu":
+                Transition.openOnSubState = Transition.noPersistentUpdate = true;
                 PlayState.lossCounter = 0;
+                
                 FlxG.switchState(switch (PlayState.gameMode) {
                     case STORY: StoryMenu.new;
                     default: FreeplayMenu.new;

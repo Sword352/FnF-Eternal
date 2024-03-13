@@ -370,7 +370,7 @@ class StoryMenu extends MusicBeatState {
         Transition.onComplete.add(() -> PlayState.load(songs.shift(), difficulties[currentDifficulty]));
         PlayState.songPlaylist = songs;
 
-        new FlxTimer().start(1, (_) -> FlxG.switchState(PlayState.new.bind(0)));
+        new FlxTimer().start(1, (_) -> FlxG.switchState(LoadingScreen.new.bind(0)));
 
         #if ENGINE_SCRIPTING
         hxsCall("onAcceptPost");
