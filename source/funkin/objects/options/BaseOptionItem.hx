@@ -15,7 +15,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
 
     var controls(get, never):Controls;
     inline function get_controls():Controls
-        return Controls.globalControls;
+        return Controls.global;
 
     var background:FlxSprite;
     var separator:FlxSprite;

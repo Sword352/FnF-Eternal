@@ -5,7 +5,7 @@ import flixel.FlxSubState;
 
 #if ENGINE_MODDING
 @:keep class ModState extends ScriptableState {
-    var controls:Controls = Controls.globalControls;
+    var controls:Controls = Controls.global;
 
     public function new(script:String):Void {
         super();
@@ -38,7 +38,7 @@ import flixel.FlxSubState;
 }
 
 @:keep class ModSubState extends ScriptableSubState {
-    var controls:Controls = Controls.globalControls;
+    var controls:Controls = Controls.global;
 
     public function new(script:String):Void {
         super();

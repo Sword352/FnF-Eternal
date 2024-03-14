@@ -212,7 +212,7 @@ class KeybindItem extends FlxText {
     }
 
     public function updateText(gamepad:Bool = false):Void {
-        var arrayToCheck:Array<Int> = Controls.globalControls.keybinds[keybind][gamepad ? 1 : 0];
+        var arrayToCheck:Array<Int> = Controls.global.keybinds[keybind][gamepad ? 1 : 0];
         if (arrayToCheck == null)
             arrayToCheck = [FlxKey.NONE, FlxKey.NONE];
 

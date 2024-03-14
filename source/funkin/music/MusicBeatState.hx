@@ -9,7 +9,7 @@ import eternal.core.scripting.ScriptableState.ScriptableSubState as SubState;
 #end
 
 class MusicBeatState extends State {
-    var controls:Controls = Controls.globalControls;
+    var controls:Controls = Controls.global;
     var activeConductor:Bool = true;
 
     override function create():Void {
@@ -85,7 +85,7 @@ class MusicBeatState extends State {
 }
 
 class MusicBeatSubState extends SubState {
-    var controls:Controls = Controls.globalControls;
+    var controls:Controls = Controls.global;
 
     public function new():Void {
         super();

@@ -3,19 +3,12 @@ package eternal;
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepad;
 import flixel.input.gamepad.FlxGamepadInputID;
-import flixel.util.FlxSignal.FlxTypedSignal;
 import flixel.input.FlxInput.FlxInputState;
-
-import openfl.ui.Keyboard;
 
 typedef KeyCall = (Int, String) -> Void;
 typedef KeybindSet = Array<Array<Int>>;
 
 class Controls {
-    /**
-     * This mainly exists because maps are unordered, this is required by the option keybind substate.
-     * If you ever add a new keybind make sure to add it in that list as well!
-     */
     public static final keybindOrder:Array<String> = [
         "left",
         "down",
@@ -48,33 +41,23 @@ class Controls {
         #end
     ];
 
-    public static var globalControls(default, null):Controls;
+    public static var global(default, null):Controls;
 
-    public var saveFile:String;
-    public var active:Bool = true;
-
-    public var keybinds(default, null):Map<String, KeybindSet>;
+    public var keybinds:Map<String, KeybindSet>;
     public var lastAction(default, null):String = null;
+    public var saveFile:String;
 
-    public var onKeyPressed(default, null):FlxTypedSignal<KeyCall> = new FlxTypedSignal<KeyCall>();
-    public var onKeyReleased(default, null):FlxTypedSignal<KeyCall> = new FlxTypedSignal<KeyCall>();
-    public var onKeyJustPressed(default, null):FlxTypedSignal<KeyCall> = new FlxTypedSignal<KeyCall>();
-    public var onKeyJustReleased(default, null):FlxTypedSignal<KeyCall> = new FlxTypedSignal<KeyCall>();
-
-    var heldKeys:Array<Int> = [];
+    // public var active:Bool = true;
+    // var heldKeys:Array<Int> = [];
 
     public static inline function init():Void {
-        globalControls = new Controls("main");
+        global = new Controls("main");
         reloadVolumeKeys();
     }
 
     public function new(saveFile:String):Void {
         this.saveFile = saveFile;
         loadControls();
-
-        FlxG.stage.addEventListener("enterFrame", this.updateGamepadInputs);
-        FlxG.stage.application.window.onKeyDown.add(this.onKeyDown);
-        FlxG.stage.application.window.onKeyUp.add(this.onKeyUp);
     }
 
     inline public function pressed(key:String):Bool
@@ -135,14 +118,6 @@ class Controls {
         return false;
     }
 
-    public function getActionFromKey(key:Int, ?fromKeyboard:Null<Bool>):Null<String> {
-        for (id => action in keybinds) {
-            if ((fromKeyboard == null || fromKeyboard) && action[0] != null && action[0].contains(key)) return id;
-            if ((fromKeyboard == null || !fromKeyboard) && FlxG.gamepads.lastActive != null && action[1] != null && action[1].contains(key)) return id;
-        }
-        return null;
-    }
-
     public function listKeys(keybind:String, ?seperator:String = ", "):String {
         var list:Array<String> = [];
 
@@ -181,6 +156,7 @@ class Controls {
         Tools.invokeTempSave((save) -> save.data.controls = keybinds, 'controls_${saveFile}');
     }
 
+    /*
     public function destroy():Void {
         FlxG.stage.removeEventListener("enterFrame", this.updateGamepadInputs);
         FlxG.stage.application.window.onKeyDown.remove(this.onKeyDown);
@@ -250,11 +226,12 @@ class Controls {
             heldKeys.remove(keyCode);
         }
     }
+    */
 
     public static function reloadVolumeKeys(enabled:Bool = true):Void {
-        var muteKeys:Array<FlxKey> = globalControls.keybinds.get("volume mute")[0].filter((k) -> k != NONE);
-        var volumeUpKeys:Array<FlxKey> = globalControls.keybinds.get("volume up")[0].filter((k) -> k != NONE);
-        var volumeDownKeys:Array<FlxKey> = globalControls.keybinds.get("volume down")[0].filter((k) -> k != NONE);
+        var muteKeys:Array<FlxKey> = global.keybinds.get("volume mute")[0].filter((k) -> k != NONE);
+        var volumeUpKeys:Array<FlxKey> = global.keybinds.get("volume up")[0].filter((k) -> k != NONE);
+        var volumeDownKeys:Array<FlxKey> = global.keybinds.get("volume down")[0].filter((k) -> k != NONE);
 
         FlxG.sound.muteKeys = (enabled && muteKeys.length > 0) ? muteKeys : null;
         FlxG.sound.volumeUpKeys = (enabled && volumeUpKeys.length > 0) ? volumeUpKeys : null;

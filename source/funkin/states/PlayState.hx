@@ -288,8 +288,8 @@ class PlayState extends MusicBeatState {
 
         notes = ChartLoader.generateNotes(song, startTime, strumLines.members, playerNoteSkin, oppNoteSkin);
 
-        Controls.globalControls.onKeyJustPressed.add(onKeyDown);
-        Controls.globalControls.onKeyJustReleased.add(onKeyUp);
+        FlxG.stage.application.window.onKeyDown.add(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.add(onKeyUp);
 
         Conductor.updateInterp = true;
         activeConductor = false;
@@ -610,54 +610,54 @@ class PlayState extends MusicBeatState {
         stage.beatHit(currentBeat);
     }
 
-    inline function onKeyDown(rawID:Int, action:String) {
-        #if ENGINE_SCRIPTING
-        hxsCall("onKeyPressUnsafe", [rawID, action]);
-        #end
-
-        if (playerStrumline.cpu || action == null || !Note.directions.contains(action) || subState != null)
-            return;
+    inline function onKeyDown(rawKey:Int, _) {
+        var key:Int = Tools.convertLimeKey(rawKey);
+        var dir:Int = playerStrumline.getDirFromKey(key);
 
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onKeyPress", [rawID, action]))
-            return;
+        hxsCall("onKeyPressUnsafe", [key, dir]);
         #end
 
-        var direction:Int = Note.directions.indexOf(action);
-        var noteHit:NoteHit = playerStrumline.keyHit(direction);
+        if (playerStrumline.cpu || dir == -1 || subState != null) return;
 
+        #if ENGINE_SCRIPTING
+        if (cancellableCall("onKeyPress", [key, dir])) return;
+        #end
+
+        var noteHit:NoteHit = playerStrumline.keyHit(dir);
         if (noteHit != null) {
             switch (noteHit) {
                 case NOTE_HIT(note):
                     goodNoteHit(note);
                 case MISSED:
-                    playMissAnimation(direction);
+                    playMissAnimation(dir);
                     miss(null);
             }
         }
 
         #if ENGINE_SCRIPTING
-        hxsCall("onKeyPressPost", [rawID, action]);
+        hxsCall("onKeyPressPost", [key, dir]);
         #end
     }
 
-    inline function onKeyUp(rawID:Int, action:String) {
+    inline function onKeyUp(rawKey:Int, _) {
+        var key:Int = Tools.convertLimeKey(rawKey);
+        var dir:Int = playerStrumline.getDirFromKey(key, true);
+
         #if ENGINE_SCRIPTING
-        hxsCall("onKeyReleaseUnsafe", [rawID, action]);
+        hxsCall("onKeyReleaseUnsafe", [key, dir]);
         #end
 
-        if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
-            return;
+        if (playerStrumline.cpu || dir == -1) return;
 
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onKeyRelease", [rawID, action]))
-            return;
+        if (cancellableCall("onKeyRelease", [key, dir])) return;
         #end
 
-        playerStrumline.keyRelease(Note.directions.indexOf(action));
+        playerStrumline.keyRelease(dir);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onKeyReleasePost", [rawID, action]);
+        hxsCall("onKeyReleasePost", [key, dir]);
         #end
     }
 
@@ -904,8 +904,8 @@ class PlayState extends MusicBeatState {
         DiscordPresence.presence.state = "";
         #end
 
-        Controls.globalControls.onKeyJustPressed.remove(onKeyDown);
-        Controls.globalControls.onKeyJustReleased.remove(onKeyUp);
+        FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
 
         // Destroy remaining notes
         while (notes.length > 0)

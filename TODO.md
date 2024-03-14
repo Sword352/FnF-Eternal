@@ -3,11 +3,11 @@
 - Add unlockable weeks/songs support
 
 - Finish the built-in events
+- Finish controller input support
 - Finish the audio offset support
 - Finish the FNF modpack port
 
 ### Medium Priority
-- Test/Fix controller inputs
 - Allow difficulties to be changed in the pause menu (freeplay only)
 - Allow multi-events (2 or more events having the same time value)
 - Gameplay UI tweaks

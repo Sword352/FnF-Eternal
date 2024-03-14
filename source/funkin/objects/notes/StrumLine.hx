@@ -179,6 +179,19 @@ class StrumLine extends FlxGroup {
         for (character in characters) character.holding = holdKeys.contains(true);
     }
 
+    public function getDirFromKey(key:Int, release:Bool = false):Int {
+        var controls:Controls = Controls.global;
+        var actions:Array<String> = ["left", "down", "up", "right"];
+
+        for (i in 0...actions.length) {
+            for (k in controls.keybinds[actions[i]][0])
+                if (key == k && (!holdKeys[i] || release))
+                    return i;
+        }
+
+        return -1;
+    }
+
     inline function miss(note:Note):Void {
         if (note.isSustainNote) {
             note.baseVisible = false;

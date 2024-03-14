@@ -117,8 +117,8 @@ class ChartPlayState extends MusicBeatSubState {
         strumLines = [opponentStrumline, playerStrumline];
         notes = ChartLoader.generateNotes(parent.chart, startTime, strumLines);
 
-        Controls.globalControls.onKeyJustPressed.add(onKeyDown);
-        Controls.globalControls.onKeyJustReleased.add(onKeyUp);
+        FlxG.stage.application.window.onKeyDown.add(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.add(onKeyUp);
 
         Conductor.time = startTime - (850 * parent.music.pitch);
         Conductor.playbackRate = parent.music.pitch;
@@ -167,13 +167,11 @@ class ChartPlayState extends MusicBeatSubState {
                 icon.bop();
     }
 
-    inline function onKeyDown(rawID:Int, action:String):Void {
-        if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
-            return;
+    inline function onKeyDown(rawKey:Int, _):Void {
+        var dir:Int = playerStrumline.getDirFromKey(Tools.convertLimeKey(rawKey));
+        if (playerStrumline.cpu || dir == -1) return;
 
-        var direction:Int = Note.directions.indexOf(action);
-        var noteHit:NoteHit = playerStrumline.keyHit(direction);
-
+        var noteHit:NoteHit = playerStrumline.keyHit(dir);
         if (noteHit != null) {
             switch (noteHit) {
                 case NOTE_HIT(note):
@@ -184,11 +182,10 @@ class ChartPlayState extends MusicBeatSubState {
         }
     }
 
-    inline function onKeyUp(rawID:Int, action:String):Void {
-        if (playerStrumline.cpu || action == null || !Note.directions.contains(action))
-            return;
-
-        playerStrumline.keyRelease(Note.directions.indexOf(action));
+    inline function onKeyUp(rawKey:Int, _):Void {
+        var dir:Int = playerStrumline.getDirFromKey(Tools.convertLimeKey(rawKey), true);
+        if (dir != -1 && !playerStrumline.cpu)
+            playerStrumline.keyRelease(dir);
     }
 
     inline function onNoteHit(note:Note):Void {
@@ -380,8 +377,8 @@ class ChartPlayState extends MusicBeatSubState {
         notes = null;
         icons = null;
 
-        Controls.globalControls.onKeyJustPressed.remove(onKeyDown);
-        Controls.globalControls.onKeyJustReleased.remove(onKeyUp);
+        FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
 
         super.destroy();
 
