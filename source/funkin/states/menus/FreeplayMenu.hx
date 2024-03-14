@@ -5,8 +5,8 @@ import flixel.sound.FlxSound;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
-import funkin.objects.ui.Alphabet;
-import funkin.objects.ui.HealthIcon;
+import funkin.objects.Alphabet;
+import funkin.objects.HealthIcon;
 import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 

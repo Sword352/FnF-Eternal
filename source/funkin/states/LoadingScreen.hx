@@ -3,16 +3,16 @@ package funkin.states;
 import flixel.FlxState;
 import openfl.Lib;
 
-import eternal.ChartFormat.Chart;
-import eternal.NoteSkin;
+import funkin.globals.ChartFormat.Chart;
+import funkin.globals.NoteSkin;
 
 #if sys
 import sys.thread.FixedThreadPool;
 import sys.thread.Mutex;
 #end
 
-import funkin.objects.Character.CharacterConfig;
-import funkin.objects.stages.SoftcodedStage.StageConfig;
+import funkin.gameplay.Character.CharacterConfig;
+import funkin.gameplay.stages.SoftcodedStage.StageConfig;
 
 // you don't need to access this state in order to access PlayState. This just helps making the slow loading process faster.
 class LoadingScreen extends FlxState {

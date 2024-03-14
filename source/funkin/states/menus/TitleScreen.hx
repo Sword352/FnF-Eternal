@@ -1,8 +1,8 @@
 package funkin.states.menus;
 
-import funkin.objects.ui.Alphabet;
-import funkin.objects.sprites.OffsetSprite;
-import funkin.objects.sprites.DancingSprite;
+import funkin.objects.Alphabet;
+import funkin.objects.OffsetSprite;
+import funkin.objects.DancingSprite;
 
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;

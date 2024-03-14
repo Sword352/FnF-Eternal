@@ -5,13 +5,13 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxStringUtil;
 import flixel.group.FlxSpriteGroup;
 
-import funkin.objects.Rating;
-import funkin.objects.notes.*;
-import funkin.objects.ui.HealthIcon;
-import funkin.objects.sprites.RatingSprite;
-import funkin.objects.notes.StrumLine.NoteHit;
+import funkin.gameplay.Rating;
+import funkin.gameplay.notes.*;
+import funkin.objects.HealthIcon;
+import funkin.gameplay.ComboPopup;
+import funkin.gameplay.notes.StrumLine.NoteHit;
 
-import eternal.ChartLoader;
+import funkin.globals.ChartLoader;
 
 /**
  * TODO:

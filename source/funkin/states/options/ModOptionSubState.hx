@@ -1,7 +1,7 @@
 package funkin.states.options;
 
 #if ENGINE_MODDING
-import funkin.objects.options.*;
+import funkin.states.options.items.*;
 
 class ModOptionSubState extends BaseOptionSubState {
     override function create():Void {

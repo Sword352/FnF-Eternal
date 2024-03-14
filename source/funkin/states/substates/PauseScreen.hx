@@ -6,7 +6,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
-import funkin.objects.ui.Alphabet;
+import funkin.objects.Alphabet;
 import funkin.states.menus.StoryMenu;
 import funkin.states.menus.FreeplayMenu;
 import funkin.states.options.OptionsMenu;

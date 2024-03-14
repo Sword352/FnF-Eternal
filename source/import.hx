@@ -8,9 +8,9 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
 
-import eternal.Controls;
-import eternal.HighScore;
-import eternal.Settings;
+import funkin.globals.Controls;
+import funkin.globals.HighScore;
+import funkin.globals.Settings;
 import eternal.core.Assets;
 import eternal.tools.*;
 

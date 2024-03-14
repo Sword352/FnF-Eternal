@@ -1,6 +1,6 @@
 package funkin.states.options;
 
-import funkin.objects.options.*;
+import funkin.states.options.items.*;
 
 class GameplayOptionSubState extends BaseOptionSubState {
     override function create():Void {

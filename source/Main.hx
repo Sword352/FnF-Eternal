@@ -3,24 +3,25 @@ package;
 import flixel.FlxGame;
 import flixel.FlxState;
 
-import haxe.ui.Toolkit;
+import funkin.globals.NoteSkin;
+import funkin.states.menus.TitleScreen;
 
 import eternal.ui.SoundTray;
 import eternal.ui.FPSOverlay;
-
-import openfl.ui.Keyboard;
-import openfl.display.Sprite;
-import openfl.events.KeyboardEvent;
 
 #if ENGINE_CRASH_HANDLER
 import eternal.core.crash.CrashHandler;
 #end
 
-import funkin.states.menus.TitleScreen;
+import openfl.ui.Keyboard;
+import openfl.display.Sprite;
+import openfl.events.KeyboardEvent;
+
+import haxe.ui.Toolkit;
 
 class Main extends Sprite {
-    public static var game(default, null):GameInstance;
-    public static var fpsOverlay(default, null):FPSOverlay;
+    public static var game:GameInstance;
+    public static var fpsOverlay:FPSOverlay;
 
     public function new():Void {
         super();
@@ -56,6 +57,7 @@ class InitState extends FlxState {
         #end
 
         Controls.init();
+        NoteSkin.init();
         Toolkit.init();
         Assets.init();
 

@@ -3,7 +3,7 @@ package funkin.states.substates;
 import flixel.FlxObject;
 import flixel.math.FlxPoint;
 
-import funkin.objects.Character;
+import funkin.gameplay.Character;
 import funkin.states.menus.StoryMenu;
 import funkin.states.debug.ChartEditor;
 import funkin.states.menus.FreeplayMenu;

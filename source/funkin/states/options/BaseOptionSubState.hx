@@ -1,7 +1,7 @@
 package funkin.states.options;
 
 import flixel.group.FlxGroup.FlxTypedGroup;
-import funkin.objects.options.BaseOptionItem;
+import funkin.states.options.items.BaseOptionItem;
 
 class BaseOptionSubState extends MusicBeatSubState {
     var optionsGroup:FlxTypedGroup<BaseOptionItem<Any>>;

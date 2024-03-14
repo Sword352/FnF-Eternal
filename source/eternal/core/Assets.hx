@@ -180,9 +180,6 @@ class Assets {
 
     // Assets clearing
     inline public static function freeMemory():Void {
-        // Clear the noteskin cache
-        NoteSkin.clear();
-
         if (!clearAssets)
             return;
 

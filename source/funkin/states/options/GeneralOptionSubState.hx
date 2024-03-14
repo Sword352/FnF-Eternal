@@ -1,7 +1,7 @@
 package funkin.states.options;
 
 import flixel.sound.FlxSound;
-import funkin.objects.options.*;
+import funkin.states.options.items.*;
 
 class GeneralOptionSubState extends BaseOptionSubState {
     var boyfriend:FlxSprite;

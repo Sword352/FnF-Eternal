@@ -1,29 +1,29 @@
 package funkin.states;
 
 import flixel.*;
-
 import flixel.util.*;
 import flixel.tweens.*;
 import flixel.math.FlxPoint;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
-import funkin.music.MusicPlayback;
-import funkin.music.EventManager;
 import funkin.objects.*;
-import funkin.objects.notes.*;
-import funkin.objects.stages.*;
-import funkin.objects.notes.StrumLine;
+import funkin.gameplay.*;
+import funkin.gameplay.notes.*;
+import funkin.gameplay.stages.*;
+import funkin.gameplay.notes.StrumLine.NoteHit;
+import funkin.music.MusicPlayback;
+
 import funkin.objects.Camera;
-import funkin.objects.ui.GameplayUI;
-import funkin.objects.sprites.RatingSprite;
+import funkin.gameplay.ComboPopup;
+
 import funkin.states.menus.StoryMenu;
 import funkin.states.menus.FreeplayMenu;
 import funkin.states.debug.ChartEditor;
 import funkin.states.substates.*;
 
-import eternal.ChartLoader;
-import eternal.ChartFormat.Chart;
+import funkin.globals.ChartLoader;
+import funkin.globals.ChartFormat.Chart;
 
 import openfl.Lib;
 

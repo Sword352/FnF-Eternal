@@ -4,8 +4,8 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 
-import funkin.objects.sprites.OffsetSprite;
-import funkin.objects.sprites.DancingSprite;
+import funkin.objects.OffsetSprite;
+import funkin.objects.DancingSprite;
 import funkin.states.substates.ResetScoreScreen;
 
 class StoryMenu extends MusicBeatState {

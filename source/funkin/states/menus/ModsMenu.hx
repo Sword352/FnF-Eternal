@@ -2,7 +2,7 @@ package funkin.states.menus;
 
 import flixel.FlxCamera;
 import flixel.text.FlxText;
-import funkin.objects.sprites.CheckerboardBG;
+import funkin.objects.CheckerboardBG;
 
 import flixel.tweens.FlxTween;
 import flixel.group.FlxGroup.FlxTypedGroup;

@@ -1,6 +1,6 @@
 package funkin.states.options;
 
-import funkin.objects.options.BoolOptionItem;
+import funkin.states.options.items.BoolOptionItem;
 
 class DebugOptionSubState extends BaseOptionSubState {
     override function create():Void {

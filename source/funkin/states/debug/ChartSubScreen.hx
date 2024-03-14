@@ -7,7 +7,7 @@ import haxe.ui.containers.*;
 import haxe.ui.containers.properties.*;
 import haxe.ui.styles.StyleSheet;
 
-import funkin.music.EventManager.EventDetails;
+import funkin.gameplay.EventManager.EventDetails;
 import haxe.Json;
 
 class ChartSubScreen extends FlxSubState {

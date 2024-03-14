@@ -13,7 +13,7 @@ import openfl.events.Event;
 import openfl.net.FileReference;
 import openfl.events.IOErrorEvent;
 
-import funkin.objects.sprites.OffsetSprite;
+import funkin.objects.OffsetSprite;
 
 typedef YAMLAnimation = {
     var name:String;

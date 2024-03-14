@@ -33,8 +33,8 @@ class HScript {
 
         // Funkin
         "Conductor" => Conductor,
-        "OffsetSprite" => funkin.objects.sprites.OffsetSprite,
-        "DancingSprite" => funkin.objects.sprites.DancingSprite,
+        "OffsetSprite" => funkin.objects.OffsetSprite,
+        "DancingSprite" => funkin.objects.DancingSprite,
 
         // Transition stuff
         "Transition" => Transition,

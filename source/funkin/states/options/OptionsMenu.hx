@@ -3,8 +3,8 @@ package funkin.states.options;
 import flixel.FlxSubState;
 import flixel.group.FlxSpriteGroup;
 
-import funkin.objects.ui.Alphabet;
-import funkin.objects.sprites.CheckerboardBG;
+import funkin.objects.Alphabet;
+import funkin.objects.CheckerboardBG;
 import funkin.states.menus.MainMenu;
 
 typedef OptionCategory = {

@@ -14,21 +14,21 @@ import flixel.util.FlxStringUtil;
 import flixel.addons.display.FlxGridOverlay;
 
 import funkin.music.MusicPlayback;
-import funkin.music.EventManager.EventManager;
-import funkin.music.EventManager.EventDetails;
+import funkin.gameplay.EventManager.EventManager;
+import funkin.gameplay.EventManager.EventDetails;
 
 import eternal.ui.HelpButton;
 
 // import eternal.ui.NoteViewer;
 import haxe.ui.components.HorizontalSlider;
 
-import funkin.objects.ui.HealthIcon;
-import funkin.objects.notes.Receptor;
-import funkin.objects.sprites.CheckerboardBG;
+import funkin.objects.HealthIcon;
+import funkin.gameplay.notes.Receptor;
+import funkin.objects.CheckerboardBG;
 
-import eternal.ChartFormat.Chart;
-import eternal.ChartFormat.ChartNote;
-import eternal.ChartFormat.ChartEvent;
+import funkin.globals.ChartFormat.Chart;
+import funkin.globals.ChartFormat.ChartNote;
+import funkin.globals.ChartFormat.ChartEvent;
 
 import haxe.Json;
 
@@ -790,7 +790,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Tools.invokeTempSave((save) -> {
             var saveMap:Map<String, Dynamic> = save.data.charts;
             if (saveMap != null && saveMap.exists(chart.meta.rawName))
-                chart = eternal.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));
+                chart = funkin.globals.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));
         }, "chart_autosave");
 
         if (oldChart == chart)
