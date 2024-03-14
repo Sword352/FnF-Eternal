@@ -28,48 +28,51 @@ class Assets {
     }
 
     // Path shortcuts & atlas stuff
-    inline public static function image(file:String, ?library:String):FlxGraphic
+    public inline static function image(file:String, ?library:String):FlxGraphic
         return getGraphic('images/${file}', library);
 
-    inline public static function music(file:String, ?library:String):Sound
+    public inline static function music(file:String, ?library:String):Sound
         return getSound('music/${file}', library);
 
-    inline public static function sound(file:String, ?library:String):Sound
+    public inline static function sound(file:String, ?library:String):Sound
         return getSound('sounds/${file}', library);
 
-    inline public static function songAudio(song:String, file:String, ?library:String):Sound
+    public inline static function songAudio(song:String, file:String, ?library:String):Sound
         return getSound('songs/${song}/${file}', library);
 
-    inline public static function json(file:String, ?library:String):String
+    public inline static function json(file:String, ?library:String):String
         return getPath(file, JSON, library);
 
-    inline public static function yaml(file:String, ?library:String):String
+    public inline static function yaml(file:String, ?library:String):String
         return getPath(file, YAML, library);
 
-    inline public static function xml(file:String, ?library:String):String
+    public inline static function xml(file:String, ?library:String):String
         return getPath(file, XML, library);
 
-    inline public static function txt(file:String, ?library:String):String
+    public inline static function txt(file:String, ?library:String):String
         return getPath(file, TEXT, library);
 
-    inline public static function font(file:String, ?library:String):String
+    public inline static function font(file:String, ?library:String):String
         return getPath('fonts/${file}', FONT, library);
 
+    public inline static function script(file:String, ?library:String):String
+        return getPath(file, SCRIPT, library);
+
     #if VIDEO_CUTSCENES
-    inline public static function video(file:String, ?library:String):String
+    public inline static function video(file:String, ?library:String):String
         return getPath('videos/${file}', VIDEO, library);
     #end
 
-    inline public static function getSparrowAtlas(file:String, ?library:String):FlxAtlasFrames
+    public inline static function getSparrowAtlas(file:String, ?library:String):FlxAtlasFrames
         return FlxAtlasFrames.fromSparrow(image(file, library), resolveAtlasData(xml('images/${file}', library)));
 
-    inline public static function getPackerAtlas(file:String, ?library:String):FlxAtlasFrames
+    public inline static function getPackerAtlas(file:String, ?library:String):FlxAtlasFrames
         return FlxAtlasFrames.fromSpriteSheetPacker(image(file, library), resolveAtlasData(txt('images/${file}', library)));
 
-    inline public static function getAseAtlas(file:String, ?library:String):FlxAtlasFrames
+    public inline static function getAseAtlas(file:String, ?library:String):FlxAtlasFrames
         return FlxAtlasFrames.fromAseprite(image(file, library), resolveAtlasData(json('images/${file}', library)));
 
-    inline public static function getFrames(file:String, ?type:String, ?library:String):FlxAtlasFrames {
+    public inline static function getFrames(file:String, ?type:String, ?library:String):FlxAtlasFrames {
         return switch ((type ?? "").toLowerCase().trim()) {
             case "packer": getPackerAtlas(file, library);
             case "aseprite": getAseAtlas(file, library);
@@ -179,7 +182,7 @@ class Assets {
     }
 
     // Assets clearing
-    inline public static function freeMemory():Void {
+    public inline static function freeMemory():Void {
         if (!clearAssets)
             return;
 
@@ -195,14 +198,14 @@ class Assets {
         FlxG.bitmap.clearCache();
     }
 
-    inline public static function freeMemoryPost(?_):Void {
+    public inline static function freeMemoryPost(?_):Void {
         // If it is false, set it to true
         clearAssets = true;
         // Run the garbage collector
         System.gc();
     }
 
-    inline public static function clearCache():Void {
+    public inline static function clearCache():Void {
         clearSounds();
         clearGraphics();
         clearFonts();

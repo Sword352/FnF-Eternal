@@ -126,12 +126,10 @@ class Settings {
             settings.remove(modSettings.pop().backendKey);
 
         var settingConfig:String = Assets.yaml("data/settings");
-        if (!FileTools.exists(settingConfig))
-            return;
+        if (!FileTools.exists(settingConfig)) return;
 
-        var setters:String = Assets.getPath("data/settings", SCRIPT);
-        if (FileTools.exists(setters))
-            setterScript = new HScript(setters);
+        var setters:String = Assets.script("data/settings");
+        if (FileTools.exists(setters)) setterScript = new HScript(setters);
 
         var customSettings:Array<ModSetting> = Tools.parseYAML(FileTools.getContent(settingConfig));
 

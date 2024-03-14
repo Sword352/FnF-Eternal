@@ -63,7 +63,7 @@ class StoryMenu extends MusicBeatState {
         super.create();
 
         #if ENGINE_SCIRPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {

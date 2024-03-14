@@ -156,7 +156,7 @@ class HScript {
 
         // allows to load modules from other scripts
         set("importModule", (module:String) -> {
-            var path:String = Assets.getPath(module, SCRIPT);
+            var path:String = Assets.script(module);
             if (!FileTools.exists(path)) {
                 trace('Could not find module "${module}"!');
                 return;

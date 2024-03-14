@@ -44,7 +44,7 @@ class ModsMenu extends MusicBeatSubState {
         FlxG.cameras.add(cam);
 
         #if ENGINE_SCRIPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {
@@ -211,7 +211,7 @@ class ModsMenuSubScreen extends MusicBeatSubState {
         super.create();
 
         #if ENGINE_SCRIPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {

@@ -196,7 +196,7 @@ class EventManager extends FlxBasic {
             default:
                 #if ENGINE_SCRIPTING
                 if (!scriptsMap.exists(event.event)) {
-                    var path:String = Assets.getPath('data/events/${event.event}', SCRIPT);
+                    var path:String = Assets.script('data/events/${event.event}');
                     if (FileTools.exists(path)) {
                         var script:HScript = new HScript(path);
                         scriptsMap.set(event.event, script);
@@ -278,7 +278,7 @@ class EventManager extends FlxBasic {
             case 'sineout': return FlxEase.sineOut;
             case 'smoothstepin': return FlxEase.smoothStepIn;
             case 'smoothstepinout': return FlxEase.smoothStepInOut;
-            case 'smoothstepout': return FlxEase.smoothStepInOut;
+            case 'smoothstepout': return FlxEase.smoothStepOut;
             case 'smootherstepin': return FlxEase.smootherStepIn;
             case 'smootherstepinout': return FlxEase.smootherStepInOut;
             case 'smootherstepout': return FlxEase.smootherStepOut;

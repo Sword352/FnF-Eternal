@@ -20,6 +20,7 @@
 
 > Contributors
 - PlankDev: Metronome Sound Composer and Helper Coder
+- ZesCrew2: Loading Screen Asset
 - SquidBowl: Animated Few Assets
 - Meloomazy: Debug UI Artist
 - Swordcube: Helper Coder

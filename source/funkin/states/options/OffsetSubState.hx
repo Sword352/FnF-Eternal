@@ -21,7 +21,7 @@ class OffsetSubState extends MusicBeatSubState {
         super.create();
 
         #if ENGINE_SCRIPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {

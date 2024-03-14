@@ -52,7 +52,7 @@ class OptionsMenu extends MusicBeatState {
         #end
 
         #if ENGINE_SCRIPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {

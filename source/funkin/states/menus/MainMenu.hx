@@ -46,7 +46,7 @@ class MainMenu extends MusicBeatState {
         super.create();
 
         #if ENGINE_SCRIPTING
-        initStateScript();
+        initStateScripts();
         hxsCall("onCreate");
 
         if (overrideCode) {

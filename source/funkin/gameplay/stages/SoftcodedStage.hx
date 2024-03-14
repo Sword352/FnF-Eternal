@@ -104,7 +104,7 @@ class SoftcodedStage extends Stage {
         }
 
         #if ENGINE_SCRIPTING
-        var scriptPath:String = Assets.getPath(basePath, SCRIPT);
+        var scriptPath:String = Assets.script(basePath);
         if (FileTools.exists(scriptPath)) {
             script = new HScript(scriptPath);
             game.addScript(script);

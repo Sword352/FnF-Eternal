@@ -244,7 +244,7 @@ class Character extends DancingSprite {
                     destroyScript();
 
                     if (type != DEBUG && FlxG.state is ScriptableState) {
-                        var scriptPath:String = Assets.getPath('data/characters/${v}', SCRIPT);
+                        var scriptPath:String = Assets.script('data/characters/${v}');
                         if (FileTools.exists(scriptPath)) {
                             var scr:HScript = new HScript(scriptPath);
                             cast(FlxG.state, ScriptableState).addScript(scr);

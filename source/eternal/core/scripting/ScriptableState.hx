@@ -10,7 +10,7 @@ import flixel.FlxSubState;
     public function new(script:String):Void {
         super();
 
-        var path:String = Assets.getPath('data/states/${script}', SCRIPT);
+        var path:String = Assets.script('scripts/states/${script}');
         if (!FileTools.exists(path)) {
             trace('Could not find state script "${script}"!');
             return;
@@ -43,7 +43,7 @@ import flixel.FlxSubState;
     public function new(script:String):Void {
         super();
 
-        var path:String = Assets.getPath('data/substates/${script}', SCRIPT);
+        var path:String = Assets.script('scripts/substates/${script}');
         if (!FileTools.exists(path)) {
             trace('Could not find substate script "${script}"!');
             return;
@@ -98,15 +98,14 @@ class ScriptableState extends TransitionState {
     public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
         return scriptPack.cancellableCall(func, args);
 
-    inline function initStateScript():Bool {
+    inline function initStateScripts():Void {
         var statePackage:String = Type.getClassName(Type.getClass(this));
-        var path:String = Assets.getPath('data/states/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
+        var stateString:String = statePackage.substring(statePackage.lastIndexOf('.') + 1);
 
-        if (!FileTools.exists(path))
-            return false;
+        var singleScript:String = Assets.script('scripts/states/${stateString}');
+        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
 
-        loadScript(path);
-        return true;
+        loadScriptsFrom('scripts/states/${stateString}');
     }
 
     override function openSubState(SubState:FlxSubState):Void {
@@ -174,15 +173,14 @@ class ScriptableSubState extends FlxSubState {
     public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
         return scriptPack.cancellableCall(func, args);
 
-    inline function initStateScript():Bool {
+    inline function initStateScripts():Void {
         var statePackage:String = Type.getClassName(Type.getClass(this));
-        var path:String = Assets.getPath('data/substates/${statePackage.substring(statePackage.lastIndexOf('.') + 1)}', SCRIPT);
+        var stateString:String = statePackage.substring(statePackage.lastIndexOf('.') + 1);
 
-        if (!FileTools.exists(path))
-            return false;
+        var singleScript:String = Assets.script('scripts/substates/${stateString}');
+        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
 
-        loadScript(path);
-        return true;
+        loadScriptsFrom('scripts/substates/${stateString}');
     }
 
     override function close():Void {

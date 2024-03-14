@@ -3,7 +3,6 @@ package eternal.core.scripting;
 class ScriptPack {
     public var scripts:Array<HScript> = [];
     public var imports:Map<String, Dynamic> = [];
-
     public var parent:Dynamic = null;
 
     public function new(?parent:Dynamic):Void {
@@ -12,24 +11,28 @@ class ScriptPack {
 
     public function loadScriptsFrom(path:String):Void {
         var realPath:String = Assets.getPath('${path}/', NONE);
-        if (!FileTools.exists(realPath))
-            return;
+        if (!FileTools.exists(realPath) || !FileTools.isDirectory(realPath)) return;
 
         var exts:Array<String> = SCRIPT.getExtensions();
-        for (file in FileTools.readDirectory(realPath)) {
+
+        for (entry in FileTools.readDirectory(realPath)) {
+            var fullPath:String = realPath + entry;
+
+            if (FileTools.isDirectory(fullPath)) {
+                loadScriptsFrom(path + "/" + entry);
+                continue;
+            }
+
             for (ext in exts) {
-                if (!file.endsWith(ext))
-                    continue;
-                loadScript(realPath + file);
+                if (entry.endsWith(ext))
+                    loadScript(fullPath);
             }
         }
     }
 
     public function loadScript(path:String):HScript {
         var script:HScript = new HScript(path);
-        if (script.state != ALIVE)
-            return null;
-
+        if (script.state != ALIVE) return null;
         return addScript(script);
     }
 
@@ -64,8 +67,7 @@ class ScriptPack {
         var returnValue:Dynamic = null;
         for (i in scripts) {
             var call:Dynamic = i.call(func, args);
-            if (call != null) // avoid conflicts with voids (they would most likely return null)
-                returnValue = call;
+            if (call != null) returnValue = call;
         }
 
         return returnValue;

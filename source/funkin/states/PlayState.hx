@@ -154,7 +154,7 @@ class PlayState extends MusicBeatState {
 
         #if ENGINE_SCRIPTING
         loadScriptsFrom('songs/${song.meta.rawName}/scripts');
-        loadScriptsFrom('data/scripts');
+        loadScriptsFrom('scripts/gameplay');
         noSubstateCalls = true;
         #end
 
