@@ -1,6 +1,6 @@
 ### High Priority
 - Dialogue cutscenes implementation
-- Add unlockable weeks/songs support
+- Add unlockable freeplay songs support
 
 - Finish the built-in events
 - Finish controller input support

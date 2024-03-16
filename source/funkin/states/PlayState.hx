@@ -4,8 +4,8 @@ import flixel.*;
 import flixel.util.*;
 import flixel.tweens.*;
 import flixel.math.FlxPoint;
+import flixel.group.FlxGroup;
 import flixel.group.FlxSpriteGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.*;
 import funkin.gameplay.*;
@@ -24,6 +24,7 @@ import funkin.states.substates.*;
 
 import funkin.globals.ChartLoader;
 import funkin.globals.ChartFormat.Chart;
+import funkin.globals.SongProgress;
 
 import openfl.Lib;
 
@@ -33,6 +34,7 @@ class PlayState extends MusicBeatState {
 
     public static var songPlaylist:Array<String>;
     public static var currentDifficulty:String;
+    public static var weekToUnlock:String;
 
     public static var gameMode:GameMode = FREEPLAY;
     public static var lossCounter:Int = 0;
@@ -591,8 +593,14 @@ class PlayState extends MusicBeatState {
                     Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
                     FlxG.switchState(LoadingScreen.new.bind(0));
                 }
-                else
+                else {
+                    if (weekToUnlock != null) {
+                        SongProgress.unlock(weekToUnlock, true);
+                        weekToUnlock = null;
+                    }
+                    
                     FlxG.switchState(StoryMenu.new);
+                }
             case DEBUG:
                 openChartEditor();
             default:

@@ -181,11 +181,11 @@ class StrumLine extends FlxGroup {
 
     public function getDirFromKey(key:Int, release:Bool = false):Int {
         var controls:Controls = Controls.global;
-        var actions:Array<String> = ["left", "down", "up", "right"];
+        var actions:Array<String> = Note.directions;
 
         for (i in 0...actions.length) {
             for (k in controls.keybinds[actions[i]][0])
-                if (key == k && (!holdKeys[i] || release))
+                if (key == k && (release || !holdKeys[i]))
                     return i;
         }
 

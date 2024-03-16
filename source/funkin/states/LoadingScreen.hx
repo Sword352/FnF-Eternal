@@ -7,14 +7,16 @@ import funkin.globals.ChartFormat.Chart;
 import funkin.globals.NoteSkin;
 
 #if sys
-import sys.thread.FixedThreadPool;
+// import sys.thread.FixedThreadPool;
+import sys.thread.Thread;
 import sys.thread.Mutex;
 #end
 
-import funkin.gameplay.Character.CharacterConfig;
 import funkin.gameplay.stages.SoftcodedStage.StageConfig;
+import funkin.gameplay.Character.CharacterConfig;
 
 // you don't need to access this state in order to access PlayState. This just helps making the slow loading process faster.
+// TODO: thread-safe loading code, and maybe make this a bit more faster
 class LoadingScreen extends FlxState {
     public static var loadTime:Float = -1;
 
@@ -28,7 +30,7 @@ class LoadingScreen extends FlxState {
     var circle:FlxSprite;
 
     #if sys
-    var threads:FixedThreadPool;
+    // var threads:FixedThreadPool;
     var mutex:Mutex;
     #end
 
@@ -77,11 +79,13 @@ class LoadingScreen extends FlxState {
 
     inline function runTasks():Void {
         #if sys
-        threads = new FixedThreadPool(tasks.length);
+        // threads = new FixedThreadPool(tasks.length);
         mutex = new Mutex();
 
         for (task in tasks) {
-            threads.run(() -> {
+            Thread.create(() -> {
+                // Sys.sleep(0.01);
+                
                 try
                     task()
                 catch (e)
@@ -90,7 +94,6 @@ class LoadingScreen extends FlxState {
                 mutex.acquire();
                 ranTask++;
                 mutex.release();
-                // Sys.sleep(0.01);
             });
         }
         #else
@@ -159,7 +162,7 @@ class LoadingScreen extends FlxState {
         if (switching || ranTask < tasks.length) return;
 
         Assets.clearAssets = false;
-        #if sys threads.shutdown(); #end
+        // #if sys threads.shutdown(); #end
 
         FlxG.switchState(PlayState.new.bind(startTime));
         FlxG.signals.postStateSwitch.addOnce(() -> FlxG.autoPause = autoPause);
@@ -257,7 +260,7 @@ class LoadingScreen extends FlxState {
 
     override function destroy():Void {
         #if sys
-        threads = null;
+        // threads = null;
         mutex = null;
         #end
 

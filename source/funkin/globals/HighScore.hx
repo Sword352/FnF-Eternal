@@ -1,7 +1,7 @@
 package funkin.globals;
 
 class HighScore {
-    public static var scoreMap(default, null):Map<String, ScoreMeasure> = [];
+    public static var scoreMap:Map<String, ScoreMeasure> = [];
     public static final defaultMeasure:ScoreMeasure = {
         score: 0,
         misses: 0,
@@ -33,8 +33,7 @@ class HighScore {
     public static function load():Void {
         Tools.invokeTempSave((save) -> {
             var data:Map<String, ScoreMeasure> = save.data.scores;
-            if (data != null)
-                scoreMap = data.copy();
+            if (data != null) scoreMap = data.copy();
         }, "scores");
     }
 

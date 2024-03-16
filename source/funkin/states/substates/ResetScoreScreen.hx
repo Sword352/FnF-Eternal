@@ -103,8 +103,7 @@ class ResetScoreScreen extends MusicBeatSubState {
 
         for (rawName in songs) {
             var song:String = '${rawName}-${difficulty}';
-            if (story)
-                song += "_story";
+            if (story) song += "_story";
 
             #if ENGINE_MODDING
             song = Mods.currentMod.id + "_" + song;

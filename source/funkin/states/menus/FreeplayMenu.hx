@@ -9,6 +9,7 @@ import funkin.objects.Alphabet;
 import funkin.objects.HealthIcon;
 import funkin.states.debug.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
+import funkin.globals.SongProgress;
 
 class FreeplayMenu extends MusicBeatState {
     public var background:Background;
@@ -43,7 +44,7 @@ class FreeplayMenu extends MusicBeatState {
         songs = loadFreeplaySongs();
 
         if (songs == null || songs.length < 1) {
-            trace("Error loading freeplay songs!");
+            trace("No songs available!");
             error = true;
         }
 
@@ -76,7 +77,7 @@ class FreeplayMenu extends MusicBeatState {
             overlay.alpha = 0.6;
             add(overlay);
 
-            var text:Alphabet = new Alphabet(0, 0, "NO SONGS FOUND!");
+            var text:Alphabet = new Alphabet(0, 0, "NO SONGS AVAILABLE!");
             text.screenCenter();
             add(text);
 
@@ -86,8 +87,6 @@ class FreeplayMenu extends MusicBeatState {
             goBack.y = overlay.y + overlay.height - goBack.height - 10;
             goBack.x = overlay.width - goBack.width - 10;
             add(goBack);
-
-            background.intendedColor = background.color = FlxColor.RED;
 
             #if ENGINE_SCRIPTING
             hxsCall("onCreatePost");
@@ -393,9 +392,7 @@ class FreeplayMenu extends MusicBeatState {
 
     public static function loadFreeplaySongs():Array<SongStructure> {
         var listPath:String = Assets.txt("data/freeplaySongs");
-
-        if (!FileTools.exists(listPath))
-            return null;
+        if (!FileTools.exists(listPath)) return null;
 
         var list:Array<SongStructure> = [];
         var content:Array<String> = FileTools.getContent(listPath).trim().split("\n");
@@ -403,10 +400,17 @@ class FreeplayMenu extends MusicBeatState {
         for (line in content) {
             var trimmedLine:String = line.trim();
 
-            if (trimmedLine.startsWith("#") || trimmedLine.length < 1) // skip comments and empty lines
-                continue;
+            // skip comments and empty lines
+            if (trimmedLine.startsWith("#") || trimmedLine.length == 0) continue;
 
-            var elements:Array<String> = line.split("||").map((f) -> f = f.trim());
+            // at the exception of an escape character
+            if (trimmedLine.startsWith("\\#"))
+                trimmedLine = trimmedLine.substring(1);
+
+            var elements:Array<String> = trimmedLine.split("||").map((f) -> f = f.trim());
+            var weekToCheck:String = elements[5];
+
+            if (weekToCheck != null && !SongProgress.unlocked(weekToCheck, true)) continue;
 
             list.push({
                 name: elements[0],
@@ -422,8 +426,8 @@ class FreeplayMenu extends MusicBeatState {
 }
 
 class Background extends FlxSprite {
-    public var intendedColor(default, set):FlxColor;
-    var oldColor:FlxColor;
+    public var intendedColor(default, set):FlxColor = FlxColor.WHITE;
+    var oldColor:FlxColor = FlxColor.WHITE;
 
     var parent:FreeplayMenu;
     var tmr:Float;
@@ -527,9 +531,11 @@ class ExtraInfo extends FlxSpriteGroup {
     }
 
     override function update(elapsed:Float):Void {
-        x = Tools.lerp(x, (show) ? FlxG.width - background.width : FlxG.width - 3, 24);
-        if (!show) return;
+        if (show) updateVisuals();
+        x = Tools.lerp(x, (show) ? FlxG.width - background.width : FlxG.width, 24);
+    }
 
+    inline function updateVisuals():Void {
         if (lerpAccuracy != parent.scoreData.accuracy) {
             lerpAccuracy = Tools.lerp(lerpAccuracy, parent.scoreData.accuracy, 6);
             if (Math.abs(lerpAccuracy - parent.scoreData.accuracy) <= 5)
@@ -541,12 +547,12 @@ class ExtraInfo extends FlxSpriteGroup {
         text.text = fullText;
 
         updateBgScale();
-        background.centerToObject(text);
     }
 
     inline function updateBgScale():Void {
         background.scale.set(text.width + 10, text.height + 10);
         background.updateHitbox();
+        background.centerToObject(text);
     }
 
     override function destroy():Void {

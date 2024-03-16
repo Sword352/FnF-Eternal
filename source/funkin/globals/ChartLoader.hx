@@ -174,7 +174,7 @@ class ChartLoader {
         #if sys var overwrite:Bool = false; #end
 
         if (data.song != null) {
-            data = convertChart(data.song); // conver charts that uses fnf legacy format
+            data = convertChart(data.song); // convert charts that uses fnf legacy format
             #if sys overwrite = Settings.get("overwrite chart files"); #end
         }
         else if (data.meta == null)

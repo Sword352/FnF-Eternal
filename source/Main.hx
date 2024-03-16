@@ -4,6 +4,7 @@ import flixel.FlxGame;
 import flixel.FlxState;
 
 import funkin.globals.NoteSkin;
+import funkin.globals.SongProgress;
 import funkin.states.menus.TitleScreen;
 
 import eternal.ui.SoundTray;
@@ -84,11 +85,10 @@ class InitState extends FlxState {
         Mods.init();
         #end
 
-        // Load options
+        // Load save data
         Settings.load();
-
-        // Load scores
         HighScore.load();
+        SongProgress.load();
 
         #if ENGINE_MODDING
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen

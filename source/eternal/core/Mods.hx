@@ -132,9 +132,7 @@ class Mods {
         }
 
         for (i in 0...modVersion.length) {
-            if (modVersion[i] == engineVersion[i])
-                continue;
-
+            if (modVersion[i] == engineVersion[i]) continue;
             return (modVersion[i] > engineVersion[i]) ? OUTDATED_BUILD : OUTDATED_MOD;
         }
 

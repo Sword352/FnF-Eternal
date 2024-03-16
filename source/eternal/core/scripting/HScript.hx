@@ -93,9 +93,9 @@ class HScript {
         parser.allowJSON = parser.allowMetadata = parser.allowTypes = true;
         interp.allowPublicVariables = interp.allowStaticVariables = true;
         interp.staticVariables = sharedFields;
-        script = FileTools.getContent(this.path);
-
+        
         try {
+            script = FileTools.getContent(this.path);
             interp.execute(parser.parseString(script, this.path.substring(this.path.lastIndexOf("/") + 1)));
             applyPresets();
             state = ALIVE;
