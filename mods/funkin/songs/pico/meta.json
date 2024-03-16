@@ -1,0 +1,12 @@
+{
+    "name": "Pico",
+    "rawName": "pico",
+
+    "instFile": "Inst",
+    "voiceFiles": ["Voices"],
+
+    "spectator": "girlfriend",
+    "player": "boyfriend",
+    "opponent": "pico",
+    "stage": "philly"
+}

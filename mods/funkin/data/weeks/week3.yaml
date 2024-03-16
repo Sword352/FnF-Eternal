@@ -1,0 +1,7 @@
+songs:
+- { name: Pico,    folder: pico }
+- { name: Philly,  folder: philly }
+- { name: Blammed, folder: blammed }
+
+image: week3
+characters: ["pico", "Menu_BF", "Menu_GF"]

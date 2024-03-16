@@ -1,0 +1,6 @@
+image: campaign_menu_UI_characters
+animations: [ { name: "idle", prefix: Pico Idle Dance } ]
+
+globalOffsets: [100, 75]
+scale: 0.5
+flipX: true

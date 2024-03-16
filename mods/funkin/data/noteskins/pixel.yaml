@@ -40,10 +40,10 @@ note: {
         {name: "up hold",    frames: [22], fps: 0},
         {name: "right hold", frames: [23], fps: 0},
 
-        {name: "left end",  frames: [24], fps: 0},
-        {name: "down end",  frames: [25], fps: 0},
-        {name: "up end",    frames: [26], fps: 0},
-        {name: "right end", frames: [27], fps: 0},
+        {name: "left tail",  frames: [24], fps: 0},
+        {name: "down tail",  frames: [25], fps: 0},
+        {name: "up tail",    frames: [26], fps: 0},
+        {name: "right tail", frames: [27], fps: 0},
     ],
     
     scale: [6, 6],

@@ -1,0 +1,12 @@
+{
+    "name": "Blammed",
+    "rawName": "blammed",
+
+    "instFile": "Inst",
+    "voiceFiles": ["Voices"],
+
+    "spectator": "girlfriend",
+    "player": "boyfriend",
+    "opponent": "pico",
+    "stage": "philly"
+}
