@@ -1,6 +1,7 @@
 package eternal.core.scripting;
 
 #if ENGINE_SCRIPTING
+import flixel.FlxState;
 import flixel.FlxSubState;
 
 #if ENGINE_MODDING
@@ -12,11 +13,12 @@ import flixel.FlxSubState;
 
         var path:String = Assets.script('scripts/states/${script}');
         if (!FileTools.exists(path)) {
-            trace('Could not find state script "${script}"!');
+            trace('Could not find state script(s) at "${script}"!');
             return;
         }
 
-        loadScript(path);
+        if (!FileTools.isDirectory(path)) loadScript(path);
+        loadScriptsFrom('scripts/states/${script}');
     }
 
     override function create():Void {
@@ -45,11 +47,12 @@ import flixel.FlxSubState;
 
         var path:String = Assets.script('scripts/substates/${script}');
         if (!FileTools.exists(path)) {
-            trace('Could not find substate script "${script}"!');
+            trace('Could not find substate script(s) at "${script}"!');
             return;
         }
 
-        loadScript(path);
+        if (!FileTools.isDirectory(path)) loadScript(path);
+        loadScriptsFrom('scripts/substates/${script}');
     }
 
     override function create():Void {
@@ -99,8 +102,7 @@ class ScriptableState extends TransitionState {
         return scriptPack.cancellableCall(func, args);
 
     inline function initStateScripts():Void {
-        var statePackage:String = Type.getClassName(Type.getClass(this));
-        var stateString:String = statePackage.substring(statePackage.lastIndexOf('.') + 1);
+        var stateString:String = formatStateName(this);
 
         var singleScript:String = Assets.script('scripts/states/${stateString}');
         if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
@@ -145,6 +147,11 @@ class ScriptableState extends TransitionState {
         scriptPack = null;
         super.destroy();
     }
+
+    public static inline function formatStateName(state:FlxState):String {
+        var statePackage:String = Type.getClassName(Type.getClass(state));
+        return statePackage.substring(statePackage.lastIndexOf('.') + 1);
+    }
 }
 
 class ScriptableSubState extends FlxSubState {
@@ -174,8 +181,7 @@ class ScriptableSubState extends FlxSubState {
         return scriptPack.cancellableCall(func, args);
 
     inline function initStateScripts():Void {
-        var statePackage:String = Type.getClassName(Type.getClass(this));
-        var stateString:String = statePackage.substring(statePackage.lastIndexOf('.') + 1);
+        var stateString:String = ScriptableState.formatStateName(this);
 
         var singleScript:String = Assets.script('scripts/substates/${stateString}');
         if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
