@@ -25,15 +25,14 @@ class MusicPlayback extends FlxBasic {
     }
 
     public function setupInstrumental(file:String):Void {
-        instrumental = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
+        instrumental = FlxG.sound.load(Assets.songMusic(song, file));
         instrumental.onComplete = onSongEnd.dispatch;
         musics.push(instrumental);
     }
 
     public function createVoice(file:String):Void {
-        var voice:FlxSound = FlxG.sound.load(Assets.songAudio(song, 'song/${file}'));
-        if (vocals.length < 1)
-            mainVocals = voice;
+        var voice:FlxSound = FlxG.sound.load(Assets.songMusic(song, file));
+        if (vocals.length < 1) mainVocals = voice;
 
         musics.push(voice);
         vocals.push(voice);

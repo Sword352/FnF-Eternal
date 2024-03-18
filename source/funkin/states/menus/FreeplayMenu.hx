@@ -359,7 +359,7 @@ class FreeplayMenu extends MusicBeatState {
     
             var data:Dynamic = haxe.Json.parse(chartFile);
             var file:String = (data.song != null ? "Inst" : (data.instFile ?? data.meta.instFile));
-            finalAsset = Assets.songAudio(song, "song/" + file);
+            finalAsset = Assets.songMusic(song, file);
         }
         catch (e) {
             // fallback
@@ -378,8 +378,7 @@ class FreeplayMenu extends MusicBeatState {
             FlxG.sound.list.remove(inst, true);
             inst.destroy();
 
-            if (FlxG.sound.music.fadeTween != null)
-                FlxG.sound.music.fadeTween.cancel();
+            FlxG.sound.music.fadeTween?.cancel();
             FlxG.sound.music.volume = 1;
         }
 

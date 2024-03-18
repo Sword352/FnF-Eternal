@@ -136,19 +136,19 @@ class LoadingScreen extends FlxState {
         */
 
         /*
-        tasks.push(() -> Assets.songAudio(song.meta.rawName, 'song/${song.meta.instFile}'));
-
+        tasks.push(() -> Assets.songMusic(song.meta.rawName, song.meta.instFile));
+        
         if (song.meta.voiceFiles != null)
             for (file in song.meta.voiceFiles)
-                tasks.push(() -> Assets.songAudio(song.meta.rawName, 'song/${file}'));
+                tasks.push(() -> Assets.songMusic(song.meta.rawName, file));
         */
 
         tasks.push(() -> {
-            Assets.songAudio(song.meta.rawName, 'song/${song.meta.instFile}');
+            Assets.songMusic(song.meta.rawName, song.meta.instFile);
 
             if (song.meta.voiceFiles != null)
                 for (file in song.meta.voiceFiles)
-                    Assets.songAudio(song.meta.rawName, 'song/${file}');
+                    Assets.songMusic(song.meta.rawName, file);
         });
     }
 

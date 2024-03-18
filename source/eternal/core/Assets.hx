@@ -37,8 +37,8 @@ class Assets {
     public inline static function sound(file:String, ?library:String):Sound
         return getSound('sounds/${file}', library);
 
-    public inline static function songAudio(song:String, file:String, ?library:String):Sound
-        return getSound('songs/${song}/${file}', library);
+    public inline static function songMusic(song:String, file:String, ?library:String):Sound
+        return getSound('songs/${song}/music/${file}', library);
 
     public inline static function json(file:String, ?library:String):String
         return getPath(file, JSON, library);
