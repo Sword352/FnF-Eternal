@@ -5,15 +5,17 @@ import flixel.sound.FlxSound;
 import funkin.objects.Camera;
 
 import flixel.text.FlxText;
-import flixel.addons.display.FlxTiledSprite;
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+
 import flixel.util.FlxGradient;
 import flixel.util.FlxStringUtil;
 import flixel.addons.display.FlxGridOverlay;
+import flixel.addons.display.FlxBackdrop;
+import flixel.addons.display.FlxTiledSprite;
 
 import funkin.music.MusicPlayback;
+import funkin.gameplay.notes.Note;
 import funkin.gameplay.EventManager.EventManager;
 import funkin.gameplay.EventManager.EventDetails;
 
@@ -32,7 +34,7 @@ import funkin.globals.ChartFormat.ChartEvent;
 
 import haxe.Json;
 
-// TODO: make the editor run better in debug mode
+// TODO: optimisations
 class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements eternal.core.crash.CrashHandler.ICrashListener #end {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
@@ -58,10 +60,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var receptors:FlxTypedSpriteGroup<Receptor>;
     public var mouseCursor:FlxSprite;
 
-    public var measures:FlxTypedGroup<FlxText>;
     public var beatIndicators:FlxSpriteGroup;
-
-    public var measureTimes:Map<FlxText, Float> = [];
+    public var measureBackdrop:FlxBackdrop;
 
     // public var noteViewer:NoteViewer;
     public var helpButton:HelpButton;
@@ -222,14 +222,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (beatIndicators.visible) {
             for (ind in beatIndicators) {
-                // ind.color = Tools.colorLerp(ind.color, FlxColor.RED, 6);
                 ind.color = FlxColor.interpolate(FlxColor.CYAN, FlxColor.RED, (music.playing) ? (Conductor.decimalBeat - Conductor.currentBeat) : 1);
                 ind.y = line.y - ((line.height + ind.height) * 0.25);
             }
         }
-
-        if (measures.visible)
-            measures.forEachAlive((measure) -> measure.alpha = (measure.ID < Conductor.decimalMeasure && Settings.get("CHART_lateAlpha")) ? lateAlpha : 1);
 
         timeBar.disabled = !timeBar.visible;
         updateMusicText();
@@ -276,9 +272,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function checkSpawnNote():Void {
-        var calc:Int = Std.int(mouseCursor.x / checkerSize);
-        var strumline:Int = (calc > 15) ? 1 : 0;
-        var direction:Int = calc % 4;
+        var direction:Int = Math.floor((mouseCursor.x - checkerboard.x) / checkerSize);
+        var strumline:Int = Math.floor(direction / 4);
+        direction %= 4;
 
         var existingNote:DebugNote = notes.getFirst((n) -> n.alive && n.data.direction == direction && FlxG.mouse.overlaps(n));
 
@@ -382,8 +378,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function closeSubState():Void {
         if (!(subState is TransitionSubState) && awaitBPMReload) {
-            reloadGrid(false, !eventBPM);
-            reloadMeasureMarks();
+            reloadGrid(true, !eventBPM);
             awaitBPMReload = false;
         }
 
@@ -491,47 +486,20 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     inline public function getBPMInfo():String
         return 'BPM: ${Conductor.bpm} (${chart.meta.bpm})';
 
-    inline public function reloadGrid(updateMeasures:Bool = true, resetTime:Bool = true):Void {
+    inline public function reloadGrid(updateMeasure:Bool = true, resetTime:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
         line.y = getYFromTime(music.instrumental.time);
 
         notes.forEachAlive((note) -> note.y = getYFromTime(note.data.time));
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
 
-        if (updateMeasures)
-            measures.forEachAlive((measure) -> measure.y = getYFromTime(measureTimes[measure]));
-
-        if (resetTime)
-            Conductor.resetPrevTime();
+        if (updateMeasure) refreshMeasureMark();
+        if (resetTime) Conductor.resetPrevTime();
     }
 
-    inline public function reloadMeasureMarks():Void {
-        /**
-         * TODO:
-         * - Make it do not create extra marks (due to bpm changes, time signatures...)
-         * - Fix measure marks being wrongly created on some time signatures after bpm changes
-         * - Fix measure marks being wrongly re-created when changing both beats per measure and steps per beat after bpm changes
-         * - Make it determinate the next measure each loops instead of increasing the time value (in case of bpm changes mid-section etc)
-         */
-
-        var time:Float = Conductor.beatOffset.time;
-        var font:String = Assets.font("vcr"); // avoids 78 file exist calls
-
-        measures.forEachAlive((measure) -> measure.kill());
-        measureTimes.clear();
-
-        while (time < music.instrumental.length) {
-            var measureStep:Float = Conductor.beatOffset.step + ((time - Conductor.beatOffset.time) / Conductor.stepCrochet);
-            var measure:Int = Math.round(measureStep / Conductor.measureLength);
-
-            var text:FlxText = measures.recycle(FlxText, () -> new FlxText(checkerboard.x + checkerboard.width + checkerSize * 0.5).setFormat(font, 32));
-            text.text = Std.string(measure);
-            text.y = getYFromTime(time);
-            text.ID = measure;
-
-            measureTimes[text] = time;
-            time += Conductor.stepCrochet * Conductor.measureLength;
-        }
+    public inline function refreshMeasureMark():Void {
+        // without reducing by 1 makes the spacing off??
+        measureBackdrop.spacing.y = checkerSize * Conductor.measureLength / measureBackdrop.height - 1;
     }
 
     public inline function updateCurrentBPM():Void {
@@ -561,10 +529,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             lastBpmChange = lastChange;
 
             awaitBPMReload = (subState != null);
-            if (!awaitBPMReload) {
-                reloadGrid(false, !eventBPM);
-                reloadMeasureMarks();
-            }
+            if (!awaitBPMReload) reloadGrid(true, !eventBPM);
         }
     }
 
@@ -629,10 +594,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         notes = new FlxTypedGroup<DebugNote>();
         events = new FlxTypedGroup<EventSprite>();
 
-        measures = new FlxTypedGroup<FlxText>();
-        measures.visible = Settings.get("CHART_measureText");
-        measures.active = false;
-        reloadMeasureMarks();
+        measureBackdrop = new FlxBackdrop(null, Y);
+        measureBackdrop.makeRect(checkerSize * 9.5, 5, FlxColor.RED);
+        measureBackdrop.visible = Settings.get("CHART_measureText");
+        measureBackdrop.screenCenter(X);
+        measureBackdrop.active = false;
+        measureBackdrop.alpha = 0.65;
+        refreshMeasureMark();
 
         // create receptors
         receptors = new FlxTypedSpriteGroup<Receptor>(checkerboard.x);
@@ -676,10 +644,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         mouseCursor.active = false;
 
         add(mouseCursor);
+        add(measureBackdrop);
         add(events);
         add(notes);
         add(line);
-        add(measures);
         add(beatIndicators);
         add(receptors);
     }
@@ -847,8 +815,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         eventList = null;
         currentEvent = null;
         defaultArgs = null;
-
-        measureTimes = null;
         hitsound = null;
 
         FlxG.stage.window.onClose.remove(autoSave);
@@ -930,9 +896,10 @@ class DebugNote extends FlxSprite {
     public function new():Void {
         super();
 
-        loadGraphic(Assets.image("ui/debug/NoteGrid"), true, 161, 161);
-        animation.add('note', [for (i in 0...4) i], 0);
-        animation.play('note', true);
+        frames = Assets.getSparrowAtlas("notes/notes");
+
+        for (direction in Note.directions)
+            animation.addByPrefix(direction, direction + "0", 0);
 
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
@@ -944,10 +911,7 @@ class DebugNote extends FlxSprite {
     override function update(elapsed:Float):Void {
         // updating scale in update instead of draw to avoid scale changes on substates
         if (data.length > 0) {
-            sustain.scale.y = ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5);
-            if (sustain.scale.y < ChartEditor.checkerSize)
-                sustain.scale.y = ChartEditor.checkerSize;
-
+            sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5));
             sustain.updateHitbox();
         }
 
@@ -965,7 +929,7 @@ class DebugNote extends FlxSprite {
             sustain.draw();
         }
 
-        animation.curAnim.curFrame = data.direction;
+        animation.play(Note.directions[data.direction]);
         super.draw();
     }
 

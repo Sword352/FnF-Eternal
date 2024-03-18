@@ -85,11 +85,8 @@ class ChartSubScreen extends FlxSubState {
             Settings.save();
 
         if (!bpmChanged) {
-            if (stepsChanged)
-                parent.reloadGrid(!beatsChanged);
-
-            if (beatsChanged)
-                parent.reloadMeasureMarks();
+            if (stepsChanged) parent.reloadGrid();
+            if (beatsChanged) parent.refreshMeasureMark();
         }
 
         lastPage = menu.pageIndex;
@@ -208,7 +205,7 @@ class ChartSubScreen extends FlxSubState {
 
         showMeasures.onChange = (_) -> {
             Settings.settings["CHART_measureText"].value = showMeasures.selected;
-            parent.measures.visible = showMeasures.selected;
+            parent.measureBackdrop.visible = showMeasures.selected;
         }
 
         // beat indicators
