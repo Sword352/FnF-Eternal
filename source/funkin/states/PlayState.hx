@@ -19,7 +19,7 @@ import funkin.gameplay.ComboPopup;
 
 import funkin.states.menus.StoryMenu;
 import funkin.states.menus.FreeplayMenu;
-import funkin.states.debug.ChartEditor;
+import funkin.states.debug.chart.ChartEditor;
 import funkin.states.substates.*;
 
 import funkin.globals.ChartLoader;
@@ -188,7 +188,7 @@ class PlayState extends MusicBeatState {
         music = new MusicPlayback(song.meta.rawName);
         music.setupInstrumental(song.meta.instFile);
 
-        if (song.meta.voiceFiles.length > 0)
+        if (song.meta.voiceFiles?.length > 0)
             for (voiceFile in song.meta.voiceFiles)
                 music.createVoice(voiceFile);
 

@@ -7,7 +7,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.Alphabet;
 import funkin.objects.HealthIcon;
-import funkin.states.debug.ChartEditor;
+import funkin.states.debug.chart.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 import funkin.globals.SongProgress;
 

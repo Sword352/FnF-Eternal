@@ -23,16 +23,6 @@ typedef ModSetting = {
 #end
 
 class Settings {
-    /**
-     * Setting format:
-     * 
-     * ```
-     * // "T" defines the setting's type (Bool, Float... etc)
-     * "setting name" => new Setting<T>(defaultValue),
-     * // You can optionally pass a custom callback that gets called when the value changes
-     * "other setting" => new Setting<T>(defaultValue, (v) -> trace(v))
-     * ```
-     */
     public static final settings:Map<String, Setting<Dynamic>> = [
         // Gameplay settings
         "downscroll" => new Setting<Bool>(false),
@@ -80,11 +70,10 @@ class Settings {
         "CHART_metronomeVolume" => new Setting<Float>(0),
         "CHART_hitsoundVolume" => new Setting<Float>(0),
         "CHART_muteInst" => new Setting<Bool>(false),
-        "CHART_measureText" => new Setting<Bool>(true),
+        "CHART_measureMark" => new Setting<Bool>(true),
         "CHART_beatIndices" => new Setting<Bool>(false),
         "CHART_timeOverlay" => new Setting<Bool>(true),
         "CHART_receptors" => new Setting<Bool>(false),
-        "CHART_rStaticGlow" => new Setting<Bool>(false),
         "CHART_lateAlpha" => new Setting<Bool>(true),
         "CHART_strumlineSnap" => new Setting<Bool>(false),
         "CHART_pitch" => new Setting<Float>(1)

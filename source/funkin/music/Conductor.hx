@@ -50,6 +50,7 @@ class Conductor {
         static var _fakeBeat:Int = 0;
         static var _fakeMeas:Int = 0; 
      */
+
     public static inline function update(elapsed:Float):Void {
         if (!active) return;
         if (updateInterp) updateTime(elapsed);

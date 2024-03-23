@@ -59,8 +59,10 @@ class InitState extends FlxState {
 
         Controls.init();
         NoteSkin.init();
-        Toolkit.init();
         Assets.init();
+
+        Toolkit.theme = "dark";
+        Toolkit.init();
 
         // Changes to some Flixel global variables
         FlxG.fixedTimestep = false;

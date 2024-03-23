@@ -178,7 +178,7 @@ class ModsMenu extends MusicBeatSubState {
     override function destroy():Void {
         super.destroy();
 
-        if (cam != null)
+        if (cam != null && FlxG.cameras.list.contains(cam))
             FlxG.cameras.remove(cam);
     }
 }

@@ -1,4 +1,4 @@
-package funkin.states.debug;
+package funkin.states.debug.chart;
 
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
@@ -69,7 +69,7 @@ class ChartPlayState extends MusicBeatSubState {
         super.create();
 
         var background:FlxSprite = new FlxSprite();
-        background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
+        background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK, false, "charteditor_substatebg");
         background.alpha = 0;
         add(background);
 

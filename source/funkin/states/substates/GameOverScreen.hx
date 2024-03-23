@@ -5,8 +5,8 @@ import flixel.math.FlxPoint;
 
 import funkin.gameplay.Character;
 import funkin.states.menus.StoryMenu;
-import funkin.states.debug.ChartEditor;
 import funkin.states.menus.FreeplayMenu;
+import funkin.states.debug.chart.ChartEditor;
 
 class GameOverScreen extends MusicBeatSubState {
     var cameraObject:FlxObject;

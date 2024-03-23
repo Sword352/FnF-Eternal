@@ -1,4 +1,4 @@
-package funkin.states.debug;
+package funkin.states.debug.chart;
 
 import flixel.FlxSubState;
 import flixel.sound.FlxSound;
@@ -6,39 +6,29 @@ import funkin.objects.Camera;
 
 import flixel.text.FlxText;
 import flixel.group.FlxSpriteGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
 
-import flixel.util.FlxGradient;
 import flixel.util.FlxStringUtil;
-import flixel.addons.display.FlxGridOverlay;
 import flixel.addons.display.FlxBackdrop;
-import flixel.addons.display.FlxTiledSprite;
 
-import funkin.music.MusicPlayback;
-import funkin.gameplay.notes.Note;
-import funkin.gameplay.EventManager.EventManager;
-import funkin.gameplay.EventManager.EventDetails;
-
-import eternal.ui.HelpButton;
-
-// import eternal.ui.NoteViewer;
-import haxe.ui.components.HorizontalSlider;
+import funkin.states.debug.chart.ChartNoteGroup;
+import funkin.states.debug.chart.ChartEventGroup;
 
 import funkin.objects.HealthIcon;
+import funkin.objects.HelpButton;
 import funkin.gameplay.notes.Receptor;
-import funkin.objects.CheckerboardBG;
 
-import funkin.globals.ChartFormat.Chart;
-import funkin.globals.ChartFormat.ChartNote;
-import funkin.globals.ChartFormat.ChartEvent;
+import funkin.music.MusicPlayback;
+import funkin.globals.ChartFormat;
+import funkin.gameplay.EventManager;
 
+import haxe.ui.components.HorizontalSlider;
 import haxe.Json;
 
-// TODO: optimisations
 class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements eternal.core.crash.CrashHandler.ICrashListener #end {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
-    public static final checkerSize:Int = 40;
+    public static final separatorWidth:Int = 4;
+    public static final checkerSize:Int = 45;
 
     public var music:MusicPlayback;
     public var difficulty:String;
@@ -48,10 +38,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var currentEvent:EventDetails;
     public var defaultArgs:Array<Any>;
 
-    public var notes:FlxTypedGroup<DebugNote>;
-    public var events:FlxTypedGroup<EventSprite>;
+    public var notes:ChartNoteGroup;
+    public var events:ChartEventGroup;
 
-    public var checkerboard:FlxTiledSprite;
+    public var checkerboard:ChartCheckerboard;
     public var line:FlxSprite;
 
     public var selectedNote(default, set):DebugNote;
@@ -63,27 +53,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public var beatIndicators:FlxSpriteGroup;
     public var measureBackdrop:FlxBackdrop;
 
-    // public var noteViewer:NoteViewer;
     public var helpButton:HelpButton;
     public var uiCamera:Camera;
 
     public var timeBar:HorizontalSlider;
-    public var overlay:FlxSprite;
     public var musicText:FlxText;
+    public var overlay:FlxSprite;
 
     public var opponentIcon:HealthIcon;
     public var playerIcon:HealthIcon;
 
-    public var hitsound:openfl.media.Sound; // avoid lag
+    public var hitsound:openfl.media.Sound;
+    public var hitsoundVolume:Float = 0;
     public var metronome:FlxSound;
+
+    public var startTime:Float = 0;
+    public var lastTime:Float = 0;
+    public var lastStep:Int = 0;
 
     var lastBpmChange:Float = 0;
     var awaitBPMReload:Bool = false;
     var eventBPM:Bool = false;
-
-    var startTime:Float = 0;
-    var lastTime:Float = 0;
-    var lastStep:Int = 0;
 
     public function new(chart:Chart, difficulty:String = "normal", startTime:Float = 0):Void {
         super();
@@ -94,18 +84,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function create():Void {
-        /*
-            @:privateAccess {
-                if (haxe.ui.Toolkit._initialized) {
-                    FlxG.signals.postGameStart.add(haxe.ui.core.Screen.instance.onPostGameStart);
-                    FlxG.signals.postStateSwitch.add(haxe.ui.core.Screen.instance.onPostStateSwitch);
-                    FlxG.signals.preStateCreate.add(haxe.ui.core.Screen.instance.onPreStateCreate);
-                }
-                else
-                    haxe.ui.Toolkit.init();
-            }
-         */
-
         super.create();
 
         FlxG.cameras.reset(new Camera());
@@ -121,13 +99,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         createUI();
 
         hitsound = Assets.sound("editors/hitsound");
+        hitsoundVolume = Settings.get("CHART_hitsoundVolume");
 
         metronome = FlxG.sound.load(Assets.sound("editors/metronome"));
         metronome.volume = Settings.get("CHART_metronomeVolume");
 
-        // spawn existing notes
-        if (chart.notes.length > 0)
-            spawnNotes(chart.notes);
+        // cache a small amount of note sprites
+        for (i in 0...32) notes.add(new DebugNote()).kill();
+
+        // make sure notes are sorted to avoid odd behaviours
+        sortNotes();
 
         // spawn existing events
         if (chart.events.length > 0)
@@ -169,7 +150,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 music.play(Conductor.time);
         }
 
-        mouseCursor.x = FlxMath.bound(floorMousePosition(FlxG.mouse.x), checkerboard.x - checkerSize, checkerboard.x + checkerSize * 7);
+        // TODO: bound the mouse cursor x so it doesn't go out of the grid (any bounding methods doesn't seems to be working??)
+        var mouseX:Float = quantizeMouse(FlxG.mouse.x - checkerboard.x);
+        mouseCursor.x = checkerboard.x + mouseX + separatorWidth * Math.floor(mouseX / checkerSize / 4);
         mouseCursor.y = FlxMath.bound(getMouseY(), 0, checkerboard.height - checkerSize);
         mouseCursor.visible = (isMouseXValid() && isMouseYValid());
 
@@ -191,8 +174,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             if (pressed || holding) {
                 var mult:Int = (FlxG.keys.pressed.Q) ? 1 : -1;
                 selectedNote.data.length += (holding) ? (Conductor.stepCrochet / 10 * Tools.framerateMult() * mult) : (Conductor.stepCrochet * mult);
-                if (selectedNote.data.length < 0)
-                    killNote(selectedNote);
+                if (selectedNote.data.length < 0) killNote(selectedNote);
             }
         }
 
@@ -203,6 +185,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         super.update(elapsed);
         updateCurrentBPM();
+
+        // only update notes after so it listens to bpm changes
+        notes.update(elapsed);
 
         // reposition the follow line
         if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
@@ -227,23 +212,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             }
         }
 
-        timeBar.disabled = !timeBar.visible;
         updateMusicText();
-
-        if (music.playing) {
-            var hitsoundVolume:Float = Settings.get("CHART_hitsoundVolume");
-            notes.forEachAlive((note) -> {
-                var late:Bool = (note.data.time <= Conductor.time);
-                var hit:Bool = (late && note.data.time > lastTime);
-
-                if (hit && hitsoundVolume > 0)
-                    FlxG.sound.play(hitsound, hitsoundVolume);
-
-                if (receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.time
-                    && (Settings.get("CHART_rStaticGlow") || lastStep != Conductor.currentStep))))
-                    receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
-            });
-        }
 
         lastStep = Conductor.currentStep;
         lastTime = Conductor.time;
@@ -257,16 +226,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     override function beatHit(currentBeat:Int):Void {
-        if (music.playing) {
-            if (metronome.volume > 0)
-                metronome.play(true);
-
-            /*
-                if (beatIndicators.visible)
-                    for (ind in beatIndicators)
-                        ind.color = FlxColor.CYAN;
-             */
-        }
+        // sometimes it just mutes itself, and sometimes it proceeds to play hitsound instead of metronome
+        // TODO: fix this bug
+        
+        if (music.playing && metronome.volume > 0)
+            metronome.play(true);
 
         super.beatHit(currentBeat);
     }
@@ -288,8 +252,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 direction: direction,
                 length: 0
             };
-            chart.notes.push(note.data);
 
+            chart.notes.push(note.data);
+            sortNotes();
+
+            notes.pushNote(note);
             selectedNote = note;
         }
         // existing note found, delete it if CONTROL isn't pressed
@@ -310,7 +277,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         // no existing event found, create one
         if (existingEvent == null) {
             var event:EventSprite = events.recycle(EventSprite);
-            event.setPosition(checkerboard.x - checkerSize, getMouseY());
+            event.setPosition(checkerboard.x - checkerSize - separatorWidth, getMouseY());
             event.data = {
                 time: getTimeFromY(event.y),
                 event: currentEvent.name,
@@ -378,7 +345,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
     override function closeSubState():Void {
         if (!(subState is TransitionSubState) && awaitBPMReload) {
-            reloadGrid(true, !eventBPM);
+            reloadGrid(false, !eventBPM);
             awaitBPMReload = false;
         }
 
@@ -433,7 +400,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             selectedNote = null;
 
         chart.notes.remove(note.data);
-        note.kill();
+        notes.killNote(note);
+
+        // sortNotes();
     }
 
     inline function killEvent(event:EventSprite):Void {
@@ -445,12 +414,6 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function pauseMusic():Void {
-        /*
-            if (beatIndicators.visible)
-                for (ind in beatIndicators)
-                    ind.color = FlxColor.RED;
-         */
-
         music.pause();
         metronome.stop();
     }
@@ -498,7 +461,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public inline function refreshMeasureMark():Void {
-        // without reducing by 1 makes the spacing off??
+        // without reducing by 1 makes the spacing somehow
         measureBackdrop.spacing.y = checkerSize * Conductor.measureLength / measureBackdrop.height - 1;
     }
 
@@ -529,7 +492,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             lastBpmChange = lastChange;
 
             awaitBPMReload = (subState != null);
-            if (!awaitBPMReload) reloadGrid(true, !eventBPM);
+            if (!awaitBPMReload) reloadGrid(false, !eventBPM);
         }
     }
 
@@ -537,7 +500,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         music = new MusicPlayback(chart.meta.rawName);
         music.setupInstrumental(chart.meta.instFile);
 
-        if (chart.meta.voiceFiles.length > 0)
+        if (chart.meta.voiceFiles?.length > 0)
             for (voiceFile in chart.meta.voiceFiles)
                 music.createVoice(voiceFile);
 
@@ -566,21 +529,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function createGrid():Void {
-        var checkerBitmap = FlxGridOverlay.createGrid(checkerSize, checkerSize, checkerSize * 2, checkerSize * 2, true, 0xFFD6D6D6, 0xFFBBBBBB);
-
-        checkerboard = new FlxTiledSprite(checkerBitmap, checkerSize * 8, getYFromTime(music.instrumental.length));
-        checkerboard.screenCenter(X);
-        checkerboard.active = false;
+        checkerboard = new ChartCheckerboard();
+        checkerboard.height = getYFromTime(music.instrumental.length);
         add(checkerboard);
-
-        for (i in 0...3) {
-            var separator:FlxSprite = new FlxSprite();
-            separator.makeRect(5, FlxG.height);
-            separator.scrollFactor.set();
-            separator.x = checkerboard.x + checkerSize * 4 * i;
-            separator.active = false;
-            add(separator);
-        }
 
         line = new FlxSprite();
         line.makeRect(checkerSize * 10, 5);
@@ -591,15 +542,17 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         FlxG.camera.follow(line, LOCKON);
         FlxG.camera.targetOffset.y = 125;
 
-        notes = new FlxTypedGroup<DebugNote>();
-        events = new FlxTypedGroup<EventSprite>();
+        notes = new ChartNoteGroup(this);
+        events = new ChartEventGroup();
+
+        // we're updating it manually
+        notes.active = false;
 
         measureBackdrop = new FlxBackdrop(null, Y);
-        measureBackdrop.makeRect(checkerSize * 9.5, 5, FlxColor.RED);
-        measureBackdrop.visible = Settings.get("CHART_measureText");
-        measureBackdrop.screenCenter(X);
+        measureBackdrop.makeRect(checkerSize * 8 + separatorWidth, 5, FlxColor.WHITE);
+        measureBackdrop.visible = Settings.get("CHART_measureMark");
+        measureBackdrop.x = checkerboard.x;
         measureBackdrop.active = false;
-        measureBackdrop.alpha = 0.65;
         refreshMeasureMark();
 
         // create receptors
@@ -609,7 +562,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         for (i in 0...8) {
             var receptor:Receptor = new Receptor(Std.int(i % 4));
-            receptor.x = checkerSize * i;
+            receptor.x = checkerSize * i + separatorWidth * Math.floor(i / 4);
 
             receptor.animation.finishCallback = (name) -> {
                 if (name.startsWith("confirm"))
@@ -630,7 +583,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         for (i in 0...2) {
             var losange:FlxSprite = new FlxSprite();
-            losange.makeRect(checkerSize * 0.35, checkerSize * 0.35, FlxColor.WHITE);
+            losange.makeRect(checkerSize * 0.35, checkerSize * 0.35, FlxColor.WHITE, false, "charteditor_losange");
             losange.x = (line.x - losange.width * 0.5) + ((line.width + losange.width * 0.5) * i);
             losange.color = FlxColor.RED;
             losange.angle = 45;
@@ -653,24 +606,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function createBackground():Void {
-        var backdrop:CheckerboardBG = new CheckerboardBG(200, 200, FlxColor.PURPLE, FlxColor.TRANSPARENT);
-        backdrop.scrollFactor.set(0.2, 0.2);
-        backdrop.alpha = 0.5;
-        backdrop.active = false;
-        add(backdrop);
-
         var background:FlxSprite = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
         background.scrollFactor.set();
-        background.blend = MULTIPLY;
+        background.color = 0x312c2d;
         background.active = false;
         add(background);
-
-        var cols:Array<FlxColor> = [FlxColor.PURPLE, 0xFF350D35];
-        var gradient:FlxSprite = FlxGradient.createGradientFlxSprite(FlxG.width, FlxG.height, cols, 1, 45);
-        gradient.scrollFactor.set();
-        gradient.active = false;
-        gradient.alpha = 0.4;
-        add(gradient);
     }
 
     inline function createUI():Void {
@@ -680,10 +620,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         overlay = new FlxSprite(0, 10);
         overlay.makeRect(1, 115, FlxColor.GRAY);
-        overlay.active = false;
-        overlay.alpha = 0.4;
         overlay.visible = Settings.get("CHART_timeOverlay");
         overlay.cameras = [uiCamera];
+        overlay.active = false;
+        overlay.alpha = 0.4;
         add(overlay);
 
         musicText = new FlxText(0, overlay.y);
@@ -691,6 +631,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         musicText.setBorderStyle(OUTLINE, FlxColor.BLACK, 0.5);
         musicText.visible = Settings.get("CHART_timeOverlay");
         musicText.cameras = [uiCamera];
+        musicText.active = false;
         add(musicText);
 
         timeBar = new HorizontalSlider();
@@ -698,8 +639,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         timeBar.left = FlxG.width - 180;
         timeBar.width = 175;
         timeBar.visible = Settings.get("CHART_timeOverlay");
+        timeBar.disabled = !timeBar.visible;
         timeBar.cameras = [uiCamera];
-        timeBar.moves = false;
         add(timeBar);
 
         timeBar.min = 0;
@@ -723,33 +664,26 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
         opponentIcon.x -= opponentIcon.width;
-        opponentIcon.scrollFactor.set();
-        opponentIcon.healthAnim = false;
         opponentIcon.cameras = [uiCamera];
+        opponentIcon.healthAnim = false;
         opponentIcon.active = false;
         add(opponentIcon);
 
         playerIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.meta.player));
         playerIcon.setGraphicSize(0, 100);
         playerIcon.updateHitbox();
-        playerIcon.scrollFactor.set();
-        playerIcon.healthAnim = false;
-        playerIcon.flipX = true;
         playerIcon.cameras = [uiCamera];
+        playerIcon.healthAnim = false;
         playerIcon.active = false;
+        playerIcon.flipX = true;
         add(playerIcon);
 
         helpButton = new HelpButton();
-        helpButton.camera = uiCamera;
         helpButton.onClick = openHelpPage;
+        helpButton.camera = uiCamera;
         add(helpButton);
 
-        /*
-            noteViewer = new NoteViewer(-40, 0);
-            noteViewer.screenCenter(Y);
-            noteViewer.camera = uiCamera;
-            add(noteViewer);
-         */
+        // add(haxe.ui.RuntimeComponentBuilder.build("assets/chartEditor.xml").screenCenter(Y));
     }
 
     inline public function loadAutoSave():Void {
@@ -758,7 +692,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         Tools.invokeTempSave((save) -> {
             var saveMap:Map<String, Dynamic> = save.data.charts;
             if (saveMap != null && saveMap.exists(chart.meta.rawName))
-                chart = funkin.globals.ChartFormat.Chart.resolve(saveMap.get(chart.meta.rawName));
+                chart = Chart.resolve(saveMap.get(chart.meta.rawName));
         }, "chart_autosave");
 
         if (oldChart == chart)
@@ -787,25 +721,20 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         autoSave();
     }
 
-    inline function spawnNotes(noteArray:Array<ChartNote>):Void {
-        for (noteData in noteArray) {
-            var note:DebugNote = new DebugNote();
-            note.setPosition(checkerboard.x + checkerSize * noteData.direction + checkerSize * 4 * noteData.strumline, getYFromTime(noteData.time));
-            note.data = noteData;
-            notes.add(note);
-        }
-    }
-
     inline function spawnEvents(eventArray:Array<ChartEvent>):Void {
         var eventKeys:Map<String, String> = [for (ev in eventList) ev.name => (ev.display ?? ev.name)];
 
         for (eventData in eventArray) {
             var event:EventSprite = new EventSprite();
-            event.setPosition(checkerboard.x - checkerSize, getYFromTime(eventData.time));
+            event.setPosition(checkerboard.x - checkerSize - separatorWidth, getYFromTime(eventData.time));
             event.display = eventKeys.get(eventData.event);
             event.data = eventData;
             events.add(event);
         }
+    }
+
+    inline function sortNotes():Void {
+        chart.notes.sort((a, b) -> Std.int(a.time - b.time));
     }
 
     override function destroy():Void {
@@ -819,25 +748,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         FlxG.stage.window.onClose.remove(autoSave);
         super.destroy();
-
-        /*
-            // temporary fix for haxeui crash
-            @:privateAccess {
-                FlxG.signals.postGameStart.remove(haxe.ui.core.Screen.instance.onPostGameStart);
-                FlxG.signals.postStateSwitch.remove(haxe.ui.core.Screen.instance.onPostStateSwitch);
-                FlxG.signals.preStateCreate.remove(haxe.ui.core.Screen.instance.onPreStateCreate);
-            }
-         */
     }
 
     inline function set_selectedNote(v:DebugNote):DebugNote {
         if (selectedNote != null)
             selectedNote.color = FlxColor.WHITE;
 
-        if (v != null)
+        if (v != null) {
+            notes.lastSelectedNote = null;
             v.color = hoverColor;
-
-        // noteViewer.view(v);
+        }
 
         return selectedNote = v;
     }
@@ -859,10 +779,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         return FlxG.mouse.y > 0 && FlxG.mouse.y < checkerboard.height;
 
     inline static function getMouseY():Float {
-        return (FlxG.keys.pressed.SHIFT) ? FlxG.mouse.y : floorMousePosition(FlxG.mouse.y);
+        return (FlxG.keys.pressed.SHIFT) ? FlxG.mouse.y : quantizeMouse(FlxG.mouse.y);
     }
 
-    inline static function floorMousePosition(position:Float):Float {
+    inline static function quantizeMouse(position:Float):Float {
         return Math.floor(position / checkerSize) * checkerSize;
     }
 
@@ -884,121 +804,5 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         var icon:String = Tools.parseYAML(FileTools.getContent(file)).icon;
         return (icon == null) ? HealthIcon.DEFAULT_ICON : icon;
-    }
-}
-
-class DebugNote extends FlxSprite {
-    static final sustainColors:Array<FlxColor> = [0xC24A98, 0x00FEFE, 0x13FB05, 0xF9383E];
-
-    public var data:ChartNote = null;
-    var sustain:FlxSprite;
-
-    public function new():Void {
-        super();
-
-        frames = Assets.getSparrowAtlas("notes/notes");
-
-        for (direction in Note.directions)
-            animation.addByPrefix(direction, direction + "0", 0);
-
-        setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
-        updateHitbox();
-
-        sustain = new FlxSprite();
-        sustain.makeRect(ChartEditor.checkerSize * 0.25, 1, FlxColor.WHITE, false, "charteditor_susrect");
-    }
-
-    override function update(elapsed:Float):Void {
-        // updating scale in update instead of draw to avoid scale changes on substates
-        if (data.length > 0) {
-            sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5));
-            sustain.updateHitbox();
-        }
-
-        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
-        // super.update(elapsed);
-    }
-
-    override function draw():Void {
-        if (data.length > 0) {
-            sustain.x = x + (width - sustain.width) * 0.5;
-            sustain.y = y + height * 0.5;
-
-            sustain.color = sustainColors[data.direction];
-            sustain.alpha = alpha;
-            sustain.draw();
-        }
-
-        animation.play(Note.directions[data.direction]);
-        super.draw();
-    }
-
-    override function destroy():Void {
-        sustain = FlxDestroyUtil.destroy(sustain);
-        data = null;
-
-        super.destroy();
-    }
-}
-
-class EventSprite extends FlxSprite {
-    public var display:String;
-    public var rect:FlxSprite;
-    public var text:FlxText;
-
-    public var data:ChartEvent;
-
-    public function new():Void {
-        super();
-
-        loadGraphic(Assets.image("ui/debug/evt_ic"));
-        setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
-        updateHitbox();
-
-        rect = new FlxSprite();
-        rect.makeRect(ChartEditor.checkerSize, ChartEditor.checkerSize, 0x860051FF, false, "charteditor_evrect");
-        rect.visible = false;
-
-        text = new FlxText();
-        text.setFormat(Assets.font("vcr"), 12, FlxColor.WHITE, RIGHT);
-    }
-
-    override function update(elapsed:Float):Void {
-        alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
-        color = (FlxG.mouse.overlaps(this)) ? ChartEditor.hoverColor : FlxColor.WHITE;
-
-        text.alpha = alpha;
-        text.color = color;
-
-        // super.update(elapsed);
-    }
-
-    override function draw():Void {
-        var displayText:String = (display ?? data.event);
-        if (data.arguments != null)
-            displayText += '\nArguments: ${data.arguments.join(", ")}';
-
-        text.text = displayText;
-        text.setPosition(x - text.width, y);
-
-        if (rect.visible) {
-            rect.scale.x = text.width + width;
-            rect.updateHitbox();
-
-            rect.setPosition(text.x, y);
-            rect.draw();
-        }
-
-        super.draw();
-        text.draw();
-    }
-
-    override function destroy():Void {
-        rect = FlxDestroyUtil.destroy(rect);
-        text = FlxDestroyUtil.destroy(text);
-        display = null;
-        data = null;
-
-        super.destroy();
     }
 }

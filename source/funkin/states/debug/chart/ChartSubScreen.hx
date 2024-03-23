@@ -1,7 +1,6 @@
-package funkin.states.debug;
+package funkin.states.debug.chart;
 
 import flixel.FlxSubState;
-
 import haxe.ui.components.*;
 import haxe.ui.containers.*;
 import haxe.ui.containers.properties.*;
@@ -29,7 +28,7 @@ class ChartSubScreen extends FlxSubState {
         super.create();
 
         var background:FlxSprite = new FlxSprite();
-        background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
+        background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK, false, "charteditor_substatebg");
         background.alpha = 0.6;
         add(background);
 
@@ -86,7 +85,12 @@ class ChartSubScreen extends FlxSubState {
 
         if (!bpmChanged) {
             if (stepsChanged) parent.reloadGrid();
-            if (beatsChanged) parent.refreshMeasureMark();
+            else if (beatsChanged) parent.refreshMeasureMark();
+        }
+
+        if (stepsChanged || beatsChanged) {
+            parent.notes.lastMeasure = Conductor.currentMeasure;
+            parent.notes.regenNotes(true);
         }
 
         lastPage = menu.pageIndex;
@@ -137,7 +141,7 @@ class ChartSubScreen extends FlxSubState {
         hitsoundText.top = 50;
 
         hitsoundSlider.onChange = (_) -> {
-            Settings.settings["CHART_hitsoundVolume"].value = hitsoundSlider.pos / 100;
+            Settings.settings["CHART_hitsoundVolume"].value = parent.hitsoundVolume = hitsoundSlider.pos / 100;
             hitsoundText.text = 'Hitsound Volume (${hitsoundSlider.pos}%)';
         }
 
@@ -200,11 +204,11 @@ class ChartSubScreen extends FlxSubState {
 
         // show measures
         var showMeasures:CheckBox = createCheckbox("Show Measure Marks");
-        showMeasures.selected = Settings.get("CHART_measureText");
+        showMeasures.selected = Settings.get("CHART_measureMark");
         showMeasures.top = 25;
 
         showMeasures.onChange = (_) -> {
-            Settings.settings["CHART_measureText"].value = showMeasures.selected;
+            Settings.settings["CHART_measureMark"].value = showMeasures.selected;
             parent.measureBackdrop.visible = showMeasures.selected;
         }
 
@@ -226,6 +230,7 @@ class ChartSubScreen extends FlxSubState {
         timeOverlay.onChange = (_) -> {
             Settings.settings["CHART_timeOverlay"].value = timeOverlay.selected;
             parent.overlay.visible = parent.musicText.visible = parent.timeBar.visible = timeOverlay.selected;
+            parent.timeBar.disabled = !timeOverlay.selected;
         }
 
         // receptors
@@ -237,12 +242,6 @@ class ChartSubScreen extends FlxSubState {
             Settings.settings["CHART_receptors"].value = showReceptors.selected;
             parent.receptors.visible = showReceptors.selected;
         }
-
-        var staticGlow:CheckBox = createCheckbox("Receptors Hold Static Glow");
-        staticGlow.selected = Settings.get("CHART_rStaticGlow");
-        staticGlow.top = 125;
-
-        staticGlow.onChange = (_) -> Settings.settings["CHART_rStaticGlow"].value = staticGlow.selected;
 
         // strumline snap
         var strumlineSnap:CheckBox = createCheckbox("Strumline Scroll Snap");
@@ -256,7 +255,6 @@ class ChartSubScreen extends FlxSubState {
         page.addComponent(beatIndicators);
         page.addComponent(timeOverlay);
         page.addComponent(showReceptors);
-        page.addComponent(staticGlow);
         page.addComponent(strumlineSnap);
     }
 
@@ -491,8 +489,6 @@ class ChartSubScreen extends FlxSubState {
         add(savePrefs);
         add(autoSave);
     }
-
-    // TODO: seperate those into classes, this should do it for now
 
     inline function createPage(text:String):Box {
         var page:Box = new Box();
