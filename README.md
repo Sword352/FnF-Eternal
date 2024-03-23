@@ -13,7 +13,7 @@
 
 ### Credits
 > Developers
-- Sword: Director and Lead Coder
+- Sword: Maintainer, Lead Coder
 - Glade: Composer and Minor Coding
 - S0ulstive: Artist
 - Moxie: Coder
