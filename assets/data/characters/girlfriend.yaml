@@ -16,7 +16,7 @@ animations:
 - { name: "scared",     prefix: "GF FEAR",  fps: 24, loop: true, offsets: [-2, -17]  }
 - { name: "hey",        prefix: "GF Cheer", fps: 24, loop: false }
 
-danceAnimations: ["danceLeft", "danceRight"]
+danceSteps: ["danceLeft", "danceRight"]
 danceBeat: 1
 
 icon: "gf"

@@ -373,6 +373,9 @@ class ChartPlayState extends MusicBeatSubState {
         while (notes.length > 0)
             notes.pop().destroy();
 
+        while (ratings.length > 0)
+            ratings.pop().destroy();
+
         strumLines = null;
         startTimer = null;
         ratings = null;

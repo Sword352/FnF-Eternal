@@ -9,7 +9,7 @@ animations:
   - { name: "singUP",    prefix: "spooky UP NOTE",    fps: 24, loop: false, offsets: [-20, 26]   }
   - { name: "singRIGHT", prefix: "spooky sing right", fps: 24, loop: false, offsets: [-130, -14] }
 
-danceAnimations: ["danceLeft", "danceRight"]
+danceSteps: ["danceLeft", "danceRight"]
 danceBeat: 1
 
 icon: spooky

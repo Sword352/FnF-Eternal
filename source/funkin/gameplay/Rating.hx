@@ -52,6 +52,10 @@ class Rating {
         hits = 0;
     }
 
+    public inline function destroy():Void {
+        name = rank = image = null;
+    }
+
     public static function getDefaultList():Array<Rating> {
         var list:Array<Rating> = [new Rating()];
 

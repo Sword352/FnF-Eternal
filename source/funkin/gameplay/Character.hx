@@ -25,7 +25,7 @@ typedef CharacterConfig = {
     var ?singAnimations:Array<String>;
     var ?singDuration:Float;
 
-    var ?danceAnimations:Array<String>;
+    var ?danceSteps:Array<String>;
     var ?danceBeat:Float;
 
     var ?cameraOffsets:Array<Float>;
@@ -114,7 +114,7 @@ class Character extends DancingSprite {
         singAnimations = config.singAnimations ?? singAnimations;
         singDuration = config.singDuration ?? 4;
 
-        danceAnimations = config.danceAnimations ?? ["idle"];
+        danceSteps = config.danceSteps ?? ["idle"];
         beat = config.danceBeat ?? 2;
 
         cameraOffsets = config.cameraOffsets;
@@ -145,7 +145,7 @@ class Character extends DancingSprite {
             updateHitbox();
 
             // re-apply offsets
-            playAnimation(danceAnimations[0], true);
+            playAnimation(danceSteps[0], true);
         }
 
         if (type == PLAYER && data.playerFlip) {
@@ -176,7 +176,7 @@ class Character extends DancingSprite {
     }
 
     override function dance(currentBeat:Int, forced:Bool = false):Void {
-        if (danceAnimations.contains(animation.curAnim.name) || type == GAMEOVER)
+        if (danceSteps.contains(animation.curAnim.name) || type == GAMEOVER)
             super.dance(currentBeat, forced);
     }
 
@@ -277,7 +277,7 @@ class Character extends DancingSprite {
         animation.addByPrefix("singUPmiss", "BF NOTE UP MISS", 24, false);
         animation.addByPrefix("singRIGHTmiss", "BF NOTE RIGHT MISS", 24, false);
 
-        danceAnimations = ["idle"];
+        danceSteps = ["idle"];
         cameraOffsets = [-150, -150];
 
         forceDance(true);

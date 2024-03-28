@@ -1,7 +1,7 @@
 package funkin.objects;
 
 class DancingSprite extends OffsetSprite {
-    public var danceAnimations:Array<String> = [];
+    public var danceSteps:Array<String> = [];
     public var currentDance:Int = 0;
     public var beat:Float = 1;
 
@@ -11,12 +11,12 @@ class DancingSprite extends OffsetSprite {
     }
 
     public function forceDance(forced:Bool = false):Void {
-        playAnimation(danceAnimations[currentDance], forced);
-        currentDance = (currentDance + 1) % danceAnimations.length;
+        playAnimation(danceSteps[currentDance], forced);
+        currentDance = (currentDance + 1) % danceSteps.length;
     }
 
     override function destroy():Void {
-        danceAnimations = null;
+        danceSteps = null;
         super.destroy();
     }
 }

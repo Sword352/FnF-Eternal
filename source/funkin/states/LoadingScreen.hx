@@ -179,9 +179,9 @@ class LoadingScreen extends FlxState {
         if (!FileTools.exists(path) || FileTools.isDirectory(path)) return;
 
         var config:StageConfig = Tools.parseYAML(FileTools.getContent(path));
-        if (config == null || config.objects == null) return;
+        if (config == null || config.sprites == null) return;
 
-        for (sprite in config.objects)
+        for (sprite in config.sprites)
             if (sprite.type != "rect")
                 Assets.image(sprite.image, sprite.library);
     }
@@ -236,26 +236,8 @@ class LoadingScreen extends FlxState {
 
     inline function loadCommon():Void {
         Assets.music("breakfast");
-
-        // is it really necessary to cache those?
-        /*
-        Assets.image('ui/gameplay/sick');
-        Assets.image('ui/gameplay/good');
-        Assets.image('ui/gameplay/bad');
-        Assets.image('ui/gameplay/shit');
-
-        Assets.image('ui/gameplay/ready');
-        Assets.image('ui/gameplay/set');
-        Assets.image('ui/gameplay/go');
-
-        Assets.sound('gameplay/intro3');
-        Assets.sound('gameplay/intro2');
-        Assets.sound('gameplay/intro1');
-        Assets.sound('gameplay/introGo');
-
+        Assets.image("ui/alphabet");
         for (i in 1...4) Assets.sound('gameplay/missnote${i}');
-        for (i in 0...10) Assets.image('ui/gameplay/num${i}');
-        */
     }
 
     override function destroy():Void {

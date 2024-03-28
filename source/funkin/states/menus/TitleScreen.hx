@@ -18,7 +18,7 @@ typedef TitleSprite = {
     var ?animationSpeed:Float;
     var ?frameRect:Array<Int>;
 
-    var ?danceAnimations:Array<String>;
+    var ?danceSteps:Array<String>;
     var ?danceBeat:Float;
 
     var ?position:Array<Float>;
@@ -371,9 +371,9 @@ class TitleScreen extends MusicBeatState {
         for (data in sprites) {
             var sprite:OffsetSprite = null;
 
-            if (data.danceAnimations != null && data.danceAnimations.length > 0) {
+            if (data.danceSteps != null && data.danceSteps.length > 0) {
                 var dancingSpr:DancingSprite = new DancingSprite();
-                dancingSpr.danceAnimations = data.danceAnimations;
+                dancingSpr.danceSteps = data.danceSteps;
                 dancingSpr.beat = data.danceBeat ?? 1;
                 sprite = dancingSpr;
             } else sprite = new OffsetSprite();
@@ -446,7 +446,7 @@ class TitleScreen extends MusicBeatState {
         var logo:DancingSprite = new DancingSprite(-150, -100);
         logo.frames = Assets.getSparrowAtlas("menus/title/logoBumpin");
         logo.animation.addByPrefix("bump", "logo bumpin", 24, false);
-        logo.danceAnimations.push("bump");
+        logo.danceSteps.push("bump");
 
         logo.forceDance();
         logo.animation.finish();
@@ -458,7 +458,7 @@ class TitleScreen extends MusicBeatState {
         girlfriend.frames = Assets.getSparrowAtlas("menus/title/gfDanceTitle");
         girlfriend.animation.addByIndices("left", "gfDance", [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
         girlfriend.animation.addByIndices("right", "gfDance", [for (i in 15...30) i], "", 24, false);
-        girlfriend.danceAnimations = ["left", "right"];
+        girlfriend.danceSteps = ["left", "right"];
 
         girlfriend.forceDance();
         girlfriend.animation.finish();

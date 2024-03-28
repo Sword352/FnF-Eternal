@@ -225,7 +225,7 @@ class StoryMenu extends MusicBeatState {
 
     override function beatHit(currentBeat:Int):Void {
         for (character in characters)
-            if (character.danceAnimations.length > 0 && character.animation.name != "confirm")
+            if (character.danceSteps.length > 0 && character.animation.name != "confirm")
                 character.dance(currentBeat, true);
 
         super.beatHit(currentBeat);
@@ -467,7 +467,7 @@ class StoryMenuCharacter extends DancingSprite {
         frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
         Tools.addYamlAnimations(this, data.animations);
 
-        danceAnimations = data.danceAnimations ?? ["idle"];
+        danceSteps = data.danceSteps ?? ["idle"];
         beat = data.danceBeat ?? 1;
 
         globalOffsets = data.globalOffsets ?? [0, 0];
@@ -516,7 +516,7 @@ typedef StoryCharacterData = {
     var ?image:String;
     var animations:Array<YAMLAnimation>;
 
-    var ?danceAnimations:Array<String>;
+    var ?danceSteps:Array<String>;
     var ?danceBeat:Float;
 
     var ?globalOffsets:Array<Float>;

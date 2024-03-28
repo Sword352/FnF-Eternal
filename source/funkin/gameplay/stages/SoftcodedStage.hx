@@ -9,26 +9,29 @@ import eternal.core.scripting.HScript;
 
 typedef StageConfig = {
     var ?cameraSpeed:Float;
+    var ?camBeatZoom:Float;
+    var ?hudBeatZoom:Float;
+    var ?camBeat:Float;
+
     var ?cameraZoom:Float;
     var ?hudZoom:Float;
 
+    var ?playerPos:Array<Float>;
+    var ?spectatorPos:Array<Float>;
+    var ?opponentPos:Array<Float>;
+    var ?ratingPos:Array<Float>;
+
+    var ?playerCam:Array<Float>;
+    var ?spectatorCam:Array<Float>;
+    var ?opponentCam:Array<Float>;
+
+    var ?uiStyle:String;
     var ?hideSpectator:Bool;
 
-    // TODO: smaller field names, and rename objects to sprites
-    var ?playerPosition:Array<Float>;
-    var ?spectatorPosition:Array<Float>;
-    var ?opponentPosition:Array<Float>;
-    var ?ratingPosition:Array<Float>;
-
-    var ?playerCameraOffset:Array<Float>;
-    var ?spectatorCameraOffset:Array<Float>;
-    var ?opponentCameraOffset:Array<Float>;
-
-    var ?objects:Array<StageObject>;
+    var ?sprites:Array<StageSprite>;
 }
 
-// TODO: maybe add shader support for stage sprites?
-typedef StageObject = {
+typedef StageSprite = {
     var ?name:String; // optional identifier to access the sprite
     var ?image:String;
     var ?library:String;
@@ -41,12 +44,11 @@ typedef StageObject = {
     var ?animationSpeed:Float;
     var ?frameRect:Array<Int>;
 
-    var ?danceAnimations:Array<String>;
+    var ?danceSteps:Array<String>;
     var ?danceBeat:Float;
 
     var ?position:Array<Float>;
-    var ?parallax:Array<Float>; // same as scrollFactor
-    var ?scrollFactor:Array<Float>;
+    var ?parallax:Array<Float>; // scrollFactor
 
     var ?antialiasing:Bool;
     var ?color:Dynamic;
@@ -65,14 +67,14 @@ class SoftcodedStage extends Stage {
     public var script:HScript;
     #end
 
-    var spectatorPosition:Array<Float> = [600, 0];
-    var opponentPosition:Array<Float> = [350, 0];
-    var playerPosition:Array<Float> = [800, 0];
-    var ratingPosition:Array<Float> = [500, 0];
+    var spectatorPos:Array<Float> = [600, 0];
+    var opponentPos:Array<Float> = [350, 0];
+    var playerPos:Array<Float> = [800, 0];
+    var ratingPos:Array<Float> = [500, 0];
 
-    var spectatorCameraOffset:Array<Float> = null;
-    var opponentCameraOffset:Array<Float> = null;
-    var playerCameraOffset:Array<Float> = null;
+    var spectatorCam:Array<Float> = null;
+    var opponentCam:Array<Float> = null;
+    var playerCam:Array<Float> = null;
 
     var dancingSprites:Array<DancingSprite> = [];
     var spectatorLayer:Array<FlxSprite> = [];
@@ -86,8 +88,7 @@ class SoftcodedStage extends Stage {
     }
 
     override function create():Void {
-        if (stage.length < 1)
-            return;
+        if (stage.length == 0) return;
 
         var basePath:String = 'data/stages/${stage}';
         var path:String = Assets.yaml(basePath);
@@ -114,57 +115,49 @@ class SoftcodedStage extends Stage {
         }
         #end
 
-        if (data.cameraSpeed != null)
-            camSpeed = data.cameraSpeed;
-        if (data.cameraZoom != null)
-            camZoom = data.cameraZoom;
-        if (data.hudZoom != null)
-            hudZoom = data.hudZoom;
+        if (data.cameraSpeed != null) camSpeed = data.cameraSpeed;
+        if (data.cameraZoom != null) camZoom = data.cameraZoom;
+        if (data.hudZoom != null) hudZoom = data.hudZoom;
 
-        if (data.playerPosition != null)
-            playerPosition = arrayCheck(data.playerPosition);
-        if (data.spectatorPosition != null)
-            spectatorPosition = arrayCheck(data.spectatorPosition);
-        if (data.opponentPosition != null)
-            opponentPosition = arrayCheck(data.opponentPosition);
-        if (data.ratingPosition != null)
-            ratingPosition = arrayCheck(data.ratingPosition);
+        if (data.camBeatZoom != null) camBeatZoom = data.camBeatZoom;
+        if (data.hudBeatZoom != null) hudBeatZoom = data.hudBeatZoom;
+        if (data.camBeat != null) beatZoomInterval = data.camBeat;
 
-        if (data.playerCameraOffset != null)
-            playerCameraOffset = arrayCheck(data.playerCameraOffset);
-        if (data.spectatorCameraOffset != null)
-            spectatorCameraOffset = arrayCheck(data.spectatorCameraOffset);
-        if (data.opponentCameraOffset != null)
-            opponentCameraOffset = arrayCheck(data.opponentCameraOffset);
+        if (data.playerPos != null) playerPos = arrayCheck(data.playerPos);
+        if (data.spectatorPos != null) spectatorPos = arrayCheck(data.spectatorPos);
+        if (data.opponentPos != null) opponentPos = arrayCheck(data.opponentPos);
+        if (data.ratingPos != null) ratingPos = arrayCheck(data.ratingPos);
 
-        if (data.hideSpectator != null)
-            showSpectator = !data.hideSpectator;
+        if (data.playerCam != null) playerCam = arrayCheck(data.playerCam);
+        if (data.spectatorCam != null) spectatorCam = arrayCheck(data.spectatorCam);
+        if (data.opponentCam != null) opponentCam = arrayCheck(data.opponentCam);
 
-        // no need to loop if there is no objects
-        if (data.objects == null || data.objects.length == 0)
-            return;
+        if (data.hideSpectator != null) showSpectator = !data.hideSpectator;
 
-        for (obj in data.objects) {
-            var sprite:FlxSprite = null;
+        if (data.uiStyle != null) {
+            // ui style script
+            var path:String = Assets.script('scripts/uiStyle/${data.uiStyle}');
+            if (FileTools.exists(path)) game.loadScript(path);
 
-            if (obj.danceAnimations != null) {
-                var dancingSprite = new DancingSprite();
-                dancingSprite.danceAnimations = obj.danceAnimations;
-                dancingSprite.beat = obj.danceBeat ?? 1;
-                dancingSprites.push(dancingSprite);
-                sprite = dancingSprite;
-            } else
-                sprite = new OffsetSprite();
+            uiStyle = "-" + data.uiStyle;
+        }
+
+        if (data.sprites == null) return;
+
+        for (obj in data.sprites) {
+            var sprite:DancingSprite = new DancingSprite();
+
+            if (obj.danceSteps != null) {
+                sprite.danceSteps = obj.danceSteps;
+                sprite.beat = obj.danceBeat ?? 1;
+                dancingSprites.push(sprite);
+            }
 
             switch ((obj.type ?? "").toLowerCase().trim()) {
-                case "sparrow":
-                    sprite.frames = Assets.getSparrowAtlas(obj.image, obj.library);
-                case "packer":
-                    sprite.frames = Assets.getPackerAtlas(obj.image, obj.library);
-                case "aseprite":
-                    sprite.frames = Assets.getAseAtlas(obj.image, obj.library);
-                case "rect":
-                    sprite.makeGraphic(obj.rectGraphic[0], obj.rectGraphic[1], Tools.getColor(obj.rectGraphic[2]));
+                case "rect": sprite.makeGraphic(obj.rectGraphic[0], obj.rectGraphic[1], Tools.getColor(obj.rectGraphic[2]));
+                case "sparrow": sprite.frames = Assets.getSparrowAtlas(obj.image, obj.library);
+                case "packer": sprite.frames = Assets.getPackerAtlas(obj.image, obj.library);
+                case "aseprite": sprite.frames = Assets.getAseAtlas(obj.image, obj.library);
                 default:
                     if (obj.frameRect != null)
                         sprite.loadGraphic(Assets.image(obj.image, obj.library), true, obj.frameRect[0], obj.frameRect[1]);
@@ -172,40 +165,23 @@ class SoftcodedStage extends Stage {
                         sprite.loadGraphic(Assets.image(obj.image, obj.library));
             }
 
-            if (obj.animations != null)
-                Tools.addYamlAnimations(sprite, obj.animations);
+            if (obj.antialiasing != null) sprite.antialiasing = obj.antialiasing;
+            if (obj.color != null) sprite.color = Tools.getColor(obj.color);
+            if (obj.alpha != null) sprite.alpha = obj.alpha;
+            if (obj.blend != null) sprite.blend = obj.blend;
 
-            if (obj.animationSpeed != null)
-                sprite.animation.timeScale = obj.animationSpeed;
-
-            if (obj.color != null)
-                sprite.color = Tools.getColor(obj.color);
-
-            if (obj.blend != null)
-                sprite.blend = obj.blend;
-
-            if (obj.position != null)
-                sprite.setPosition(obj.position[0] ?? 0, obj.position[1] ?? 0);
+            if (obj.position != null) sprite.setPosition(obj.position[0] ?? 0, obj.position[1] ?? 0);
+            if (obj.parallax != null) sprite.scrollFactor.set(obj.parallax[0] ?? 0, obj.parallax[1] ?? 0);
 
             if (obj.scale != null) {
                 sprite.scale.set(obj.scale[0] ?? 1, obj.scale[1] ?? 1);
                 sprite.updateHitbox();
             }
 
-            var scrollFactor:Array<Float> = obj.scrollFactor ?? obj.parallax;
-            if (scrollFactor != null)
-                sprite.scrollFactor.set(scrollFactor[0] ?? 0, scrollFactor[1] ?? 0);
-
             if (obj.flip != null) {
                 sprite.flipX = obj.flip[0] ?? false;
                 sprite.flipY = obj.flip[1] ?? false;
             }
-
-            if (obj.alpha != null)
-                sprite.alpha = obj.alpha;
-
-            if (obj.antialiasing != null)
-                sprite.antialiasing = obj.antialiasing;
 
             switch ((obj.layer ?? "").toLowerCase().trim()) {
                 case "foreground" | "fg":
@@ -217,13 +193,12 @@ class SoftcodedStage extends Stage {
             }
 
             if (obj.animations != null) {
-                if (sprite is OffsetSprite)
-                    cast(sprite, OffsetSprite).playAnimation(obj.animations[0].name, true);
-                else
-                    sprite.animation.play(obj.animations[0].name, true);
-
+                Tools.addYamlAnimations(sprite, obj.animations);
+                sprite.playAnimation(obj.animations[0].name, true);
                 sprite.animation.finish();
             }
+
+            if (obj.animationSpeed != null) sprite.animation.timeScale = obj.animationSpeed;
 
             if (obj.name != null) {
                 #if ENGINE_SCRIPTING
@@ -251,49 +226,43 @@ class SoftcodedStage extends Stage {
             add(spr);
 
         if (player != null) {
-            player.setPosition(playerPosition[0], playerPosition[1]);
+            player.setPosition(playerPos[0], playerPos[1]);
 
             if (player.globalOffsets != null) {
                 player.x += player.globalOffsets[0] ?? 0;
                 player.y += player.globalOffsets[1] ?? 0;
             }
 
-            if (playerCameraOffset != null) {
-                if (player.cameraOffsets == null)
-                    player.cameraOffsets = [0, 0];
-
-                player.cameraOffsets[0] += playerCameraOffset[0];
-                player.cameraOffsets[1] += playerCameraOffset[1];
+            if (playerCam != null) {
+                if (player.cameraOffsets == null) player.cameraOffsets = [0, 0];
+                player.cameraOffsets[0] += playerCam[0];
+                player.cameraOffsets[1] += playerCam[1];
             }
         }
 
         if (opponent != null && opponent != spectator) {
-            opponent.setPosition(opponentPosition[0], opponentPosition[1]);
+            opponent.setPosition(opponentPos[0], opponentPos[1]);
 
             if (opponent.globalOffsets != null) {
                 opponent.x += opponent.globalOffsets[0] ?? 0;
                 opponent.y += opponent.globalOffsets[1] ?? 0;
             }
 
-            if (opponentCameraOffset != null) {
-                if (opponent.cameraOffsets == null)
-                    opponent.cameraOffsets = [0, 0];
-
-                opponent.cameraOffsets[0] += opponentCameraOffset[0];
-                opponent.cameraOffsets[1] += opponentCameraOffset[1];
+            if (opponentCam != null) {
+                if (opponent.cameraOffsets == null) opponent.cameraOffsets = [0, 0];
+                opponent.cameraOffsets[0] += opponentCam[0];
+                opponent.cameraOffsets[1] += opponentCam[1];
             }
         }
 
         if (spectator != null) {
-            spectator.setPosition(spectatorPosition[0], spectatorPosition[1]);
+            spectator.setPosition(spectatorPos[0], spectatorPos[1]);
             spectator.visible = showSpectator;
 
-            if (spectatorCameraOffset != null) {
-                if (spectator.cameraOffsets == null)
-                    spectator.cameraOffsets = [0, 0];
-
-                spectator.cameraOffsets[0] += spectatorCameraOffset[0];
-                spectator.cameraOffsets[1] += spectatorCameraOffset[1];
+            if (spectatorCam != null) {
+                if (spectator.cameraOffsets == null) spectator.cameraOffsets = [0, 0];
+                spectator.cameraOffsets[0] += spectatorCam[0];
+                spectator.cameraOffsets[1] += spectatorCam[1];
             }
 
             if (spectator.globalOffsets != null) {
@@ -303,7 +272,7 @@ class SoftcodedStage extends Stage {
         }
 
         if (!Settings.get("judgements on user interface"))
-            game.ratingSprites.setPosition(ratingPosition[0], ratingPosition[1]);
+            game.ratingSprites.setPosition(ratingPos[0], ratingPos[1]);
     }
 
     override function beatHit(currentBeat:Int):Void {
@@ -315,14 +284,14 @@ class SoftcodedStage extends Stage {
         spriteByName.clear();
         spriteByName = null;
 
-        spectatorPosition = null;
-        opponentPosition = null;
-        playerPosition = null;
-        ratingPosition = null;
+        spectatorPos = null;
+        opponentPos = null;
+        playerPos = null;
+        ratingPos = null;
 
-        spectatorCameraOffset = null;
-        opponentCameraOffset = null;
-        playerCameraOffset = null;
+        spectatorCam = null;
+        opponentCam = null;
+        playerCam = null;
 
         dancingSprites = null;
         spectatorLayer = null;

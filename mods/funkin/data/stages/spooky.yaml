@@ -1,21 +1,17 @@
-spectatorPosition: [500, 130]
-opponentPosition: [200, 300]
-ratingPosition: [700, 475]
+spectatorPos: [500, 130]
+opponentPos: [200, 300]
+ratingPos: [700, 475]
+playerPos: [870, 450]
+playerCam: [0, -15]
 
-playerCameraOffset: [0, -15]
-playerPosition: [870, 450]
+sprites:
+  - name: background
+    image: stages/spooky/halloween_bg
+    type: sparrow
 
-objects:
-- {
-    name: background,
-    image: stages/spooky/halloween_bg,
-    type: sparrow,
+    position: [-200, -100]
+    antialiasing: true
 
-    position: [-200, -100],
-    antialiasing: true,
-
-    animations: [
-      {name: idle, prefix: halloweem bg0, fps: 0},
-      {name: lighting, prefix: halloweem bg lightning strike, fps: 24}
-    ]
-  }
+    animations:
+      - {name: idle, prefix: halloweem bg0, fps: 0}
+      - {name: lighting, prefix: halloweem bg lightning strike}

@@ -328,7 +328,9 @@ class PlayState extends MusicBeatState {
         Conductor.updateInterp = true;
         activeConductor = false;
 
-        // cache();
+        // cache some extra stuff that cannot be loaded in the loading screen
+        // since they can be modified
+        cacheExtra();
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.getHandle()})';
@@ -563,15 +565,15 @@ class PlayState extends MusicBeatState {
         var graphic:String = countdownGraphics[tick];
         var sound:String = countdownSounds[tick];
 
-        if (graphic != null) countdownSprite.loadGraphic(Assets.image(graphic));
+        if (graphic != null) countdownSprite.loadGraphic(Assets.image(graphic + stage.uiStyle));
+        if (sound != null) FlxG.sound.play(Assets.sound(sound + stage.uiStyle));
+
         countdownSprite.alpha = (graphic == null ? 0 : 1);
         countdownSprite.screenCenter();
 
-        if (sound != null) FlxG.sound.play(Assets.sound(sound));
-
         FlxTween.cancelTweensOf(countdownSprite);
-        FlxTween.tween(countdownSprite, {y: 100 * (tick + 1), alpha: 0}, Conductor.crochet * 0.001, {
-            ease: FlxEase.cubeInOut,
+        FlxTween.tween(countdownSprite, {y: countdownSprite.y + 50 * (tick + 1), alpha: 0}, Conductor.crochet * 0.001, {
+            ease: FlxEase.smootherStepInOut,
             onComplete: (!done) ? null : (_) -> {
                 countdownSprite = FlxDestroyUtil.destroy(countdownSprite);
                 remove(countdownSprite, true);
@@ -844,7 +846,7 @@ class PlayState extends MusicBeatState {
         }
 
         var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
-        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.image}'));
+        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.image}' + stage.uiStyle));
         sprite.scale.set(0.7, 0.7);
         sprite.updateHitbox();
 
@@ -875,7 +877,7 @@ class PlayState extends MusicBeatState {
 
         for (i in 0...separatedCombo.length) {
             var sprite:ComboSprite = comboSprites.recycle(ComboSprite);
-            sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
+            sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}' + stage.uiStyle));
             sprite.scale.set(0.5, 0.5);
             sprite.updateHitbox();
 
@@ -952,9 +954,12 @@ class PlayState extends MusicBeatState {
             notes.pop().destroy();
         notes = null;
 
+        while (ratings.length > 0)
+            ratings.pop().destroy();
+        ratings = null;
+
         countdownGraphics = null;
         countdownSounds = null;
-        countdownSprite = null;
 
         camPos = FlxDestroyUtil.put(camPos);
         targetCharacter = null;
@@ -968,45 +973,21 @@ class PlayState extends MusicBeatState {
 
     // Helper functions
 
-    public inline function cache():Void {
-        // Cache gameover
-        /*
-            var gameOverCache:Character = new Character(0, 0, player.data.gameOverChar, GAMEOVER);
-            var gameOverData:GameOverData = gameOverCache.data.gameOverData;
-
-            Assets.sound(gameOverData.confirmSound);
-            Assets.sound(gameOverData.deathSound);
-            Assets.music(gameOverData.music);
-
-            gameOverCache.destroy();
-         */
-
-         /*
-        // Cache commonly used graphics and sounds
-        Assets.getSparrowAtlas("ui/alphabet");
-
-        for (i in 1...4)
-            Assets.sound('gameplay/missnote${i}');
-
-        for (i in 0...10)
-            Assets.image('ui/gameplay/num${i}');
-        */
-
+    public inline function cacheExtra():Void {
         for (rating in ratings)
             if (rating.image != null)
-                Assets.image('ui/gameplay/${rating.image}');
+                Assets.image('ui/gameplay/${rating.image}' + stage.uiStyle);
 
-        // Cache countdown
+        for (i in 0...10)
+            Assets.image('ui/gameplay/num${i}' + stage.uiStyle);
+
         for (sprite in countdownGraphics)
             if (sprite != null)
-                Assets.image(sprite);
+                Assets.image(sprite + stage.uiStyle);
 
         for (sound in countdownSounds)
             if (sound != null)
-                Assets.sound(sound);
-
-        // Cache pause music
-        // Assets.music("breakfast");
+                Assets.sound(sound + stage.uiStyle);
     }
 
     inline public function setTime(time:Float):Void {

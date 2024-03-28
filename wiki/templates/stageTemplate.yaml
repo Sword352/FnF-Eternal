@@ -1,37 +1,33 @@
 # put this file in data/stages
 cameraZoom: 0.9
-hudZoom: 1
 cameraSpeed: 1
+hudZoom: 1
 
 hideSpectator: false # if you wanna hide the spectator
 
-opponentPosition: [0, 0]
-playerPosition: [0, 0]
-spectatorPosition: [0, 0]
-ratingPosition: [0, 0] # if the rating/combo is part of the world and you want it somewhere else
+opponentPos: [0, 0]
+playerPos: [0, 0]
+spectatorPos: [0, 0]
+ratingPos: [0, 0] # if the rating/combo is part of the world and you want it somewhere else
 
-playerCameraOffset: [0, 0]
-opponentCameraOffset: [0, 0]
-spectatorCameraOffset: [0, 0]
+playerCam: [0, 0]
+opponentCam: [0, 0]
+spectatorCam: [0, 0]
 
-objects:
-- {
-    image: "yourbgimage",
-    scrollFactor: [0.9, 0.9],
+sprites:
+  - image: yourbgimage
+    parallax: [0.9, 0.9]
     position: [0, 0]
-  }
-- {
-    image: "yourbgimage2",
-    scale: [1.0, 1.0],
-    position: [0, 0],
-    scrollFactor: [0.9, 0.9],
+
+  - image: yourbgimage2
+    scale: [1.0, 1.0]
+    position: [0, 0]
+    parallax: [0.9, 0.9]
     antialiasing: true
-  }
-- {
-    image: "yourfgimage",
-    scale: [0.9, 0.9],
-    position: [0, 0],
-    scrollFactor: [1.3, 1.3],
-    antialiasing: true,
+
+  - image: "yourfgimage"
+    scale: [0.9, 0.9]
+    position: [0, 0]
+    parallax: [1.3, 1.3]
+    antialiasing: true
     layer: foreground
-  }
