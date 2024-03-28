@@ -4,20 +4,17 @@ import flixel.graphics.FlxGraphic;
 import funkin.objects.OffsetSprite;
 
 class HealthIcon extends OffsetSprite {
-    public static final animations:Array<String> = ["neutral", "losing", "winning"];
     public static final DEFAULT_ICON:String = "face";
 
-    public var state(default, set):String = "neutral";
-    public var healthAnim:Bool = true;
-
-    public var bopping:Bool = false;
-    public var bopIntensity:Float = 0.2;
-    public var bopSpeed:Float = 10;
-
-    public var defaultScaleX:Float = 1;
-    public var defaultScaleY:Float = 1;
-
+    public var state(default, set):HealthState = "neutral";
     public var character(get, set):String;
+
+    public var healthAnim:Bool = true;
+    public var bopping:Bool = false;
+
+    public var bopIntensity:Float = 0.2;
+    public var bopSpeed:Float = 15;
+    
     var _character:String;
 
     public function new(x:Float = 0, y:Float = 0, icon:String = "face") {
@@ -30,17 +27,16 @@ class HealthIcon extends OffsetSprite {
     override function update(elapsed:Float):Void {
         if (healthAnim) {
             if (health > 20) {
-                if (health > 80 && state != "winning")
-                    state = "winning";
-                else if (health < 80 && state != "neutral")
-                    state = "neutral";
-            } else if (state != "losing")
-                state = "losing";
+                if (health > 80 && state != WINNING) state = WINNING;
+                else if (health < 80 && state != NEUTRAL) state = NEUTRAL;
+            }
+            else if (state != LOSING) state = LOSING;
         }
 
         if (bopping) {
-            scale.set(Tools.lerp(scale.x, defaultScaleX, bopSpeed), Tools.lerp(scale.y, defaultScaleY, bopSpeed));
-            // centerOrigin();
+            scale.set(Tools.lerp(scale.x, 1, bopSpeed), Tools.lerp(scale.y, 1, bopSpeed));
+            offset.x = 50 * _facingHorizontalMult * (scale.x - 1);
+            offset.y = -height * ((scale.y - 1) * 0.35);
         }
 
         super.update(elapsed);
@@ -56,15 +52,13 @@ class HealthIcon extends OffsetSprite {
         }
 
         var size:Int = findSize(icon);
-        loadGraphic(newGraphic, true, Std.int(newGraphic.width / size), newGraphic.height);
+        loadGraphic(newGraphic, true, Math.floor(newGraphic.width / size), newGraphic.height);
 
-        for (i in 0...size)
-            animation.add(animations[i], [i], 0);
-
+        for (i in 0...size) animation.add([NEUTRAL, LOSING, WINNING][i], [i], 0);
         animation.play("neutral", true);
     }
 
-    public function bop():Void {
+    public inline function bop():Void {
         if (bopping)
             scale.add(bopIntensity, bopIntensity);
     }
@@ -76,7 +70,7 @@ class HealthIcon extends OffsetSprite {
         super.destroy();
     }
 
-    inline function set_state(v:String):String {
+    inline function set_state(v:HealthState):HealthState {
         if (v != null && exists && animation.exists(v) && animation.curAnim.name != v)
             animation.play(v, true);
 
@@ -93,13 +87,17 @@ class HealthIcon extends OffsetSprite {
 
     inline static function findSize(icon:String):Int {
         var path:String = Assets.txt('images/icons/${icon}');
-        if (!FileTools.exists(path))
-            return 2;
+        if (!FileTools.exists(path)) return 2;
 
         var value:Null<Int> = Std.parseInt(FileTools.getContent(path).trim());
-        if (value == null || Math.isNaN(value))
-            return 2;
+        if (value == null || Math.isNaN(value)) return 2;
 
         return value;
     }
+}
+
+enum abstract HealthState(String) from String to String {
+    var NEUTRAL = "neutral";
+    var LOSING = "losing";
+    var WINNING = "winning";
 }

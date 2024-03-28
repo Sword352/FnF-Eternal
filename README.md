@@ -14,17 +14,17 @@
 ### Credits
 > Developers
 - Sword: Maintainer, Lead Coder
-- Glade: Composer and Minor Coding
+- Glade: Composer, Minor Coding and Tester
+- Moxie: Coder and Tester
 - S0ulstive: Artist
-- Moxie: Coder
 
 > Contributors
 - PlankDev: Metronome Sound Composer and Helper Coder
 - ZesCrew2: Loading Screen Asset
 - SquidBowl: Animated Few Assets
-- Meloomazy: Debug UI Artist
+- Meloomazy: Debug UI Artist, Tester
+- SMB: Wiki Writer and Tester
 - Swordcube: Helper Coder
-- SMB: Wiki Writer
 
 > Special Thanks
 - Maru: Alphabet Bold Numbers Artist
@@ -33,15 +33,11 @@
 - CrowPlexus, EyeDaleHim: Helper, Inspiration
 - MAJigsaw77: hxdiscord_rpc and hxvlc Librairies Maintainer
 
-> Testers
+> Other Testers
 - Crazyb3ndy
-- Meloomazy
-- Glade
-- SMB
 - cyn
 - TheJutroMan
 - Jelly
 - leonbrother
 - Unholywanderer04
 - Daniel (skruyo)
-- Moxie

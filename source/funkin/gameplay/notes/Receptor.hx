@@ -7,12 +7,12 @@ class Receptor extends OffsetSprite {
     public static final mainAnimations:Array<String> = ["static", "press", "confirm"];
 
     public var skin(default, set):String;
-    public var direction:Int = 0;
-
     public var centeredOffsets:Bool = true;
+    public var direction:Int = 0;
 
     public var scrollSpeed:Null<Float> = null;
     public var scrollMult:Null<Float> = null;
+    public var dirAngle:Null<Float> = null;
 
     public function new(direction:Int = 0, skin:String = "default"):Void {
         super();

@@ -1,10 +1,10 @@
 package eternal.ui;
 
+import openfl.Lib;
 import openfl.system.System;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
-
 import flixel.util.FlxStringUtil;
 
 class FPSOverlay extends Sprite {
@@ -16,6 +16,7 @@ class FPSOverlay extends Sprite {
     public var text:TextField;
 
     var lastFPS:Float = 0;
+    var delta:Float = 0;
 
     public function new():Void {
         super();
@@ -53,7 +54,10 @@ class FPSOverlay extends Sprite {
         // use exponential smoothing to avoid noisy values
         // value = (old * (1 - a)) + (new * a)
 
-        lastFPS = (lastFPS * 0.8) + (Math.floor(1 / FlxG.elapsed) * 0.2);
+        var oldDelta:Float = delta;
+        delta = Lib.getTimer();
+
+        lastFPS = (lastFPS * 0.8) + ((1 / ((delta - oldDelta) * 0.001)) * 0.2);
         return Math.floor(Math.min(FlxG.updateFramerate, lastFPS));
     }
 

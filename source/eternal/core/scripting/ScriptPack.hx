@@ -5,6 +5,8 @@ class ScriptPack {
     public var imports:Map<String, Dynamic> = [];
     public var parent:Dynamic = null;
 
+    var canceller:CancellableCall = new CancellableCall();
+
     public function new(?parent:Dynamic):Void {
         this.parent = parent;
     }
@@ -32,7 +34,7 @@ class ScriptPack {
 
     public function loadScript(path:String):HScript {
         var script:HScript = new HScript(path);
-        if (script.state != ALIVE) return null;
+        if (!script.alive) return null;
         return addScript(script);
     }
 
@@ -49,6 +51,11 @@ class ScriptPack {
 
         script.set("cancellableCall", cancellableCall);
         script.set("hxsCall", hxsCall);
+
+        // TODO: better way, this should do it for now
+        script.set("callFlag", canceller);
+        //
+        
         script.set("hxsSet", hxsSet);
 
         scripts.push(script);
@@ -76,24 +83,17 @@ class ScriptPack {
     public function cancellableCall(func:String, ?args:Array<Dynamic>):Bool {
         if (scripts == null || scripts.length == 0) return false;
 
-        var call:CancellableCall = new CancellableCall();
+        canceller.cancelled = false;
+        hxsCall(func, args);
 
-        if (args == null) args = [];
-        args.push(call);
-
-        var ret:Dynamic = hxsCall(func, args);
-
-        // backward compatibility with the old method, cancel the call if the output is false
-        if (ret != null && ret is Bool)
-            call.cancelled = (cast(ret, Bool) == false);
-
-        return call.cancelled;
+        return canceller.cancelled;
     }
 
     public function destroy():Void {
         while (scripts.length > 0)
             scripts[0].destroy();
 
+        canceller = null;
         scripts = null;
         imports = null;
         parent = null;

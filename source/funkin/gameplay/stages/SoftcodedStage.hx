@@ -107,10 +107,10 @@ class SoftcodedStage extends Stage {
         var scriptPath:String = Assets.script(basePath);
         if (FileTools.exists(scriptPath)) {
             script = new HScript(scriptPath);
-            game.addScript(script);
-
             script.set("this", this);
-            script.call("onStageSetup");
+
+            game.addScript(script);
+            script.call("onStageCreation");
         }
         #end
 
@@ -235,7 +235,7 @@ class SoftcodedStage extends Stage {
         }
 
         #if ENGINE_SCRIPTING
-        script?.call("onStageSetupPost");
+        script?.call("onStageCreationPost");
         #end
     }
 

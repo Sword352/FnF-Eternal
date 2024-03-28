@@ -48,8 +48,8 @@ class GameplayOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, no additional zero gets displayed at the start of the combo number.";
         addOption(option);
 
-        var option = new ArrayOptionItem<String>("timer type", ["none", "left time", "full"]);
-        option.description = "Defines the timer display type.";
+        var option = new ArrayOptionItem<String>("time mark type", ["none", "left time", "elapsed time", "full"]);
+        option.description = "Defines the time display type.";
         addOption(option);
 
         super.create();

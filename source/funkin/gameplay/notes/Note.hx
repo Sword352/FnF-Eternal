@@ -2,11 +2,14 @@ package funkin.gameplay.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
+import flixel.math.FlxAngle;
+
+import funkin.globals.NoteSkin;
 import funkin.objects.TiledSprite;
 import funkin.objects.OffsetSprite;
-import funkin.globals.NoteSkin;
 
 class Note extends OffsetSprite {
+    public static final defaultTypes:Array<String> = ["Alt Animation", "No Animation"];
     public static final directions:Array<String> = ["left", "down", "up", "right"];
 
     public static var safeZoneOffset(get, never):Float;
@@ -36,13 +39,19 @@ class Note extends OffsetSprite {
     public var noSingAnim:Bool = false;
     public var noMissAnim:Bool = false;
 
+    public var avoid:Bool = false;
+    public var earlyHitMult:Float = 1;
+    public var lateHitMult:Float = 1;
+
     public var followX:Bool = true;
     public var followY:Bool = true;
+    public var followAngle:Bool = true;
     public var followAlpha:Bool = true;
     public var followSpeed:Bool = true;
 
     public var offsetX:Float = 0;
     public var offsetY:Float = 0;
+    public var dirAngle:Float = 0;
 
     public var lateKillOffset:Float = 0;
     public var spawnTimeOffset:Float = 0;
@@ -59,7 +68,7 @@ class Note extends OffsetSprite {
     public var autoClipSustain:Bool = true;
     public var flipSustain:Bool = true;
     public var overrideSustain:Bool = false;
-    public var killIfMissed:Bool = true;
+    public var killIfLate:Bool = true;
     public var noStrumFollow:Bool = false;
 
     public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
@@ -68,23 +77,29 @@ class Note extends OffsetSprite {
 
     public var downscroll(get, never):Bool;
 
-    public function new(time:Float = 0, direction:Int = 0, skin:String = "default"):Void {
+    public function new(time:Float = 0, direction:Int = 0, type:String = null, skin:String = "default"):Void {
         super();
 
         this.time = time;
         this.direction = direction;
-        this.skin = skin;
+        this.type = type;
+
+        // in case the notetype sets it
+        if (frames == null)
+            this.skin = skin;
 
         resetPosition();
         moves = false;
     }
 
     public function follow(receptor:FlxSprite):Void {
+        var dirAngle:Float = (followAngle ? (parentStrumline?.receptors.members[direction].dirAngle ?? parentStrumline?.dirAngle) : dirAngle);
+
         if (followX)
-            x = receptor.x + offsetX;
+            x = receptor.x + offsetX + distance * FlxMath.fastSin(FlxAngle.asRadians(dirAngle));
 
         if (followY)
-            y = receptor.y + offsetY + distance;
+            y = receptor.y + offsetY + distance * FlxMath.fastCos(FlxAngle.asRadians(dirAngle));
 
         if (followAlpha) {
             alpha = receptor.alpha * alphaMult;
@@ -139,8 +154,8 @@ class Note extends OffsetSprite {
 
     public inline function resetTypeProps():Void {
         animSuffix = null;
-        noSingAnim = false;
-        noMissAnim = false;
+        earlyHitMult = lateHitMult = 1;
+        avoid = noSingAnim = noMissAnim = false;
     }
 
     public function getScrollSpeed(mult:Float = 1):Float {
@@ -189,6 +204,7 @@ class Note extends OffsetSprite {
         resetTypeProps();
 
         if (v != null) {
+            // case "Type" to hardcode your notetypes
             switch (v) {
                 case "Alt Animation":
                     animSuffix = "-alt";
@@ -250,7 +266,7 @@ class Note extends OffsetSprite {
     }
 
     inline function get_late():Bool {
-        return this.late || (Conductor.time - time) > safeZoneOffset;
+        return this.late || (Conductor.time - time) > (safeZoneOffset * lateHitMult);
     }
 
     inline function get_downscroll():Bool
@@ -265,8 +281,8 @@ class Note extends OffsetSprite {
 
         if (parentStrumline != null)
             return (parentStrumline.cpu && time <= Conductor.time)
-                || (!parentStrumline.cpu && Math.abs(Conductor.time - time) <= safeZoneOffset);
-
+                || (!parentStrumline.cpu && Conductor.time >= time - (safeZoneOffset * earlyHitMult) && Conductor.time <= time + (safeZoneOffset * lateHitMult));
+        
         return this.canBeHit;
     }
 

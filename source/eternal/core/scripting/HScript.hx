@@ -4,12 +4,6 @@ package eternal.core.scripting;
 import hscript.Parser;
 import hscript.Interp;
 
-enum ScriptStatus {
-    NONE;
-    ALIVE;
-    DEAD;
-}
-
 class HScript {
     public static final importPresets:Map<String, Dynamic> = [
         // Flixel
@@ -28,10 +22,10 @@ class HScript {
         "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
 
         // Eternal
-        "Settings" => Settings,
         #if ENGINE_DISCORD_RPC "DiscordPresence" => DiscordPresence, #end
 
         // Funkin
+        "Settings" => Settings,
         "Conductor" => Conductor,
         "OffsetSprite" => funkin.objects.OffsetSprite,
         "DancingSprite" => funkin.objects.DancingSprite,
@@ -73,7 +67,7 @@ class HScript {
     // allows for static variables in scripts
     public static final sharedFields:Map<String, Dynamic> = [];
 
-    public var state(default, null):ScriptStatus = NONE;
+    public var alive(default, null):Bool = false;
     // public var priority(default, set):Int = -1; // TODO
 
     public var parser(default, null):Parser;
@@ -97,8 +91,9 @@ class HScript {
         try {
             script = FileTools.getContent(this.path);
             interp.execute(parser.parseString(script, this.path.substring(this.path.lastIndexOf("/") + 1)));
+
+            alive = true;
             applyPresets();
-            state = ALIVE;
         }
         catch (e) {
             trace('Failed to load script "${path}"! [${e.message}]');
@@ -107,20 +102,16 @@ class HScript {
         }
     }
 
-    public function get(key:String):Null<Dynamic> {
-        if (state == DEAD) return null;
-        return interp.variables.get(key);
-    }
-
     public function set(key:String, obj:Dynamic):Dynamic {
-        if (state != DEAD) interp.variables.set(key, obj);
+        if (alive) interp.variables.set(key, obj);
         return obj;
     }
 
-    public function exists(key:String):Bool {
-        if (state == DEAD) return false;
-        return interp.variables.exists(key);
-    }
+    public inline function get(key:String):Null<Dynamic>
+        return alive ? interp.variables.get(key) : null;
+
+    public inline function exists(key:String):Bool
+        return alive ? interp.variables.exists(key) : false;
 
     public function call(func:String, ?args:Array<Dynamic>):Dynamic {
         if (!exists(func))
@@ -143,7 +134,7 @@ class HScript {
             parent = null;
         }
 
-        state = DEAD;
+        alive = false;
         parser = null;
         interp = null;
         script = null;
@@ -163,7 +154,7 @@ class HScript {
             }
 
             var moduleScript:HScript = new HScript(path);
-            if (moduleScript.state != ALIVE) return;
+            if (!moduleScript.alive) return;
 
             for (customClass in moduleScript.interp.customClasses.keys())
                 set(customClass, moduleScript.interp.customClasses.get(customClass));

@@ -3,8 +3,7 @@ package funkin.gameplay.notes;
 import flixel.tweens.*;
 import flixel.util.FlxAxes;
 import flixel.util.FlxSignal;
-import flixel.group.FlxGroup.FlxGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxGroup;
 
 class StrumLine extends FlxGroup {
     public var x(default, set):Float = 0;
@@ -18,6 +17,7 @@ class StrumLine extends FlxGroup {
     public var downscroll(get, set):Bool;
     public var scrollSpeed:Float = 1;
     public var scrollMult:Float = 1;
+    public var dirAngle:Float = 0;
 
     public var characters:Array<Character> = [];
     public var skin(default, set):String;
@@ -62,7 +62,7 @@ class StrumLine extends FlxGroup {
         notes.forEachAlive((note) -> {
             var receptor:Receptor = receptors.members[note.direction];
 
-            if (cpu && note.canBeHit) {
+            if (cpu && note.canBeHit && !note.avoid) {
                 note.goodHit = true;
                 onNoteHit.dispatch(note);
 
@@ -75,8 +75,8 @@ class StrumLine extends FlxGroup {
             if (!cpu && note.late && !note.missed && !note.goodHit)
                 miss(note);
 
-            if (note.missed && !note.isSustainNote && note.killIfMissed
-                && Conductor.time > (note.time + (((400 / note.getScrollSpeed()) / Conductor.playbackRate) + note.lateKillOffset)))
+            if (note.killIfLate && (note.avoid || note.missed || note.isSustainNote)
+                && Conductor.time > (note.time + note.length + ((400 / note.getScrollSpeed()) + note.lateKillOffset)))
                 notesToRemove.push(note);
 
             if (note.isSustainNote && (note.goodHit || note.missed)) {
@@ -89,7 +89,7 @@ class StrumLine extends FlxGroup {
                         onMiss.dispatch(note);
                 }
 
-                if (Conductor.time >= note.time + note.length)
+                if (Conductor.time >= note.time + note.length && (cpu || holdKeys[note.direction]))
                     notesToRemove.push(note);
             }
 

@@ -144,17 +144,16 @@ class ChartLoader {
         }
     */
     
-    public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>, playerSkin:String = "default",
-            oppSkin:String = "default"):Array<Note> {
+    // used for simple notes
+    public static inline function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>):Array<Note> {
         var notes:Array<Note> = [];
 
-        for (noteData in chart.notes) {
-            if (noteData.time < minTime) continue;
+        for (data in chart.notes) {
+            if (data.time < minTime) continue;
 
-            var note:Note = new Note(noteData.time, noteData.direction, (noteData.strumline == 1) ? playerSkin : oppSkin);
-            note.strumline = noteData.strumline;
-            note.length = noteData.length;
-            note.type = noteData.type;
+            var note:Note = new Note(data.time, data.direction);
+            note.strumline = data.strumline;
+            note.length = data.length;
             notes.push(note);
 
             if (strumLines != null)

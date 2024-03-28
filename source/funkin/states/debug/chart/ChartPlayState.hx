@@ -88,12 +88,12 @@ class ChartPlayState extends MusicBeatSubState {
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}');
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, true);
         opponentStrumline.scrollSpeed = parent.chart.meta.scrollSpeed / parent.music.pitch;
         opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         add(opponentStrumline);
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 55);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
         playerStrumline.onNoteHit.add(onBotplayNoteHit);
         playerStrumline.onHold.add(onHold);
@@ -115,6 +115,8 @@ class ChartPlayState extends MusicBeatSubState {
         playerStrumline.tweenReceptors(0, 0.05);
 
         strumLines = [opponentStrumline, playerStrumline];
+
+        // TODO: recycle notes
         notes = ChartLoader.generateNotes(parent.chart, startTime, strumLines);
 
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
@@ -309,7 +311,7 @@ class ChartPlayState extends MusicBeatSubState {
         for (i in 0...icons.length) {
             var icon:HealthIcon = icons[i];
 
-            icon.x = (i == 0) ? ((infos.x - icon.offset.x) - icon.width - 5) : (infos.x + infos.width + 5);
+            icon.x = (i == 0) ? (infos.x - icon.width - 5) : (infos.x + infos.width + 5);
             icon.health = (health * 50);
 
             if (i == 0)
@@ -344,7 +346,7 @@ class ChartPlayState extends MusicBeatSubState {
             var parentIcon:HealthIcon = parentIcons[i];
 
             var icon:HealthIcon = new HealthIcon(0, 0, parentIcon.character);
-            icon.y = infos.y + ((infos.height - icon.height - icon.offset.y) * 0.5);
+            icon.y = infos.y + ((infos.height - icon.height) * 0.5);
             icon.flipX = (i == 1);
             icon.bopping = true;
             icon.health = 50;

@@ -2,6 +2,7 @@
 - Dialogue cutscenes implementation
 - Add unlockable freeplay songs support
 
+- Song Metadata rework (implement `SongMeta`)
 - Finish the built-in events
 - Finish controller input support
 - Finish the audio offset support
@@ -20,8 +21,8 @@
 
 ### Low Priority
 - Add a multi-atlas feature for all softcoded sprites
-- Add softcoded notetypes support
-- Add a credits menu
+- Rework most of the menus + add credits menu
+- Zip mod support
 
 - Better error handling for the story menu, ModState and ModSubState
 - Replace the placeholders BF and GF story menu character spritesheets

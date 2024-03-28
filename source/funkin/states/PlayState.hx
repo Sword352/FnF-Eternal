@@ -7,7 +7,6 @@ import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
 import flixel.group.FlxSpriteGroup;
 
-import funkin.objects.*;
 import funkin.gameplay.*;
 import funkin.gameplay.notes.*;
 import funkin.gameplay.stages.*;
@@ -99,7 +98,7 @@ class PlayState extends MusicBeatState {
     public var cameraTargets:Array<Character>;
     public var targetCharacter:Character;
 
-    public var notes:Array<Note>;
+    public var notes:Array<Note> = [];
 
     public var validScore:Bool = (gameMode != DEBUG);
     public var startTime:Float;
@@ -143,9 +142,9 @@ class PlayState extends MusicBeatState {
         super();
     }
 
-    inline public static function load(song:String, diff:String = "normal"):Void {
-        currentDifficulty = diff;
+    public inline static function load(song:String, diff:String = "normal"):Void {
         PlayState.song = ChartLoader.loadChart(song, diff);
+        currentDifficulty = diff;
     }
 
     override public function create():Void {
@@ -185,57 +184,26 @@ class PlayState extends MusicBeatState {
         hxsCall("onCreate");
         #end
 
+        var playerNoteSkin:String = song.meta.playerNoteSkin ?? "default";
+        var oppNoteSkin:String = song.meta.oppNoteSkin ?? "default";
+
         music = new MusicPlayback(song.meta.rawName);
         music.setupInstrumental(song.meta.instFile);
+        music.onSongEnd.add(endSong);
+        add(music);
 
         if (song.meta.voiceFiles?.length > 0)
             for (voiceFile in song.meta.voiceFiles)
                 music.createVoice(voiceFile);
 
-        music.onSongEnd.add(endSong);
-        add(music);
-
-        Conductor.beatsPerMeasure = (song.meta.beatsPerMeasure ?? 4);
+        beatZoomInterval = Conductor.beatsPerMeasure = (song.meta.beatsPerMeasure ?? 4);
         Conductor.stepsPerBeat = (song.meta.stepsPerBeat ?? 4);
         Conductor.bpm = song.meta.bpm;
-
-        beatZoomInterval = Conductor.beatsPerMeasure;
-
-        eventManager = new EventManager();
-        add(eventManager);
-
-        strumLines = new FlxTypedGroup<StrumLine>();
-        strumLines.cameras = [camHUD];
-        add(strumLines);
-
-        if (song.meta.opponent != null && song.meta.spectator != song.meta.opponent)
-            opponent = new Character(200, 0, song.meta.opponent);
-
-        if (song.meta.player != null)
-            player = new Character(400, 0, song.meta.player, PLAYER);
-
-        var playerNoteSkin:String = player?.noteSkin ?? song.meta.playerNoteSkin ?? "default";
-        var oppNoteSkin:String = opponent?.noteSkin ?? song.meta.oppNoteSkin ?? "default";
-
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, FlxG.height * 0.085, true, oppNoteSkin);
-        opponentStrumline.scrollSpeed = song.meta.scrollSpeed;
-        opponentStrumline.onNoteHit.add(opponentNoteHit);
-        opponentStrumline.onHold.add(onOpponentHold);
-        strumLines.add(opponentStrumline);
-
-        playerStrumline = new StrumLine(FlxG.width * 0.75, FlxG.height * 0.085, false, playerNoteSkin);
-        playerStrumline.scrollSpeed = song.meta.scrollSpeed;
-        playerStrumline.onNoteHit.add(botplayNoteHit);
-        playerStrumline.onHold.add(onHold);
-        playerStrumline.onMiss.add(miss);
-        strumLines.add(playerStrumline);
 
         stage = switch (song.meta.stage.toLowerCase()) {
             default: new SoftcodedStage(song.meta.stage);
         }
         add(stage);
-
-        eventManager.loadEvents(song.events);
 
         if (song.meta.spectator != null) {
             spectator = new Character(400, 0, song.meta.spectator);
@@ -246,17 +214,47 @@ class PlayState extends MusicBeatState {
                 opponent = spectator;
         }
 
-        if (song.meta.opponent != null) {
-            opponentStrumline.characters.push(opponent);
+        if (song.meta.opponent != null && song.meta.spectator != song.meta.opponent) {
+            opponent = new Character(200, 0, song.meta.opponent);
             add(opponent);
+
+            if (opponent.noteSkin != null)
+                oppNoteSkin = opponent.noteSkin;
         }
 
         if (song.meta.player != null) {
-            playerStrumline.characters.push(player);
+            player = new Character(400, 0, song.meta.player, PLAYER);
             add(player);
+
+            if (player.noteSkin != null)
+                playerNoteSkin = player.noteSkin;
         }
 
         cameraTargets = [opponent, spectator, player];
+
+        strumLines = new FlxTypedGroup<StrumLine>();
+        strumLines.cameras = [camHUD];
+        add(strumLines);
+
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, oppNoteSkin);
+        opponentStrumline.scrollSpeed = song.meta.scrollSpeed;
+        opponentStrumline.onNoteHit.add(opponentNoteHit);
+        opponentStrumline.onHold.add(onOpponentHold);
+        strumLines.add(opponentStrumline);
+
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, playerNoteSkin);
+        playerStrumline.scrollSpeed = song.meta.scrollSpeed;
+        playerStrumline.onNoteHit.add(botplayNoteHit);
+        playerStrumline.onHold.add(onHold);
+        playerStrumline.onMiss.add(miss);
+        strumLines.add(playerStrumline);
+
+        if (opponent != null) opponentStrumline.characters.push(opponent);
+        if (player != null) playerStrumline.characters.push(player);
+
+        eventManager = new EventManager();
+        eventManager.loadEvents(song.events);
+        add(eventManager);
 
         hud = new GameplayUI();
         hud.cameras = [camHUD];
@@ -288,7 +286,41 @@ class PlayState extends MusicBeatState {
             add(ratingSprites);
         }
 
-        notes = ChartLoader.generateNotes(song, startTime, strumLines.members, playerNoteSkin, oppNoteSkin);
+        // generates all of the notes
+        #if ENGINE_SCRIPTING
+        var types:Array<String> = [];
+        #end
+
+        for (data in song.notes) {
+            if (data.time < startTime) continue;
+
+            #if ENGINE_SCRIPTING
+            var type:String = data.type;
+            if (type != null && !types.contains(type)) {
+                if (!Note.defaultTypes.contains(type)) {
+                    var path:String = Assets.script("scripts/notetypes/" + type);
+                    if (FileTools.exists(path)) loadScript(path);
+                }
+
+                types.push(type);
+            }
+
+            if (cancellableCall("onNoteCreation", [data])) continue;
+            #end
+
+            var note:Note = new Note(data.time, data.direction, data.type, (data.strumline == 1) ? playerNoteSkin : oppNoteSkin);
+            note.parentStrumline = strumLines.members[data.strumline];
+            note.strumline = data.strumline;
+            note.length = data.length;
+            notes.push(note);
+
+            #if ENGINE_SCRIPTING
+            hxsCall("onNoteCreationPost", [note, data]);
+            #end
+        }
+
+        notes.sort((n1, n2) -> Std.int(n1.time - n2.time));
+        //
 
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
         FlxG.stage.application.window.onKeyUp.add(onKeyUp);
@@ -340,7 +372,7 @@ class PlayState extends MusicBeatState {
 
         super.update(elapsed);
 
-        if (health <= minHealth)
+        if (health <= minHealth && subState == null)
             gameOver();
 
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, cameraSpeed);
@@ -354,7 +386,7 @@ class PlayState extends MusicBeatState {
             DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.time * 0.001));
         #end
 
-        if (controls.justPressed("accept"))
+        if (controls.justPressed("accept") && subState == null)
             pause();
 
         if (gameMode != STORY) {
