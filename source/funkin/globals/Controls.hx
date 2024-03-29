@@ -47,9 +47,6 @@ class Controls {
     public var lastAction(default, null):String = null;
     public var saveFile:String;
 
-    // public var active:Bool = true;
-    // var heldKeys:Array<Int> = [];
-
     public static inline function init():Void {
         global = new Controls("main");
         reloadVolumeKeys();
@@ -155,78 +152,6 @@ class Controls {
     inline public function saveControls():Void {
         Tools.invokeTempSave((save) -> save.data.controls = keybinds, 'controls_${saveFile}');
     }
-
-    /*
-    public function destroy():Void {
-        FlxG.stage.removeEventListener("enterFrame", this.updateGamepadInputs);
-        FlxG.stage.application.window.onKeyDown.remove(this.onKeyDown);
-        FlxG.stage.application.window.onKeyUp.remove(this.onKeyUp);
-
-        for (signal in [onKeyPressed, onKeyReleased, onKeyJustPressed, onKeyJustReleased])
-            signal?.destroy();
-
-        keybinds?.clear();
-        keybinds = null;
-
-        heldKeys = null;
-
-        lastAction = null;
-        saveFile = null;
-    }
-
-    inline function updateGamepadInputs(_):Void {
-        if (!active || FlxG.gamepads.lastActive == null)
-            return;
-
-        var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
-        for (id => keybinds in keybinds) {
-            if (keybinds[1] == null) continue;
-
-            for (key in keybinds[1]) {
-                if (key == NONE) continue;
-
-                if (gamepad.checkStatus(key, PRESSED))
-                    onKeyPressed.dispatch(key, id);
-                if (gamepad.checkStatus(key, RELEASED))
-                    onKeyReleased.dispatch(key, id);
-                if (gamepad.checkStatus(key, JUST_PRESSED))
-                    onKeyJustPressed.dispatch(key, id);
-                if (gamepad.checkStatus(key, JUST_RELEASED))
-                    onKeyJustReleased.dispatch(key, id);
-            }
-        }
-    }
-
-    inline function onKeyDown(rawKey:Int, _):Void {
-        if (!active || !FlxG.keys.enabled)
-            return;
-
-        var keyCode:Int = @:privateAccess Keyboard.__convertKeyCode(rawKey);
-
-        var action:String = getActionFromKey(keyCode, true);
-        onKeyPressed.dispatch(keyCode, action);
-
-        if (!heldKeys.contains(keyCode)) {
-            onKeyJustPressed.dispatch(keyCode, action);
-            heldKeys.push(keyCode);
-        }
-    }
-
-    inline function onKeyUp(rawKey:Int, _):Void {
-        if (!active || !FlxG.keys.enabled)
-            return;
-
-        var keyCode:Int = @:privateAccess Keyboard.__convertKeyCode(rawKey);
-
-        var action:String = getActionFromKey(keyCode, true);
-        onKeyReleased.dispatch(keyCode, action);
-
-        if (heldKeys.contains(keyCode)) {
-            onKeyJustReleased.dispatch(keyCode, action);
-            heldKeys.remove(keyCode);
-        }
-    }
-    */
 
     public static function reloadVolumeKeys(enabled:Bool = true):Void {
         var muteKeys:Array<FlxKey> = global.keybinds.get("volume mute")[0].filter((k) -> k != NONE);

@@ -51,7 +51,7 @@ class Note extends OffsetSprite {
 
     public var offsetX:Float = 0;
     public var offsetY:Float = 0;
-    public var dirAngle:Float = 0;
+    public var dirAngle:Float = 90;
 
     public var lateKillOffset:Float = 0;
     public var spawnTimeOffset:Float = 0;
@@ -96,10 +96,10 @@ class Note extends OffsetSprite {
         var dirAngle:Float = (followAngle ? (parentStrumline?.receptors.members[direction].dirAngle ?? parentStrumline?.dirAngle) : dirAngle);
 
         if (followX)
-            x = receptor.x + offsetX + distance * FlxMath.fastSin(FlxAngle.asRadians(dirAngle));
+            x = receptor.x + offsetX + distance * FlxMath.fastCos(FlxAngle.asRadians(dirAngle));
 
         if (followY)
-            y = receptor.y + offsetY + distance * FlxMath.fastCos(FlxAngle.asRadians(dirAngle));
+            y = receptor.y + offsetY + distance * FlxMath.fastSin(FlxAngle.asRadians(dirAngle));
 
         if (followAlpha) {
             alpha = receptor.alpha * alphaMult;
@@ -341,7 +341,7 @@ class Sustain extends TiledSprite {
         var finalHeight:Float = (parent.length * parent.scrollSpeed) - tail.height;
 
         // quantize the sustain, useful for noteskins with patterns
-        if (!parent.downscroll && parent.quantizeSustain)  {
+        if (parent.quantizeSustain)  {
             var tileHeight:Float = graphic.height * scale.y;
             finalHeight = Math.fround(finalHeight / tileHeight) * tileHeight;
         }
@@ -382,6 +382,7 @@ class Sustain extends TiledSprite {
     override function updateHitbox():Void {
         width = graphic.width * scale.x;
         tail.updateHitbox();
+        origin.set();
     }
 
     override function set_height(v:Float):Float {

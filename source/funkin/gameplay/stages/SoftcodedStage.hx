@@ -136,7 +136,7 @@ class SoftcodedStage extends Stage {
 
         if (data.uiStyle != null) {
             // ui style script
-            var path:String = Assets.script('scripts/uiStyle/${data.uiStyle}');
+            var path:String = Assets.script('scripts/uiStyles/${data.uiStyle}');
             if (FileTools.exists(path)) game.loadScript(path);
 
             uiStyle = "-" + data.uiStyle;
