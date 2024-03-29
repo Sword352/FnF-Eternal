@@ -22,6 +22,7 @@
 ### Low Priority
 - Add a multi-atlas feature for all softcoded sprites
 - Rework most of the menus + add credits menu
+- FlxAnimate support
 - Zip mod support
 
 - Better error handling for the story menu, ModState and ModSubState
@@ -35,7 +36,6 @@
 - Add the possibility to enable multiple mods (at the cost of getting some features disabled, like overridable states)
 
   **Future plans**
-- FlxAnimate support?
 - Add modchart tools?
 - Lua scripting implementation?
 
