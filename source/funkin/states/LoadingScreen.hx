@@ -108,7 +108,7 @@ class LoadingScreen extends FlxState {
     inline function prepareTasks():Void {
         tasks = [loadStage, loadCommon, loadNoteAssets];
 
-        for (char in [song.meta.player, song.meta.opponent, song.meta.spectator]) {
+        for (char in [song.gameplayInfo.player, song.gameplayInfo.opponent, song.gameplayInfo.spectator]) {
             if (char == null || characters.exists(char)) continue;
 
             var file:String = Assets.yaml("data/characters/" + char);
@@ -124,7 +124,7 @@ class LoadingScreen extends FlxState {
                 Assets.image(config.image, config.library);
 
                 // also preload health icon (if its not the spectator)
-                if (config.icon != null && (song.meta.opponent == char || song.meta.player == char))
+                if (config.icon != null && (song.gameplayInfo.opponent == char || song.gameplayInfo.player == char))
                     Assets.image('icons/${config.icon}');
             });
         }
@@ -138,17 +138,17 @@ class LoadingScreen extends FlxState {
         /*
         tasks.push(() -> Assets.songMusic(song.meta.rawName, song.meta.instFile));
         
-        if (song.meta.voiceFiles != null)
-            for (file in song.meta.voiceFiles)
+        if (song.meta.voices != null)
+            for (file in song.meta.voices)
                 tasks.push(() -> Assets.songMusic(song.meta.rawName, file));
         */
 
         tasks.push(() -> {
-            Assets.songMusic(song.meta.rawName, song.meta.instFile);
+            Assets.songMusic(song.meta.folder, song.gameplayInfo.instrumental);
 
-            if (song.meta.voiceFiles != null)
-                for (file in song.meta.voiceFiles)
-                    Assets.songMusic(song.meta.rawName, file);
+            if (song.gameplayInfo.voices != null)
+                for (file in song.gameplayInfo.voices)
+                    Assets.songMusic(song.meta.folder, file);
         });
     }
 
@@ -170,7 +170,7 @@ class LoadingScreen extends FlxState {
     }
 
     inline function loadStage():Void {
-        var stage:String = song.meta.stage;
+        var stage:String = song.gameplayInfo.stage;
 
         // no stage
         if (stage.length == 0) return;
@@ -187,15 +187,13 @@ class LoadingScreen extends FlxState {
     }
 
     inline function loadNoteAssets():Void {
-        var noteSkins:Array<String> = [
-            song.meta.playerNoteSkin ?? "default",
-            song.meta.oppNoteSkin ?? "default"
-        ];
+        var noteSkins:Array<String> = ["default", "default"];
 
-        for (index => string in [song.meta.player, song.meta.opponent]) {
+        for (index => string in [song.gameplayInfo.opponent, song.gameplayInfo.player]) {
             var data = characters[string];
-            if (string != null && data?.noteSkin != null)
-                noteSkins[index] = data.noteSkin;
+            if (string != null && data?.noteSkin != null) noteSkins[index] = data.noteSkin;
+            else if (song.gameplayInfo.noteSkins != null && song.gameplayInfo.noteSkins[index] != null)
+                noteSkins[index] = song.gameplayInfo.noteSkins[index];
         }
 
         var preloaded:Array<String> = [];

@@ -1,12 +1,20 @@
 {
     "name": "Blammed",
-    "rawName": "blammed",
+    "difficulties": ["Easy", "Normal", "Hard"],
+    "freeplayInfo": {
+        "icon": "pico",
+        "color": "#3A7317"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
 
-    "instFile": "Inst",
-    "voiceFiles": ["Voices"],
-
-    "spectator": "girlfriend",
-    "player": "boyfriend",
-    "opponent": "pico",
-    "stage": "philly"
+        "scrollSpeed": 1.2,
+        "bpm": 165,
+    
+        "spectator": "girlfriend",
+        "player": "boyfriend",
+        "opponent": "pico",
+        "stage": "philly"
+    }
 }

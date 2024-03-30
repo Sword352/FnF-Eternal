@@ -1,12 +1,20 @@
 {
     "name": "South",
-    "rawName": "south",
+    "difficulties": ["Easy", "Normal", "Hard"],
+    "freeplayInfo": {
+        "icon": "spooky",
+        "color": "#154c79"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
 
-    "instFile": "Inst",
-    "voiceFiles": ["Voices"],
-
-    "spectator": "girlfriend",
-    "opponent": "spooky-kids",
-    "player": "boyfriend",
-    "stage": "spooky"
+        "scrollSpeed": 1.1,
+        "bpm": 165,
+    
+        "spectator": "girlfriend",
+        "opponent": "spooky-kids",
+        "player": "boyfriend",
+        "stage": "spooky"
+    }
 }

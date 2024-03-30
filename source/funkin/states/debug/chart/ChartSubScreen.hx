@@ -6,6 +6,7 @@ import haxe.ui.containers.*;
 import haxe.ui.containers.properties.*;
 import haxe.ui.styles.StyleSheet;
 
+import funkin.globals.ChartLoader;
 import funkin.gameplay.EventManager.EventDetails;
 import haxe.Json;
 
@@ -177,7 +178,7 @@ class ChartSubScreen extends FlxSubState {
         }
 
         for (i in 0...parent.music.vocals.length) {
-            var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.meta.voiceFiles[i]}"');
+            var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.gameplayInfo.voices[i]}"');
             muteVoice.top = muteInst.top + 25 * (i + 1);
             muteVoice.left = 200;
 
@@ -259,9 +260,9 @@ class ChartSubScreen extends FlxSubState {
     }
 
     inline function createMetaPage():Void {
+        var oldBPM:Float = parent.chart.gameplayInfo.bpm;
         var oldBeats:Int = Conductor.beatsPerMeasure;
         var oldSteps:Int = Conductor.stepsPerBeat;
-        var oldBPM:Float = parent.chart.meta.bpm;
 
         var page:Box = createPage("Meta");
 
@@ -284,7 +285,7 @@ class ChartSubScreen extends FlxSubState {
                 beatsPerMeasure.value = Math.floor(val);
 
             Conductor.beatsPerMeasure = beatsPerMeasure.value;
-            parent.chart.meta.beatsPerMeasure = Conductor.beatsPerMeasure;
+            parent.chart.gameplayInfo.beatsPerMeasure = Conductor.beatsPerMeasure;
             beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
 
             signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
@@ -297,7 +298,7 @@ class ChartSubScreen extends FlxSubState {
                 stepsPerBeat.value = Math.floor(val);
 
             Conductor.stepsPerBeat = stepsPerBeat.value;
-            parent.chart.meta.stepsPerBeat = Conductor.stepsPerBeat;
+            parent.chart.gameplayInfo.stepsPerBeat = Conductor.stepsPerBeat;
             stepsChanged = (Conductor.stepsPerBeat != oldSteps);
 
             signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
@@ -312,10 +313,10 @@ class ChartSubScreen extends FlxSubState {
         bpmStepper.left = 5;
         bpmStepper.top = 80;
 
-        bpmStepper.value = parent.chart.meta.bpm;
+        bpmStepper.value = parent.chart.gameplayInfo.bpm;
         bpmStepper.onChange = (_) -> {
-            parent.chart.meta.bpm = bpmStepper.pos;
-            bpmChanged = (parent.chart.meta.bpm != oldBPM);
+            parent.chart.gameplayInfo.bpm = bpmStepper.pos;
+            bpmChanged = (parent.chart.gameplayInfo.bpm != oldBPM);
         };
 
         page.addComponent(signature);
@@ -444,10 +445,10 @@ class ChartSubScreen extends FlxSubState {
         var page:Box = createPage("Save");
 
         var saveChart:Button = createButton("Save Chart");
-        saveChart.onClick = (_) -> Tools.saveData('${parent.difficulty.toLowerCase()}.json', Json.stringify(parent.chart));
+        saveChart.onClick = (_) -> Tools.saveData('${parent.difficulty.toLowerCase()}.json', Json.stringify(parent.chart.toStruct()));
 
         var saveMeta:Button = createButton("Save Song Metadata");
-        saveMeta.onClick = (_) -> Tools.saveData("meta.json", Json.stringify(parent.chart.meta));
+        saveMeta.onClick = (_) -> Tools.saveData("meta.json", Json.stringify(ChartLoader.exportMeta(parent.chart.meta)));
         saveMeta.top = 25;
 
         var saveEvents:Button = createButton("Save Events");

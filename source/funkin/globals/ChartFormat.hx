@@ -5,21 +5,23 @@ import funkin.states.substates.GameOverScreen.GameOverData;
 @:structInit class Chart {
     public var notes:Array<ChartNote>;
     public var events:Array<ChartEvent>;
-    public var meta:SongMetadata;
+    public var gameplayInfo:GameplayInfo;
+    public var meta:SongMeta;
 
-    public inline function toStruct():Dynamic {
+    public inline function toStruct():ChartJson {
         return {
-            notes: this.notes,
+            gameplayInfo: this.gameplayInfo,
             events: this.events,
-            meta: this.meta
+            notes: this.notes
         };
     }
 
-    public static inline function fromStruct(struct:Dynamic):Chart {
+    public static inline function fromStruct(struct:ChartJson):Chart {
         return {
-            notes: struct.notes,
+            gameplayInfo: struct.gameplayInfo,
             events: struct.events,
-            meta: struct.meta
+            notes: struct.notes,
+            meta: null
         };
     }
 
@@ -27,28 +29,10 @@ import funkin.states.substates.GameOverScreen.GameOverData;
         return data is Chart ? data : fromStruct(data);
 }
 
-typedef SongMetadata = {
-    var name:String;
-    var rawName:String;
-
-    var instFile:String;
-    var voiceFiles:Array<String>;
-
-    var bpm:Float;
-    var scrollSpeed:Float;
-
-    var ?beatsPerMeasure:Int;
-    var ?stepsPerBeat:Int;
-
-    var ?player:String;
-    var ?opponent:String;
-    var ?spectator:String;
-    var ?stage:String;
-
-    var ?playerNoteSkin:String;
-    var ?oppNoteSkin:String;
-
-    var ?gameOverData:GameOverData;
+typedef ChartJson = {
+    var notes:Array<ChartNote>;
+    var ?events:Array<ChartEvent>;
+    var ?gameplayInfo:GameplayInfo;
 }
 
 typedef ChartEvent = {
@@ -63,6 +47,39 @@ typedef ChartNote = {
     var strumline:Int;
     var ?length:Float;
     var ?type:String;
+}
+
+typedef SongMeta = {
+    var name:String;
+    var ?folder:String; // NOTE: this shouldn't be set in the json
+    var ?difficulties:Array<String>;
+    var ?gameplayInfo:GameplayInfo;
+    var freeplayInfo:FreeplayInfo;
+}
+
+typedef FreeplayInfo = {
+    var ?icon:String;
+    var ?color:Dynamic;
+    var ?parentWeek:String;
+}
+
+typedef GameplayInfo = {
+    var instrumental:String;
+    var voices:Array<String>;
+
+    var bpm:Float;
+    var scrollSpeed:Float;
+
+    var ?beatsPerMeasure:Int;
+    var ?stepsPerBeat:Int;
+
+    var ?player:String;
+    var ?opponent:String;
+    var ?spectator:String;
+    var ?stage:String;
+
+    var ?noteSkins:Array<String>;
+    var ?gameOverData:GameOverData;
 }
 
 // using it as dynamic somewhat makes the game crash, this anonymous structure fixes it

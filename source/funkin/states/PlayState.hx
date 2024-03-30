@@ -154,7 +154,7 @@ class PlayState extends MusicBeatState {
         current = this;
 
         #if ENGINE_SCRIPTING
-        loadScriptsFrom('songs/${song.meta.rawName}/scripts');
+        loadScriptsFrom('songs/${song.meta.folder}/scripts');
         loadScriptsFrom('scripts/gameplay');
         noSubstateCalls = true;
         #end
@@ -184,46 +184,47 @@ class PlayState extends MusicBeatState {
         hxsCall("onCreate");
         #end
 
-        var playerNoteSkin:String = song.meta.playerNoteSkin ?? "default";
-        var oppNoteSkin:String = song.meta.oppNoteSkin ?? "default";
+        var noteSkinExists:Bool = song.gameplayInfo.noteSkins != null;
+        var playerNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
+        var oppNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
-        music = new MusicPlayback(song.meta.rawName);
-        music.setupInstrumental(song.meta.instFile);
+        music = new MusicPlayback(song.meta.folder);
+        music.setupInstrumental(song.gameplayInfo.instrumental);
         music.onSongEnd.add(endSong);
         add(music);
 
-        if (song.meta.voiceFiles?.length > 0)
-            for (voiceFile in song.meta.voiceFiles)
+        if (song.gameplayInfo.voices?.length > 0)
+            for (voiceFile in song.gameplayInfo.voices)
                 music.createVoice(voiceFile);
 
-        beatZoomInterval = Conductor.beatsPerMeasure = (song.meta.beatsPerMeasure ?? 4);
-        Conductor.stepsPerBeat = (song.meta.stepsPerBeat ?? 4);
-        Conductor.bpm = song.meta.bpm;
+        beatZoomInterval = Conductor.beatsPerMeasure = (song.gameplayInfo.beatsPerMeasure ?? 4);
+        Conductor.stepsPerBeat = (song.gameplayInfo.stepsPerBeat ?? 4);
+        Conductor.bpm = song.gameplayInfo.bpm;
 
-        stage = switch (song.meta.stage.toLowerCase()) {
-            default: new SoftcodedStage(song.meta.stage);
+        stage = switch (song.gameplayInfo.stage.toLowerCase()) {
+            default: new SoftcodedStage(song.gameplayInfo.stage);
         }
         add(stage);
 
-        if (song.meta.spectator != null) {
-            spectator = new Character(400, 0, song.meta.spectator);
+        if (song.gameplayInfo.spectator != null) {
+            spectator = new Character(400, 0, song.gameplayInfo.spectator);
             add(spectator);
 
             // make the spectator behave as the opponent
-            if (song.meta.opponent != null && song.meta.opponent == song.meta.spectator)
+            if (song.gameplayInfo.opponent != null && song.gameplayInfo.opponent == song.gameplayInfo.spectator)
                 opponent = spectator;
         }
 
-        if (song.meta.opponent != null && song.meta.spectator != song.meta.opponent) {
-            opponent = new Character(200, 0, song.meta.opponent);
+        if (song.gameplayInfo.opponent != null && song.gameplayInfo.spectator != song.gameplayInfo.opponent) {
+            opponent = new Character(200, 0, song.gameplayInfo.opponent);
             add(opponent);
 
             if (opponent.noteSkin != null)
                 oppNoteSkin = opponent.noteSkin;
         }
 
-        if (song.meta.player != null) {
-            player = new Character(400, 0, song.meta.player, PLAYER);
+        if (song.gameplayInfo.player != null) {
+            player = new Character(400, 0, song.gameplayInfo.player, PLAYER);
             add(player);
 
             if (player.noteSkin != null)
@@ -237,13 +238,13 @@ class PlayState extends MusicBeatState {
         add(strumLines);
 
         opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, oppNoteSkin);
-        opponentStrumline.scrollSpeed = song.meta.scrollSpeed;
+        opponentStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         opponentStrumline.onNoteHit.add(opponentNoteHit);
         opponentStrumline.onHold.add(onOpponentHold);
         strumLines.add(opponentStrumline);
 
         playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, playerNoteSkin);
-        playerStrumline.scrollSpeed = song.meta.scrollSpeed;
+        playerStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         playerStrumline.onNoteHit.add(botplayNoteHit);
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(miss);
@@ -610,7 +611,7 @@ class PlayState extends MusicBeatState {
         lossCounter = 0;
 
         if (validScore) {
-            var song:String = '${song.meta.rawName}-${currentDifficulty}';
+            var song:String = '${song.meta.folder}-${currentDifficulty}';
             if (gameMode == STORY) song += "_story";
 
             HighScore.set(song, {

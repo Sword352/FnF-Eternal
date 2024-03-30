@@ -9,6 +9,9 @@ import funkin.objects.Alphabet;
 import funkin.objects.HealthIcon;
 import funkin.states.debug.chart.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
+
+import haxe.Json;
+import funkin.globals.ChartFormat;
 import funkin.globals.SongProgress;
 
 class FreeplayMenu extends MusicBeatState {
@@ -275,7 +278,7 @@ class FreeplayMenu extends MusicBeatState {
 
         allowInputs = false;
 
-        Transition.onComplete.add(() -> PlayState.load(songs[selection].rawName, difficulties[difficulty]));
+        Transition.onComplete.add(() -> PlayState.load(songs[selection].folder, difficulties[difficulty]));
         FlxG.switchState(LoadingScreen.new.bind(0));
     }
 
@@ -295,7 +298,7 @@ class FreeplayMenu extends MusicBeatState {
 
     inline function openResetScreen():Void {
         var screen:ResetScoreScreen = new ResetScoreScreen();
-        screen.songs = [songs[selection].rawName];
+        screen.songs = [songs[selection].folder];
         screen.difficulty = difficulties[difficulty];
         screen.display = '"${songs[selection].name}" with difficulty "${screen.difficulty}"';
         screen.onReset = updateScoreData;
@@ -311,7 +314,7 @@ class FreeplayMenu extends MusicBeatState {
         var chartEditor:ChartEditor = new ChartEditor(null, difficulties[difficulty]);
         Transition.onComplete.add(() -> {
             // avoid lag
-            PlayState.load(songs[selection].rawName, chartEditor.difficulty);
+            PlayState.load(songs[selection].folder, chartEditor.difficulty);
             chartEditor.chart = PlayState.song;
         });
 
@@ -319,7 +322,7 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     inline function updateScoreData():Void {
-        scoreData = HighScore.get('${songs[selection].rawName}-${difficulties[difficulty]}');
+        scoreData = HighScore.get('${songs[selection].folder}-${difficulties[difficulty]}');
     }
 
     inline function iconFollow(icon:HealthIcon, item:Alphabet):Void {
@@ -350,15 +353,15 @@ class FreeplayMenu extends MusicBeatState {
         var finalAsset:openfl.media.Sound = null;
 
         try {
-            var song:String = songs[selection].rawName;
+            var song:String = songs[selection].folder;
             var meta:String = Assets.json('songs/${song}/meta');
     
             var chartFile:String = FileTools.getContent(Assets.json('songs/${song}/charts/${difficulties[difficulty]}'));
-            if (!chartFile.contains("instFile") && FileTools.exists(meta))
+            if (!chartFile.contains("instrumental") && FileTools.exists(meta))
                 chartFile = FileTools.getContent(meta);
     
-            var data:Dynamic = haxe.Json.parse(chartFile);
-            var file:String = (data.song != null ? "Inst" : (data.instFile ?? data.meta.instFile));
+            var data:Dynamic = Json.parse(chartFile);
+            var file:String = (data.song != null ? "Inst" : data.gameplayInfo.instrumental);
             finalAsset = Assets.songMusic(song, file);
         }
         catch (e) {
@@ -394,29 +397,28 @@ class FreeplayMenu extends MusicBeatState {
         if (!FileTools.exists(listPath)) return null;
 
         var list:Array<SongStructure> = [];
-        var content:Array<String> = FileTools.getContent(listPath).trim().split("\n");
+        var content:Array<String> = FileTools.getContent(listPath).split("\n");
 
         for (line in content) {
-            var trimmedLine:String = line.trim();
+            var song:String = line.trim();
 
-            // skip comments and empty lines
-            if (trimmedLine.startsWith("#") || trimmedLine.length == 0) continue;
+            var metaPath:String = Assets.json('songs/${song}/meta');
+            if (!FileTools.exists(metaPath)) continue;
 
-            // at the exception of an escape character
-            if (trimmedLine.startsWith("\\#"))
-                trimmedLine = trimmedLine.substring(1);
+            var meta:SongMeta = Json.parse(FileTools.getContent(metaPath));
+            if (meta.freeplayInfo?.parentWeek != null && !SongProgress.unlocked(meta.freeplayInfo.parentWeek, true))
+                continue;
 
-            var elements:Array<String> = trimmedLine.split("||").map((f) -> f = f.trim());
-            var weekToCheck:String = elements[5];
-
-            if (weekToCheck != null && !SongProgress.unlocked(weekToCheck, true)) continue;
+            var color:FlxColor = FlxColor.WHITE;
+            if (meta.freeplayInfo?.color != null)
+                color = Tools.getColor(meta.freeplayInfo.color);
 
             list.push({
-                name: elements[0],
-                rawName: elements[1] ?? elements[0],
-                icon: elements[2] ?? HealthIcon.DEFAULT_ICON,
-                color: Tools.getColor(elements[3]),
-                difficulties: (elements[4] == null) ? ["Easy", "Normal", "Hard"] : elements[4].split("/")
+                name: meta.name ?? song,
+                folder: song,
+                icon: meta.freeplayInfo?.icon ?? HealthIcon.DEFAULT_ICON,
+                difficulties: meta.difficulties ?? ["Easy", "Normal", "Hard"],
+                color: color
             });
         }
 
@@ -562,7 +564,7 @@ class ExtraInfo extends FlxSpriteGroup {
 
 @:structInit class SongStructure {
     public var name:String;
-    public var rawName:String;
+    public var folder:String;
 
     public var icon:String;
     public var color:FlxColor;

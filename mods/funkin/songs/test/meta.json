@@ -1,0 +1,21 @@
+{
+    "name": "Test",
+    "difficulties": ["Normal"],
+    "freeplayInfo": {
+        "icon": "bf-pixel",
+        "color": "cyan"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
+
+        "bpm": 150,
+        "scrollSpeed": 1.6,
+
+        "opponent": "boyfriend-pixel",
+        "player": "boyfriend",
+
+        "spectator": "girlfriend",
+        "stage": "stage"
+    }
+}

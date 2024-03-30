@@ -1,5 +1,4 @@
 {
-    "bpm": 150,
     "events": [
         {
             "arguments": [
@@ -226,18 +225,6 @@
             "time": 99200
         }
     ],
-    "meta": {
-        "instFile": "Inst",
-        "name": "Test",
-        "opponent": "boyfriend-pixel",
-        "player": "boyfriend",
-        "rawName": "test",
-        "spectator": "girlfriend",
-        "stage": "stage",
-        "voiceFiles": [
-            "Voices"
-        ]
-    },
     "notes": [
         {
             "length": 0,
@@ -3627,6 +3614,5 @@
             "type": null,
             "direction": 2
         }
-    ],
-    "speed": 1.6
+    ]
 }

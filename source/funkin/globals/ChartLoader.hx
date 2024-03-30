@@ -6,65 +6,101 @@ import funkin.globals.ChartFormat;
 import haxe.Json;
 
 class ChartLoader {
-    public static inline function getEmptyMeta():SongMetadata
+    public static inline function getEmptyGameplay():GameplayInfo
         return {
-            name: null,
-            rawName: null,
             player: null,
             opponent: null,
             spectator: null,
             stage: null,
-            instFile: "Inst",
-            voiceFiles: ["Voices"],
+            instrumental: "Inst",
+            voices: ["Voices"],
             scrollSpeed: 1,
             bpm: 100
         };
 
+    public static inline function getEmptyMeta():SongMeta
+        return {
+            name: null,
+            folder: null,
+            difficulties: ["normal"],
+            gameplayInfo: getEmptyGameplay(),
+            freeplayInfo: null
+        }
+
     public static inline function getEmptyChart():Chart
         return {
-            notes: [],
+            gameplayInfo: getEmptyGameplay(),
+            meta: getEmptyMeta(),
             events: [],
-            meta: getEmptyMeta()
+            notes: []
         };
 
-    public static inline function loadMetadata(song:String):SongMetadata {
+    public static inline function loadMeta(song:String):SongMeta {
         var path:String = Assets.json('songs/${song}/meta');
         if (!FileTools.exists(path)) {
             trace('Could not find meta file for song "${song}"!');
             return getEmptyMeta();
         }
 
-        var data:SongMetadata = Json.parse(FileTools.getContent(path));
-
-        if (data.rawName == null)
-            data.rawName = song;
-
-        if (data.name == null)
-            data.name = data.rawName;
-
+        var data:SongMeta = Json.parse(FileTools.getContent(path));
+        data.folder = song;
         return data;
     }
 
+    public static inline function resolveGameplayInfo(song:String, chart:Chart):GameplayInfo {
+        var finalInfo:GameplayInfo = null;
+        var meta:SongMeta = chart.meta;
+
+        // if null, simply get one from the meta
+        if (chart.gameplayInfo == null)
+            finalInfo = meta.gameplayInfo;
+        else {
+            // otherwise get the one from the chart
+            finalInfo = chart.gameplayInfo;
+
+            // allows for overridable fields
+            if (meta.gameplayInfo != null) {
+                for (field in Reflect.fields(meta.gameplayInfo))
+                    if (!Reflect.hasField(finalInfo, field))
+                        Reflect.setField(finalInfo, field, Reflect.getProperty(meta.gameplayInfo, field));
+            }
+        }
+
+        return finalInfo;
+    }
+
+    public static inline function exportMeta(meta:SongMeta):SongMeta {
+        var output:SongMeta = Reflect.copy(meta);
+        Reflect.deleteField(output, "folder");
+        return output;
+    }
+
     public static inline function convertChart(data:BaseGameChart):Chart {
+        var gameplayInfo:GameplayInfo = {
+            player: data.player1,
+            opponent: data.player2,
+            spectator: data.gfVersion ?? data.player3,
+            stage: data.stage ?? "",
+
+            instrumental: "Inst",
+            voices: (data.needsVoices) ? ["Voices"] : [],
+
+            scrollSpeed: data.speed,
+            bpm: data.bpm
+        };
+
         var finalData:Chart = {
+            gameplayInfo: gameplayInfo,
             meta: {
                 name: data.song,
-                rawName: data.song.toLowerCase().replace(" ", "-"),
-
-                player: data.player1,
-                opponent: data.player2,
-                spectator: data.gfVersion ?? data.player3,
-                stage: data.stage ?? "",
-
-                instFile: "Inst",
-                voiceFiles: (data.needsVoices) ? ["Voices"] : [],
-
-                scrollSpeed: data.speed,
-                bpm: data.bpm
+                folder: data.song.toLowerCase().replace(" ", "-"),
+                difficulties: ["easy", "normal", "hard"],
+                gameplayInfo: gameplayInfo,
+                freeplayInfo: null
             },
 
-            notes: [],
-            events: []
+            events: [],
+            notes: []
         }
 
         // Used to replace some section specific stuff with events
@@ -135,7 +171,7 @@ class ChartLoader {
                     player1: chart.meta.player,
                     player2: chart.meta.opponent,
 
-                    needsVoices: (chart.meta.voiceFiles.length > 0),
+                    needsVoices: (chart.meta.voices.length > 0),
                     validScore: true
                 }
             };
@@ -170,36 +206,36 @@ class ChartLoader {
 
         var path:String = Assets.json('songs/${song}/charts/${difficulty}');
         var data:Dynamic = Json.parse(FileTools.getContent(path));
+        var finalChart:Chart = null;
+
         #if sys var overwrite:Bool = false; #end
 
         if (data.song != null) {
             data = convertChart(data.song); // convert charts that uses fnf legacy format
             #if sys overwrite = Settings.get("overwrite chart files"); #end
         }
-        else if (data.meta == null)
-            data.meta = loadMetadata(song);
+        
+        finalChart = Chart.resolve(data);
+        if (finalChart.meta == null) finalChart.meta = loadMeta(song);
+        finalChart.gameplayInfo = resolveGameplayInfo(song, finalChart);
 
-        if (data.meta.stage == null)
-            data.meta.stage = "";
+        if (finalChart.gameplayInfo.stage == null)
+            finalChart.gameplayInfo.stage = "";
 
         // check for events
-        if (data.events == null) {
+        if (finalChart.events == null) {
             var eventsPath:String = Assets.json('songs/${song}/events');
             if (FileTools.exists(eventsPath))
-                data.events = Json.parse(FileTools.getContent(eventsPath));
+                finalChart.events = Json.parse(FileTools.getContent(eventsPath));
             else
-                data.events = [];
+                finalChart.events = [];
         }
-
-        // backward compat
-        if (data.speed != null) data.meta.scrollSpeed = data.speed;
-        if (data.bpm != null) data.meta.bpm = data.bpm;
 
         #if sys
         if (overwrite)
-            sys.io.File.saveContent(path, Json.stringify(data)); // overwrite the chart json
+            sys.io.File.saveContent(path, Json.stringify(finalChart.toStruct())); // overwrite the chart json
         #end
 
-        return Chart.resolve(data);
+        return finalChart;
     }
 }

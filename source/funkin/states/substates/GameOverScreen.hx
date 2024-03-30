@@ -46,7 +46,7 @@ class GameOverScreen extends MusicBeatSubState {
         #end
 
         character = new Character(position.x, position.y, characterStr, GAMEOVER);
-        data = formatData(character.gameOverData ?? PlayState.song.meta.gameOverData);
+        data = formatData(character.gameOverData ?? PlayState.song.gameplayInfo.gameOverData);
         add(character);
 
         cameraObject = new FlxObject(0, 0, 1, 1);

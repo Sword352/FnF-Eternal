@@ -1,13 +1,21 @@
 {
     "name": "Bopeebo",
-    "rawName": "bopeebo",
-
-    "instFile": "Inst",
-    "voiceFiles": ["Voices"],
-
-    "opponent": "dad",
-    "spectator": "girlfriend",
-    "player": "boyfriend",
-
-    "stage": "stage"
+    "difficulties": ["Easy", "Normal", "Hard"],
+    "freeplayInfo": {
+        "icon": "dad",
+        "color": "#9271fd"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
+        
+        "bpm": 100,
+        "scrollSpeed": 1,
+        
+        "opponent": "dad",
+        "spectator": "girlfriend",
+        "player": "boyfriend",
+    
+        "stage": "stage"
+    }
 }

@@ -2,7 +2,6 @@
 - Dialogue cutscenes implementation
 - Add unlockable freeplay songs support
 
-- Song Metadata rework (implement `SongMeta`)
 - Finish the built-in events
 - Finish controller input support
 - Finish the audio offset support

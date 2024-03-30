@@ -1,12 +1,20 @@
 {
     "name": "Philly",
-    "rawName": "philly",
+    "difficulties": ["Easy", "Normal", "Hard"],
+    "freeplayInfo": {
+        "icon": "pico",
+        "color": "#3A7317"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
 
-    "instFile": "Inst",
-    "voiceFiles": ["Voices"],
-
-    "spectator": "girlfriend",
-    "player": "boyfriend",
-    "opponent": "pico",
-    "stage": "philly"
+        "scrollSpeed": 1, 
+        "bpm": 175,
+    
+        "spectator": "girlfriend",
+        "player": "boyfriend",
+        "opponent": "pico",
+        "stage": "philly"
+    }
 }

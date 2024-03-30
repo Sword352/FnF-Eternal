@@ -140,7 +140,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S) {
             pauseMusic();
-            Tools.saveData('${difficulty.toLowerCase()}.json', Json.stringify(chart));
+            Tools.saveData('${difficulty.toLowerCase()}.json', Json.stringify(chart.toStruct()));
         }
 
         if (FlxG.keys.justPressed.SPACE) {
@@ -447,7 +447,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline public function getBPMInfo():String
-        return 'BPM: ${Conductor.bpm} (${chart.meta.bpm})';
+        return 'BPM: ${Conductor.bpm} (${chart.gameplayInfo.bpm})';
 
     inline public function reloadGrid(updateMeasure:Bool = true, resetTime:Bool = true):Void {
         checkerboard.height = getYFromTime(music.instrumental.length);
@@ -466,7 +466,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public inline function updateCurrentBPM():Void {
-        var currentBPM:Float = chart.meta.bpm;
+        var currentBPM:Float = chart.gameplayInfo.bpm;
         var stepOffset:Float = 0;
         var lastChange:Float = 0;
 
@@ -497,11 +497,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function loadSong():Void {
-        music = new MusicPlayback(chart.meta.rawName);
-        music.setupInstrumental(chart.meta.instFile);
+        music = new MusicPlayback(chart.meta.folder);
+        music.setupInstrumental(chart.gameplayInfo.instrumental);
 
-        if (chart.meta.voiceFiles?.length > 0)
-            for (voiceFile in chart.meta.voiceFiles)
+        if (chart.gameplayInfo.voices?.length > 0)
+            for (voiceFile in chart.gameplayInfo.voices)
                 music.createVoice(voiceFile);
 
         music.onSongEnd.add(() -> {
@@ -515,10 +515,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         music.instrumental.volume = (Settings.get("CHART_muteInst")) ? 0 : 1;
         music.pitch = Settings.get("CHART_pitch");
 
-        Conductor.beatsPerMeasure = chart.meta.beatsPerMeasure ?? 4;
-        Conductor.stepsPerBeat = chart.meta.stepsPerBeat ?? 4;
-        Conductor.bpm = chart.meta.bpm;
-
+        Conductor.beatsPerMeasure = chart.gameplayInfo.beatsPerMeasure ?? 4;
+        Conductor.stepsPerBeat = chart.gameplayInfo.stepsPerBeat ?? 4;
+        Conductor.bpm = chart.gameplayInfo.bpm;
         Conductor.music = music.instrumental;
     }
 
@@ -660,7 +659,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             Conductor.resetPrevTime();
         }
 
-        opponentIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.meta.opponent));
+        opponentIcon = new HealthIcon(checkerboard.x, 30, getIcon(chart.gameplayInfo.opponent));
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
         opponentIcon.x -= opponentIcon.width;
@@ -669,7 +668,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         opponentIcon.active = false;
         add(opponentIcon);
 
-        playerIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.meta.player));
+        playerIcon = new HealthIcon(checkerboard.x + checkerboard.width, 30, getIcon(chart.gameplayInfo.player));
         playerIcon.setGraphicSize(0, 100);
         playerIcon.updateHitbox();
         playerIcon.cameras = [uiCamera];
@@ -691,8 +690,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         Tools.invokeTempSave((save) -> {
             var saveMap:Map<String, Dynamic> = save.data.charts;
-            if (saveMap != null && saveMap.exists(chart.meta.rawName))
-                chart = Chart.resolve(saveMap.get(chart.meta.rawName));
+            if (saveMap != null && saveMap.exists(chart.meta.folder))
+                chart = Chart.resolve(saveMap.get(chart.meta.folder));
         }, "chart_autosave");
 
         if (oldChart == chart)
@@ -712,7 +711,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             if (saveMap == null)
                 saveMap = [];
 
-            saveMap.set(chart.meta.rawName, chart.toStruct());
+            saveMap.set(chart.meta.folder, chart.toStruct());
             save.data.charts = saveMap;
         }, "chart_autosave");
     }

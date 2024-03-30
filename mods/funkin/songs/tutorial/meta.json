@@ -1,0 +1,17 @@
+{
+    "name": "Tutorial",
+    "difficulties": ["Normal"],
+    "freeplayInfo": {
+        "icon": "gf",
+        "color": "#a5004d"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "spectator":"girlfriend",
+        "opponent":"girlfriend",
+        "player":"boyfriend",
+        "stage":"stage",
+        "scrollSpeed": 1,
+        "bpm": 100
+    }
+}

@@ -1,12 +1,20 @@
 {
     "name": "Monster",
-    "rawName": "monster",
+    "difficulties": ["Easy", "Normal", "Hard"],
+    "freeplayInfo": {
+        "icon": "monster",
+        "color": "#051650"
+    },
+    "gameplayInfo": {
+        "instrumental": "Inst",
+        "voices": ["Voices"],
 
-    "instFile": "Inst",
-    "voiceFiles": ["Voices"],
-
-    "spectator": "girlfriend",
-    "opponent": "monster",
-    "player": "boyfriend",
-    "stage": "spooky"
+        "scrollSpeed": 1.3,
+        "bpm": 95,
+    
+        "spectator": "girlfriend",
+        "opponent": "monster",
+        "player": "boyfriend",
+        "stage": "spooky"
+    }
 }
