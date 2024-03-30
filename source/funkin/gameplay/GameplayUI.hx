@@ -116,7 +116,7 @@ class GameplayUI extends FlxSpriteGroup {
         iconP2.y = healthBar.y - (iconP2.frameHeight * 0.5);
 
         if (timeDisplay != null)
-            timeDisplay.y = (downscroll ? FlxG.height * 0.9 : 25);
+            timeDisplay.y = (downscroll ? FlxG.height * 0.95 : 25);
     }
 
     public inline function onSongStart():Void {

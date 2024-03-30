@@ -59,11 +59,9 @@ class MusicPlayback extends FlxBasic {
     }
 
     public function resync():Void {
-        var time:Float = Conductor.rawTime;
-
-        for (music in musics) {
-            if (Conductor.music != music && music.playing && Math.abs(music.time - time) > (5 * pitch))
-                music.time = time;
+        for (voice in vocals) {
+            if (voice.playing && Math.abs(voice.time - instrumental.time) > (5 * pitch))
+                voice.time = instrumental.time;
         }
     }
 

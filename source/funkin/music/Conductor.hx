@@ -40,20 +40,21 @@ class Conductor {
     // used for bpm change events
     public static final beatOffset:BeatOffset = {};
 
+    /*
+    static var _prevTime:Float = -1;
+    static var _timeApprox:Float = 0;
+    */
+
     static var _prevStep:Int = -1;
     static var _prevBeat:Int = -1;
     static var _prevMeas:Int = -1;
 
-    /*
-        static var _stepTmr:Float = 0;
-        static var _fakeStep:Int = 0;
-        static var _fakeBeat:Int = 0;
-        static var _fakeMeas:Int = 0; 
-     */
-
     public static inline function update(elapsed:Float):Void {
         if (!active) return;
+
         if (updateInterp) updateTime(elapsed);
+        // updateTime(elapsed);
+
         updateCallbacks();
     }
 
@@ -62,6 +63,18 @@ class Conductor {
         interpTime += elapsed * playbackRate * 1000;
         if (music != null && Math.abs(time - interpTime) > (20 * playbackRate))
             interpTime = time;
+        
+        /*
+        if (music != null) {
+            var timeDelta:Float = music.time - _prevTime;
+            _prevTime = music.time;
+
+            if (music.playing && Math.abs(timeDelta) <= 0)
+                _timeApprox += elapsed * 1000 * playbackRate;
+            else
+                _timeApprox = 0;
+        }
+        */
     }
 
     public static inline function updateCallbacks():Void {
@@ -83,29 +96,6 @@ class Conductor {
             _prevMeas = measure;
             onMeasure.dispatch(measure);
         }
-
-        /*
-                if (music == null || music.playing) {
-                    while (time >= _stepTmr + stepCrochet) {
-                        _stepTmr += stepCrochet;
-                        onStep.dispatch(++_fakeStep);
-
-                        if (_fakeStep % stepsPerBeat == 0) {
-                            onBeat.dispatch(++_fakeBeat);
-                            if (_fakeMeas % beatsPerMeasure == 0)
-                                onMeasure.dispatch(++_fakeMeas);
-                        }
-                    }
-                }
-                else {
-                    var step:Float = (time / stepCrochet);
-                    _stepTmr = stepCrochet * step;
-
-                    _fakeStep = Math.floor(step);
-                    _fakeBeat = Math.floor(_fakeStep / stepsPerBeat);
-                    _fakeMeas = Math.floor(_fakeBeat / beatsPerMeasure);
-                }
-         */
     }
 
     public static inline function reset():Void {
@@ -130,8 +120,8 @@ class Conductor {
 
     public static inline function resetPrevTime(to:Int = -1):Void {
         _prevStep = _prevBeat = _prevMeas = to;
-        // _fakeStep = _fakeBeat = _fakeMeas = to + 1;
-        // _stepTmr = 0;
+        // _timeApprox = 0;
+        // _prevTime = -1;
     }
 
     public static inline function resetCallbacks():Void {
@@ -164,7 +154,7 @@ class Conductor {
     }
 
     static function get_rawTime():Float {
-        return (music?.time ?? interpTime);
+        return (music?.time ?? interpTime); // + _timeApprox
     }
 
     static function set_time(v:Float):Float

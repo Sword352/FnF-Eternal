@@ -51,7 +51,7 @@ class Note extends OffsetSprite {
 
     public var offsetX:Float = 0;
     public var offsetY:Float = 0;
-    public var dirAngle:Float = 90;
+    public var dirAngle(get, default):Float = 180;
 
     public var lateKillOffset:Float = 0;
     public var spawnTimeOffset:Float = 0;
@@ -93,13 +93,13 @@ class Note extends OffsetSprite {
     }
 
     public function follow(receptor:FlxSprite):Void {
-        var dirAngle:Float = (followAngle ? (parentStrumline?.receptors.members[direction].dirAngle ?? parentStrumline?.dirAngle) : dirAngle);
+        var angleRad:Float = FlxAngle.asRadians(dirAngle - 90);
 
         if (followX)
-            x = receptor.x + offsetX + distance * FlxMath.fastCos(FlxAngle.asRadians(dirAngle));
+            x = receptor.x + offsetX + distance * FlxMath.fastCos(angleRad);
 
         if (followY)
-            y = receptor.y + offsetY + distance * FlxMath.fastSin(FlxAngle.asRadians(dirAngle));
+            y = receptor.y + offsetY + distance * FlxMath.fastSin(angleRad);
 
         if (followAlpha) {
             alpha = receptor.alpha * alphaMult;
@@ -265,6 +265,11 @@ class Note extends OffsetSprite {
         return (followSpeed && parentStrumline != null) ? (receptor.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
     }
 
+    inline function get_dirAngle():Float {
+        if (!followAngle) return this.dirAngle;
+        return (parentStrumline?.receptors.members[direction].dirAngle ?? parentStrumline?.dirAngle ?? this.dirAngle);
+    }
+
     inline function get_late():Bool {
         return this.late || (Conductor.time - time) > (safeZoneOffset * lateHitMult);
     }
@@ -351,7 +356,11 @@ class Sustain extends TiledSprite {
         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
         if (parent.downscroll) y -= height;
 
-        tail.setPosition(x, (parent.downscroll) ? (y - tail.height) : (y + height));
+        // TODO: finish this
+        var angleRad:Float = FlxAngle.asRadians(parent.dirAngle - 90);
+        tail.x = x + height * FlxMath.fastCos(angleRad);
+        tail.y = y + ((parent.downscroll ? -tail.height : height) * FlxMath.fastSin(angleRad));
+        angle = tail.angle = parent.dirAngle - 180;
 
         var flip:Bool = (parent.flipSustain && parent.downscroll);
         if (parent.flipY) flip = !flip;

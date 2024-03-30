@@ -17,7 +17,7 @@ class StrumLine extends FlxGroup {
     public var downscroll(get, set):Bool;
     public var scrollSpeed:Float = 1;
     public var scrollMult:Float = 1;
-    public var dirAngle:Float = 90;
+    public var dirAngle:Float = 180;
 
     public var characters:Array<Character> = [];
     public var skin(default, set):String;
