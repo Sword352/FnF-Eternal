@@ -112,8 +112,8 @@ class GameplayUI extends FlxSpriteGroup {
         healthBar.y = FlxG.height * ((downscroll) ? 0.1 : 0.875);
         scoreText.y = healthBar.y + 50;
 
-        iconP1.y = healthBar.y - (iconP1.frameHeight * 0.5);
-        iconP2.y = healthBar.y - (iconP2.frameHeight * 0.5);
+        iconP1.y = healthBar.y - (iconP1.height * 0.5);
+        iconP2.y = healthBar.y - (iconP2.height * 0.5);
 
         if (timeDisplay != null)
             timeDisplay.y = (downscroll ? FlxG.height * 0.95 : 25);

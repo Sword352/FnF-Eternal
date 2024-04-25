@@ -7,7 +7,7 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 
 import funkin.objects.Alphabet;
 import funkin.objects.HealthIcon;
-import funkin.states.debug.chart.ChartEditor;
+import funkin.states.editors.chart.ChartEditor;
 import funkin.states.substates.ResetScoreScreen;
 
 import haxe.Json;
@@ -239,7 +239,7 @@ class FreeplayMenu extends MusicBeatState {
             item.target = item.ID - selection;
             item.alpha = icon.alpha = (item.target == 0) ? 1 : 0.6;
 
-            if (doTween) {
+            if (doTween && items.length > 3) {
                 item.snapToPosition();
                 iconFollow(icon, item);
                 item.doIntro();
@@ -463,7 +463,7 @@ class Instructions extends FlxSpriteGroup {
         var sepY:Float = 0.65;
 
         if (Settings.get("editor access")) {
-            instructionText.insert(1, "ENTER + SHIFT: open song in chart editor");
+            instructionText.insert(1, "SHIFT + ENTER: open song in chart editor");
             sepScale = sepY = 0.5;
         }
 

@@ -1,5 +1,8 @@
-package funkin.states.debug.chart;
+package funkin.states.editors.chart;
 
+// gonna delete this soon
+
+/*
 import flixel.FlxSubState;
 import haxe.ui.components.*;
 import haxe.ui.containers.*;
@@ -374,7 +377,7 @@ class ChartSubScreen extends FlxSubState {
             if (event.arguments != null) {
                 for (arg in event.arguments) {
                     var propIndex:Int = event.arguments.indexOf(arg);
-                    var typeLower:String = arg.type.toLowerCase();
+                    var typeLower:String = cast(arg.type, String).toLowerCase();
 
                     var prop:Property = new Property();
                     prop.label = arg.name;
@@ -401,14 +404,14 @@ class ChartSubScreen extends FlxSubState {
                         if (selectedEvent != null)
                             selectedEvent.data.arguments[propIndex] = val;
 
-                        parent.defaultArgs[propIndex] = val;
+                        parent.eventArgs[propIndex] = val;
                     }
 
                     // if there is a selected event, get the value from it, otherwise use default values
                     if (selectedEvent != null && selectedEvent.data.event == event.name)
-                        prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.defaultArgs[propIndex];
+                        prop.value = selectedEvent?.data.arguments[propIndex] ?? parent.eventArgs[propIndex];
                     else
-                        prop.value = parent.defaultArgs[propIndex] ?? event.arguments[propIndex].defaultValue;
+                        prop.value = parent.eventArgs[propIndex] ?? event.arguments[propIndex].defaultValue;
 
                     argumentsEditor.addComponent(prop);
                     propStorage.push(prop);
@@ -416,7 +419,7 @@ class ChartSubScreen extends FlxSubState {
             }
 
             if (selectedEvent == null) {
-                parent.defaultArgs = [for (prop in propStorage) prop.value];
+                parent.eventArgs = [for (prop in propStorage) prop.value];
                 parent.currentEvent = event;
             }
         }
@@ -538,3 +541,4 @@ class ChartSubScreen extends FlxSubState {
         s.fontSize = 12;
     }
 }
+*/

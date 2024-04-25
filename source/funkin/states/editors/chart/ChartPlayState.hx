@@ -1,4 +1,4 @@
-package funkin.states.debug.chart;
+package funkin.states.editors.chart;
 
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
@@ -17,7 +17,6 @@ import funkin.globals.ChartLoader;
  * TODO:
  * - Fix bugs
  *   - Time resync at music start
- *   - Beat callbacks not being called when starting at precise times (?)
  * - Do less copy-paste and make the code cleaner
  */
 class ChartPlayState extends MusicBeatSubState {
@@ -36,6 +35,7 @@ class ChartPlayState extends MusicBeatSubState {
     var comboSprites:FlxTypedSpriteGroup<ComboSprite>;
     var icons:Array<HealthIcon> = [];
 
+    var playAsOpponent:Bool = false;
     var totalPlayerNotes:Int = 0;
     var totalOppNotes:Int = 0;
 
@@ -51,20 +51,23 @@ class ChartPlayState extends MusicBeatSubState {
 
     var parent:ChartEditor;
 
-    public function new(parent:ChartEditor, startTime:Float = 0):Void {
+    public function new(parent:ChartEditor, startTime:Float = 0, playAsOpponent:Bool = false):Void {
         super();
+
         this.parent = parent;
+        this.playAsOpponent = playAsOpponent;
         this.startTime = startTime;
     }
 
     override function create():Void {
-        Conductor.resetTime();
         Conductor.music = null;
         Conductor.updateInterp = true;
 
         Conductor.onStep.remove(parent.stepHit);
         Conductor.onBeat.remove(parent.beatHit);
         Conductor.onMeasure.remove(parent.measureHit);
+
+        if (startTime == 0) Conductor.resetPrevTime();
 
         super.create();
 
@@ -88,17 +91,24 @@ class ChartPlayState extends MusicBeatSubState {
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}');
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, true);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent);
         opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed / parent.music.pitch;
-        opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         add(opponentStrumline);
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 55);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
+        add(playerStrumline);
+
+        if (playAsOpponent) {
+            var temp:StrumLine = playerStrumline;
+            playerStrumline = opponentStrumline;
+            opponentStrumline = temp;
+        }
+
+        opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         playerStrumline.onNoteHit.add(onBotplayNoteHit);
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(onMiss);
-        add(playerStrumline);
 
         if (Settings.get("downscroll")) {
             playerStrumline.downscroll = opponentStrumline.downscroll = true;
@@ -115,6 +125,7 @@ class ChartPlayState extends MusicBeatSubState {
         playerStrumline.tweenReceptors(0, 0.05);
 
         strumLines = [opponentStrumline, playerStrumline];
+        if (playAsOpponent) strumLines.reverse();
 
         // TODO: recycle notes
         notes = ChartLoader.generateNotes(parent.chart, startTime, strumLines);
@@ -296,7 +307,7 @@ class ChartPlayState extends MusicBeatSubState {
         infos.screenCenter(X);
 
         for (text in [oppNoteCount, playerNoteCount]) {
-            var count:String = Std.string((text == oppNoteCount) ? totalOppNotes : totalPlayerNotes);
+            var count:String = Std.string((text == (playAsOpponent ? playerNoteCount : oppNoteCount)) ? totalOppNotes : totalPlayerNotes);
             while (count.length < 4)
                 count = "0" + count;
 
@@ -308,14 +319,14 @@ class ChartPlayState extends MusicBeatSubState {
             text.x = ((FlxG.width - text.width) * ((text == oppNoteCount) ? 0.35 : 0.65));
         }
 
+        var actualHealth:Float = health * 50;
+        if (playAsOpponent) actualHealth = 100 - actualHealth;
+
         for (i in 0...icons.length) {
             var icon:HealthIcon = icons[i];
 
             icon.x = (i == 0) ? (infos.x - icon.width - 5) : (infos.x + infos.width + 5);
-            icon.health = (health * 50);
-
-            if (i == 0)
-                icon.health = (100 - icon.health);
+            icon.health = (i == 0 ? 100 - actualHealth : actualHealth);
         }
     }
 
@@ -384,6 +395,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
         FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
+        FlxG.mouse.visible = true;
 
         super.destroy();
 

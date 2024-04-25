@@ -17,50 +17,53 @@ import funkin.globals.ChartFormat.ChartEvent;
 class EventManager extends FlxBasic {
     public static final defaultEvents:Array<EventDetails> = [
         {
-            name: "play hey anim",
-            display: "Play Hey Anim",
+            name: "Play Hey Anim",
             description: "Make a character play the \"hey\" animation",
             arguments: [
-                {name: "Whos", type: "Int", defaultValue: 0},
-                {name: "Beat Duration", type: "Float", defaultValue: 1}
+                {name: "Whos", type: INT, value: 0},
+                {name: "Beat Duration", type: FLOAT, value: 1}
             ]
         },
         {
-            name: "change character",
-            display: "Change Character",
+            name: "Change Character",
             description: "Change a character to another",
             arguments: [
-                {name: "Whos", type: "Int", defaultValue: 0},
-                {name: "To", type: "String", defaultValue: "?"}
+                {name: "Whos", type: INT, value: 0},
+                {name: "To", type: STRING, value: "?"}
             ]
         },
         {
-            name: "change scroll speed",
-            display: "Change Scroll Speed",
+            name: "Change Scroll Speed",
             description: "Change the strumlines note scroll speed to another",
             arguments: [
-                {name: "New Speed", type: "Float", defaultValue: 1},
-                {name: "Ease Duration", type: "Float", defaultValue: null},
-                {name: "Ease", type: "String", defaultValue: null}
+                {name: "New Speed", type: FLOAT, value: 1},
+                {name: "Ease Duration", type: FLOAT, value: null},
+                {
+                    name: "Ease",
+                    type: LIST,
+                    value: "linear",
+                    list: [
+                        for (field in Type.getClassFields(FlxEase))
+                            if (Reflect.isFunction(Reflect.field(FlxEase, field)))
+                                field
+                    ]
+                }
             ]
         },
         {
-            name: "change camera target",
-            display: "Change Camera Target",
+            name: "Change Camera Target",
             description: "Change the character that the camera focus on",
-            arguments: [{name: "Whos", type: "Int", defaultValue: 0}]
+            arguments: [{name: "Whos", type: INT, value: 0}]
         },
         {
-            name: "change bpm",
-            display: "Change BPM",
+            name: "Change BPM",
             description: "Change the song's beat per minutes",
-            arguments: [{name: "New BPM", type: "Float", defaultValue: 100}]
+            arguments: [{name: "New BPM", type: FLOAT, value: 100}]
         },
         {
-            name: "change time signature",
-            display: "Change Time Signature",
+            name: "Change Time Signature",
             description: "Change the song's time signature",
-            arguments: [{name: "Steps per beat", type: "Int", defaultValue: 4}]
+            arguments: [{name: "Steps per beat", type: INT, value: 4}]
         }
     ];
 
@@ -137,7 +140,7 @@ class EventManager extends FlxBasic {
 
                 for (strumline in game.strumLines) {
                     if (duration != null && duration > 0)
-                        FlxTween.tween(strumline, {scrollSpeed: newSpeed}, duration, {ease: getEaseFromString(event.arguments[2])});
+                        FlxTween.tween(strumline, {scrollSpeed: newSpeed}, duration, {ease: getEase(event.arguments[2])});
                     else
                         strumline.scrollSpeed = newSpeed;
                 }
@@ -241,76 +244,60 @@ class EventManager extends FlxBasic {
         }
     }
 
-    private static function getEaseFromString(ease:String):EaseFunction {
-        if (ease == null)
-            return FlxEase.linear;
+    inline function getEase(ease:String):EaseFunction {
+        if (ease == null) return FlxEase.linear;
 
-        return switch (ease.toLowerCase().trim()) {
-            case 'backin': return FlxEase.backIn;
-            case 'backinout': return FlxEase.backInOut;
-            case 'backout': return FlxEase.backOut;
-            case 'bouncein': return FlxEase.bounceIn;
-            case 'bounceinout': return FlxEase.bounceInOut;
-            case 'bounceout': return FlxEase.bounceOut;
-            case 'circin': return FlxEase.circIn;
-            case 'circinout': return FlxEase.circInOut;
-            case 'circout': return FlxEase.circOut;
-            case 'cubein': return FlxEase.cubeIn;
-            case 'cubeinout': return FlxEase.cubeInOut;
-            case 'cubeout': return FlxEase.cubeOut;
-            case 'elasticin': return FlxEase.elasticIn;
-            case 'elasticinout': return FlxEase.elasticInOut;
-            case 'elasticout': return FlxEase.elasticOut;
-            case 'expoin': return FlxEase.expoIn;
-            case 'expoinout': return FlxEase.expoInOut;
-            case 'expoout': return FlxEase.expoOut;
-            case 'quadin': return FlxEase.quadIn;
-            case 'quadinout': return FlxEase.quadInOut;
-            case 'quadout': return FlxEase.quadOut;
-            case 'quartin': return FlxEase.quartIn;
-            case 'quartinout': return FlxEase.quartInOut;
-            case 'quartout': return FlxEase.quartOut;
-            case 'quintin': return FlxEase.quintIn;
-            case 'quintinout': return FlxEase.quintInOut;
-            case 'quintout': return FlxEase.quintOut;
-            case 'sinein': return FlxEase.sineIn;
-            case 'sineinout': return FlxEase.sineInOut;
-            case 'sineout': return FlxEase.sineOut;
-            case 'smoothstepin': return FlxEase.smoothStepIn;
-            case 'smoothstepinout': return FlxEase.smoothStepInOut;
-            case 'smoothstepout': return FlxEase.smoothStepOut;
-            case 'smootherstepin': return FlxEase.smootherStepIn;
-            case 'smootherstepinout': return FlxEase.smootherStepInOut;
-            case 'smootherstepout': return FlxEase.smootherStepOut;
-            default: FlxEase.linear;
-        };
+        var field:Dynamic = Reflect.field(FlxEase, ease.trim());
+        return (field == null || !Reflect.isFunction(field)) ? FlxEase.linear : cast field;
     }
 
     public static function getEventList():Map<String, EventDetails> {
         var path:String = Assets.getPath("data/events", NONE);
-        var exts:Array<String> = JSON.getExtensions();
-
         var list:Array<EventDetails> = defaultEvents.copy();
 
-        if (FileTools.exists(path)) {
-            for (file in FileTools.readDirectory(path)) {
-                if (exts.contains(file.substring(file.indexOf("."))))
-                    list.push(haxe.Json.parse(FileTools.getContent(path + "/" + file)));
+        if (!FileTools.exists(path))
+            return [for (ev in list) ev.name => ev];
+
+        var exts:Array<String> = YAML.getExtensions();
+
+        for (file in FileTools.readDirectory(path)) {
+            var point:Int = file.indexOf(".");
+
+            if (exts.contains(file.substring(point))) {
+                var event:EventDetails = Tools.parseYAML(FileTools.getContent(path + "/" + file));
+                if (event.name == null) event.name = file.substring(0, point);
+                list.push(event);
             }
         }
 
-        return [for (ev in list) (ev.display ?? ev.name) => ev];
+        return [for (ev in list) ev.name => ev];
     }
 }
 
 typedef EventDetails = {
     var name:String;
-    var ?display:String;
     var ?description:String;
-    var ?arguments:Array<{
-        name:String,
-        type:String,
-        defaultValue:Dynamic,
-        ?valueList:Array<String>
-    }>;
+    var ?arguments:Array<EventArgument>;
+}
+
+typedef EventArgument = {
+    var name:String;
+    var type:EventValueType;
+    var ?value:Dynamic;
+    var ?step:Float;
+    var ?min:Float;
+    var ?max:Float;
+    var ?list:Array<String>;
+}
+
+enum abstract EventValueType(String) from String to String {
+    var STRING = "String";
+    var FLOAT = "Float";
+    var BOOL = "Bool";
+    var INT = "Int";
+
+    // extra types
+    var LIST = "String(List)"; // allows you to select a string with whats provided
+    var COLOR = "Int(Color)"; // spawns a color picker and returns an int
+    var NUMBER = "Number"; // just the float type
 }

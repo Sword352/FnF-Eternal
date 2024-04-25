@@ -18,7 +18,7 @@ import funkin.gameplay.ComboPopup;
 
 import funkin.states.menus.StoryMenu;
 import funkin.states.menus.FreeplayMenu;
-import funkin.states.debug.chart.ChartEditor;
+import funkin.states.editors.chart.ChartEditor;
 import funkin.states.substates.*;
 
 import funkin.globals.ChartLoader;
@@ -341,7 +341,7 @@ class PlayState extends MusicBeatState {
         stage.createPost();
 
         // Run the first camera event, then snap the camera's position to it's intended position
-        if (song.events.length > 0 && song.events[0].event == "change camera target" && song.events[0].time <= 10)
+        if (song.events.length > 0 && song.events[0].event.toLowerCase().trim() == "change camera target" && song.events[0].time <= 10)
             eventManager.runEvent(eventManager.events.shift());
         else
             camDisplace.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
@@ -576,8 +576,8 @@ class PlayState extends MusicBeatState {
         FlxTween.tween(countdownSprite, {y: countdownSprite.y + 50 * (tick + 1), alpha: 0}, Conductor.crochet * 0.001, {
             ease: FlxEase.smootherStepInOut,
             onComplete: (!done) ? null : (_) -> {
-                countdownSprite = FlxDestroyUtil.destroy(countdownSprite);
                 remove(countdownSprite, true);
+                countdownSprite = FlxDestroyUtil.destroy(countdownSprite);
                 startSong();
             }
         });

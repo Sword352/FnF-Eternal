@@ -6,7 +6,7 @@ import flixel.FlxCamera;
 
 // Temporary until flixel 6.0.0, official target follow bug (on low framerates) fix
 class Camera extends FlxCamera {
-    public function new(x:Int = 0, y:Int = 0, width:Int = 0, height:Int = 0, zoom:Float = 0):Void {
+    public function new(x:Float = 0, y:Float = 0, width:Int = 0, height:Int = 0, zoom:Float = 0):Void {
         super(x, y, width, height, zoom);
         followLerp = 1.0;
     }

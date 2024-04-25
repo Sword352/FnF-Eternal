@@ -1,4 +1,4 @@
-package funkin.states.debug;
+package funkin.states.editors;
 
 import flixel.FlxSubState;
 import flixel.text.FlxText;

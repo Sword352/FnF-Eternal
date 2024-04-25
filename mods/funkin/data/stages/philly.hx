@@ -49,7 +49,7 @@ function onUpdatePost(elapsed:Float):Void {
 }
 
 function onBeatHit(beat:Int):Void {
-    if (++trainCooldown > 8 && !trainEnabled && beat % 8 == 4 && FlxG.random.bool(30)) {
+    if (!trainEnabled && ++trainCooldown > 8 && beat % 8 == 4 && FlxG.random.bool(30)) {
         trainCooldown = FlxG.random.int(-4, 0);
         startTrain();
     }

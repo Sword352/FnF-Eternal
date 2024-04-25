@@ -10,6 +10,7 @@ class Conductor {
     public static var interpTime:Float = 0;
 
     public static var playbackRate:Float = 1;
+    public static var timeApprox:Float = 0; // shoutout to RapperGF for the idea
     public static var offset:Float = 0;
 
     public static var active:Bool = true;
@@ -40,11 +41,7 @@ class Conductor {
     // used for bpm change events
     public static final beatOffset:BeatOffset = {};
 
-    /*
     static var _prevTime:Float = -1;
-    static var _timeApprox:Float = 0;
-    */
-
     static var _prevStep:Int = -1;
     static var _prevBeat:Int = -1;
     static var _prevMeas:Int = -1;
@@ -53,8 +50,7 @@ class Conductor {
         if (!active) return;
 
         if (updateInterp) updateTime(elapsed);
-        // updateTime(elapsed);
-
+        updateTimeApprox(elapsed);
         updateCallbacks();
     }
 
@@ -63,21 +59,20 @@ class Conductor {
         interpTime += elapsed * playbackRate * 1000;
         if (music != null && Math.abs(time - interpTime) > (20 * playbackRate))
             interpTime = time;
-        
-        /*
-        if (music != null) {
-            var timeDelta:Float = music.time - _prevTime;
-            _prevTime = music.time;
-
-            if (music.playing && Math.abs(timeDelta) <= 0)
-                _timeApprox += elapsed * 1000 * playbackRate;
-            else
-                _timeApprox = 0;
-        }
-        */
     }
 
-    public static inline function updateCallbacks():Void {
+    public static function updateTimeApprox(elapsed:Float):Void {
+        if (music == null) return;
+
+        var delta:Float = music.time - _prevTime;
+        _prevTime = music.time;
+
+        if (music.playing && Math.abs(delta) <= 0)
+            timeApprox += elapsed * 1000 * playbackRate;
+        else timeApprox = 0;
+    }
+
+    public static function updateCallbacks():Void {
         var step:Int = currentStep;
         if (step <= _prevStep) return;
 
@@ -98,7 +93,7 @@ class Conductor {
         }
     }
 
-    public static inline function reset():Void {
+    public static function reset():Void {
         resetTime();
         resetCallbacks();
 
@@ -112,19 +107,19 @@ class Conductor {
         updateInterp = false;
     }
 
-    public static inline function resetTime():Void {
+    public static function resetTime():Void {
         interpTime = 0;
         resetPrevTime();
         beatOffset.reset();
     }
 
-    public static inline function resetPrevTime(to:Int = -1):Void {
+    public static function resetPrevTime(to:Int = -1):Void {
         _prevStep = _prevBeat = _prevMeas = to;
-        // _timeApprox = 0;
-        // _prevTime = -1;
+        timeApprox = 0;
+        _prevTime = -1;
     }
 
-    public static inline function resetCallbacks():Void {
+    public static function resetCallbacks():Void {
         onStep.removeAll();
         onBeat.removeAll();
         onMeasure.removeAll();
@@ -154,7 +149,7 @@ class Conductor {
     }
 
     static function get_rawTime():Float {
-        return (music?.time ?? interpTime); // + _timeApprox
+        return (music?.time ?? interpTime);
     }
 
     static function set_time(v:Float):Float
@@ -164,7 +159,7 @@ class Conductor {
         return rawTime - offset;
 
     static function get_decimalStep():Float {
-        return ((time - beatOffset.time) / stepCrochet) + beatOffset.step;
+        return ((time + timeApprox - beatOffset.time) / stepCrochet) + beatOffset.step;
     }
 
     static function set_decimalStep(v:Float):Float {

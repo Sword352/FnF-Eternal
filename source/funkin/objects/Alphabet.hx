@@ -139,7 +139,6 @@ class Alphabet extends FlxTypedSpriteGroup<AlphaGlyph> {
     override function destroy():Void {
         distance = FlxDestroyUtil.put(distance);
         spacing = FlxDestroyUtil.put(spacing);
-
         super.destroy();
     }
 }

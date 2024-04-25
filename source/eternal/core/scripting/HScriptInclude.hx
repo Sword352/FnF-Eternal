@@ -16,14 +16,17 @@ class HScriptInclude {
         #end #end // some stuff can't compile on HL due to failing to load "ssl.hdll"
         #if hxvlc "hxvlc.flixel" => null, #end
         "openfl.display" => null,
+        "openfl.filters" => null,
         
         // Classes
         "StringBuf" => null
     ];
 
     public static function addAdditionalClasses():Void {
+        #if !display
         for (k => v in imports)
             Compiler.include(k, true, v);
+        #end
     }
 }
 #end

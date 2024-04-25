@@ -1,0 +1,16 @@
+; include paths that gets ignored by haxeui (it looks for module.xml files almost everywhere)
+; speeds up building time and completion
+; you can add your own paths too
+
+\/.FNF-EternalEngine\/.*
+\/funkin\/.*
+\/hxdiscord_rpc\/.*
+\/flixel\/.*
+\/flixel-text-input\/.*
+\/flixel-addons\.*
+\/openfl\/.*
+\/hxvlc\/.*
+\/hxcpp-debug-server\/.*
+\/hxcpp\/.*
+\/lime\/.*
+\/yaml\/.*

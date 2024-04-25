@@ -34,7 +34,7 @@ class Main extends Sprite {
         addChild(game);
 
         fpsOverlay = new FPSOverlay();
-        addChild(fpsOverlay);
+        game.addChild(fpsOverlay);
     }
 }
 
@@ -61,7 +61,7 @@ class InitState extends FlxState {
         NoteSkin.init();
         Assets.init();
 
-        Toolkit.theme = "dark";
+        Toolkit.theme = "eternal";
         Toolkit.init();
 
         // Changes to some Flixel global variables

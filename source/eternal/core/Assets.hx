@@ -8,6 +8,10 @@ import openfl.display.BitmapData;
 import openfl.Assets as OpenFLAssets;
 import openfl.system.System;
 
+import lime.media.AudioBuffer;
+import lime.media.vorbis.VorbisFile;
+
+// TODO: maybe partially remove the graphic cache in favor of flixel's
 class Assets {
     // Directories
     public static final defaultDirectory:String = "assets/";
@@ -19,8 +23,8 @@ class Assets {
     // Asset cache
     public static var clearAssets:Bool = true;
 
-    private static final loadedGraphics:Map<String, FlxGraphic> = [];
-    private static final loadedSounds:Map<String, Sound> = [];
+    static final loadedGraphics:Map<String, FlxGraphic> = [];
+    static final loadedSounds:Map<String, Sound> = [];
 
     public static inline function init():Void {
         FlxG.signals.preStateSwitch.add(freeMemory);
@@ -32,13 +36,13 @@ class Assets {
         return getGraphic('images/${file}', library);
 
     public inline static function music(file:String, ?library:String):Sound
-        return getSound('music/${file}', library);
+        return getSound('music/${file}', Settings.get("audio streaming"), library);
 
     public inline static function sound(file:String, ?library:String):Sound
-        return getSound('sounds/${file}', library);
+        return getSound('sounds/${file}', false, library);
 
     public inline static function songMusic(song:String, file:String, ?library:String):Sound
-        return getSound('songs/${song}/music/${file}', library);
+        return getSound('songs/${song}/music/${file}', Settings.get("audio streaming"), library);
 
     public inline static function json(file:String, ?library:String):String
         return getPath(file, JSON, library);
@@ -78,6 +82,13 @@ class Assets {
             case "aseprite": getAseAtlas(file, library);
             default: getSparrowAtlas(file, library);
         }
+    }
+
+    public static function findFrames(file:String, ?library:String):FlxAtlasFrames {
+        if (FileTools.exists(xml('images/${file}', library))) return getSparrowAtlas(file, library);
+        if (FileTools.exists(txt('images/${file}', library))) return getPackerAtlas(file, library);
+        if (FileTools.exists(json('images/${file}', library))) return getAseAtlas(file, library);
+        return null;
     }
 
     public static function getPath(file:String, type:AssetType, ?library:String):String {
@@ -120,14 +131,14 @@ class Assets {
         return graphic;
     }
 
-    public static function getSound(path:String, ?library:String, ?key:String):Sound {
+    public static function getSound(path:String, stream:Bool = false, ?library:String, ?key:String):Sound {
         if (key == null)
             key = path;
 
         var sound:Sound = loadedSounds.get(key);
 
         if (sound == null) {
-            sound = createSound(path, library);
+            sound = createSound(path, library, stream);
             if (sound != null)
                 registerSound(key, sound);
         }
@@ -149,7 +160,7 @@ class Assets {
         return graphic;
     }
 
-    public static function createSound(path:String, ?library:String):Sound {
+    public static function createSound(path:String, ?library:String, stream:Bool = false):Sound {
         var realPath:String = getPath(path, SOUND, library);
 
         /*
@@ -162,7 +173,23 @@ class Assets {
             return null;
         }
 
-        var sound:Sound = #if ENGINE_RUNTIME_ASSETS Sound.fromFile(realPath) #else OpenFLAssets.getSound(realPath) #end;
+        var sound:Sound = null;
+        
+        if (stream) {
+            // var bytes:haxe.io.Bytes = #if ENGINE_RUNTIME_ASSETS sys.io.File.getBytes(realPath) #else OpenFLAssets.getBytes(realPath) #end ;
+            // using fromBytes is broken for now... (TODO: do not use filesystem if ENGINE_RUNTIME_ASSETS is disabled)
+
+            var buffer:AudioBuffer = AudioBuffer.fromVorbisFile(VorbisFile.fromFile(realPath));
+            sound = Sound.fromAudioBuffer(buffer);
+        }
+        else {
+            #if ENGINE_RUNTIME_ASSETS 
+            sound = Sound.fromFile(realPath);
+            #else
+            sound = OpenFLAssets.getSound(realPath);
+            #end
+        }
+
         OpenFLAssets.cache.setSound(path, sound);
         return sound;
     }
@@ -191,11 +218,6 @@ class Assets {
 
         // Clear the OpenFL cache
         OpenFLAssets.cache.clear();
-
-        // Clear any graphics registered into Flixel's cache
-        FlxG.bitmap.dumpCache();
-        FlxG.bitmap.clearUnused();
-        FlxG.bitmap.clearCache();
     }
 
     public inline static function freeMemoryPost(?_):Void {

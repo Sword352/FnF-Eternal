@@ -39,7 +39,7 @@ class Rating {
     public function reset():Void {
         scoreIncrement = 350;
         accuracyMod = 1;
-        hitWindow = 40;
+        hitWindow = 45;
 
         image = "sick";
         rank = "SFC";
@@ -64,7 +64,7 @@ class Rating {
         good.scoreIncrement = 200;
         good.missThreshold = 1;
         good.accuracyMod = 0.7;
-        good.hitWindow = 85;
+        good.hitWindow = 90;
         good.image = "good";
         good.rank = "GFC";
         list.push(good);

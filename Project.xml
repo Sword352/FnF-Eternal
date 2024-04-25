@@ -93,6 +93,13 @@
 		<haxeflag name="--macro" value='eternal.core.scripting.HScriptInclude.addAdditionalClasses()' />
 	</section>
 
+	<!-- Required for HaxeUI states -->
+	<haxedef name="haxeui_dont_impose_base_class" />
+
+	<!-- Required for HaxeUI's RuntimeComponentBuilder (temporary) -->
+	<haxeflag name="--macro" value="include('haxe.ui.components')" />
+	<haxeflag name="--macro" value="include('haxe.ui.containers')" />
+
 	<!-- Optimise inputs, be careful you will get null errors if you don't use conditionals in your game -->
 	<haxedef name="FLX_NO_MOUSE" if="mobile" />
 	<haxedef name="FLX_NO_KEYBOARD" if="mobile" />

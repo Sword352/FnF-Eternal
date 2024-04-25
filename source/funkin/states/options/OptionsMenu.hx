@@ -247,6 +247,12 @@ class OptionsMenu extends MusicBeatState {
     }
 
     override function destroy():Void {
+        // removing the group ourselves because new flixel update broke options, not sure if it flixel's fault though...
+        // TODO: investigate on why this happens
+        remove(uiGroup, true);
+        uiGroup.destroy();
+        //
+
         categories = null;
         super.destroy();
     }

@@ -23,7 +23,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         addOption(option);
 
         var option = new BoolOptionItem("show memory");
-        option.description = "[BETA] If enabled, show the memory usage in the framerate overlay.";
+        option.description = "If enabled, show the memory usage in the framerate overlay.";
         addOption(option);
 
         var option = new BoolOptionItem("show overlay background");

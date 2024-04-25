@@ -305,13 +305,13 @@ class Note extends OffsetSprite {
 }
 
 class Sustain extends TiledSprite {
-    public var tail:FlxSprite;
     public var parent:Note;
+    public var tail:Tail;
 
     public function new(parent:Note):Void {
         super(null, 0, 0, false, true);
 
-        tail = new FlxSprite();
+        tail = new Tail();
         alpha = 0.6;
 
         this.parent = parent;
@@ -427,5 +427,17 @@ class Sustain extends TiledSprite {
     override function set_camera(v:FlxCamera):FlxCamera {
         if (tail != null) tail.camera = v;
         return super.set_camera(v);
+    }
+}
+
+class Tail extends FlxSprite {
+    // avoids rounding effect (shoutout to Ne_Eo)
+    override function set_clipRect(v:FlxRect):FlxRect {
+        clipRect = v;
+
+        if (frames != null)
+			frame = frames.frames[animation.frameIndex];
+        
+        return v;
     }
 }

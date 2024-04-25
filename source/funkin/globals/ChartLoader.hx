@@ -47,7 +47,7 @@ class ChartLoader {
         return data;
     }
 
-    public static inline function resolveGameplayInfo(song:String, chart:Chart):GameplayInfo {
+    public static inline function resolveGameplayInfo(chart:Chart):GameplayInfo {
         var finalInfo:GameplayInfo = null;
         var meta:SongMeta = chart.meta;
 
@@ -136,7 +136,7 @@ class ChartLoader {
             var intendedTarget:Int = (section.mustHitSection) ? 2 : 0;
             if (intendedTarget != currentTarget) {
                 finalData.events.push({
-                    event: "change camera target",
+                    event: "Change Camera Target",
                     arguments: [intendedTarget],
                     time: time
                 });
@@ -146,7 +146,7 @@ class ChartLoader {
             var intendedBPM:Null<Float> = (section.changeBPM) ? section.bpm : null;
             if (intendedBPM != null && intendedBPM != currentBPM) {
                 finalData.events.push({
-                    event: "change bpm",
+                    event: "Change BPM",
                     arguments: [intendedBPM],
                     time: time
                 });
@@ -216,8 +216,8 @@ class ChartLoader {
         }
         
         finalChart = Chart.resolve(data);
-        if (finalChart.meta == null) finalChart.meta = loadMeta(song);
-        finalChart.gameplayInfo = resolveGameplayInfo(song, finalChart);
+        finalChart.meta = loadMeta(song);
+        finalChart.gameplayInfo = resolveGameplayInfo(finalChart);
 
         if (finalChart.gameplayInfo.stage == null)
             finalChart.gameplayInfo.stage = "";

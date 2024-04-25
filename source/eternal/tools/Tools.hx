@@ -35,24 +35,23 @@ class Tools {
     public static final devState:String = "ALPHA";
 
     public static var gameVersion(get, never):String;
-
-    inline static function get_gameVersion():String
+    static inline function get_gameVersion():String
         return openfl.Lib.application.meta["version"];
 
-    inline public static function capitalize(value:String, lower:Bool = true):String
+    public static inline function capitalize(value:String, lower:Bool = true):String
         return value.split(" ").map((f) -> {
             var fragment:String = f.substring(1, f.length);
             return f.charAt(0).toUpperCase() + ((lower) ? fragment.toLowerCase() : fragment);
         }).join(" ");
 
-    inline public static function parseYAML(content:String):Dynamic
+    public static inline function parseYAML(content:String):Dynamic
         return Yaml.parse(content, Parser.options().useObjects());
 
     public static inline function convertLimeKey(key:Int):Int
         return @:privateAccess openfl.ui.Keyboard.__convertKeyCode(key);
 
     // used to avoid a flixel warning
-    inline public static function changeFramerateCap(newFramerate:Int):Void {
+    public static inline function changeFramerateCap(newFramerate:Int):Void {
         if (newFramerate > FlxG.updateFramerate) {
             FlxG.updateFramerate = newFramerate;
             FlxG.drawFramerate = newFramerate;
@@ -62,7 +61,7 @@ class Tools {
         }
     }
 
-    inline public static function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
+    public static inline function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
         if (object == null || base == null) return object;
 
         if (axes.x) object.x = base.x + ((base.width - object.width) * 0.5);
@@ -70,7 +69,7 @@ class Tools {
         return object;
     }
 
-    inline public static function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE, unique:Bool = true,
+    public static inline function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE, unique:Bool = true,
             ?key:String):FlxSprite {
         sprite.makeGraphic(1, 1, col, unique, key);
         sprite.scale.set(width, height);
@@ -78,12 +77,12 @@ class Tools {
         return sprite;
     }
 
-    inline public static function resizeText(text:FlxText, min:Float = 0):Void {
+    public static inline function resizeText(text:FlxText, min:Float = 0):Void {
         while (text.height >= (FlxG.height - min) || text.width >= (FlxG.width - min))
             text.size--;
     }
 
-    inline public static function stopMusic():Void {
+    public static inline function stopMusic():Void {
         if (FlxG.sound.music != null && FlxG.sound.music.playing)
             FlxG.sound.music.stop();
     }
@@ -154,8 +153,7 @@ class Tools {
     }
 
     public static inline function addYamlAnimations(sprite:FlxSprite, animations:Array<YAMLAnimation>):Void {
-        if (sprite == null || animations == null || animations.length < 1)
-            return;
+        if (sprite == null || animations == null || animations.length == 0) return;
 
         var offsetSprite:Bool = (sprite is OffsetSprite);
 
@@ -218,15 +216,15 @@ class Tools {
     // Mostly used in editors
     static var _fileRef:FileReference;
 
-    public static function saveData(fileName:String, data:String):Void {
-        if (data == null || data.length < 1)
-            return;
+    public static function saveData(fileName:String, data:String):FileReference {
+        if (data == null || data.length == 0) return null;
 
         _fileRef = new FileReference();
         _fileRef.addEventListener(Event.CANCEL, destroyFileRef);
         _fileRef.addEventListener(Event.COMPLETE, destroyFileRef);
         _fileRef.addEventListener(IOErrorEvent.IO_ERROR, onFileRefError);
         _fileRef.save(data.trim(), fileName);
+        return _fileRef;
     }
 
     static function onFileRefError(_):Void {

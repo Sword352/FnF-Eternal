@@ -1,0 +1,48 @@
+/* NOTE: Ignore all of the warnings or errors, as this is haxeui-css, not actual css. */
+
+.label, .textfield, .numberstepper {
+    font-name: "assets/fonts/dm-sans.ttf";
+    font-size: 12px;
+}
+
+.checkbox-value:selected {
+    icon: "assets/images/ui/debug/check.png";
+}
+
+.checkbox .image {
+    width: 20px;
+    height: 26px;
+}
+
+.optionbox .image {
+    width: 12px;
+    height: 12px;
+}
+
+.slider .button {
+    icon: "assets/images/ui/debug/thumb_normal.png";
+    background-color: none;
+    width: 35px;
+    height: 35px;
+    border: none;
+}
+
+.slider .button:hover {
+    icon: "assets/images/ui/debug/thumb_hovered.png";
+}
+
+.notification.success #notificationIcon {
+    resource: "assets/images/ui/debug/notification_success.png";
+}
+
+.notification.warning #notificationIcon {
+    resource: "assets/images/ui/debug/notification_warning.png";
+}
+
+.notification.info #notificationIcon {
+    resource: "assets/images/ui/debug/notification_info.png";
+}
+
+.notification.error #notificationIcon {
+    resource: "assets/images/ui/debug/notification_error.png";
+}

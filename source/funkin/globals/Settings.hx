@@ -60,6 +60,7 @@ class Settings {
         #if ENGINE_DISCORD_RPC
         "disable discord rpc" => new Setting<Bool>(false, (v) -> DiscordPresence.presence.hide(v)),
         #end
+        "audio streaming" => new Setting<Bool>(false),
         "audio offset" => new Setting<Float>(0, (v) -> Conductor.offset = v),
         // Debug settings
         "editor access" => new Setting<Bool>(false),

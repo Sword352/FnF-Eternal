@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<module id="eternal">
+    <resources>
+        <resource path="/external/haxeui" prefix="root" />
+        <resource path="assets/images/ui/debug" prefix="images" />
+    </resources>
+
+    <themes>
+        <eternal parent="dark" >
+            <style resource="root/style.css" />
+            <!-- var name="arrow-left" value="images/small_arrow_dark_left.png" /> -->
+            <!-- var name="arrow-right" value="images/small_arrow_dark_right.png" /> -->
+        </eternal>
+    </themes>
+</module>

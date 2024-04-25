@@ -195,10 +195,10 @@ class SoftcodedStage extends Stage {
             if (obj.animations != null) {
                 Tools.addYamlAnimations(sprite, obj.animations);
                 sprite.playAnimation(obj.animations[0].name, true);
-                sprite.animation.finish();
             }
 
-            if (obj.animationSpeed != null) sprite.animation.timeScale = obj.animationSpeed;
+            if (obj.animationSpeed != null)
+                sprite.animation.timeScale = obj.animationSpeed;
 
             if (obj.name != null) {
                 #if ENGINE_SCRIPTING

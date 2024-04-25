@@ -1,8 +1,9 @@
-package funkin.states.debug.chart;
+package funkin.states.editors.chart;
 
 import flixel.text.FlxText;
 import flixel.group.FlxGroup;
 import funkin.globals.ChartFormat.ChartEvent;
+import funkin.states.editors.SelectionHelper.SelectableSprite;
 
 class ChartEventGroup extends FlxTypedGroup<EventSprite> {
     override function update(elapsed:Float):Void {
@@ -13,16 +14,17 @@ class ChartEventGroup extends FlxTypedGroup<EventSprite> {
     }
 }
 
-class EventSprite extends FlxSprite {
+class EventSprite extends SelectableSprite {
     public var data:ChartEvent;
-    public var display:String;
     public var rect:FlxSprite;
     public var text:FlxText;
+
+    var undoTime:Float = 0;
     
     public function new():Void {
         super();
 
-        loadGraphic(Assets.image("ui/debug/evt_ic"));
+        loadGraphic(Assets.image("ui/debug/event_icon"));
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
 
@@ -32,6 +34,11 @@ class EventSprite extends FlxSprite {
 
         text = new FlxText();
         text.setFormat(Assets.font("vcr"), 12, FlxColor.WHITE, RIGHT);
+
+        var editor:ChartEditor = cast FlxG.state;
+        var bound:Float = editor.checkerboard.x - ChartEditor.checkerSize - ChartEditor.separatorWidth;
+        dragBound.set(bound, bound);
+        x = bound;
     }
 
     override function update(elapsed:Float):Void {
@@ -43,8 +50,37 @@ class EventSprite extends FlxSprite {
 		#end
     }
 
+    override function onDrag():Void {
+        var editor:ChartEditor = cast FlxG.state;
+        y = FlxMath.bound(y, 0, editor.checkerboard.bottom - height);
+        data.time = ChartEditor.getTimeFromY(y);
+    }
+
+    override function onSelect():Void {
+        // once again we're removing the event so we don't have to sort the array each frames
+        // (required for bpm changes)
+        cast(FlxG.state, ChartEditor).chart.events.remove(data);
+
+        // store value for undo
+        undoTime = data.time;
+    }
+
+    override function onRelease():Void {
+        var editor:ChartEditor = cast FlxG.state;
+
+        if (!FlxG.keys.pressed.SHIFT) {
+            y = ChartEditor.roundPos(y);
+            data.time = ChartEditor.getTimeFromY(y);
+        }
+
+        editor.eventDrags.push({ref: data, time: data.time, oldTime: undoTime});
+
+        editor.requestSortEvents = true;
+        editor.chart.events.push(data);
+    }
+
     override function draw():Void {
-        var displayText:String = (display ?? data.event);
+        var displayText:String = data.event;
         if (data.arguments != null)
             displayText += '\nArguments: ${data.arguments.join(", ")}';
 
@@ -66,7 +102,6 @@ class EventSprite extends FlxSprite {
     override function destroy():Void {
         rect = FlxDestroyUtil.destroy(rect);
         text = FlxDestroyUtil.destroy(text);
-        display = null;
         data = null;
 
         super.destroy();

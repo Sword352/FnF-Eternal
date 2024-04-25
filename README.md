@@ -28,10 +28,10 @@
 
 > Special Thanks
 - Maru: Alphabet Bold Numbers Artist
-- RapperGF: `FlxTiledSprite` Improvements
 - Superpowers04: In-Game Crash Handler Concept
 - CrowPlexus, EyeDaleHim: Helper, Inspiration
 - MAJigsaw77: hxdiscord_rpc and hxvlc Librairies Maintainer
+- RapperGF: Helper
 
 > Other Testers
 - Crazyb3ndy

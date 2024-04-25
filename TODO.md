@@ -10,7 +10,6 @@
 ### Medium Priority
 - Allow difficulties to be changed in the pause menu (freeplay only)
 - Allow multi-events (2 or more events having the same time value)
-- Gameplay UI tweaks
 
 - Finish the chart editor
 - Finish the crash handler rework
@@ -19,8 +18,9 @@
 - Do all of the TODO stuff that can be found in the code
 
 ### Low Priority
-- Add a multi-atlas feature for all softcoded sprites
+- Add a multi-atlas feature and implement auto atlas type finding to all softcoded sprites
 - Rework most of the menus + add credits menu
+- Better shader support and tools
 - FlxAnimate support
 - Zip mod support
 
@@ -31,7 +31,6 @@
 ### After GB Release
 - Add note colors support
 - Playback rate feature (freeplay only)
-- Extended shader support/tools
 - Add the possibility to enable multiple mods (at the cost of getting some features disabled, like overridable states)
 
   **Future plans**
