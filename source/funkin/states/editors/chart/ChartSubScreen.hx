@@ -93,7 +93,7 @@ class ChartSubScreen extends FlxSubState {
         }
 
         if (stepsChanged || beatsChanged) {
-            parent.notes.lastMeasure = Conductor.currentMeasure;
+            parent.notes.lastMeasure = Conductor.self.measure;
             parent.notes.regenNotes(true);
         }
 
@@ -180,13 +180,13 @@ class ChartSubScreen extends FlxSubState {
             parent.music.instrumental.volume = (muteInst.selected) ? 0 : 1;
         }
 
-        for (i in 0...parent.music.vocals.length) {
+        for (i in 0...parent.music.voices.length) {
             var muteVoice:CheckBox = createCheckbox('Mute Voice "${parent.chart.gameplayInfo.voices[i]}"');
             muteVoice.top = muteInst.top + 25 * (i + 1);
             muteVoice.left = 200;
 
-            muteVoice.onChange = (_) -> parent.music.vocals[i].volume = (muteVoice.selected) ? 0 : 1;
-            muteVoice.selected = (parent.music.vocals[i].volume < 1);
+            muteVoice.onChange = (_) -> parent.music.voices[i].volume = (muteVoice.selected) ? 0 : 1;
+            muteVoice.selected = (parent.music.voices[i].volume < 1);
             page.addComponent(muteVoice);
         }
 
@@ -264,13 +264,13 @@ class ChartSubScreen extends FlxSubState {
 
     inline function createMetaPage():Void {
         var oldBPM:Float = parent.chart.gameplayInfo.bpm;
-        var oldBeats:Int = Conductor.beatsPerMeasure;
-        var oldSteps:Int = Conductor.stepsPerBeat;
+        var oldBeats:Int = Conductor.self.beatsPerMeasure;
+        var oldSteps:Int = Conductor.self.stepsPerBeat;
 
         var page:Box = createPage("Meta");
 
         // time signature
-        var signature:Label = createText('Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)');
+        var signature:Label = createText('Time Signature: ${Conductor.self.getSignature()}\n(beats per measure / steps per beat)');
         signature.left = 5;
 
         var beatsPerMeasure:NumberStepper = createNumStepper();
@@ -287,11 +287,11 @@ class ChartSubScreen extends FlxSubState {
             if (!(val is Int))
                 beatsPerMeasure.value = Math.floor(val);
 
-            Conductor.beatsPerMeasure = beatsPerMeasure.value;
-            parent.chart.gameplayInfo.beatsPerMeasure = Conductor.beatsPerMeasure;
-            beatsChanged = (Conductor.beatsPerMeasure != oldBeats);
+            Conductor.self.beatsPerMeasure = beatsPerMeasure.value;
+            parent.chart.gameplayInfo.beatsPerMeasure = Conductor.self.beatsPerMeasure;
+            beatsChanged = (Conductor.self.beatsPerMeasure != oldBeats);
 
-            signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
+            signature.text = 'Time Signature: ${Conductor.self.getSignature()}\n(beats per measure / steps per beat)';
         };
 
         stepsPerBeat.value = oldSteps;
@@ -300,11 +300,11 @@ class ChartSubScreen extends FlxSubState {
             if (!(val is Int))
                 stepsPerBeat.value = Math.floor(val);
 
-            Conductor.stepsPerBeat = stepsPerBeat.value;
-            parent.chart.gameplayInfo.stepsPerBeat = Conductor.stepsPerBeat;
-            stepsChanged = (Conductor.stepsPerBeat != oldSteps);
+            Conductor.self.stepsPerBeat = stepsPerBeat.value;
+            parent.chart.gameplayInfo.stepsPerBeat = Conductor.self.stepsPerBeat;
+            stepsChanged = (Conductor.self.stepsPerBeat != oldSteps);
 
-            signature.text = 'Time Signature: ${Conductor.getSignature()}\n(beats per measure / steps per beat)';
+            signature.text = 'Time Signature: ${Conductor.self.getSignature()}\n(beats per measure / steps per beat)';
         };
 
         // bpm

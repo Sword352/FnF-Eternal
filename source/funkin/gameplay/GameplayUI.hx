@@ -46,16 +46,16 @@ class GameplayUI extends FlxSpriteGroup {
         iconP2.health = 50;
         add(iconP2);
 
-        scoreText = new FlxText();
+        scoreText = new FlxText(0, 0, FlxG.width);
         scoreText.setFormat(Assets.font("vcr"), 19, FlxColor.WHITE, CENTER);
         scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
-        scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
-        scoreText.x = Math.floor((FlxG.width - scoreText.width) * 0.5); // avoids weird antialiasing
         add(scoreText);
 
+        scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
+
         if (Settings.get("time mark type") != "none") {
-            timeDisplay = new FlxText();
-            timeDisplay.setFormat(scoreText.font, 22, FlxColor.WHITE);
+            timeDisplay = new FlxText(0, 0, FlxG.width);
+            timeDisplay.setFormat(scoreText.font, 22, FlxColor.WHITE, CENTER);
             timeDisplay.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.6);
             add(timeDisplay);
         }
@@ -92,7 +92,6 @@ class GameplayUI extends FlxSpriteGroup {
             }
 
             timeDisplay.text = "- " + base + " -";
-            timeDisplay.x = Math.floor((FlxG.width - timeDisplay.width) * 0.5);
         }
     }
 
@@ -104,8 +103,6 @@ class GameplayUI extends FlxSpriteGroup {
             scoreText.text = text;
         }
         else scoreText.text = "[ BOTPLAY ]";
-
-        scoreText.x = Math.floor((FlxG.width - scoreText.width) * 0.5);
     }
 
     public inline function repositionUI(downscroll:Bool = false):Void {

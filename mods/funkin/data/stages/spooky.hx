@@ -19,7 +19,7 @@ function onBeatHit(beat:Int):Void {
     for (character in [player, spectator]) {
         if (character.holdTime <= 0) {
             character.playAnimation("scared", true);
-            character.animEndTime = Conductor.crochet * 0.001;
+            character.animEndTime = Conductor.self.crochet * 0.001;
         }
     }
 

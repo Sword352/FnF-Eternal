@@ -49,14 +49,14 @@ class MetadataScreen extends UIRuntimeSubState {
     @:bind(tsBpm, UIEvent.CHANGE)
     function tsBpm_change():Void {
         if (!allowActions) return;
-        Conductor.beatsPerMeasure = parent.chart.gameplayInfo.beatsPerMeasure = Math.floor(tsBpm.pos);
+        Conductor.self.beatsPerMeasure = parent.chart.gameplayInfo.beatsPerMeasure = Math.floor(tsBpm.pos);
         reloadBPM = (currentBPM != parent.chart.gameplayInfo.beatsPerMeasure);
     }
 
     @:bind(tsSpb, UIEvent.CHANGE)
     function tsSpb_change():Void {
         if (!allowActions) return;
-        Conductor.stepsPerBeat = parent.chart.gameplayInfo.stepsPerBeat = Math.floor(tsSpb.pos);
+        Conductor.self.stepsPerBeat = parent.chart.gameplayInfo.stepsPerBeat = Math.floor(tsSpb.pos);
         reloadSPB = (currentSPB != parent.chart.gameplayInfo.stepsPerBeat);
     }
     //

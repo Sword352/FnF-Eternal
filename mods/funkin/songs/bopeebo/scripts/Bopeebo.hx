@@ -12,7 +12,7 @@ function onBeatHit(i) {
 
     for (character in [player, spectator]) {
         character.playAnimation("hey", true);
-        character.animEndTime = Conductor.crochet * 0.001;
+        character.animEndTime = Conductor.self.crochet * 0.001;
     }
 
     camGame.zoom += 0.12;

@@ -275,9 +275,9 @@ class SoftcodedStage extends Stage {
             game.ratingSprites.setPosition(ratingPos[0], ratingPos[1]);
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         for (spr in dancingSprites)
-            spr.dance(currentBeat);
+            spr.dance(beat);
     }
 
     override function destroy():Void {

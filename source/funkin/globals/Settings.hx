@@ -61,7 +61,7 @@ class Settings {
         "disable discord rpc" => new Setting<Bool>(false, (v) -> DiscordPresence.presence.hide(v)),
         #end
         "audio streaming" => new Setting<Bool>(false),
-        "audio offset" => new Setting<Float>(0, (v) -> Conductor.offset = v),
+        "audio offset" => new Setting<Float>(0, (v) -> Conductor.self.offset = v),
         // Debug settings
         "editor access" => new Setting<Bool>(false),
         #if sys "overwrite chart files" => new Setting<Bool>(true), #end

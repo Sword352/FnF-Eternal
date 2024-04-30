@@ -281,9 +281,9 @@ class ChartUI extends UIRuntimeFragment {
         if (parent.chart.gameplayInfo.voices != null) {
             for (i in 0...parent.chart.gameplayInfo.voices.length) {    
                 var checkbox:CheckBox = new CheckBox();
-                checkbox.selected = (parent.music.vocals[i].volume < 1);
+                checkbox.selected = (parent.music.voices[i].volume < 1);
                 checkbox.onChange = (_) -> {
-                    parent.music.vocals[i].volume = (checkbox.selected ? 0 : 1);
+                    parent.music.voices[i].volume = (checkbox.selected ? 0 : 1);
                 };
                 
                 var item:MenuItem = new MenuItem();

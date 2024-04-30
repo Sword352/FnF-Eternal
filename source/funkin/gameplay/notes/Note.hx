@@ -14,7 +14,7 @@ class Note extends OffsetSprite {
 
     public static var safeZoneOffset(get, never):Float;
     inline static function get_safeZoneOffset():Float
-        return 166.66 * Conductor.playbackRate;
+        return 166.66 * Conductor.self.playbackRate;
 
     public var goodHit:Bool = false;
     public var missed:Bool = false;
@@ -131,19 +131,14 @@ class Note extends OffsetSprite {
     }
 
     public inline function findRating(ratings:Array<Rating>):Rating {
-        var diff:Float = (Math.abs(Conductor.time - time) / Conductor.playbackRate);
-        var rating:Rating = null;
+        var diff:Float = (Math.abs(Conductor.self.time - time) / Conductor.self.playbackRate);
+        var rating:Rating = ratings[ratings.length - 1];
+        var i:Int = ratings.length - 2;
 
-        var i:Int = ratings.length - 1;
+        while (i >= 0 && diff <= ratings[i].hitWindow)
+            rating = ratings[i--];
 
-        while (i >= 0) {
-            if (diff <= ratings[i].hitWindow)
-                rating = ratings[i];
-
-            i--;
-        }
-
-        return rating ?? ratings[ratings.length - 1];
+        return rating;
     }
 
     public inline function resetPosition():Void {
@@ -250,11 +245,10 @@ class Note extends OffsetSprite {
     }
 
     inline function get_distance():Float {
-        if (!autoDistance)
-            return this.distance;
+        if (!autoDistance) return this.distance;
 
-        var conductorTime:Float = (Conductor.updateInterp ? Conductor.interpTime : Conductor.time);
-        return FlxMath.signOf(scrollMult) * ((time - conductorTime) * scrollSpeed);
+        var timing:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
+        return FlxMath.signOf(scrollMult) * ((time - timing) * scrollSpeed);
     }
 
     inline function get_scrollSpeed():Float
@@ -271,7 +265,7 @@ class Note extends OffsetSprite {
     }
 
     inline function get_late():Bool {
-        return this.late || (Conductor.time - time) > (safeZoneOffset * lateHitMult);
+        return this.late || (Conductor.self.time - time) > (safeZoneOffset * lateHitMult);
     }
 
     inline function get_downscroll():Bool
@@ -285,21 +279,19 @@ class Note extends OffsetSprite {
             return false;
 
         if (parentStrumline != null)
-            return (parentStrumline.cpu && time <= Conductor.time)
-                || (!parentStrumline.cpu && Conductor.time >= time - (safeZoneOffset * earlyHitMult) && Conductor.time <= time + (safeZoneOffset * lateHitMult));
+            return (parentStrumline.cpu && time <= Conductor.self.time)
+                || (!parentStrumline.cpu && Conductor.self.time >= time - (safeZoneOffset * earlyHitMult) && Conductor.self.time <= time + (safeZoneOffset * lateHitMult));
         
         return this.canBeHit;
     }
 
     override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (isSustainNote)
-            sustain.cameras = v;
+        if (isSustainNote) sustain.cameras = v;
         return super.set_cameras(v);
     }
 
     override function set_camera(v:FlxCamera):FlxCamera {
-        if (isSustainNote)
-            sustain.camera = v;
+        if (isSustainNote) sustain.camera = v;
         return super.set_camera(v);
     }
 }

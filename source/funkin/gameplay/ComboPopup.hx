@@ -11,7 +11,7 @@ class RatingSprite extends OffsetSprite {
     }
 
     override function update(elapsed:Float):Void {
-        alpha = 1 - (Math.max(alphaTmr += elapsed, 0) / (0.2 / Conductor.playbackRate));
+        alpha = 1 - (Math.max(alphaTmr += elapsed, 0) / (0.2 / Conductor.self.playbackRate));
 
         if (alpha <= 0) {
             kill();
@@ -27,24 +27,24 @@ class RatingSprite extends OffsetSprite {
     }
 
     function setProps():Void {
-        var pb:Float = Conductor.playbackRate;
+        var pb:Float = Conductor.self.playbackRate;
 
         velocity.set(-(FlxG.random.float(0, 10) * pb), -(FlxG.random.float(140, 175) * pb));
         acceleration.y = (600 * (pb * pb));
 
-        alphaTmr = -((Conductor.crochet * 0.001) / pb);
+        alphaTmr = -((Conductor.self.crochet * 0.001) / pb);
         alpha = 1;
     }
 }
 
 class ComboSprite extends RatingSprite {
     override function setProps():Void {
-        var pb:Float = Conductor.playbackRate;
+        var pb:Float = Conductor.self.playbackRate;
 
         velocity.set(FlxG.random.float(-5, 5) * pb, -(FlxG.random.int(140, 160) * pb));
         acceleration.y = (FlxG.random.int(200, 300) * (pb * pb));
 
-        alphaTmr = -((Conductor.crochet * 0.002) / pb);
+        alphaTmr = -((Conductor.self.crochet * 0.002) / pb);
         alpha = 1;
     }
 }

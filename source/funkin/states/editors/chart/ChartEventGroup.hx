@@ -8,7 +8,7 @@ import funkin.states.editors.SelectionHelper.SelectableSprite;
 class ChartEventGroup extends FlxTypedGroup<EventSprite> {
     override function update(elapsed:Float):Void {
         forEachAlive((event) -> {
-            if (Math.abs(event.data.time - Conductor.time) <= 2000)
+            if (Math.abs(event.data.time - Conductor.self.time) <= 2000)
                 event.update(elapsed);
         });
     }
@@ -42,7 +42,7 @@ class EventSprite extends SelectableSprite {
     }
 
     override function update(elapsed:Float):Void {
-        alpha = text.alpha = (data.time < Conductor.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
+        alpha = text.alpha = (data.time < Conductor.self.time && Settings.get("CHART_lateAlpha")) ? ChartEditor.lateAlpha : 1;
         color = text.color = (FlxG.mouse.overlaps(this)) ? ChartEditor.hoverColor : FlxColor.WHITE;
 
         #if FLX_DEBUG

@@ -4,6 +4,8 @@ import flixel.sound.FlxSound;
 import funkin.states.options.items.*;
 
 class GeneralOptionSubState extends BaseOptionSubState {
+    static var lastSound:Int = -1;
+
     var boyfriend:FlxSprite;
     var sound:FlxSound;
 
@@ -50,22 +52,18 @@ class GeneralOptionSubState extends BaseOptionSubState {
         option.description = "Whether to disable flashing lights. It is highly recommended to\nenable this option if you are epileptical!";
         addOption(option);
 
-        sound = FlxG.sound.list.recycle(FlxSound);
-
-        boyfriend = new FlxSprite();
-        boyfriend.loadGraphic(Assets.image("menus/options/options-bf"));
+        boyfriend = new FlxSprite(0, 0, Assets.image("menus/options/options-bf"));
         boyfriend.scale.set(0.25, 0.25);
         boyfriend.updateHitbox();
-        boyfriend.screenCenter().y += 150;
+        boyfriend.screenCenter();
+        boyfriend.y += 150;
 
         super.create();
         add(boyfriend);
 
-        Conductor.music = FlxG.sound.music;
-        Conductor.resetTime();
+        sound = FlxG.sound.list.recycle(FlxSound);
+        conductor.active = true;
     }
-
-    private static var lastSound:Int = -1;
 
     override function update(elapsed:Float):Void {
         super.update(elapsed);
@@ -73,8 +71,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         boyfriend.scale.set(Tools.lerp(boyfriend.scale.x, 0.25, 12), Tools.lerp(boyfriend.scale.y, 0.25, 12));
 
         if (boyfriend.visible && FlxG.mouse.overlaps(boyfriend) && FlxG.mouse.justPressed) {
-            if (sound.playing)
-                sound.stop();
+            if (sound.playing) sound.stop();
 
             var selectedSound:Int = FlxG.random.int(1, 8, [lastSound]);
             lastSound = selectedSound;
@@ -92,19 +89,16 @@ class GeneralOptionSubState extends BaseOptionSubState {
         FlxG.mouse.visible = boyfriend.visible = (optionsGroup.members[currentSelection].option == "disable antialiasing");
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         if (boyfriend != null)
-            boyfriend.angle = (currentBeat % 2 == 0) ? 20 : -20;
+            boyfriend.angle = (beat % 2 == 0) ? 20 : -20;
 
-        super.beatHit(currentBeat);
+        super.beatHit(beat);
     }
 
     override function close():Void {
         FlxG.sound.list.remove(sound, true);
         sound.destroy();
-
-        Conductor.music = null;
-        Conductor.resetTime();
 
         FlxG.mouse.visible = false;
         super.close();

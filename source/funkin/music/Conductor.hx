@@ -1,208 +1,231 @@
 package funkin.music;
 
+import flixel.FlxBasic;
 import flixel.sound.FlxSound;
 import flixel.util.FlxSignal.FlxTypedSignal;
 
-// TODO: fix beat delays
-class Conductor {
-    public static var time(get, set):Float;
-    public static var rawTime(get, set):Float;
-    public static var interpTime:Float = 0;
+class Conductor extends FlxBasic {
+    public static var self:Conductor;
+    public var music:FlxSound;
 
-    public static var playbackRate:Float = 1;
-    public static var timeApprox:Float = 0; // shoutout to RapperGF for the idea
-    public static var offset:Float = 0;
+    public var time(get, set):Float;
+    public var rawTime:Float;
 
-    public static var active:Bool = true;
-    public static var updateInterp:Bool = false;
-    public static var music:FlxSound;
+    // since music time is actually in chunck and not ms, the time value won't be changing each frames.
+    // this is to compensate and makes stuff a lot more accurate (beats, inputs...)
+    // shoutout to RapperGF for the idea, really cool guy I can't thank them enough
+    public var timeApprox:Float = 0; 
 
-    public static var bpm(default, set):Float = 100;
-    public static var crochet(default, null):Float = 600;
-    public static var stepCrochet(default, null):Float = 150;
+    public var playbackRate(get, default):Float = 1;
+    public var offset:Float = Settings.get("audio offset");
 
-    public static var currentStep(get, set):Int;
-    public static var currentBeat(get, set):Int;
-    public static var currentMeasure(get, set):Int;
+    public var enableInterpolation:Bool = false;
+    // increase each frames by the delta time, used for smoother visuals
+    public var interpolatedTime:Float;
 
-    public static var decimalStep(get, set):Float;
-    public static var decimalBeat(get, set):Float;
-    public static var decimalMeasure(get, set):Float;
+    public var bpm(default, set):Float = 100;
+    public var stepCrochet:Float = 150;
+    public var crochet:Float = 600;
 
-    public static var stepsPerBeat(default, set):Int = 4;
-    public static var beatsPerMeasure:Int = 4;
+    public var step(get, set):Int;
+    public var beat(get, set):Int;
+    public var measure(get, set):Int;
 
-    public static var measureLength(get, never):Int;
+    public var decStep(get, set):Float;
+    public var decBeat(get, set):Float;
+    public var decMeasure(get, set):Float;
 
-    public static final onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
-    public static final onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
-    public static final onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
+    public var measureLength(get, never):Int;
+    public var stepsPerBeat(default, set):Int = 4;
+    public var beatsPerMeasure:Int = 4;
+
+    public var onStep:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
+    public var onBeat:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
+    public var onMeasure:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
     // used for bpm change events
-    public static final beatOffset:BeatOffset = {};
+    public var beatOffset:BeatOffset = {};
 
-    static var _prevTime:Float = -1;
-    static var _prevStep:Int = -1;
-    static var _prevBeat:Int = -1;
-    static var _prevMeas:Int = -1;
+    var _prevTime:Float = -1;
+    var _prevStep:Int = -1;
 
-    public static inline function update(elapsed:Float):Void {
-        if (!active) return;
+    public static function init():Void {
+        FlxG.plugins.addPlugin(self = new Conductor());
+    }
 
-        if (updateInterp) updateTime(elapsed);
-        updateTimeApprox(elapsed);
+    public function new():Void {
+        super();
+        FlxG.signals.preStateCreate.add(onPreStateCreate);
+        FlxG.signals.focusGained.add(onFocusGained);
+    }
+
+    override function destroy():Void {
+        FlxG.signals.preStateCreate.remove(onPreStateCreate);
+        FlxG.signals.focusGained.remove(onFocusGained);
+
+        onMeasure = cast FlxDestroyUtil.destroy(onMeasure);
+        onBeat = cast FlxDestroyUtil.destroy(onBeat);
+        onStep = cast FlxDestroyUtil.destroy(onStep);
+
+        beatOffset = null;
+        music = null;
+
+        super.destroy();
+    }
+
+    function onPreStateCreate(_):Void {
+        active = true;
+        reset();
+    }
+
+    function onFocusGained():Void {
+        if (!FlxG.autoPause || music == null)
+            return;
+
+        // reset the time approx to avoid stutters when going back to the game
+        // (this only narrow things down, stutters can still rarely happen)
+        // TODO: fix them for good
+
+        rawTime -= timeApprox;
+        timeApprox = 0;
+    }
+
+    override function update(elapsed:Float):Void {
+        updateTime(elapsed);
         updateCallbacks();
     }
 
-    public static inline function updateTime(elapsed:Float):Void {
-        // TODO: make this more synced to the music time
-        interpTime += elapsed * playbackRate * 1000;
-        if (music != null && Math.abs(time - interpTime) > (20 * playbackRate))
-            interpTime = time;
-    }
-
-    public static function updateTimeApprox(elapsed:Float):Void {
-        if (music == null) return;
+    public function updateTime(elapsed:Float):Void {
+        if (music == null) {
+            if (enableInterpolation) {
+                rawTime += elapsed * playbackRate * 1000;
+                interpolatedTime = time;
+            }
+            return;
+        }
 
         var delta:Float = music.time - _prevTime;
         _prevTime = music.time;
 
-        if (music.playing && Math.abs(delta) <= 0)
-            timeApprox += elapsed * 1000 * playbackRate;
-        else timeApprox = 0;
+        if (music.playing && Math.abs(delta) <= 0) {
+            timeApprox += elapsed * playbackRate * 1000;
+        }
+        else {
+            timeApprox = 0;
+        }
+
+        rawTime = music.time + timeApprox;
+
+        if (enableInterpolation) {
+            // TODO: find a smarter solution to smooth out the time for notes
+            // a 20ms delay shouldn't hurt... for now.
+
+            interpolatedTime += elapsed * playbackRate * 1000;
+            if (Math.abs(interpolatedTime - time) > (20 * playbackRate))
+                interpolatedTime = time;
+        }
     }
 
-    public static function updateCallbacks():Void {
-        var step:Int = currentStep;
-        if (step <= _prevStep) return;
+    public function updateCallbacks():Void {
+        if (step == _prevStep || step <= -1) return;
 
         _prevStep = step;
         onStep.dispatch(step);
 
-        var beat:Int = currentBeat;
-        var measure:Int = currentMeasure;
-
-        if (step % stepsPerBeat == 0 && beat != _prevBeat) {
-            _prevBeat = beat;
+        if (step % stepsPerBeat == 0) {
             onBeat.dispatch(beat);
-        }
 
-        if (beat % beatsPerMeasure == 0 && measure != _prevMeas) {
-            _prevMeas = measure;
-            onMeasure.dispatch(measure);
+            if (beat % beatsPerMeasure == 0)
+                onMeasure.dispatch(measure);
         }
     }
 
-    public static function reset():Void {
+    public function reset():Void {
         resetTime();
         resetCallbacks();
 
+        enableInterpolation = false;
         playbackRate = 1;
         music = null;
 
         beatsPerMeasure = 4;
         stepsPerBeat = 4;
         bpm = 100;
-
-        updateInterp = false;
     }
 
-    public static function resetTime():Void {
-        interpTime = 0;
-        resetPrevTime();
+    public function resetTime():Void {
+        rawTime = 0;
+        interpolatedTime = 0;
         beatOffset.reset();
+        resetPrevTime();
     }
 
-    public static function resetPrevTime(to:Int = -1):Void {
-        _prevStep = _prevBeat = _prevMeas = to;
-        timeApprox = 0;
+    public function resetPrevTime():Void {
+        _prevStep = -1;
         _prevTime = -1;
+        timeApprox = 0;
     }
 
-    public static function resetCallbacks():Void {
+    public function resetCallbacks():Void {
         onStep.removeAll();
         onBeat.removeAll();
         onMeasure.removeAll();
     }
 
-    public static inline function getSignature():String
+    public inline function getSignature():String
         return '${beatsPerMeasure} / ${stepsPerBeat}';
 
-    static function set_bpm(v:Float):Float {
+    function set_bpm(v:Float):Float {
         crochet = ((60 / v) * 1000);
         stepCrochet = (crochet / stepsPerBeat);
         return bpm = v;
     }
 
-    static function set_stepsPerBeat(v:Int):Int {
+    function set_stepsPerBeat(v:Int):Int {
         stepCrochet = (crochet / v);
         return stepsPerBeat = v;
     }
 
-    static function set_rawTime(v:Float):Float {
-        if (music != null)
-            music.time = v;
-        else if (updateInterp)
-            interpTime = v;
+    function set_time(v:Float):Float {
+        if (enableInterpolation)
+            interpolatedTime = v - offset;
 
-        return v;
-    }
-
-    static function get_rawTime():Float {
-        return (music?.time ?? interpTime);
-    }
-
-    static function set_time(v:Float):Float
         return rawTime = v;
-
-    static function get_time():Float
-        return rawTime - offset;
-
-    static function get_decimalStep():Float {
-        return ((time + timeApprox - beatOffset.time) / stepCrochet) + beatOffset.step;
     }
 
-    static function set_decimalStep(v:Float):Float {
+    function get_time():Float         return rawTime - offset;
+    function get_playbackRate():Float return music?.pitch ?? playbackRate;
+    function get_measureLength():Int  return stepsPerBeat * beatsPerMeasure;
+
+    function get_decStep():Float {
+        return ((time - beatOffset.time) / stepCrochet) + beatOffset.step;
+    }
+
+    function get_decBeat():Float    return decStep / stepsPerBeat;
+    function get_decMeasure():Float return decBeat / beatsPerMeasure;
+
+    function get_step():Int    return Math.floor(decStep);
+    function get_beat():Int    return Math.floor(decBeat);
+    function get_measure():Int return Math.floor(decMeasure);
+
+    function set_decStep(v:Float):Float {
         rawTime = (stepCrochet * v);
         return v;
     }
 
-    static function get_decimalBeat():Float
-        return decimalStep / stepsPerBeat;
-
-    static function set_decimalBeat(v:Float):Float {
-        set_decimalStep(v * stepsPerBeat);
+    function set_decBeat(v:Float):Float {
+        set_decStep(v * stepsPerBeat);
         return v;
     }
 
-    static function get_decimalMeasure():Float
-        return decimalBeat / beatsPerMeasure;
-
-    static function set_decimalMeasure(v:Float):Float {
-        set_decimalBeat(v * beatsPerMeasure);
+    function set_decMeasure(v:Float):Float {
+        set_decBeat(v * beatsPerMeasure);
         return v;
     }
 
-    static function get_currentStep():Int
-        return Math.floor(decimalStep);
-
-    static function set_currentStep(v:Int):Int
-        return Math.floor(set_decimalStep(v));
-
-    static function get_currentBeat():Int
-        return Math.floor(decimalBeat);
-
-    static function set_currentBeat(v:Int):Int
-        return Math.floor(set_decimalBeat(v));
-
-    static function get_currentMeasure():Int
-        return Math.floor(decimalMeasure);
-
-    static function set_currentMeasure(v:Int):Int
-        return Math.floor(set_decimalMeasure(v));
-
-    static function get_measureLength():Int
-        return stepsPerBeat * beatsPerMeasure;
+    function set_step(v:Int):Int    return Math.floor(set_decStep(v));
+    function set_beat(v:Int):Int    return Math.floor(set_decBeat(v));
+    function set_measure(v:Int):Int return Math.floor(set_decMeasure(v));
 }
 
 @:structInit class BeatOffset {

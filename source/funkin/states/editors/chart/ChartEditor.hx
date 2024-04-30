@@ -18,7 +18,7 @@ import funkin.objects.HealthIcon;
 import funkin.gameplay.notes.Note;
 import funkin.gameplay.notes.Receptor;
 
-import funkin.music.MusicPlayback;
+import funkin.music.SongPlayback;
 import funkin.globals.ChartFormat;
 import funkin.gameplay.EventManager;
 
@@ -35,7 +35,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     public static final separatorWidth:Int = 4;
     public static final checkerSize:Int = 45;
 
-    public var music:MusicPlayback;
+    public var music:SongPlayback;
     public var difficulty:String;
     public var chart:Chart;
 
@@ -93,6 +93,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     // used for undos
     public var noteDrags:Array<NoteDragData> = [];
     public var eventDrags:Array<EventDragData> = [];
+    public var notesToKill:Array<DebugNote> = [];
+    public var eventsToKill:Array<EventSprite> = [];
     //
 
     public var clipboard:Clipboard<ChartClipboardItems>;
@@ -185,12 +187,16 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 else if (FlxG.mouse.x < checkerboard.x - separatorWidth)
                     checkSpawnEvent();
             }
-            else if (FlxG.keys.pressed.Z)
-                checkObjectDeletion();
+
+            if (FlxG.keys.pressed.DELETE)
+                killHoveredObjects();
 
             if (FlxG.mouse.justPressedRight)
                 checkObjectSelect();
         }
+
+        if (FlxG.keys.justPressed.BACKSPACE)
+            killSelectedObjects();
 
         if (FlxG.keys.pressed.CONTROL) {
             // text inputs have copy paste too
@@ -212,7 +218,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             if (music.playing)
                 pauseMusic();
             else
-                music.play(Conductor.time);
+                music.play(conductor.rawTime);
         }
 
         if (selectedNote != null && !interacting) {
@@ -221,7 +227,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
             if (pressed || holding) {
                 var mult:Int = (FlxG.keys.pressed.E) ? 1 : -1;
-                selectedNote.data.length += (holding) ? (Conductor.stepCrochet / 10 * Tools.framerateMult() * mult) : (Conductor.stepCrochet * mult);
+                selectedNote.data.length += (holding) ? (conductor.stepCrochet / 10 * Tools.framerateMult() * mult) : (conductor.stepCrochet * mult);
 
                 if (selectedNote.data.length < 0) {
                     undoList.register(RemoveNote(selectedNote.data));
@@ -231,12 +237,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             }
         }
 
-        if (FlxG.mouse.wheel != 0 && !interacting)
-            incrementTime(-FlxG.mouse.wheel * Conductor.stepCrochet * Tools.framerateMult(120));
-        if ((FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN) && !interacting)
-            incrementTime(Conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
-
         super.update(elapsed);
+
+        if (FlxG.mouse.wheel != 0 && !interacting)
+            incrementTime(-FlxG.mouse.wheel * conductor.stepCrochet * Tools.framerateMult(120));
+        if ((FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN) && !interacting)
+            incrementTime(conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
 
         if (requestSortNotes) {
             requestSortNotes = false;
@@ -252,12 +258,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         // reposition the follow line
         if (music.playing || Settings.get("CHART_strumlineSnap") || FlxG.keys.justPressed.SHIFT)
-            line.y = getYFromTime(Conductor.time + Conductor.timeApprox);
+            line.y = getYFromTime(conductor.rawTime);
         else
-            line.y = Tools.lerp(line.y, getYFromTime(Conductor.time), 12);
+            line.y = Tools.lerp(line.y, getYFromTime(conductor.rawTime), 12);
 
-        if (!music.playing && Conductor.time >= music.instrumental.length) {
-            music.instrumental.time = 0;
+        if (!music.playing && music.time >= music.instrumental.length) {
+            music.time = 0;
             line.y = 0;
         }
 
@@ -268,7 +274,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         if (beatIndicators.visible) {
             for (ind in beatIndicators) {
-                ind.color = FlxColor.interpolate(FlxColor.CYAN, FlxColor.RED, (music.playing) ? (Conductor.decimalBeat - Conductor.currentBeat) : 1);
+                ind.color = FlxColor.interpolate(FlxColor.CYAN, FlxColor.RED, (music.playing) ? (conductor.decBeat - conductor.beat) : 1);
                 ind.y = line.y - ((line.height + ind.height) * 0.25);
             }
         }
@@ -279,25 +285,25 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         updateMusicText();
 
         wasInteracting = interacting;
-        lastStep = Conductor.currentStep;
-        lastTime = Conductor.time;
+        lastStep = conductor.step;
+        lastTime = conductor.time;
     }
 
-    override function stepHit(currentStep:Int):Void {
+    override function stepHit(step:Int):Void {
         if (music.playing)
             music.resync();
 
-        super.stepHit(currentStep);
+        super.stepHit(step);
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         // sometimes it just mutes itself, and sometimes it proceeds to play hitsound instead of metronome
         // TODO: fix this bug
         
         if (music.playing && metronome.volume > 0)
             metronome.play(true);
 
-        super.beatHit(currentBeat);
+        super.beatHit(beat);
     }
 
     inline function checkSpawnNote():Void {
@@ -380,22 +386,25 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         }
     }
 
-    inline function checkObjectDeletion():Void {
-        // look for notes to delete
+    inline function killHoveredObjects():Void {
+        killNotes((note) -> FlxG.mouse.overlaps(note) && !note.selected);
+        killEvents((event) -> FlxG.mouse.overlaps(event) && !event.selected);
+    }
+
+    inline function killSelectedObjects():Void {
         notes.forEachAlive((note) -> {
-            if (FlxG.mouse.overlaps(note) && !note.selected) {
-                undoList.register(RemoveNote(note.data));
-                killNote(note);
-            }
+            if (note.selected) notesToKill.push(note);
         });
 
-        // look for events to delete
         events.forEachAlive((event) -> {
-            if (FlxG.mouse.overlaps(event) && !event.selected) {
-                undoList.register(RemoveEvent(event.data));
-                killEvent(event);
-            }
+            if (event.selected) eventsToKill.push(event);
         });
+
+        if (notesToKill.length != 0 || eventsToKill.length != 0)
+            undoList.register(RemoveObjects([for (note in notesToKill) note.data], [for (event in eventsToKill) event.data]));
+
+        while (notesToKill.length != 0) killNote(notesToKill.pop());
+        while (eventsToKill.length != 0) killEvent(eventsToKill.pop());
     }
 
     inline function checkObjectSelect():Void {
@@ -435,18 +444,23 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (music.playing)
             pauseMusic();
 
-        music.instrumental.time += val * ((FlxG.keys.pressed.SHIFT) ? 10 : 1);
-        music.instrumental.time = FlxMath.bound(music.instrumental.time, -1000, music.instrumental.length);
+        var time:Float = music.time + val * ((FlxG.keys.pressed.SHIFT) ? conductor.measureLength : 1);
+        var snap:Bool = false;
 
-        if (music.instrumental.time < 0) {
-            music.instrumental.time = music.instrumental.length - 100;
-            line.y = getYFromTime(music.instrumental.time);
+        if (time > music.instrumental.length)
+            time = music.instrumental.length;
+        else if (time < 0) {
+            time = music.instrumental.length - 100;
+            snap = true;
         }
 
-        for (vocals in music.vocals)
-            vocals.time = music.instrumental.time;
+        music.time = time;
+        conductor.resetPrevTime();
 
-        Conductor.resetPrevTime();
+        if (snap) {
+            conductor.updateTime(0);
+            line.y = getYFromTime(time);
+        }
     }
 
     override function openSubState(SubState:FlxSubState):Void {
@@ -470,7 +484,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public function goToPlayState(here:Bool = false):Void {
-        var currentTime:Float = Conductor.time;
+        var currentTime:Float = conductor.rawTime;
 
         runAutosave = true;
         selection.unselectAll();
@@ -488,7 +502,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public function playTest(here:Bool = false, asOpponent:Bool = false):Void {
-        var time:Float = Conductor.time;
+        var time:Float = conductor.rawTime;
 
         FlxG.mouse.visible = false;
         skipUpdate = true;
@@ -534,6 +548,30 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         event.kill();
     }
 
+    inline function killNotes(condition:DebugNote->Bool):Void {
+        notes.forEachAlive((note) -> {
+            if (condition(note)) notesToKill.push(note);
+        });
+
+        while (notesToKill.length != 0) {
+            var note:DebugNote = notesToKill.pop();
+            undoList.register(RemoveNote(note.data));
+            killNote(note);
+        }
+    }
+
+    inline function killEvents(condition:EventSprite->Bool):Void {
+        events.forEachAlive((event) -> {
+            if (condition(event)) eventsToKill.push(event);
+        });
+
+        while (eventsToKill.length != 0) {
+            var event:EventSprite = eventsToKill.pop();
+            undoList.register(RemoveEvent(event.data));
+            killEvent(event);
+        }
+    }
+
     inline function pauseMusic():Void {
         music.pause();
         metronome.stop();
@@ -543,44 +581,43 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (!musicText.visible)
             return;
 
-        musicText.text = '${getTimeInfo()}\n\n' + 'Step: ${Conductor.currentStep}\n' + 'Beat: ${Conductor.currentBeat}\n'
-            + 'Measure: ${Conductor.currentMeasure}\n\n' + '${getBPMInfo()}\n' + 'Time Signature: ${Conductor.getSignature()}';
+        musicText.text = '${getTimeInfo()}\n\n' + 'Step: ${conductor.step}\n' + 'Beat: ${conductor.beat}\n'
+            + 'Measure: ${conductor.measure}\n\n' + '${getBPMInfo()}\n' + 'Time Signature: ${conductor.getSignature()}';
 
         overlay.scale.x = musicText.width + 15;
         overlay.updateHitbox();
 
         if (!timeBar.hitTest(FlxG.mouse.screenX, FlxG.mouse.screenY) || !FlxG.mouse.pressed)
-            timeBar.pos = music.instrumental.time;
+            timeBar.pos = music.time;
     }
 
     inline public function getTimeInfo():String {
-        var currentTime:String = FlxStringUtil.formatTime(music.instrumental.time * 0.001);
+        var currentTime:String = FlxStringUtil.formatTime(music.time * 0.001);
         var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length * 0.001);
 
         var playbackRate:String = Std.string(music.pitch);
-        if (music.pitch is Int)
-            playbackRate += ".0";
+        if (Math.floor(music.pitch) == music.pitch) playbackRate += ".0";
 
         return '${currentTime} / ${maxTime} (${playbackRate}x)';
     }
 
     inline public function getBPMInfo():String
-        return 'BPM: ${Conductor.bpm} (${chart.gameplayInfo.bpm})';
+        return 'BPM: ${conductor.bpm} (${chart.gameplayInfo.bpm})';
 
     inline public function reloadGrid(updateMeasure:Bool = true, resetTime:Bool = true):Void {
         checkerboard.bottom = getYFromTime(music.instrumental.length);
-        line.y = getYFromTime(music.instrumental.time);
 
         notes.forEachAlive((note) -> note.y = getYFromTime(note.data.time));
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
 
+        if (!music.playing) line.y = getYFromTime(conductor.rawTime);
         if (updateMeasure) refreshMeasureMark();
-        if (resetTime) Conductor.resetPrevTime();
+        if (resetTime) conductor.resetPrevTime();
     }
 
     public inline function refreshMeasureMark():Void {
         // without reducing by 1 makes the spacing somehow
-        measureBackdrop.spacing.y = checkerSize * Conductor.measureLength / measureBackdrop.height - 1;
+        measureBackdrop.spacing.y = checkerSize * conductor.measureLength / measureBackdrop.height - 1;
     }
 
     public inline function updateCurrentBPM():Void {
@@ -593,20 +630,20 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         if (chart.events.length > 0) {
             for (event in chart.events) {
                 if (event.event.toLowerCase().trim() != "change bpm") continue;
-                if (event.time > Conductor.time) break;
+                if (event.time > conductor.time) break;
 
-                stepOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / Conductor.stepsPerBeat));
+                stepOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / conductor.stepsPerBeat));
                 currentBPM = event.arguments[0];
                 lastChange = event.time;
                 eventBPM = true;
             }
         }
 
-        Conductor.beatOffset.time = lastChange;
-        Conductor.beatOffset.step = stepOffset;
+        conductor.beatOffset.time = lastChange;
+        conductor.beatOffset.step = stepOffset;
 
-        if (currentBPM != Conductor.bpm || lastBpmChange != lastChange) {
-            Conductor.bpm = currentBPM;
+        if (currentBPM != conductor.bpm || lastBpmChange != lastChange) {
+            conductor.bpm = currentBPM;
             lastBpmChange = lastChange;
 
             awaitBPMReload = (subState != null);
@@ -618,28 +655,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function loadSong():Void {
-        music = new MusicPlayback(chart.meta.folder);
+        music = new SongPlayback(chart.meta.folder);
         music.setupInstrumental(chart.gameplayInfo.instrumental);
+        add(music);
 
         if (chart.gameplayInfo.voices?.length > 0)
             for (voiceFile in chart.gameplayInfo.voices)
                 music.createVoice(voiceFile);
 
         music.onSongEnd.add(() -> {
-            Conductor.resetPrevTime();
+            conductor.resetPrevTime();
             line.y = 0;
         });
 
-        music.instrumental.time = startTime;
-        add(music);
-
         music.instrumental.volume = (Settings.get("CHART_muteInst")) ? 0 : 1;
         music.pitch = Settings.get("CHART_pitch");
+        music.time = startTime;
 
-        Conductor.beatsPerMeasure = chart.gameplayInfo.beatsPerMeasure ?? 4;
-        Conductor.stepsPerBeat = chart.gameplayInfo.stepsPerBeat ?? 4;
-        Conductor.bpm = chart.gameplayInfo.bpm;
-        Conductor.music = music.instrumental;
+        conductor.beatsPerMeasure = chart.gameplayInfo.beatsPerMeasure ?? 4;
+        conductor.stepsPerBeat = chart.gameplayInfo.stepsPerBeat ?? 4;
+        conductor.bpm = chart.gameplayInfo.bpm;
+        conductor.music = music.instrumental;
     }
 
     inline function loadData():Void {
@@ -677,6 +713,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             case AddEvent(data): undo_removeEvent(data);
             case RemoveEvent(data): undo_addEvent(data);
 
+            case RemoveObjects(notes, events):
+                for (note in notes) undo_addNote(note);
+                for (event in events) undo_addEvent(event);
+
             case ObjectDrag(notes, events):
                 for (note in notes) undo_noteDrag(note.ref, note.oldTime, note.oldDir, note.oldStl);
                 for (event in events) undo_eventDrag(event.ref, event.oldTime);
@@ -702,6 +742,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             case AddEvent(data): undo_addEvent(data);
             case RemoveEvent(data): undo_removeEvent(data);
 
+            case RemoveObjects(notes, events):
+                for (note in notes) undo_removeNote(note);
+                for (event in events) undo_removeEvent(event);
+
             case ObjectDrag(notes, events):
                 for (note in notes) undo_noteDrag(note.ref, note.time, note.dir, note.str);
                 for (event in events) undo_eventDrag(event.ref, event.time);
@@ -717,12 +761,12 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
 
         notes.forEachAlive((note) -> {
             if (note.selected)
-                clipboard.register(Note(note.data.time - Conductor.time, note.data.direction, note.data.strumline, note.data.length, note.data.type));
+                clipboard.register(Note(note.data.time - conductor.time, note.data.direction, note.data.strumline, note.data.length, note.data.type));
         });
 
         events.forEachAlive((event) -> {
             if (event.selected)
-                clipboard.register(Event(event.data.event, event.data.time - Conductor.time, event.data.arguments?.copy() ?? null));
+                clipboard.register(Event(event.data.event, event.data.time - conductor.time, event.data.arguments?.copy() ?? null));
         });
     }
 
@@ -737,7 +781,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
             switch (item) {
                 case Note(conductorDiff, direction, strumline, length, type):
                     var data:ChartNote = {
-                        time: Conductor.time + conductorDiff,
+                        time: conductor.time + conductorDiff,
                         direction: direction,
                         strumline: strumline,
                         length: length,
@@ -751,7 +795,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 case Event(event, conductorDiff, arguments):
                     var data:ChartEvent = {
                         event: event,
-                        time: Conductor.time + conductorDiff,
+                        time: conductor.time + conductorDiff,
                         arguments: arguments
                     };
 
@@ -827,7 +871,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     inline function createGrid():Void {
-        // thanks to RapperGF for the idea
+        // thanks to RapperGF for the idea!
         miniMap = new Camera(0, 0, checkerSize * 8 + separatorWidth + 10, Math.floor(checkerSize * 40), 0.15);
         miniMap.x = FlxG.width - 30 - miniMap.width * miniMap.zoom;
         miniMap.y = FlxG.height - 20 - miniMap.height * miniMap.zoom;
@@ -990,12 +1034,9 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
                 return;
 
             pauseMusic();
-            music.instrumental.time = timeBar.pos;
 
-            for (vocals in music.vocals)
-                vocals.time = music.instrumental.time;
-
-            Conductor.resetPrevTime();
+            music.time = timeBar.pos;
+            conductor.resetPrevTime();
         }
 
         Main.fpsOverlay.relativeY = FlxG.height - 25;
@@ -1074,6 +1115,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
         currentNoteType = null;
         noteDrags = null;
         eventDrags = null;
+        notesToKill = null;
+        eventsToKill = null;
         eventArgs = null;
         noteTypes = null;
         hitsound = null;
@@ -1139,11 +1182,11 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements ete
     }
 
     public static inline function getTimeFromY(y:Float):Float {
-        return Conductor.beatOffset.time + Conductor.stepCrochet * ((y / checkerSize) - Conductor.beatOffset.step);
+        return Conductor.self.beatOffset.time + Conductor.self.stepCrochet * ((y / checkerSize) - Conductor.self.beatOffset.step);
     }
 
     public static inline function getYFromTime(time:Float):Float {
-        return checkerSize * (Conductor.beatOffset.step + ((time - Conductor.beatOffset.time) / Conductor.stepCrochet));
+        return checkerSize * (Conductor.self.beatOffset.step + ((time - Conductor.self.beatOffset.time) / Conductor.self.stepCrochet));
     }
 
     public static inline function getIcon(character:String):String {

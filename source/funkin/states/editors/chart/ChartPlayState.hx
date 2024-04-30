@@ -60,14 +60,16 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function create():Void {
-        Conductor.music = null;
-        Conductor.updateInterp = true;
+        conductor.enableInterpolation = true;
+        conductor.active = true;
+        conductor.music = null;
 
-        Conductor.onStep.remove(parent.stepHit);
-        Conductor.onBeat.remove(parent.beatHit);
-        Conductor.onMeasure.remove(parent.measureHit);
+        conductor.onStep.remove(parent.stepHit);
+        conductor.onMeasure.remove(parent.measureHit);
+        conductor.onBeat.remove(parent.beatHit);
 
-        if (startTime == 0) Conductor.resetPrevTime();
+        if (startTime == 0)
+            conductor.resetPrevTime();
 
         super.create();
 
@@ -133,12 +135,12 @@ class ChartPlayState extends MusicBeatSubState {
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
         FlxG.stage.application.window.onKeyUp.add(onKeyUp);
 
-        Conductor.time = startTime - (850 * parent.music.pitch);
-        Conductor.playbackRate = parent.music.pitch;
+        conductor.time = startTime - (850 * parent.music.pitch);
+        conductor.playbackRate = parent.music.pitch;
         parent.music.onSongEnd.add(close);
 
         startTimer = new FlxTimer().start(0.85, (_) -> {
-            Conductor.music = parent.music.instrumental;
+            conductor.music = parent.music.instrumental;
             parent.music.play(startTime);
         });
     }
@@ -155,12 +157,11 @@ class ChartPlayState extends MusicBeatSubState {
         if (controls.justPressed("autoplay"))
             playerStrumline.cpu = !playerStrumline.cpu;
 
-        Conductor.update(elapsed);
         parent.updateCurrentBPM();
 
         while (notes.length > 0) {
             var note:Note = notes[0];
-            if ((note.time - Conductor.time) > (1800 / note.getScrollSpeed()))
+            if ((note.time - conductor.time) > (1800 / note.getScrollSpeed()))
                 break;
 
             strumLines[note.strumline].addNote(note);
@@ -171,10 +172,10 @@ class ChartPlayState extends MusicBeatSubState {
         super.update(elapsed);
     }
 
-    override function stepHit(currentStep:Int):Void
+    override function stepHit(step:Int):Void
         parent.music.resync();
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         if (parent.music.playing)
             for (icon in icons)
                 icon.bop();
@@ -302,7 +303,7 @@ class ChartPlayState extends MusicBeatSubState {
             acc = FlxMath.roundDecimal(FlxMath.bound(accuracyMod / accuracyNotes, 0, 1) * 100, 2) + "%";
 
         infos.text = '${parent.getTimeInfo()} - ${parent.getBPMInfo()}\n'
-            + 'Step: ${Conductor.currentStep} - Beat: ${Conductor.currentBeat} - Measure: ${Conductor.currentMeasure}\n'
+            + 'Step: ${conductor.step} - Beat: ${conductor.beat} - Measure: ${conductor.measure}\n'
             + 'Misses: ${missCount} - Accuracy: ${acc} - Botplay: ${(playerStrumline.cpu) ? 'ON' : 'OFF'}';
         infos.screenCenter(X);
 
@@ -397,21 +398,21 @@ class ChartPlayState extends MusicBeatSubState {
         FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
         FlxG.mouse.visible = true;
 
-        super.destroy();
-
         parent.music.onSongEnd.remove(close);
         parent.music.pause();
 
-        Conductor.music = parent.music.instrumental;
-        Conductor.updateInterp = false;
-        Conductor.playbackRate = 1;
+        conductor.music = parent.music.instrumental;
+        conductor.enableInterpolation = false;
+        conductor.playbackRate = 1;
 
-        Conductor.onStep.add(parent.stepHit);
-        Conductor.onBeat.add(parent.beatHit);
-        Conductor.onMeasure.add(parent.measureHit);
+        conductor.onStep.add(parent.stepHit);
+        conductor.onMeasure.add(parent.measureHit);
+        conductor.onBeat.add(parent.beatHit);
 
-        parent.line.y = ChartEditor.getYFromTime(Conductor.time);
+        parent.line.y = ChartEditor.getYFromTime(conductor.rawTime);
         parent = null;
+
+        super.destroy();
     }
 
     inline function set_health(v:Float):Float

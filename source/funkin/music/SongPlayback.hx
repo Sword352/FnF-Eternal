@@ -4,19 +4,20 @@ import flixel.FlxBasic;
 import flixel.util.FlxSignal;
 import flixel.sound.FlxSound;
 
-class MusicPlayback extends FlxBasic {
+class SongPlayback extends FlxBasic {
     public var song:String;
 
     public var instrumental:FlxSound;
-    public var mainVocals:FlxSound;
     public var musics:Array<FlxSound> = [];
-    public var vocals:Array<FlxSound> = [];
+    public var voices:Array<FlxSound> = [];
+    public var mainVoice:FlxSound;
 
-    public var vocalsVolume(default, set):Float = 1;
-    public var pitch(default, set):Float = 1;
-
-    public var onSongEnd:FlxSignal = new FlxSignal();
+    public var time(get, set):Float;
+    public var pitch(get, set):Float;
     public var playing(get, never):Bool;
+
+    public var playerVolume(default, set):Float = 1;
+    public var onSongEnd:FlxSignal = new FlxSignal();
 
     public function new(song:String):Void {
         super();
@@ -32,10 +33,10 @@ class MusicPlayback extends FlxBasic {
 
     public function createVoice(file:String):Void {
         var voice:FlxSound = FlxG.sound.load(Assets.songMusic(song, file));
-        if (vocals.length < 1) mainVocals = voice;
+        if (voices.length == 0) mainVoice = voice;
 
         musics.push(voice);
-        vocals.push(voice);
+        voices.push(voice);
     }
 
     public function play(startTime:Float = 0):Void {
@@ -59,10 +60,9 @@ class MusicPlayback extends FlxBasic {
     }
 
     public function resync():Void {
-        for (voice in vocals) {
-            if (voice.playing && Math.abs(voice.time - instrumental.time) > (5 * pitch))
+        for (voice in voices)
+            if (voice.playing && Math.abs(voice.time - instrumental.time) > 5)
                 voice.time = instrumental.time;
-        }
     }
 
     public function destroyMusic():Void {
@@ -72,7 +72,7 @@ class MusicPlayback extends FlxBasic {
         }
 
         instrumental = null;
-        mainVocals = null;
+        mainVoice = null;
     }
 
     override function destroy():Void {
@@ -80,16 +80,25 @@ class MusicPlayback extends FlxBasic {
 
         destroyMusic();
         musics = null;
-        vocals = null;
+        voices = null;
         song = null;
 
         super.destroy();
     }
 
-    function set_vocalsVolume(v:Float):Float {
-        if (mainVocals != null)
-            mainVocals.volume = v;
-        return vocalsVolume = v;
+    function set_playerVolume(v:Float):Float {
+        if (mainVoice != null)
+            mainVoice.volume = v;
+        return playerVolume = v;
+    }
+
+    function set_time(v:Float):Float {
+        if (musics != null) {
+            for (music in musics)
+                music.time = v;
+        }
+
+        return v;
     }
 
     function set_pitch(v:Float):Float {
@@ -97,8 +106,15 @@ class MusicPlayback extends FlxBasic {
             for (music in musics)
                 music.pitch = v;
         }
-        return pitch = v;
+
+        return v;
     }
+
+    function get_time():Float
+        return instrumental?.time ?? 0;
+
+    function get_pitch():Float
+        return instrumental?.pitch ?? 1;
 
     inline function get_playing():Bool
         return instrumental?.playing ?? false;

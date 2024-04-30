@@ -115,8 +115,8 @@ class TitleScreen extends MusicBeatState {
             preRenderSprites?.add(ngSprite);
         postRenderSprites.add(pressEnterSprite);
 
-        Conductor.music = FlxG.sound.music;
-        FlxG.sound.music.onComplete = () -> Conductor.resetPrevTime();
+        conductor.music = FlxG.sound.music;
+        FlxG.sound.music.onComplete = () -> conductor.resetPrevTime();
 
         if (!firstTime) {
             clearSequences();
@@ -151,9 +151,9 @@ class TitleScreen extends MusicBeatState {
         #end
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         if (beatSequences != null)
-            while (beatSequences.length > 0 && beatSequences[0].beat <= currentBeat)
+            while (beatSequences.length > 0 && beatSequences[0].beat <= beat)
                 runSequence(beatSequences.shift());
 
         for (group in [spritesGroup, preRenderSprites, postRenderSprites]) {
@@ -162,18 +162,18 @@ class TitleScreen extends MusicBeatState {
 
             for (spr in group)
                 if (spr is DancingSprite)
-                    cast(spr, DancingSprite).dance(currentBeat, true);
+                    cast(spr, DancingSprite).dance(beat, true);
         }
 
-        super.beatHit(currentBeat);
+        super.beatHit(beat);
     }
 
-    override function stepHit(currentStep:Int):Void {
+    override function stepHit(step:Int):Void {
         if (stepSequences != null)
-            while (stepSequences.length > 0 && stepSequences[0].step <= currentStep)
+            while (stepSequences.length > 0 && stepSequences[0].step <= step)
                 runSequence(stepSequences.shift());
 
-        super.stepHit(currentStep);
+        super.stepHit(step);
     }
 
     function accept():Void {
@@ -300,7 +300,7 @@ class TitleScreen extends MusicBeatState {
             return;
         }
 
-        Conductor.bpm = (data.bpm == null) ? 102 : data.bpm;
+        conductor.bpm = (data.bpm == null) ? 102 : data.bpm;
         Tools.playMusicCheck((data.music == null) ? "freakyMenu" : data.music);
 
         filterSequences(data.sequences);
@@ -322,7 +322,7 @@ class TitleScreen extends MusicBeatState {
     }
 
     function defaultSetup():Void {
-        Conductor.bpm = 102;
+        conductor.bpm = 102;
         Tools.playMusicCheck("freakyMenu");
 
         beatSequences = getDefaultSequences();

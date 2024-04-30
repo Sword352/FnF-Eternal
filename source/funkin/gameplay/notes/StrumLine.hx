@@ -76,11 +76,11 @@ class StrumLine extends FlxGroup {
                 miss(note);
 
             if (note.killIfLate && (note.avoid || note.missed || note.isSustainNote)
-                && Conductor.time > (note.time + note.length + ((400 / note.getScrollSpeed()) + note.lateKillOffset)))
+                && Conductor.self.time > (note.time + note.length + ((400 / note.getScrollSpeed()) + note.lateKillOffset)))
                 notesToRemove.push(note);
 
             if (note.isSustainNote && (note.goodHit || note.missed)) {
-                if (lastStep != Conductor.currentStep) {
+                if (lastStep != Conductor.self.step) {
                     if (cpu || holdKeys[note.direction]) {
                         receptor.playAnimation("confirm", true);
                         singCharacters(note);
@@ -89,7 +89,7 @@ class StrumLine extends FlxGroup {
                         onMiss.dispatch(note);
                 }
 
-                if (Conductor.time >= note.time + note.length && (cpu || holdKeys[note.direction]))
+                if (Conductor.self.time >= note.time + note.length && (cpu || holdKeys[note.direction]))
                     notesToRemove.push(note);
             }
 
@@ -115,7 +115,7 @@ class StrumLine extends FlxGroup {
             });
         }
 
-        lastStep = Conductor.currentStep;
+        lastStep = Conductor.self.step;
     }
 
     override function draw():Void {
@@ -207,9 +207,9 @@ class StrumLine extends FlxGroup {
     inline function resizeLength(note:Note):Void {
         if (note == null) return;
 
-        note.length += (note.time - Conductor.time);
+        note.length += (note.time - Conductor.self.time);
         if (note.length < 100) removeNote(note);
-        note.time = Conductor.time;
+        note.time = Conductor.self.time;
     }
 
     public inline function setPosition(x:Float = 0, y:Float = 0):StrumLine {

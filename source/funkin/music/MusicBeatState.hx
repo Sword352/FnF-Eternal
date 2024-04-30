@@ -10,128 +10,126 @@ import eternal.core.scripting.ScriptableState.ScriptableSubState as SubState;
 
 class MusicBeatState extends State {
     var controls:Controls = Controls.global;
-    var activeConductor:Bool = true;
+    var conductor(default, set):Conductor;
 
     override function create():Void {
         super.create();
-
-        Conductor.onStep.add(stepHit);
-        Conductor.onBeat.add(beatHit);
-        Conductor.onMeasure.add(measureHit);
-
-        #if debug
-        // for debugging
-        FlxG.watch.add(Conductor, "time", "C. Time");
-        FlxG.watch.add(Conductor, "bpm", "BPM");
-        FlxG.watch.addFunction("Time Signature", Conductor.getSignature);
-        FlxG.watch.add(Conductor, "currentStep", "Current Step");
-        FlxG.watch.add(Conductor, "currentBeat", "Current Beat");
-        FlxG.watch.add(Conductor, "currentMeasure", "Current Measure");
-        #end
+        conductor = Conductor.self;
     }
 
-    override public function update(elapsed:Float):Void {
-        if (activeConductor)
-            updateConductor(elapsed);
+    override function openSubState(subState:flixel.FlxSubState):Void {
+        if (conductor != null)
+            conductor.active = (subState is TransitionSubState && !Transition.noPersistentUpdate);
 
-        super.update(elapsed);
+        super.openSubState(subState);
     }
 
-    public function updateConductor(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onConductorUpdate", [elapsed]))
-            return;
-        #end
+    override function closeSubState():Void {
+        if (conductor != null)
+            conductor.active = true;
 
-        Conductor.update(elapsed);
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onConductorUpdatePost", [elapsed]);
-        #end
+        super.closeSubState();
     }
 
-    public override function destroy():Void {
-        #if debug
-        FlxG.watch.remove(Conductor, "time");
-        FlxG.watch.remove(Conductor, "bpm");
-        FlxG.watch.removeFunction("Time Signature");
-        FlxG.watch.remove(Conductor, "currentStep");
-        FlxG.watch.remove(Conductor, "currentBeat");
-        FlxG.watch.remove(Conductor, "currentMeasure");
-        #end
-
+    override function destroy():Void {
         controls = null;
-
+        conductor = null;
         super.destroy();
-        Conductor.reset();
     }
 
     #if ENGINE_SCRIPTING
-    public function stepHit(currentStep:Int):Void
-        hxsCall("onStepHit", [currentStep]);
-
-    public function beatHit(currentBeat:Int):Void
-        hxsCall("onBeatHit", [currentBeat]);
-
-    public function measureHit(currentMeasure:Int):Void
-        hxsCall("onMeasureHit", [currentMeasure]);
+    public function stepHit(step:Int):Void        hxsCall("onStepHit", [step]);
+    public function beatHit(beat:Int):Void        hxsCall("onBeatHit", [beat]);
+    public function measureHit(measure:Int):Void  hxsCall("onMeasureHit", [measure]);
     #else
-    public function stepHit(currentStep:Int):Void {}
+    public function stepHit(step:Int):Void {}
+    public function beatHit(beat:Int):Void {}
+    public function measureHit(measure:Int):Void {}
+    #end
 
-    public function beatHit(currentBeat:Int):Void {}
+    function set_conductor(v:Conductor):Conductor {
+        if (conductor != null) {
+            conductor.onStep.remove(stepHit);
+            conductor.onMeasure.remove(measureHit);
+            conductor.onBeat.remove(beatHit);
 
-    public function measureHit(currentMeasure:Int):Void {}
+            #if FLX_DEBUG
+            unregisterFromDebugger(conductor);
+            #end
+        }
+
+        if (v != null) {
+            v.onStep.add(stepHit);
+            v.onMeasure.add(measureHit);
+            v.onBeat.add(beatHit);
+
+            #if FLX_DEBUG
+            registerToDebugger(v);
+            #end
+        }
+
+        return conductor = v;
+    }
+
+    #if FLX_DEBUG
+    inline function registerToDebugger(conductor:Conductor):Void {
+        FlxG.watch.add(conductor, "time", "C. Time");
+        FlxG.watch.add(conductor, "bpm", "BPM");
+        FlxG.watch.addFunction("Time Signature", conductor.getSignature);
+        FlxG.watch.add(conductor, "step", "Step");
+        FlxG.watch.add(conductor, "beat", "Beat");
+        FlxG.watch.add(conductor, "measure", "Measure");
+    }
+
+    inline function unregisterFromDebugger(conductor:Conductor):Void {
+        FlxG.watch.remove(conductor, "time");
+        FlxG.watch.remove(conductor, "bpm");
+        FlxG.watch.removeFunction("Time Signature");
+        FlxG.watch.remove(conductor, "step");
+        FlxG.watch.remove(conductor, "beat");
+        FlxG.watch.remove(conductor, "measure");
+    }
     #end
 }
 
 class MusicBeatSubState extends SubState {
+    var conductor(default, set):Conductor;
     var controls:Controls = Controls.global;
 
     public function new():Void {
         super();
-
-        Conductor.onStep.add(stepHit);
-        Conductor.onBeat.add(beatHit);
-        Conductor.onMeasure.add(measureHit);
-    }
-
-    public function updateConductor(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onConductorUpdate", [elapsed]))
-            return;
-        #end
-
-        Conductor.update(elapsed);
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onConductorUpdatePost", [elapsed]);
-        #end
+        conductor = Conductor.self;
     }
 
     #if ENGINE_SCRIPTING
-    public function stepHit(currentStep:Int):Void
-        hxsCall("onStepHit", [currentStep]);
-
-    public function beatHit(currentBeat:Int):Void
-        hxsCall("onBeatHit", [currentBeat]);
-
-    public function measureHit(currentMeasure:Int):Void
-        hxsCall("onMeasureHit", [currentMeasure]);
+    public function stepHit(step:Int):Void        hxsCall("onStepHit", [step]);
+    public function beatHit(beat:Int):Void        hxsCall("onBeatHit", [beat]);
+    public function measureHit(measure:Int):Void  hxsCall("onMeasureHit", [measure]);
     #else
-    public function stepHit(currentStep:Int):Void {}
-
-    public function beatHit(currentBeat:Int):Void {}
-
-    public function measureHit(currentMeasure:Int):Void {}
+    public function stepHit(step:Int):Void {}
+    public function beatHit(beat:Int):Void {}
+    public function measureHit(measure:Int):Void {}
     #end
 
     override public function destroy():Void {
-        Conductor.onStep.remove(stepHit);
-        Conductor.onBeat.remove(beatHit);
-        Conductor.onMeasure.remove(measureHit);
-
         controls = null;
-
+        conductor = null;
         super.destroy();
+    }
+    
+    function set_conductor(v:Conductor):Conductor {
+        if (conductor != null) {
+            conductor.onStep.remove(stepHit);
+            conductor.onMeasure.remove(measureHit);
+            conductor.onBeat.remove(beatHit);
+        }
+
+        if (v != null) {
+            v.onStep.add(stepHit);
+            v.onMeasure.add(measureHit);
+            v.onBeat.add(beatHit);
+        }
+
+        return conductor = v;
     }
 }

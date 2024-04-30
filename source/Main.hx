@@ -57,6 +57,7 @@ class InitState extends FlxState {
         DiscordPresence.init();
         #end
 
+        Conductor.init();
         Controls.init();
         NoteSkin.init();
         Assets.init();

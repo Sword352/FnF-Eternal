@@ -5,8 +5,8 @@ class DancingSprite extends OffsetSprite {
     public var currentDance:Int = 0;
     public var beat:Float = 1;
 
-    public function dance(currentBeat:Int, forced:Bool = false):Void {
-        if (currentBeat % beat == 0)
+    public function dance(beat:Int, forced:Bool = false):Void {
+        if (beat % this.beat == 0)
             forceDance(forced);
     }
 

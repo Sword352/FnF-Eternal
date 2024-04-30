@@ -63,9 +63,9 @@ class Stage extends FlxBasic {
     public function createPost():Void {}
     public function updatePost(elapsed:Float):Void {}
 
-    public function stepHit(currentStep:Int):Void {}
-    public function beatHit(currentBeat:Int):Void {}
-    public function measureHit(currentMeasure:Int):Void {}
+    public function stepHit(step:Int):Void {}
+    public function beatHit(beat:Int):Void {}
+    public function measureHit(measure:Int):Void {}
 
     public function onSongStart():Void {}
     public function onSongEnd():Void {}

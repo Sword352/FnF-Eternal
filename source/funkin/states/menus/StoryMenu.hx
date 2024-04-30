@@ -73,8 +73,8 @@ class StoryMenu extends MusicBeatState {
         #end
 
         Tools.playMusicCheck("freakyMenu");
-        Conductor.music = FlxG.sound.music;
-        Conductor.bpm = 102;
+        conductor.music = FlxG.sound.music;
+        conductor.bpm = 102;
 
         // load menu characters
         for (week in weeks) {
@@ -223,12 +223,12 @@ class StoryMenu extends MusicBeatState {
         #end
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         for (character in characters)
             if (character.danceSteps.length > 0 && character.animation.name != "confirm")
-                character.dance(currentBeat, true);
+                character.dance(beat, true);
 
-        super.beatHit(currentBeat);
+        super.beatHit(beat);
     }
 
     inline function changeSelection(i:Int = 0):Void {

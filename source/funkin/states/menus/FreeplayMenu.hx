@@ -565,9 +565,7 @@ class ExtraInfo extends FlxSpriteGroup {
 @:structInit class SongStructure {
     public var name:String;
     public var folder:String;
-
-    public var icon:String;
-    public var color:FlxColor;
-
     public var difficulties:Array<String>;
+    public var color:FlxColor;
+    public var icon:String;
 }

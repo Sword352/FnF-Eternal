@@ -103,7 +103,7 @@ class Character extends DancingSprite {
         if (singAnimations.contains(animation.curAnim.name))
             holdTime += elapsed;
 
-        if (!holding && holdTime >= Conductor.stepCrochet * singDuration * 0.001)
+        if (!holding && holdTime >= Conductor.self.stepCrochet * singDuration * 0.001)
             forceDance();
     }
 
@@ -175,9 +175,9 @@ class Character extends DancingSprite {
         }
     }
 
-    override function dance(currentBeat:Int, forced:Bool = false):Void {
+    override function dance(beat:Int, forced:Bool = false):Void {
         if (danceSteps.contains(animation.curAnim.name) || type == GAMEOVER)
-            super.dance(currentBeat, forced);
+            super.dance(beat, forced);
     }
 
     override function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {

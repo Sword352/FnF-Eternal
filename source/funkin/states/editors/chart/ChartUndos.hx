@@ -7,7 +7,9 @@ enum ChartUndos {
     RemoveNote(data:ChartNote);
     AddEvent(data:ChartEvent);
     RemoveEvent(data:ChartEvent);
+    
     CopyObjects(notes:Array<ChartNote>, events:Array<ChartEvent>);
+    RemoveObjects(notes:Array<ChartNote>, events:Array<ChartEvent>);
     ObjectDrag(notes:Array<NoteDragData>, events:Array<EventDragData>);
 }
 

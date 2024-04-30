@@ -92,7 +92,7 @@ class EventManager extends FlxBasic {
     }
 
     override function update(elapsed:Float):Void {
-        while (events.length > 0 && Conductor.time >= events[0].time)
+        while (events.length > 0 && Conductor.self.time >= events[0].time)
             runEvent(events.shift());
     }
 
@@ -121,7 +121,7 @@ class EventManager extends FlxBasic {
                 var beatDuration:Float = event.arguments[1] ?? 1;
 
                 character.playAnimation("hey", true);
-                character.animEndTime = (Conductor.crochet / 1000) * beatDuration;
+                character.animEndTime = (Conductor.self.crochet / 1000) * beatDuration;
             case "change character":
                 var character:Character = getCharacter(event.arguments[0]);
                 if (character == null)
@@ -147,23 +147,23 @@ class EventManager extends FlxBasic {
             case "change camera target":
                 game.changeCamTarget(event.arguments[0]);
             case "change bpm":
-                bpmOffset += ((event.time - lastBpmChange) / Conductor.stepCrochet);
+                bpmOffset += ((event.time - lastBpmChange) / Conductor.self.stepCrochet);
                 lastBpmChange = event.time;
 
-                Conductor.beatOffset.time = event.time;
-                Conductor.beatOffset.step = bpmOffset;
-                Conductor.bpm = event.arguments[0];
+                Conductor.self.beatOffset.time = event.time;
+                Conductor.self.beatOffset.step = bpmOffset;
+                Conductor.self.bpm = event.arguments[0];
             case "change time signature":
                 /*
-                    stepOffset += ((event.time - lastTS) / Conductor.stepCrochet);
-                    beatOffset += ((event.time - lastTS) / Conductor.crochet);
+                    stepOffset += ((event.time - lastTS) / Conductor.self.stepCrochet);
+                    beatOffset += ((event.time - lastTS) / Conductor.self.crochet);
                     lastTS = event.time;
 
-                    Conductor.beatOffset.step = stepOffset;
-                    Conductor.beatOffset.beat = beatOffset;
-                    Conductor.beatOffset.time = lastTS;
+                    Conductor.self.beatOffset.step = stepOffset;
+                    Conductor.self.beatOffset.beat = beatOffset;
+                    Conductor.self.beatOffset.time = lastTS;
 
-                    Conductor.stepsPerBeat = event.arguments[0];
+                    Conductor.self.stepsPerBeat = event.arguments[0];
                  */
             default:
                 #if ENGINE_SCRIPTING

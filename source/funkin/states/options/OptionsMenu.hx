@@ -68,7 +68,8 @@ class OptionsMenu extends MusicBeatState {
         #end
 
         Tools.playMusicCheck(toPlayState ? "chillFresh" : "freakyMenu");
-        Conductor.bpm = (toPlayState ? 117 : 102);
+        conductor.bpm = (toPlayState ? 117 : 102);
+        conductor.music = FlxG.sound.music;
 
         background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
         background.scale.set(1.15, 1.15);

@@ -60,10 +60,10 @@ class GameOverScreen extends MusicBeatSubState {
         FlxG.sound.play(Assets.sound(data.deathSound));
         character.playAnimation("firstDeath");
 
-        Conductor.bpm = data.bpm;
-        Conductor.music = FlxG.sound.music;
-
-        Conductor.resetTime();
+        conductor.bpm = data.bpm;
+        conductor.enableInterpolation = false;
+        conductor.music = FlxG.sound.music;
+        conductor.resetTime();
 
         #if ENGINE_SCRIPTING
         hxsCall("onCreatePost");
@@ -71,9 +71,6 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        if (FlxG.sound.music?.playing)
-            updateConductor(elapsed);
-
         #if ENGINE_SCRIPTING
         hxsCall("onUpdate", [elapsed]);
         super.update(elapsed);
@@ -92,6 +89,7 @@ class GameOverScreen extends MusicBeatSubState {
 
             if (character.animation.curAnim.finished) {
                 FlxG.sound.playMusic(Assets.music(data.music));
+                conductor.active = true;
                 started = true;
             }
         }
@@ -117,11 +115,11 @@ class GameOverScreen extends MusicBeatSubState {
         #end
     }
 
-    override function beatHit(currentBeat:Int):Void {
+    override function beatHit(beat:Int):Void {
         if (character != null)
-            character.dance(currentBeat, true);
+            character.dance(beat, true);
 
-        super.beatHit(currentBeat);
+        super.beatHit(beat);
     }
 
     inline function accept():Void {
@@ -133,7 +131,7 @@ class GameOverScreen extends MusicBeatSubState {
         Assets.clearAssets = Settings.get("reload assets");
         allowInputs = false;
 
-        Conductor.music = null;
+        conductor.music = null;
         Tools.stopMusic();
 
         character?.playAnimation("deathConfirm", true);

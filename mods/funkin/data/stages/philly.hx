@@ -36,7 +36,7 @@ function onCreatePost():Void {
 function onUpdatePost(elapsed:Float):Void {
     if (!music.playing) return;
 
-    light.shader.setFloat("fadeMod", ((Conductor.time - lightTiming) / (Conductor.crochet * Conductor.beatsPerMeasure)) * 1.25);
+    light.shader.setFloat("fadeMod", ((Conductor.self.time - lightTiming) / (Conductor.self.crochet * Conductor.self.beatsPerMeasure)) * 1.25);
 
     // 24 fps movement
     if (trainEnabled) {
@@ -62,7 +62,7 @@ function onMeasureHit():Void {
     light.color = lightColors[color];
     lastLight = color;
 
-    lightTiming = Conductor.time;
+    lightTiming = Conductor.self.time;
 }
 
 function onSubStateOpened():Void {

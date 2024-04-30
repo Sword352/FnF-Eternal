@@ -35,8 +35,8 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     }
 
     override function update(elapsed:Float):Void {
-        if (Conductor.currentMeasure != lastMeasure) {
-            lastMeasure = Conductor.currentMeasure;
+        if (Conductor.self.measure != lastMeasure) {
+            lastMeasure = Conductor.self.measure;
             regenNotes();
         }
 
@@ -66,17 +66,17 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     }
 
     inline function noteBehaviour(note:DebugNote):Void {
-        var late:Bool = (note.data.time <= Conductor.time);
+        var late:Bool = (note.data.time <= Conductor.self.time);
         var hit:Bool = (late && note.data.time > parent.lastTime);
 
         if (note.data.time == 0 && !hit)
-            hit = Conductor.time > 0 && parent.lastTime <= 0;
+            hit = Conductor.self.time > 0 && parent.lastTime <= 0;
 
         if (hit && parent.hitsoundVolume > 0)
             FlxG.sound.play(parent.hitsound, parent.hitsoundVolume);
 
-        if (parent.receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.time
-            && parent.lastStep != Conductor.currentStep)))
+        if (parent.receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.self.time
+            && parent.lastStep != Conductor.self.step)))
             parent.receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
     }
 
@@ -107,7 +107,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     // - maybe remake the math for spawning iterations as it seems a bit overkill
 
     public function regenNotes(force:Bool = false):Void {
-        var iterations:Int = Math.floor(3 * (16 / Math.min(Conductor.measureLength, 16)));
+        var iterations:Int = Math.floor(3 * (16 / Math.min(Conductor.self.measureLength, 16)));
         var firstNoteIndex:Int = -1;
 
         killNotes(force, iterations - 1);
@@ -118,7 +118,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
         }
 
         for (i in 0...iterations) {
-            var measure:Int = Conductor.currentMeasure + (i - Math.floor(iterations / 2));
+            var measure:Int = Conductor.self.measure + (i - Math.floor(iterations / 2));
             if (measure < 0) continue;
 
             var time:Float = measureTime(measure);
@@ -152,12 +152,12 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
 
     inline function killNotes(force:Bool, iterations:Int):Void {
         if (!force) {
-            var lateTime:Float = measureTime(Conductor.currentMeasure - iterations + 1);
-            var earlyTime:Float = measureTime(Conductor.currentMeasure + iterations);
+            var lateTime:Float = measureTime(Conductor.self.measure - iterations + 1);
+            var earlyTime:Float = measureTime(Conductor.self.measure + iterations);
 
             forEachAlive((n) -> {
                 if (!n.selected && (n.data.time + n.data.length <= lateTime || n.data.time + n.data.length >= earlyTime)
-                    && (n.data.length == 0 || Conductor.time < n.data.time || Conductor.time >= n.data.time + n.data.length))
+                    && (n.data.length == 0 || Conductor.self.time < n.data.time || Conductor.self.time >= n.data.time + n.data.length))
                     toKill.push(n);
             });
         }
@@ -190,7 +190,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     }
 
     inline function measureTime(measure:Float):Float {
-        return Conductor.beatOffset.time + Conductor.stepCrochet * ((measure * Conductor.measureLength) - Conductor.beatOffset.step);
+        return Conductor.self.beatOffset.time + Conductor.self.stepCrochet * ((measure * Conductor.self.measureLength) - Conductor.self.beatOffset.step);
     }
 
     inline function inBounds(note:ChartNote, measureTime:Float, nextTime:Float) {
@@ -247,11 +247,11 @@ class DebugNote extends SelectableSprite {
 
         if (sustain.visible) {
             if (!FlxG.mouse.pressedRight || !FlxG.mouse.overlaps(sustain) || FlxG.mouse.y < sustain.y + height * 0.5) {
-                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.stepCrochet) - 0.5));
+                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.self.stepCrochet) - 0.5));
             }
             else {
                 sustain.scale.y = FlxG.mouse.y - sustain.y + ChartEditor.checkerSize * 0.5;
-                data.length = Conductor.stepCrochet * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
+                data.length = Conductor.self.stepCrochet * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
             }
 
             sustain.updateHitbox();
@@ -267,7 +267,7 @@ class DebugNote extends SelectableSprite {
             }
         }
 
-        alpha = (applyAlpha && data.time < Conductor.time ? ChartEditor.lateAlpha : 1);
+        alpha = (applyAlpha && data.time < Conductor.self.time ? ChartEditor.lateAlpha : 1);
 
         #if FLX_DEBUG
 		flixel.FlxBasic.activeCount++;

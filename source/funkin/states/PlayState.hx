@@ -11,7 +11,7 @@ import funkin.gameplay.*;
 import funkin.gameplay.notes.*;
 import funkin.gameplay.stages.*;
 import funkin.gameplay.notes.StrumLine.NoteHit;
-import funkin.music.MusicPlayback;
+import funkin.music.SongPlayback;
 
 import funkin.objects.Camera;
 import funkin.gameplay.ComboPopup;
@@ -39,7 +39,7 @@ class PlayState extends MusicBeatState {
     public static var lossCounter:Int = 0;
 
     public var eventManager:EventManager;
-    public var music:MusicPlayback;
+    public var music:SongPlayback;
 
     public var camGame:FlxCamera;
     public var camHUD:FlxCamera;
@@ -188,7 +188,7 @@ class PlayState extends MusicBeatState {
         var playerNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
         var oppNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
-        music = new MusicPlayback(song.meta.folder);
+        music = new SongPlayback(song.meta.folder);
         music.setupInstrumental(song.gameplayInfo.instrumental);
         music.onSongEnd.add(endSong);
         add(music);
@@ -197,9 +197,11 @@ class PlayState extends MusicBeatState {
             for (voiceFile in song.gameplayInfo.voices)
                 music.createVoice(voiceFile);
 
-        beatZoomInterval = Conductor.beatsPerMeasure = (song.gameplayInfo.beatsPerMeasure ?? 4);
-        Conductor.stepsPerBeat = (song.gameplayInfo.stepsPerBeat ?? 4);
-        Conductor.bpm = song.gameplayInfo.bpm;
+        conductor.beatsPerMeasure = (song.gameplayInfo.beatsPerMeasure ?? 4);
+        beatZoomInterval = conductor.beatsPerMeasure;
+
+        conductor.stepsPerBeat = (song.gameplayInfo.stepsPerBeat ?? 4);
+        conductor.bpm = song.gameplayInfo.bpm;
 
         stage = switch (song.gameplayInfo.stage.toLowerCase()) {
             default: new SoftcodedStage(song.gameplayInfo.stage);
@@ -326,8 +328,7 @@ class PlayState extends MusicBeatState {
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
         FlxG.stage.application.window.onKeyUp.add(onKeyUp);
 
-        Conductor.updateInterp = true;
-        activeConductor = false;
+        conductor.enableInterpolation = true;
 
         // cache some extra stuff that cannot be loaded in the loading screen
         // since they can be modified
@@ -370,7 +371,6 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        updateConductor(elapsed);
         spawnNotes();
 
         super.update(elapsed);
@@ -385,8 +385,8 @@ class PlayState extends MusicBeatState {
         updateCamLerp();
 
         #if ENGINE_DISCORD_RPC
-        if (music.playing && Conductor.time >= 0 && Conductor.time <= music.instrumental.length)
-            DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (Conductor.time * 0.001));
+        if (music.playing && conductor.time >= 0 && conductor.time <= music.instrumental.length)
+            DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (conductor.time * 0.001));
         #end
 
         if (controls.justPressed("accept") && subState == null)
@@ -420,7 +420,7 @@ class PlayState extends MusicBeatState {
         // TODO: maybe move this into the note class?
         while (notes.length > 0) {
             var note:Note = notes[0];
-            if ((note.time - Conductor.time) > ((1800 / note.getScrollSpeed()) + note.spawnTimeOffset))
+            if ((note.time - conductor.time) > ((1800 / note.getScrollSpeed()) + note.spawnTimeOffset))
                 break;
 
             #if ENGINE_SCRIPTING hxsCall("onNoteSpawn", [note]); #end
@@ -431,28 +431,28 @@ class PlayState extends MusicBeatState {
         }
     }
 
-    override function stepHit(currentStep:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onStepHit", [currentStep])) return; #end
+    override function stepHit(step:Int):Void {
+        #if ENGINE_SCRIPTING if (cancellableCall("onStepHit", [step])) return; #end
 
-        stage.stepHit(currentStep);
+        stage.stepHit(step);
         music.resync();
     }
 
-    override function beatHit(currentBeat:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onBeatHit", [currentBeat])) return; #end
+    override function beatHit(beat:Int):Void {
+        #if ENGINE_SCRIPTING if (cancellableCall("onBeatHit", [beat])) return; #end
 
-        if (currentBeat != 0 && currentBeat % beatZoomInterval == 0) {
+        if (beat != 0 && beat % beatZoomInterval == 0) {
             camGame.zoom += camBeatZoom;
             camHUD.zoom += hudBeatZoom;
         }
 
-        gameDance(currentBeat);
+        gameDance(beat);
         hud.beatHit();
     }
 
-    override function measureHit(currentMeasure:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onMeasureHit", [currentMeasure])) return; #end
-        stage.measureHit(currentMeasure);
+    override function measureHit(measure:Int):Void {
+        #if ENGINE_SCRIPTING if (cancellableCall("onMeasureHit", [measure])) return; #end
+        stage.measureHit(measure);
     }
 
     public function pause():Void {
@@ -498,7 +498,7 @@ class PlayState extends MusicBeatState {
 
     inline public function openChartEditor():Void {
         Assets.clearAssets = Settings.get("reload assets");
-        FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(Conductor.time, 0) : 0));
+        FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(conductor.time, 0) : 0));
     }
 
     public function changeCamTarget(target:Int):Void {
@@ -534,17 +534,15 @@ class PlayState extends MusicBeatState {
     }
 
     public function startCountdown(ticks:Int = 4, changeBeat:Bool = true):Void {
-        if (changeBeat) {
-            Conductor.currentBeat = -(ticks + 1);
-            Conductor.interpTime = Conductor.time;
-        }
+        if (changeBeat)
+            conductor.beat = -(ticks + 1);
 
         countdownSprite = new FlxSprite();
         countdownSprite.cameras = [camHUD];
         countdownSprite.alpha = 0;
         add(countdownSprite);
 
-        new FlxTimer().start(Conductor.crochet * 0.001, (tmr) -> countdownTick(tmr.elapsedLoops - 1, ticks), ticks);
+        new FlxTimer().start(conductor.crochet * 0.001, (tmr) -> countdownTick(tmr.elapsedLoops - 1, ticks), ticks);
         // countdownTick(0, ticks);
     }
 
@@ -573,7 +571,7 @@ class PlayState extends MusicBeatState {
         countdownSprite.screenCenter();
 
         FlxTween.cancelTweensOf(countdownSprite);
-        FlxTween.tween(countdownSprite, {y: countdownSprite.y + 50 * (tick + 1), alpha: 0}, Conductor.crochet * 0.001, {
+        FlxTween.tween(countdownSprite, {y: countdownSprite.y + 50 * (tick + 1), alpha: 0}, conductor.crochet * 0.001, {
             ease: FlxEase.smootherStepInOut,
             onComplete: (!done) ? null : (_) -> {
                 remove(countdownSprite, true);
@@ -593,11 +591,11 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
+        conductor.music = music.instrumental;
         music.play(time);
-        Conductor.music = music.instrumental;
 
-        hud.onSongStart();
         stage.onSongStart();
+        hud.onSongStart();
     }
 
     public function endSong():Void {
@@ -606,7 +604,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        Conductor.music = null;
+        conductor.music = null;
         stage.onSongEnd();
         lossCounter = 0;
 
@@ -643,14 +641,14 @@ class PlayState extends MusicBeatState {
         }
     }
 
-    inline function gameDance(currentBeat:Int):Void {
-        player?.dance(currentBeat);
-        spectator?.dance(currentBeat);
+    inline function gameDance(beat:Int):Void {
+        player?.dance(beat);
+        spectator?.dance(beat);
 
         if (opponent != null && opponent != spectator)
-            opponent.dance(currentBeat);
+            opponent.dance(beat);
 
-        stage.beatHit(currentBeat);
+        stage.beatHit(beat);
     }
 
     inline function onKeyDown(rawKey:Int, _) {
@@ -716,7 +714,7 @@ class PlayState extends MusicBeatState {
         note.goodHit = true;
         note.missed = false; // just in case
 
-        music.vocalsVolume = 1;
+        music.playerVolume = 1;
         health += healthIncrement;
 
         var rating:Rating = note.findRating(ratings);
@@ -752,7 +750,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        checkVocalsVolume();
+        music.playerVolume = 1;
     }
 
     public function botplayNoteHit(note:Note):Void {
@@ -761,7 +759,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        checkVocalsVolume();
+        music.playerVolume = 1;
         health += healthIncrement;
     }
 
@@ -771,7 +769,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        checkVocalsVolume();
+        music.playerVolume = 1;
         health += healthIncrement;
     }
 
@@ -781,7 +779,7 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        checkVocalsVolume();
+        music.playerVolume = 1;
     }
 
     public function miss(note:Note):Void {
@@ -791,7 +789,7 @@ class PlayState extends MusicBeatState {
         #end
 
         combo = 0;
-        music.vocalsVolume = 0;
+        music.playerVolume = 0;
 
         score -= missScoreLoss;
         health -= healthLoss;
@@ -805,8 +803,8 @@ class PlayState extends MusicBeatState {
 
         if (spectator != null && spectator.animation.exists("sad")
             && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
+            spectator.animEndTime = (conductor.crochet / 1000);
             spectator.playAnimation("sad", true);
-            spectator.animEndTime = (Conductor.crochet / 1000);
         }
 
         FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(0.1, 0.2));
@@ -823,14 +821,9 @@ class PlayState extends MusicBeatState {
             else
                 player.holdTime = 0;
 
+            player.animEndTime = (conductor.crochet / 1000);
             player.currentDance = 0;
-            player.animEndTime = (Conductor.crochet / 1000);
         }
-    }
-
-    public inline function checkVocalsVolume():Void {
-        if (music.playing && music.vocalsVolume <= 0)
-            music.vocalsVolume = 1;
     }
 
     public function displayRating(rating:Rating):Void {
@@ -992,8 +985,7 @@ class PlayState extends MusicBeatState {
     }
 
     inline public function setTime(time:Float):Void {
-        Conductor.time = time;
-        Conductor.interpTime = Conductor.time;
+        conductor.time = time;
         startSong(time);
     }
 
