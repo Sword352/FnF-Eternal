@@ -141,7 +141,7 @@ class PauseScreen extends MusicBeatSubState {
             case "resume":
                 close();
             case "restart song":
-                Assets.clearAssets = Transition.openOnSubState = Settings.get("reload assets");
+                Assets.clearAssets = Transition.openOnSubState = Options.reloadAssets;
                 Transition.skipNextTransIn = Transition.skipNextTransOut = !Assets.clearAssets;
 
                 if (!Assets.clearAssets) FlxG.resetState();
@@ -151,7 +151,7 @@ class PauseScreen extends MusicBeatSubState {
                 }
             case "go to options":
                 Transition.openOnSubState = Transition.noPersistentUpdate = true;
-                Assets.clearAssets = Settings.get("reload assets");
+                Assets.clearAssets = Options.reloadAssets;
                 FlxG.switchState(OptionsMenu.new.bind(true));
             case "exit to menu":
                 Transition.openOnSubState = Transition.noPersistentUpdate = true;

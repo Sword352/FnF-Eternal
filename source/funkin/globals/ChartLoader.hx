@@ -212,7 +212,7 @@ class ChartLoader {
 
         if (data.song != null) {
             data = convertChart(data.song); // convert charts that uses fnf legacy format
-            #if sys overwrite = Settings.get("overwrite chart files"); #end
+            #if sys overwrite = Options.chartOverwrite; #end
         }
         
         finalChart = Chart.resolve(data);

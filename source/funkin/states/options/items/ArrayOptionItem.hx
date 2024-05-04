@@ -4,12 +4,12 @@ class ArrayOptionItem<V> extends BaseOptionItem<Array<V>> {
     public var list:Array<V>;
     var currentSelection:Int = 0;
 
-    public function new(option:String, list:Array<V>):Void {
-        super(option);
+    public function new(title:String, list:Array<V>, ?optionField:String):Void {
+        super(title, optionField);
 
         this.list = list;
-        currentSelection = list.indexOf(Settings.get(option));
-        updateText();
+        currentSelection = list.indexOf(Reflect.getProperty(Options, option));
+        updateText();   
     }
 
     override function updateValue(mult:Int):Void {

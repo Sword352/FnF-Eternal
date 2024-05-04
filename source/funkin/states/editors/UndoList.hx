@@ -35,6 +35,11 @@ class UndoList<V> extends FlxBasic {
         return redo;
     }
 
+    public function clear():Void {
+        undos.splice(0, undos.length);
+        redos.splice(0, redos.length);
+    }
+
     inline function filter(arr:Array<V>):Void {
         while (arr.length > max) arr.shift();
     }

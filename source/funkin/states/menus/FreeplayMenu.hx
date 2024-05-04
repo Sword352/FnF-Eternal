@@ -170,7 +170,7 @@ class FreeplayMenu extends MusicBeatState {
             if (items.length > 1 && controls.anyJustPressed(["up", "down"])) changeSelection(controls.lastAction == "up" ? -1 : 1);
             if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) changeDiff(controls.lastAction == "left" ? -1 : 1);
 
-            if (FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER && Settings.get("editor access")) {
+            if (Options.editorAccess && FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER) {
                 openChartEditor();
 
                 #if ENGINE_SCRIPTING
@@ -462,7 +462,7 @@ class Instructions extends FlxSpriteGroup {
         var sepScale:Float = 0.25;
         var sepY:Float = 0.65;
 
-        if (Settings.get("editor access")) {
+        if (Options.editorAccess) {
             instructionText.insert(1, "SHIFT + ENTER: open song in chart editor");
             sepScale = sepY = 0.5;
         }

@@ -10,7 +10,7 @@ import flixel.util.FlxDestroyUtil;
 
 import funkin.globals.Controls;
 import funkin.globals.HighScore;
-import funkin.globals.Settings;
+import funkin.globals.Options;
 import eternal.core.Assets;
 import eternal.tools.*;
 

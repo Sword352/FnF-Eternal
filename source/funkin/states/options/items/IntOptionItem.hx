@@ -7,10 +7,10 @@ class IntOptionItem extends BaseOptionItem<Int> {
 
     var value:Int;
 
-    public function new(option:String):Void {
-        super(option);
+    public function new(title:String, ?optionField:String):Void {
+        super(title, optionField);
 
-        value = Settings.get(option);
+        value = Reflect.getProperty(Options, option);
         updateText();
     }
 

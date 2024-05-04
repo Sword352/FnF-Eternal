@@ -260,15 +260,15 @@ class PlayState extends MusicBeatState {
         add(eventManager);
 
         hud = new GameplayUI();
+        hud.visible = !Options.hideUi;
         hud.cameras = [camHUD];
-        hud.visible = !Settings.get("hide user interface");
         add(hud);
 
-        if (Settings.get("downscroll")) {
+        if (Options.downscroll) {
             playerStrumline.downscroll = opponentStrumline.downscroll = true;
             playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
         }
-        if (Settings.get("centered strumline")) {
+        if (Options.centeredStrumline) {
             opponentStrumline.visible = false;
             playerStrumline.screenCenter(X);
         }
@@ -279,7 +279,7 @@ class PlayState extends MusicBeatState {
         ratingSprites = new FlxTypedSpriteGroup<RatingSprite>();
         comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
 
-        if (Settings.get("judgements on user interface")) {
+        if (Options.uiJudgements) {
             var index:Int = members.indexOf(strumLines);
             ratingSprites.cameras = comboSprites.cameras = [camHUD];
             insert(index, ratingSprites);
@@ -389,11 +389,11 @@ class PlayState extends MusicBeatState {
             DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (conductor.time * 0.001));
         #end
 
-        if (controls.justPressed("accept") && subState == null)
+        if (subState == null && controls.justPressed("accept"))
             pause();
 
         if (gameMode != STORY) {
-            if (controls.justPressed("debug") && Settings.get("editor access")) {
+            if (Options.editorAccess && controls.justPressed("debug")) {
                 if (gameMode != DEBUG) {
                     gameMode = DEBUG;
                     validScore = false;
@@ -497,7 +497,7 @@ class PlayState extends MusicBeatState {
     }
 
     inline public function openChartEditor():Void {
-        Assets.clearAssets = Settings.get("reload assets");
+        Assets.clearAssets = Options.reloadAssets;
         FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(conductor.time, 0) : 0));
     }
 
@@ -730,7 +730,7 @@ class PlayState extends MusicBeatState {
         if (rating.displayCombo && combo > 0)
             displayCombo(combo);
 
-        if (rating.displayNoteSplash && !Settings.get("disable note splashes"))
+        if (rating.displayNoteSplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note.direction);
 
         if (rating.causesMiss)
@@ -816,7 +816,7 @@ class PlayState extends MusicBeatState {
 
     public inline function playMissAnimation(direction:Int, hold:Bool = false):Void {
         for (player in playerStrumline.characters) {
-            if (!hold || player.animation.name != (player.singAnimations[direction] + "miss") || !Settings.get("disable hold stutter"))
+            if (!hold || player.animation.name != (player.singAnimations[direction] + "miss") || !Options.noHoldStutter)
                 player.sing(direction, "miss");
             else
                 player.holdTime = 0;
@@ -834,7 +834,7 @@ class PlayState extends MusicBeatState {
 
         if (rating.image == null) return;
 
-        if (Settings.get("disable combo stacking")) {
+        if (Options.noComboStack) {
             for (spr in ratingSprites)
                 spr.kill();
         }
@@ -845,7 +845,7 @@ class PlayState extends MusicBeatState {
         sprite.updateHitbox();
 
         sprite.setPosition(ratingSprites.x, ratingSprites.y);
-        if (Settings.get("judgements on user interface"))
+        if (Options.uiJudgements)
             sprite.screenCenter();
 
         // is sorting faster? will think of it later
@@ -860,11 +860,11 @@ class PlayState extends MusicBeatState {
         #end
 
         var separatedCombo:String = Std.string(combo);
-        if (!Settings.get("simplify combo number"))
+        if (!Options.simplifyComboNum)
             while (separatedCombo.length < 3)
                 separatedCombo = "0" + separatedCombo;
 
-        if (Settings.get("disable combo stacking")) {
+        if (Options.noComboStack) {
             for (spr in comboSprites)
                 spr.kill();
         }
@@ -875,12 +875,13 @@ class PlayState extends MusicBeatState {
             sprite.scale.set(0.5, 0.5);
             sprite.updateHitbox();
 
-            if (Settings.get("judgements on user interface")) {
+            if (!Options.uiJudgements)
+                sprite.setPosition(ratingSprites.x + 43 * (i + 3), ratingSprites.y + 140);
+            else {
                 sprite.screenCenter();
                 sprite.x += 43 * (i + 1);
                 sprite.y += 140;
-            } else
-                sprite.setPosition(ratingSprites.x + 43 * (i + 3), ratingSprites.y + 140);
+            }   
 
             comboSprites.remove(sprite, true);
             comboSprites.insert(comboSprites.length + 1, sprite);

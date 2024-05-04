@@ -112,11 +112,11 @@ class ChartPlayState extends MusicBeatSubState {
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(onMiss);
 
-        if (Settings.get("downscroll")) {
+        if (Options.downscroll) {
             playerStrumline.downscroll = opponentStrumline.downscroll = true;
             playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
         }
-        if (Settings.get("centered strumline")) {
+        if (Options.centeredStrumline) {
             opponentStrumline.visible = false;
             playerStrumline.screenCenter(X);
         }
@@ -221,7 +221,7 @@ class ChartPlayState extends MusicBeatSubState {
         if (rating.displayCombo && combo > 0)
             displayCombo();
 
-        if (rating.displayNoteSplash && !Settings.get("disable note splashes"))
+        if (rating.displayNoteSplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note.direction);
 
         playerStrumline.hitNote(note);
@@ -256,11 +256,11 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function displayCombo():Void {
         var separatedCombo:String = Std.string(combo);
-        if (!Settings.get("simplify combo number"))
+        if (!Options.simplifyComboNum)
             while (separatedCombo.length < 3)
                 separatedCombo = "0" + separatedCombo;
 
-        if (Settings.get("disable combo stacking")) {
+        if (Options.noComboStack) {
             for (spr in comboSprites)
                 spr.kill();
         }
@@ -282,7 +282,7 @@ class ChartPlayState extends MusicBeatSubState {
     inline function displayRating(rating:Rating):Void {
         if (rating.image == null) return;
 
-        if (Settings.get("disable combo stacking")) {
+        if (Options.noComboStack) {
             for (spr in ratingSprites)
                 spr.kill();
         }

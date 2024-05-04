@@ -350,7 +350,7 @@ class StoryMenu extends MusicBeatState {
         FlxG.sound.play(Assets.sound("confirmMenu"));
 
         weekSprites.members[currentSelection].color = FlxColor.CYAN;
-        doFlash = !Settings.get("disable flashing lights");
+        doFlash = !Options.noFlashingLights;
 
         for (character in characters)
             if (character.animation.exists("confirm"))

@@ -11,5 +11,11 @@
             <!-- var name="arrow-left" value="images/small_arrow_dark_left.png" /> -->
             <!-- var name="arrow-right" value="images/small_arrow_dark_right.png" /> -->
         </eternal>
+
+        <!--
+        <eternal-light >
+            <style resource="root/style.css" />
+        </eternal-light>
+        -->
     </themes>
 </module>

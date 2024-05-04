@@ -89,7 +89,7 @@ class ChartSubScreen extends FlxSubState {
 
         if (!bpmChanged) {
             if (stepsChanged) parent.reloadGrid();
-            else if (beatsChanged) parent.refreshMeasureMark();
+            else if (beatsChanged) parent.checkerboard.refreshMeasureSep();
         }
 
         if (stepsChanged || beatsChanged) {
@@ -213,7 +213,7 @@ class ChartSubScreen extends FlxSubState {
 
         showMeasures.onChange = (_) -> {
             Settings.settings["CHART_measureMark"].value = showMeasures.selected;
-            parent.measureBackdrop.visible = showMeasures.selected;
+            parent.measureSep.visible = showMeasures.selected;
         }
 
         // beat indicators

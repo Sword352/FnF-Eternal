@@ -115,14 +115,14 @@ class Controls {
         return false;
     }
 
-    public function listKeys(keybind:String, ?seperator:String = ", "):String {
+    public function listKeys(keybind:String, ?separator:String = ", "):String {
         var list:Array<String> = [];
 
         for (key in keybinds[keybind][0])
             if (key != NONE && key != ANY)
                 list.push(FlxKey.toStringMap.get(key));
 
-        return list.join(seperator);
+        return list.join(separator);
     }
 
     public function loadControls():Void {

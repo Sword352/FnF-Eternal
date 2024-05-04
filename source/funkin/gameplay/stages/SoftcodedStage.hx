@@ -271,7 +271,7 @@ class SoftcodedStage extends Stage {
             }
         }
 
-        if (!Settings.get("judgements on user interface"))
+        if (!Options.uiJudgements)
             game.ratingSprites.setPosition(ratingPos[0], ratingPos[1]);
     }
 

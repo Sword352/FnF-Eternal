@@ -89,14 +89,13 @@ class InitState extends FlxState {
         #end
 
         // Load save data
-        Settings.load();
-        HighScore.load();
+        OptionsManager.load();
         SongProgress.load();
+        HighScore.load();
 
         #if ENGINE_MODDING
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen
-        if (Mods.mods.length < 1)
-            return;
+        if (Mods.mods.length == 0) return;
         #end
 
         // Go to the titlescreen

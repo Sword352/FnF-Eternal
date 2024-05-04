@@ -6,6 +6,7 @@ import funkin.states.options.items.BaseOptionItem;
 class BaseOptionSubState extends MusicBeatSubState {
     var optionsGroup:FlxTypedGroup<BaseOptionItem<Any>>;
     var currentSelection:Int = 0;
+    var count:Int = 0;
 
     public function new():Void {
         super();
@@ -14,7 +15,7 @@ class BaseOptionSubState extends MusicBeatSubState {
 
     public function addOption(option:BaseOptionItem<Any>):Void {
         optionsGroup.add(option);
-        option.ID = optionsGroup.members.indexOf(option);
+        option.ID = count++;
     }
 
     override function create():Void {
@@ -71,7 +72,7 @@ class BaseOptionSubState extends MusicBeatSubState {
 
     inline function leave():Void {
         FlxG.sound.play(Assets.sound("cancelMenu"));
-        Settings.save();
+        OptionsManager.save();
         close();
     }
 }

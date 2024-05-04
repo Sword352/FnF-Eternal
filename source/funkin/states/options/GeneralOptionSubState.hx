@@ -10,45 +10,44 @@ class GeneralOptionSubState extends BaseOptionSubState {
     var sound:FlxSound;
 
     override function create():Void {
-        var option = new IntOptionItem("framerate");
+        var option = new IntOptionItem("Framerate");
         option.description = "Defines the framerate cap.";
         option.maxValue = 480;
         option.minValue = 30;
         addOption(option);
 
-        var option = new BoolOptionItem("silent soundtray");
+        var option = new BoolOptionItem("Silent Soundtray");
         option.description = "If enabled, increasing/decreasing the volume won't play a sound.";
         addOption(option);
 
-        var option = new BoolOptionItem("show framerate");
+        var option = new BoolOptionItem("Show Framerate");
         option.description = "If enabled, show the framerate in the framerate overlay.";
         addOption(option);
 
-        var option = new BoolOptionItem("show memory");
+        var option = new BoolOptionItem("Show Memory");
         option.description = "If enabled, show the memory usage in the framerate overlay.";
         addOption(option);
 
-        var option = new BoolOptionItem("show overlay background");
+        var option = new BoolOptionItem("Show Overlay Background", "showFpsBg");
         option.description = "If enabled, show an opaque background behind the framerate overlay.";
         addOption(option);
 
-        var option = new BoolOptionItem("auto pause");
+        var option = new BoolOptionItem("Auto Pause");
         option.description = "Whether to pause the game when the window is unfocused.";
         addOption(option);
 
-        var option = new BoolOptionItem("disable antialiasing");
+        var option = new BoolOptionItem("Disable Antialiasing", "noAntialiasing");
         option.description = "If enabled, disable antialiasing. Improves performance at the cost of\nsharper visuals.";
         option.onChange = onChangeAntialiasing;
         addOption(option);
 
         #if ENGINE_DISCORD_RPC
-        var option = new BoolOptionItem("disable discord rpc");
-        option.title = "Disable Discord RPC";
+        var option = new BoolOptionItem("Disable Discord RPC", "noDiscordRpc");
         option.description = "Whether to disable the Discord Rich Presence.";
         addOption(option);
         #end
 
-        var option = new BoolOptionItem("disable flashing lights");
+        var option = new BoolOptionItem("Disable Flashing Lights", "noFlashingLights");
         option.description = "Whether to disable flashing lights. It is highly recommended to\nenable this option if you are epileptical!";
         addOption(option);
 
@@ -86,7 +85,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
 
     override function changeSelection(i:Int = 0) {
         super.changeSelection(i);
-        FlxG.mouse.visible = boyfriend.visible = (optionsGroup.members[currentSelection].option == "disable antialiasing");
+        FlxG.mouse.visible = boyfriend.visible = (optionsGroup.members[currentSelection].option == "noAntialiasing");
     }
 
     override function beatHit(beat:Int):Void {

@@ -3,6 +3,12 @@
 <vbox width="100%" height="35" >
     <menubar width="100%" height="35" id="menuBar">        
         <menu text="File">
+            <!--
+            <menu-item text="Open Chart..." id="openChart" />
+            <menu text="Change Difficulty..." id="changeDiff" />
+            <menu-separator />
+            -->
+
             <menu-item text="Save Chart" id="saveChart" shortcutText="CTRL+S" />
             <menu text="Save Chart...">
                 <menu-item text="Without Gameplay Info" id="saveChart_noGameplay" />
@@ -36,6 +42,7 @@
         <menu text="View">
             <menu-item text="Preferences" id="viewPrefs" />
             <menu-item text="Events" id="viewEvents" />
+            <!-- menu text="Theme" id="viewTheme" /> -->
         </menu>
 
         <menu text="Notes">

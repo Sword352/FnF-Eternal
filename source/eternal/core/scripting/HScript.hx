@@ -25,7 +25,7 @@ class HScript {
         #if ENGINE_DISCORD_RPC "DiscordPresence" => DiscordPresence, #end
 
         // Funkin
-        "Settings" => Settings,
+        "Options" => Options,
         "Conductor" => Conductor,
         "OffsetSprite" => funkin.objects.OffsetSprite,
         "DancingSprite" => funkin.objects.DancingSprite,

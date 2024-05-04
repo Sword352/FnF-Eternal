@@ -46,11 +46,6 @@ class OptionsMenu extends MusicBeatState {
             {name: "Exit", action: exit, noSound: true},
         ];
 
-        #if ENGINE_MODDING
-        if (Settings.modSettings.length > 0)
-            categories.insert(4, {name: (Mods.currentMod.title ?? Mods.currentMod.id), action: goToModOptions});
-        #end
-
         #if ENGINE_SCRIPTING
         initStateScripts();
         hxsCall("onCreate");
@@ -61,7 +56,7 @@ class OptionsMenu extends MusicBeatState {
         }
         #end
 
-        Assets.clearAssets = !toPlayState || Settings.get("reload assets");
+        Assets.clearAssets = !toPlayState || Options.reloadAssets;
 
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "In the options";
@@ -216,12 +211,6 @@ class OptionsMenu extends MusicBeatState {
     inline function goToOffset():Void {
         openSubState(new OffsetSubState());
     }
-
-    #if ENGINE_MODDING
-    inline function goToModOptions():Void {
-        openSubState(new ModOptionSubState());
-    }
-    #end
 
     inline function goToDebug():Void {
         openSubState(new DebugOptionSubState());

@@ -10,13 +10,12 @@ class BoolOptionItem extends BaseOptionItem<Bool> {
     var skippedFrame:Bool = false;
     var value:Bool = false;
 
-    public function new(option:String):Void {
-        super(option);
-
-        value = Settings.get(option);
-        updateText();
-
+    public function new(title:String, ?optionField:String):Void {
+        super(title, optionField);
         inputs.push("accept");
+
+        value = Reflect.getProperty(Options, option);
+        updateText();
     }
 
     override function handleInputs(elapsed:Float):Void {

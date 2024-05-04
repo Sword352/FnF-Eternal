@@ -27,9 +27,14 @@ class ChartUI extends UIRuntimeFragment {
     inline function get_parent():ChartEditor
         return cast FlxG.state;
 
+    // var _voiceItems:Array<MenuItem> = [];
+
     var menuBar:MenuBar;
     var helpMenu:Menu;
     var pbMenu:Menu;
+
+    // var openChart:MenuItem;
+    // var changeDiff:Menu;
 
     var hitsoundItem:MenuItem;
     var hitsoundSlider:HorizontalSlider;
@@ -69,6 +74,7 @@ class ChartUI extends UIRuntimeFragment {
 
     var viewEvents:MenuItem;
     var viewPrefs:MenuItem;
+    // var viewTheme:Menu;
 
     var noteTypeMenu:Menu;
     var beatSnapMenu:Menu;
@@ -213,26 +219,26 @@ class ChartUI extends UIRuntimeFragment {
 
     @:bind(pbSlider, UIEvent.CHANGE)
     function pbSlider_change():Void {
-        Settings.settings["CHART_pitch"].value = pbSlider.pos;
+        parent.preferences.pitch = pbSlider.pos;
         pbItem.text = 'Playback Rate (${pbSlider.pos})';
         parent.music.pitch = pbSlider.pos;
     }
 
     @:bind(hitsoundSlider, UIEvent.CHANGE)
     function hitsoundSlider_change():Void {
-        Settings.settings["CHART_hitsoundVolume"].value = parent.hitsoundVolume = hitsoundSlider.pos;
+        parent.preferences.hitsoundVol = parent.hitsoundVolume = hitsoundSlider.pos;
         hitsoundItem.text = 'Hitsound Volume (${hitsoundSlider.pos * 100}%)';
     }
 
     @:bind(metronomeSlider, UIEvent.CHANGE)
     function metronomeSlider_change():Void {
-        Settings.settings["CHART_metronomeVolume"].value = parent.metronome.volume = metronomeSlider.pos;
+        parent.preferences.metronomeVol = parent.metronome.volume = metronomeSlider.pos;
         metronomeItem.text = 'Metronome Volume (${metronomeSlider.pos * 100}%)';
     }
 
     @:bind(muteInst, UIEvent.CHANGE)
     function muteInst_change():Void {
-        Settings.settings["CHART_muteInst"].value = muteInst.selected;
+        parent.preferences.muteInst = muteInst.selected;
         parent.music.instrumental.volume = (muteInst.selected) ? 0 : 1;
     }
 
@@ -266,34 +272,23 @@ class ChartUI extends UIRuntimeFragment {
     //
 
     override function onReady():Void {
-        pbSlider.pos = cast Settings.get("CHART_pitch");
-        pbItem.text = 'Playback Rate (${pbSlider.pos})';
+        var pbValue:Float = parent.preferences.pitch ?? 1;
+        pbItem.text = 'Playback Rate (${pbValue})';
+        pbSlider.pos = pbValue;
 
-        hitsoundSlider.pos = cast Settings.get("CHART_hitsoundVolume");
-        hitsoundItem.text = 'Hitsound Volume (${hitsoundSlider.pos * 100}%)';
+        var hitsoundValue:Float = parent.preferences.hitsoundVol ?? 0;
+        hitsoundItem.text = 'Hitsound Volume (${hitsoundValue * 100}%)';
+        hitsoundSlider.pos = hitsoundValue;
 
-        metronomeSlider.pos = cast Settings.get("CHART_metronomeVolume");
-        metronomeItem.text = 'Metronome Volume (${metronomeSlider.pos * 100}%)';
+        var metronomeValue:Float = parent.preferences.metronomeVol ?? 0;
+        metronomeItem.text = 'Metronome Volume (${metronomeValue * 100}%)';
+        metronomeSlider.pos = metronomeValue;
 
-        muteInst.selected = Settings.get("CHART_muteInst");
+        muteInst.selected = parent.preferences.muteInst ?? false;
 
-        // manually create menu items for voices
-        if (parent.chart.gameplayInfo.voices != null) {
-            for (i in 0...parent.chart.gameplayInfo.voices.length) {    
-                var checkbox:CheckBox = new CheckBox();
-                checkbox.selected = (parent.music.voices[i].volume < 1);
-                checkbox.onChange = (_) -> {
-                    parent.music.voices[i].volume = (checkbox.selected ? 0 : 1);
-                };
-                
-                var item:MenuItem = new MenuItem();
-                item.text = 'Mute Voice "${parent.chart.gameplayInfo.voices[i]}"';
-                item.addComponent(checkbox);
-                pbMenu.addComponent(item);
-            }
-        }
+        // manually create components for some stuff
+        createVoiceItems();
 
-        // manually create items for notetypes
         var allNoteTypes:Array<String> = ["Default"];
 
         for (i in 0...parent.noteTypes.length) {
@@ -323,8 +318,8 @@ class ChartUI extends UIRuntimeFragment {
             item.addComponent(optionBox);
             noteTypeMenu.addComponent(item);
         }
+        //
 
-        // manually create items for beat snap
         var snaps:Array<Int> = [4, 8, 12, 16, 20, 24, 32, 48, 64, 94, 192];
 
         for (snap in snaps) {
@@ -347,6 +342,50 @@ class ChartUI extends UIRuntimeFragment {
             item.addComponent(optionBox);
             beatSnapMenu.addComponent(item);
         }
+        //
+
+        /*
+        var enums:Array<ChartTheme> = Type.allEnums(ChartTheme);
+        var themes:Array<String> = [for (enumDecl in enums) Tools.capitalize(Std.string(enumDecl))];
+
+        for (i in 0...themes.length) {
+            var theme:String = themes[i];
+
+            var item:MenuItem = new MenuItem();
+            item.text = theme;
+
+            var optionBox:OptionBox = new OptionBox();
+            optionBox.componentGroup = "theme_optionboxes";
+            optionBox.selected = (theme == "Dark");
+
+            item.onClick = (_) -> {
+                parent.theme = enums[i];
+                optionBox.selected = true;
+            }
+
+            item.addComponent(optionBox);
+            viewTheme.addComponent(item);
+        }
+        //
+
+        var chartPath:String = Assets.getPath('songs/${parent.chart.meta.folder}/charts/', NONE);
+        var difficulties:Array<String> = FileTools.readDirectory(chartPath).map((f) -> f.substring(0, f.indexOf(".")));
+
+        for (difficulty in difficulties) {
+            var item:MenuItem = new MenuItem();
+            item.text = Tools.capitalize(difficulty);
+            item.disabled = (difficulty == parent.difficulty);
+
+            item.onClick = (_) -> {
+                for (it in changeDiff.findComponents(MenuItem)) it.disabled = false;
+                item.disabled = true;
+                
+                parent.reloadChart(difficulty);
+            };
+
+            changeDiff.addComponent(item);
+        }
+        */
         //
 
         prefDialog = new PreferenceDialog();
@@ -391,6 +430,35 @@ class ChartUI extends UIRuntimeFragment {
 
     public function refreshEvent():Void {
         eventDialog.refresh();
+    }
+
+    public function createVoiceItems():Void {
+        /*
+        while (_voiceItems.length != 0)
+            pbMenu.removeComponent(_voiceItems.pop());
+        */
+
+        if (parent.chart.gameplayInfo.voices != null) {
+            for (i in 0...parent.chart.gameplayInfo.voices.length) {    
+                var checkbox:CheckBox = new CheckBox();
+                checkbox.selected = (parent.music.voices[i].volume < 1);
+                checkbox.onChange = (_) -> {
+                    parent.music.voices[i].volume = (checkbox.selected ? 0 : 1);
+                };
+                
+                var item:MenuItem = new MenuItem();
+                item.text = 'Mute Voice "${parent.chart.gameplayInfo.voices[i]}"';
+                item.addComponent(checkbox);
+                pbMenu.addComponent(item);
+
+                // _voiceItems.push(item);
+            }
+        }
+    }
+
+    override function destroy():Void {
+        // _voiceItems = null;
+        super.destroy();
     }
 }
 
@@ -525,12 +593,12 @@ class EventDialog extends CollapsibleDialog {
 }
 
 @:xml('
-<dialog title="Preferences" width="250" height="150" >
-    <scrollview width="100%" height="100%" contentWidth="100%" >
+<dialog title="Preferences" width="250" height="150">
+    <scrollview width="100%" height="100%" contentWidth="100%">
         <vbox width="100%">
             <checkbox text="Late Note Transparency" id="lateNote" />
-            <checkbox text="Strumline Scroll Snap" id="lineSnap" />
-            <checkbox text="Show Measure Marks" id="measureMarks" />
+            <checkbox text="Show Beat Separators" id="beatSep" />
+            <checkbox text="Show Measure Separators" id="measureSep" />
             <checkbox text="Show Beat Indicators" id="beatIndices" />
             <checkbox text="Show Time Overlay" id="timeOverlay" />
             <checkbox text="Show Receptors" id="receptors" />
@@ -546,33 +614,35 @@ class PreferenceDialog extends CollapsibleDialog {
     public function new():Void {
         super();
 
-        lateNote.selected = Settings.get("CHART_lateAlpha");
-        lineSnap.selected = Settings.get("CHART_strumlineSnap");
-        measureMarks.selected = Settings.get("CHART_measureMark");
-        beatIndices.selected = Settings.get("CHART_beatIndices");
-        timeOverlay.selected = Settings.get("CHART_timeOverlay");
-        receptors.selected = Settings.get("CHART_receptors");
+        lateNote.selected = parent.hasLateAlpha;
+        beatSep.selected = cast parent.preferences.beatSep ?? true;
+        measureSep.selected = cast parent.preferences.measureSep ?? true;
+        beatIndices.selected = cast parent.preferences.beatIndices ?? false;
+        timeOverlay.selected = cast parent.preferences.timeOverlay ?? true;
+        receptors.selected = cast parent.preferences.receptors ?? false;
     }
 
     @:bind(lateNote, UIEvent.CHANGE)
     function lateNote_change(_):Void {
-        Settings.settings["CHART_lateAlpha"].value = lateNote.selected;
+        parent.preferences.lateAlpha = lateNote.selected;
+        parent.hasLateAlpha = lateNote.selected;
     }
 
-    @:bind(lineSnap, UIEvent.CHANGE)
-    function lineSnap_change(_):Void {
-        Settings.settings["CHART_strumlineSnap"].value = lineSnap.selected;
+    @:bind(beatSep, UIEvent.CHANGE)
+    function beatSep_change(_):Void {
+        parent.checkerboard.beatSep.visible = beatSep.selected;
+        parent.preferences.beatSep = beatSep.selected;
     }
 
-    @:bind(measureMarks, UIEvent.CHANGE)
-    function measureMarks_change(_):Void {
-        Settings.settings["CHART_measureMark"].value = measureMarks.selected;
-        parent.measureBackdrop.visible = measureMarks.selected;
+    @:bind(measureSep, UIEvent.CHANGE)
+    function measureSep_change(_):Void {
+        parent.checkerboard.measureSep.visible = measureSep.selected;
+        parent.preferences.measureSep = measureSep.selected;
     }
 
     @:bind(beatIndices, UIEvent.CHANGE)
     function beatIndices_change(_):Void {
-        Settings.settings["CHART_beatIndices"].value = beatIndices.selected;
+        parent.preferences.beatIndices = beatIndices.selected;
         parent.beatIndicators.visible = beatIndices.selected;
     }
 
@@ -580,12 +650,12 @@ class PreferenceDialog extends CollapsibleDialog {
     function timeOverlay_change(_):Void {
         parent.overlay.visible = parent.musicText.visible = timeOverlay.selected;
         parent.timeBar.hidden = parent.timeBar.disabled = !timeOverlay.selected;
-        Settings.settings["CHART_timeOverlay"].value = timeOverlay.selected;
+        parent.preferences.timeOverlay = timeOverlay.selected;
     }
 
     @:bind(receptors, UIEvent.CHANGE)
     function receptors_change(_):Void {
-        Settings.settings["CHART_receptors"].value = receptors.selected;
+        parent.preferences.receptors = receptors.selected;
         parent.receptors.visible = receptors.selected;
     }
 }

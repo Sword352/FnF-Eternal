@@ -84,15 +84,14 @@ class OffsetSubState extends MusicBeatSubState {
         if (controls.anyPressed(["left", "right"])) {
             holdTime += elapsed * 5;
             if (holdTime > ((FlxG.keys.pressed.SHIFT) ? 0.0015 : 0.5)) {
-                Settings.settings["audio offset"].value += ((controls.lastAction == "left") ? -1 : 1);
-                conductor.offset = cast Settings.settings["audio offset"].value;
+                Options.audioOffset += (controls.lastAction == "left" ? -1 : 1);
                 refreshText();
                 holdTime = 0;
             }
         }
 
         if (controls.justPressed("back")) {
-            Settings.save();
+            OptionsManager.save();
             close();
         }
 
@@ -113,7 +112,8 @@ class OffsetSubState extends MusicBeatSubState {
     }
 
     inline function refreshText():Void {
-        offsetText.text = '< Offset: ${conductor.offset}ms (${(conductor.offset > 0) ? "LATE" : ((conductor.offset == 0) ? "DEFAULT" : "EARLY")}) >';
+        var offset:Float = Options.audioOffset;
+        offsetText.text = '< Offset: ${offset}ms (${(offset > 0) ? "LATE" : ((offset == 0) ? "DEFAULT" : "EARLY")}) >';
         offsetText.screenCenter(X);
     }
 

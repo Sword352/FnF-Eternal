@@ -26,11 +26,11 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
 
     var holdTime:Float = 0;
 
-    public function new(option:String):Void {
+    public function new(title:String, ?optionField:String):Void {
         super();
 
-        this.option = option;
-        this.title = Tools.capitalize(option);
+        this.option = optionField ?? formatOption(title);
+        this.title = title;
 
         background = new FlxSprite();
         background.makeRect(FlxG.width - 200, FlxG.height - 500, FlxColor.BLACK, false, "optionmenu_rect");
@@ -103,8 +103,10 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
     function updateText():Void {}
 
     function saveValue(value:Any):Void {
-        Settings.settings[option].value = value;
-        if (onChange != null) onChange(value);
+        Reflect.setProperty(Options, option, value);
+
+        if (onChange != null)
+            onChange(value);
     }
 
     inline function repositionValueText():Void {
@@ -135,5 +137,18 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         if (v != null)
             descriptionText.text = v;
         return description = v;
+    }
+
+    // convert option title to snake case field
+    inline function formatOption(option:String):String {
+        var output:String = option.toLowerCase();
+        if (!output.contains(" ")) return output;
+
+        var parts:Array<String> = output.split(" ");
+
+        for (i in 1...parts.length)
+            parts[i] = Tools.capitalize(parts[i]);
+
+        return parts.join("");
     }
 }

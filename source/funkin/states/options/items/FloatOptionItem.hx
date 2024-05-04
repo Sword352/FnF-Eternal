@@ -9,10 +9,10 @@ class FloatOptionItem extends BaseOptionItem<Float> {
 
     var value:Float;
 
-    public function new(option:String):Void {
-        super(option);
+    public function new(title:String, ?optionField:String):Void {
+        super(title, optionField);
 
-        value = Settings.get(option);
+        value = Reflect.getProperty(Options, option);
         updateText();
     }
 

@@ -128,7 +128,7 @@ class GameOverScreen extends MusicBeatSubState {
             return;
         #end
 
-        Assets.clearAssets = Settings.get("reload assets");
+        Assets.clearAssets = Options.reloadAssets;
         allowInputs = false;
 
         conductor.music = null;

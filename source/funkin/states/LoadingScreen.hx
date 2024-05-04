@@ -225,7 +225,7 @@ class LoadingScreen extends FlxState {
             }
 
             var toPreload:Array<Array<String>> = [note, strum];
-            if (!Settings.get("disable note splashes")) toPreload.push(splash);
+            if (!Options.noNoteSplash) toPreload.push(splash);
             for (data in toPreload) Assets.image(data[0], data[1]);
 
             preloaded.push(skin);

@@ -30,6 +30,13 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
         super();
     }
 
+    public function clearNotes():Void {
+        forEachAlive((note) -> note.kill());
+        currentNotes.splice(0, currentNotes.length);
+        aliveSprites.splice(0, aliveSprites.length);
+        lastSelectedNote = null;
+    }
+
     override public function forEachAlive(func:DebugNote->Void, recursive:Bool = false):Void {
         for (note in aliveSprites) func(note);
     }
@@ -241,11 +248,9 @@ class DebugNote extends SelectableSprite {
     }
 
     override function update(elapsed:Float):Void {
-        var applyAlpha:Bool = Settings.get("CHART_lateAlpha");
+        var editor:ChartEditor = cast FlxG.state;
 
-        sustain.visible = (data.length != 0);
-
-        if (sustain.visible) {
+        if (data.length != 0) {
             if (!FlxG.mouse.pressedRight || !FlxG.mouse.overlaps(sustain) || FlxG.mouse.y < sustain.y + height * 0.5) {
                 sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.self.stepCrochet) - 0.5));
             }
@@ -256,7 +261,7 @@ class DebugNote extends SelectableSprite {
 
             sustain.updateHitbox();
 
-            if (applyAlpha) {
+            if (editor.hasLateAlpha) {
                 var normalized:Float = (sustain.height - alphaY) / sustain.height;
                 alphaShader.rectHeight.value[0] = normalized;
                 alphaShader.rectY.value[0] = 1 - normalized;
@@ -267,7 +272,7 @@ class DebugNote extends SelectableSprite {
             }
         }
 
-        alpha = (applyAlpha && data.time < Conductor.self.time ? ChartEditor.lateAlpha : 1);
+        alpha = (editor.hasLateAlpha && data.time < Conductor.self.time ? ChartEditor.lateAlpha : 1);
 
         #if FLX_DEBUG
 		flixel.FlxBasic.activeCount++;

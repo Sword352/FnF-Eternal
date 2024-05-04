@@ -60,7 +60,7 @@ class Note extends OffsetSprite {
     public var lateAlpha:Float = 0.3;
     public var sustainAlpha:Float = 0.6;
 
-    public var holdBehindStrum:Bool = Settings.get("hold notes behind receptors");
+    public var holdBehindStrum:Bool = Options.holdBehindStrums;
     public var quantizeSustain:Bool = false;
     public var baseVisible:Bool = true;
 
@@ -71,7 +71,7 @@ class Note extends OffsetSprite {
     public var killIfLate:Bool = true;
     public var noStrumFollow:Bool = false;
 
-    public var scrollMult(get, default):Float = ((Settings.get("downscroll")) ? -1 : 1);
+    public var scrollMult(get, default):Float = (Options.downscroll ? -1 : 1);
     public var scrollSpeed(get, default):Float = 1;
     public var distance(get, default):Float = 0;
 

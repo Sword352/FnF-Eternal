@@ -8,14 +8,14 @@
 - Finish the FNF modpack port
 
 ### Medium Priority
+- V-Slice chart format support
 - Allow difficulties to be changed in the pause menu (freeplay only)
 - Allow multi-events (2 or more events having the same time value)
+- Do all of the TODO stuff that can be found in the code
 
-- Finish the chart editor
 - Finish the crash handler rework
 - Finish the key formatting in `KeybindItem#formatKey`
-
-- Do all of the TODO stuff that can be found in the code
+- Finish the chart editor
 
 ### Low Priority
 - Add a multi-atlas feature and implement auto atlas type finding to all softcoded sprites

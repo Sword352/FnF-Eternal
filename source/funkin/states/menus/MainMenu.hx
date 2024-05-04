@@ -67,7 +67,7 @@ class MainMenu extends MusicBeatState {
         background.screenCenter();
         add(background);
 
-        if (!Settings.get("disable flashing lights")) {
+        if (!Options.noFlashingLights) {
             flicker = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
             flicker.scrollFactor.set(0, background.scrollFactor.y);
             flicker.color = 0xFFfd719b;

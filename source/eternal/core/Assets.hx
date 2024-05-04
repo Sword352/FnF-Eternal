@@ -36,13 +36,13 @@ class Assets {
         return getGraphic('images/${file}', library);
 
     public inline static function music(file:String, ?library:String):Sound
-        return getSound('music/${file}', Settings.get("audio streaming"), library);
+        return getSound('music/${file}', Options.audioStreaming, library);
 
     public inline static function sound(file:String, ?library:String):Sound
         return getSound('sounds/${file}', false, library);
 
     public inline static function songMusic(song:String, file:String, ?library:String):Sound
-        return getSound('songs/${song}/music/${file}', Settings.get("audio streaming"), library);
+        return getSound('songs/${song}/music/${file}', Options.audioStreaming, library);
 
     public inline static function json(file:String, ?library:String):String
         return getPath(file, JSON, library);

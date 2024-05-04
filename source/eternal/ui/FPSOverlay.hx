@@ -37,9 +37,9 @@ class FPSOverlay extends Sprite {
         text.y = 2.5;
         text.x = 5;
 
-        showBg = Settings.get("show overlay background");
-        showFps = Settings.get("show framerate");
-        showMem = Settings.get("show memory");
+        showBg = Options.showFpsBg;
+        showFps = Options.showFramerate;
+        showMem = Options.showMemory;
 
         FlxG.signals.gameResized.add((_, _) -> updateRelativePosition());
 

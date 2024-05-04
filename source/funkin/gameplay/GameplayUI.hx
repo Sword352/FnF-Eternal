@@ -9,7 +9,7 @@ import funkin.objects.HealthBar;
 import funkin.objects.HealthIcon;
 
 class GameplayUI extends FlxSpriteGroup {
-    public var smoothHealth:Bool = Settings.get("smooth health bar");
+    public var smoothHealth:Bool = Options.smoothHealth;
     public var scoreDivider:String = "   ";
     public var healthDisplay:Float = 1;
     public var iconSpacing:Float = 20;
@@ -53,14 +53,14 @@ class GameplayUI extends FlxSpriteGroup {
 
         scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
 
-        if (Settings.get("time mark type") != "none") {
+        if (Options.timeMark != NONE) {
             timeDisplay = new FlxText(0, 0, FlxG.width);
             timeDisplay.setFormat(scoreText.font, 22, FlxColor.WHITE, CENTER);
             timeDisplay.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.6);
             add(timeDisplay);
         }
 
-        repositionUI(Settings.get("downscroll"));
+        repositionUI(Options.downscroll);
     }
 
     override function update(elapsed:Float):Void {
@@ -85,10 +85,10 @@ class GameplayUI extends FlxSpriteGroup {
             var length:Float = game.music.instrumental.length;
             var time:Float = game.music.instrumental.time;
 
-            var base:String = switch (Settings.get("time mark type")) {
-                case "full": FlxStringUtil.formatTime(time * 0.001) + " / " + FlxStringUtil.formatTime(length * 0.001);
-                case "elapsed time": FlxStringUtil.formatTime(time * 0.001);
-                default: FlxStringUtil.formatTime((length - time) * 0.001);
+            var base:String = switch (Options.timeMark) {
+                case FULL: FlxStringUtil.formatTime(time * 0.001) + " / " + FlxStringUtil.formatTime(length * 0.001);
+                case ELAPSED_TIME: FlxStringUtil.formatTime(time * 0.001);
+                default: FlxStringUtil.formatTime((length - time) * 0.001); // = LEFT_TIME
             }
 
             timeDisplay.text = "- " + base + " -";

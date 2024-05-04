@@ -17,7 +17,7 @@ class Conductor extends FlxBasic {
     public var timeApprox:Float = 0; 
 
     public var playbackRate(get, default):Float = 1;
-    public var offset:Float = Settings.get("audio offset");
+    public var offset:Float = 0;
 
     public var enableInterpolation:Bool = false;
     // increase each frames by the delta time, used for smoother visuals
@@ -147,6 +147,7 @@ class Conductor extends FlxBasic {
         enableInterpolation = false;
         playbackRate = 1;
         music = null;
+        offset = 0;
 
         beatsPerMeasure = 4;
         stepsPerBeat = 4;
@@ -193,7 +194,7 @@ class Conductor extends FlxBasic {
         return rawTime = v;
     }
 
-    function get_time():Float         return rawTime - offset;
+    function get_time():Float         return rawTime - Options.audioOffset - offset;
     function get_playbackRate():Float return music?.pitch ?? playbackRate;
     function get_measureLength():Int  return stepsPerBeat * beatsPerMeasure;
 

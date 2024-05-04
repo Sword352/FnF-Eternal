@@ -292,7 +292,7 @@ class TitleScreen extends MusicBeatState {
     }
 
     inline function flash():Void
-        camera.flash((Settings.get("disable flashing lights")) ? FlxColor.BLACK : FlxColor.WHITE);
+        camera.flash(Options.noFlashingLights ? FlxColor.BLACK : FlxColor.WHITE);
 
     function setupFromData(data:Dynamic):Void {
         if (data == null) {

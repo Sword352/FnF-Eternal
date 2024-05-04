@@ -178,8 +178,12 @@ class MetadataScreen extends UIRuntimeSubState {
     override function close():Void {
         // dont reload if the bpm is not the same, as it's done automatically
         if (storedBPM == parent.chart.gameplayInfo.bpm) {
-            if (reloadSPB) parent.reloadGrid();
-            else if (reloadBPM) parent.refreshMeasureMark();
+            if (reloadSPB) {
+                parent.checkerboard.refreshBeatSep();
+                parent.reloadGrid();
+            }
+            else if (reloadBPM)
+                parent.checkerboard.refreshMeasureSep();
         }
 
         super.close();

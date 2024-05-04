@@ -23,7 +23,7 @@ class StrumLine extends FlxGroup {
     public var skin(default, set):String;
 
     public var holdKeys:Array<Bool> = [false, false, false, false];
-    public var ghostTap:Bool = Settings.get("ghost tapping");
+    public var ghostTap:Bool = Options.ghostTapping;
     public var cpu:Bool = false;
 
     public var onNoteHit:FlxTypedSignal<Note->Void> = new FlxTypedSignal<Note->Void>();
@@ -45,7 +45,7 @@ class StrumLine extends FlxGroup {
         receptors = new FlxTypedGroup<Receptor>();
         add(receptors);
 
-        if (!Settings.get("disable note splashes") && !cpu)
+        if (!Options.noNoteSplash && !cpu)
             createSplashes();
 
         notes = new FlxTypedGroup<Note>();
@@ -228,7 +228,7 @@ class StrumLine extends FlxGroup {
         if (note.noSingAnim) return;
 
         for (character in characters) {
-            if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Settings.get("disable hold stutter"))
+            if (!note.isSustainNote || note.baseVisible || character.animation.name != character.singAnimations[note.direction] || !Options.noHoldStutter)
                 character.sing(note.direction, note.animSuffix);
             else
                 character.holdTime = 0;
