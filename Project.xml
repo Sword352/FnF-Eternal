@@ -90,7 +90,7 @@
 
 		<!-- Run the import macro that will compile some additional classes -->
 		<!-- Comment this out if you wish to disable that! -->
-		<haxeflag name="--macro" value='eternal.core.scripting.HScriptInclude.addAdditionalClasses()' />
+		<haxeflag name="--macro" value='core.scripting.HScriptInclude.addAdditionalClasses()' />
 	</section>
 
 	<!-- Required for HaxeUI states -->

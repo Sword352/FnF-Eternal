@@ -1,4 +1,4 @@
-package eternal;
+package;
 
 #if !macro
 import flixel.FlxG;
@@ -8,20 +8,20 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
 
-import funkin.globals.Controls;
-import funkin.globals.HighScore;
-import funkin.globals.Options;
-import eternal.core.Assets;
-import eternal.tools.*;
+import globals.Controls;
+import globals.HighScore;
+import globals.Options;
+import core.Assets;
+import tools.*;
 
-#if ENGINE_MODDING import eternal.core.Mods; #end
-#if ENGINE_DISCORD_RPC import eternal.core.DiscordPresence; #end
+#if ENGINE_MODDING import core.Mods; #end
+#if ENGINE_DISCORD_RPC import core.DiscordPresence; #end
 
-import funkin.music.Conductor;
-import funkin.music.MusicBeatState;
-import funkin.states.PlayState;
-import funkin.states.Transition;
+import music.Conductor;
+import music.MusicBeatState;
+import states.PlayState;
+import states.Transition;
 
-using eternal.tools.Tools;
+using tools.Tools;
 using StringTools;
 #end

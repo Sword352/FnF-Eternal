@@ -3,15 +3,15 @@ package;
 import flixel.FlxGame;
 import flixel.FlxState;
 
-import funkin.globals.NoteSkin;
-import funkin.globals.SongProgress;
-import funkin.states.menus.TitleScreen;
+import globals.NoteSkin;
+import globals.SongProgress;
+import states.menus.TitleScreen;
 
-import eternal.ui.SoundTray;
-import eternal.ui.FPSOverlay;
+import ui.SoundTray;
+import ui.FPSOverlay;
 
 #if ENGINE_CRASH_HANDLER
-import eternal.core.crash.CrashHandler;
+import core.crash.CrashHandler;
 #end
 
 import openfl.ui.Keyboard;
