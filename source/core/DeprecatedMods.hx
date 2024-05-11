@@ -7,7 +7,7 @@ import states.menus.ModExceptionScreen;
 import core.scripting.HScript;
 #end
 
-class Mods {
+class DeprecatedMods {
     public static final MODS_PATH:String = "mods/";
 
     public static var currentMod(default, null):Mod;

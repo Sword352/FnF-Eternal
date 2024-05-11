@@ -14,14 +14,37 @@ class ScriptPack {
     public function loadScriptsFrom(path:String):Void {
         var realPath:String = Assets.getPath('${path}/', NONE);
         if (!FileTools.exists(realPath) || !FileTools.isDirectory(realPath)) return;
+        _loadScripts(realPath);
+    }
 
+    public function loadScriptsGlobally(path:String):Void {
+        #if ENGINE_RUNTIME_ASSETS
+        var directories:Array<String> = Assets.listFiles((structure) -> {
+            var path:String = structure.getPath('${path}/', NONE);
+            structure.entryExists(path) ? path : null;
+        });
+
+        for (directory in directories)
+            _loadScripts(directory);
+        #else
+        loadScriptsFrom(path);
+        #end
+    }
+
+    public function loadScript(path:String):HScript {
+        var script:HScript = new HScript(path);
+        if (!script.alive) return null;
+        return addScript(script);
+    }
+
+    function _loadScripts(path:String):Void {
         var exts:Array<String> = SCRIPT.getExtensions();
 
-        for (entry in FileTools.readDirectory(realPath)) {
-            var fullPath:String = realPath + entry;
+        for (entry in FileTools.readDirectory(path)) {
+            var fullPath:String = path + entry;
 
             if (FileTools.isDirectory(fullPath)) {
-                loadScriptsFrom(path + "/" + entry);
+                _loadScripts(fullPath + "/");
                 continue;
             }
 
@@ -30,12 +53,6 @@ class ScriptPack {
                     loadScript(fullPath);
             }
         }
-    }
-
-    public function loadScript(path:String):HScript {
-        var script:HScript = new HScript(path);
-        if (!script.alive) return null;
-        return addScript(script);
     }
 
     public function addScript(script:HScript):HScript {
@@ -50,25 +67,25 @@ class ScriptPack {
         script.set("addScript", addScript);
 
         script.set("cancellableCall", cancellableCall);
-        script.set("hxsCall", hxsCall);
+        script.set("hxsCall", call);
 
         // TODO: better way, this should do it for now
         script.set("callFlag", canceller);
         //
         
-        script.set("hxsSet", hxsSet);
+        script.set("hxsSet", set);
 
         scripts.push(script);
         return script;
     }
 
-    public function hxsSet(key:String, obj:Dynamic):Void {
+    public function set(key:String, obj:Dynamic):Void {
         for (i in scripts)
             i.set(key, obj);
         imports.set(key, obj);
     }
 
-    public function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic {
+    public function call(func:String, ?args:Array<Dynamic>):Dynamic {
         if (scripts == null || scripts.length == 0) return null;
 
         var returnValue:Dynamic = null;
@@ -84,7 +101,7 @@ class ScriptPack {
         if (scripts == null || scripts.length == 0) return false;
 
         canceller.cancelled = false;
-        hxsCall(func, args);
+        call(func, args);
 
         return canceller.cancelled;
     }

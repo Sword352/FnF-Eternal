@@ -393,33 +393,38 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     public static function loadFreeplaySongs():Array<SongStructure> {
-        var listPath:String = Assets.txt("data/freeplaySongs");
-        if (!FileTools.exists(listPath)) return null;
+        var lists:Array<String> = Assets.listFiles((structure) -> {
+            var path:String = structure.getPath("data/freeplaySongs", TEXT);
+            structure.entryExists(path) ? structure.getContent(path) : null;
+        });
+
+        if (lists.length == 0) return null;
 
         var list:Array<SongStructure> = [];
-        var content:Array<String> = FileTools.getContent(listPath).split("\n");
 
-        for (line in content) {
-            var song:String = line.trim();
-
-            var metaPath:String = Assets.json('songs/${song}/meta');
-            if (!FileTools.exists(metaPath)) continue;
-
-            var meta:SongMeta = Json.parse(FileTools.getContent(metaPath));
-            if (meta.freeplayInfo?.parentWeek != null && !SongProgress.unlocked(meta.freeplayInfo.parentWeek, true))
-                continue;
-
-            var color:FlxColor = FlxColor.WHITE;
-            if (meta.freeplayInfo?.color != null)
-                color = Tools.getColor(meta.freeplayInfo.color);
-
-            list.push({
-                name: meta.name ?? song,
-                folder: song,
-                icon: meta.freeplayInfo?.icon ?? HealthIcon.DEFAULT_ICON,
-                difficulties: meta.difficulties ?? ["Easy", "Normal", "Hard"],
-                color: color
-            });
+        for (content in lists) {
+            for (line in content.split("\n")) {
+                var song:String = line.trim();
+    
+                var metaPath:String = Assets.json('songs/${song}/meta');
+                if (!FileTools.exists(metaPath)) continue;
+    
+                var meta:SongMeta = Json.parse(FileTools.getContent(metaPath));
+                if (meta.freeplayInfo?.parentWeek != null && !SongProgress.unlocked(meta.freeplayInfo.parentWeek, true))
+                    continue;
+    
+                var color:FlxColor = FlxColor.WHITE;
+                if (meta.freeplayInfo?.color != null)
+                    color = Tools.getColor(meta.freeplayInfo.color);
+    
+                list.push({
+                    name: meta.name ?? song,
+                    folder: song,
+                    icon: meta.freeplayInfo?.icon ?? HealthIcon.DEFAULT_ICON,
+                    difficulties: meta.difficulties ?? ["Easy", "Normal", "Hard"],
+                    color: color
+                });
+            }
         }
 
         return list;

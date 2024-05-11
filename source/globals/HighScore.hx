@@ -10,9 +10,11 @@ class HighScore {
     };
 
     public static function set(song:String, data:ScoreMeasure):Void {
+        /*
         #if ENGINE_MODDING
         song = Mods.currentMod.id + "_" + song;
         #end
+        */
 
         var original:ScoreMeasure = scoreMap.get(song) ?? defaultMeasure;
 
@@ -23,9 +25,11 @@ class HighScore {
     }
 
     public static function get(song:String):ScoreMeasure {
+        /*
         #if ENGINE_MODDING
         song = Mods.currentMod.id + "_" + song;
         #end
+        */
 
         return scoreMap.get(song) ?? defaultMeasure;
     }

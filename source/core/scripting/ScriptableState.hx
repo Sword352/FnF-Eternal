@@ -86,6 +86,9 @@ class ScriptableState extends TransitionState {
     public inline function loadScriptsFrom(path:String):Void
         scriptPack.loadScriptsFrom(path);
 
+    public inline function loadScriptsGlobally(path:String):Void
+        scriptPack.loadScriptsGlobally(path);
+
     public inline function loadScript(path:String):HScript
         return scriptPack.loadScript(path);
 
@@ -93,10 +96,10 @@ class ScriptableState extends TransitionState {
         return scriptPack.addScript(script);
 
     public inline function hxsSet(key:String, obj:Dynamic):Void
-        scriptPack.hxsSet(key, obj);
+        scriptPack.set(key, obj);
 
     public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.hxsCall(func, args);
+        return scriptPack.call(func, args);
 
     public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
         return scriptPack.cancellableCall(func, args);
@@ -165,6 +168,9 @@ class ScriptableSubState extends FlxSubState {
     public inline function loadScriptsFrom(path:String):Void
         scriptPack.loadScriptsFrom(path);
 
+    public inline function loadScriptsGlobally(path:String):Void
+        scriptPack.loadScriptsGlobally(path);
+
     public inline function loadScript(path:String):HScript
         return scriptPack.loadScript(path);
 
@@ -172,10 +178,10 @@ class ScriptableSubState extends FlxSubState {
         return scriptPack.addScript(script);
 
     public inline function hxsSet(key:String, obj:Dynamic):Void
-        scriptPack.hxsSet(key, obj);
+        scriptPack.set(key, obj);
 
     public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.hxsCall(func, args);
+        return scriptPack.call(func, args);
 
     public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
         return scriptPack.cancellableCall(func, args);

@@ -4,9 +4,11 @@ class SongProgress {
     public static var container:Array<String> = [];
 
     public static function unlock(key:String, week:Bool = false):Void {
+        /*
         #if ENGINE_MODDING
         key = Mods.currentMod.id + "_" + key;
         #end
+        */
 
         var fullKey:String = (week ? "week_" : "song_") + key;
         if (container.contains(fullKey)) return;
@@ -16,9 +18,11 @@ class SongProgress {
     }
 
     public static function unlocked(key:String, week:Bool = false):Bool {
+        /*
         #if ENGINE_MODDING
         key = Mods.currentMod.id + "_" + key;
         #end
+        */
 
         return container.contains((week ? "week_" : "song_") + key);
     }

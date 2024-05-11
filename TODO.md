@@ -31,7 +31,6 @@
 ### After GB Release
 - Add note colors support
 - Playback rate feature (freeplay only)
-- Add the possibility to enable multiple mods (at the cost of getting some features disabled, like overridable states)
 
   **Future plans**
 - Add modchart tools?

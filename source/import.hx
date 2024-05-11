@@ -11,11 +11,11 @@ import flixel.util.FlxDestroyUtil;
 import globals.Controls;
 import globals.HighScore;
 import globals.Options;
-import core.Assets;
 import tools.*;
 
-#if ENGINE_MODDING import core.Mods; #end
+#if ENGINE_MODDING import core.mods.Mods; #end
 #if ENGINE_DISCORD_RPC import core.DiscordPresence; #end
+import core.assets.Assets;
 
 import music.Conductor;
 import music.MusicBeatState;

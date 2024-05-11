@@ -32,6 +32,7 @@ class FPSOverlay extends Sprite {
 
         text = new TextField();
         text.defaultTextFormat = new TextFormat("Monsterrat", 15, FlxColor.WHITE);
+        text.selectable = false;
         addChild(text);
 
         text.y = 2.5;

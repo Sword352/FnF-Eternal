@@ -94,7 +94,7 @@ class ChartLoader {
             meta: {
                 name: data.song,
                 folder: data.song.toLowerCase().replace(" ", "-"),
-                difficulties: ["easy", "normal", "hard"],
+                difficulties: ["Easy", "Normal", "Hard"],
                 gameplayInfo: gameplayInfo,
                 freeplayInfo: null
             },

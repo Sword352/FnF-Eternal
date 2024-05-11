@@ -93,10 +93,12 @@ class InitState extends FlxState {
         SongProgress.load();
         HighScore.load();
 
+        /*
         #if ENGINE_MODDING
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen
         if (Mods.mods.length == 0) return;
         #end
+        */
 
         // Go to the titlescreen
         Transition.skipNextTransIn = true;

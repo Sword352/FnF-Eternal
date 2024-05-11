@@ -1,4 +1,4 @@
-package core;
+package core.assets;
 
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
@@ -8,20 +8,15 @@ import openfl.display.BitmapData;
 import openfl.Assets as OpenFLAssets;
 import openfl.system.System;
 
-import lime.media.AudioBuffer;
-import lime.media.vorbis.VorbisFile;
-
 // TODO: maybe partially remove the graphic cache in favor of flixel's
 class Assets {
-    // Directories
-    public static final defaultDirectory:String = "assets/";
+    public static var clearAssets:Bool = true;
+    
+    public static final defaultAssetStructure:DefaultAssetStructure = new DefaultAssetStructure();
 
     #if ENGINE_RUNTIME_ASSETS
-    public static var currentDirectory:String = defaultDirectory;
+    public static final assetStructures:Array<AssetStructure> = [];
     #end
-
-    // Asset cache
-    public static var clearAssets:Bool = true;
 
     static final loadedGraphics:Map<String, FlxGraphic> = [];
     static final loadedSounds:Map<String, Sound> = [];
@@ -68,13 +63,13 @@ class Assets {
     #end
 
     public inline static function getSparrowAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromSparrow(image(file, library), resolveAtlasData(xml('images/${file}', library)));
+        return FlxAtlasFrames.fromSparrow(image(file, library), resolveAtlasData('images/${file}', XML, library));
 
     public inline static function getPackerAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromSpriteSheetPacker(image(file, library), resolveAtlasData(txt('images/${file}', library)));
+        return FlxAtlasFrames.fromSpriteSheetPacker(image(file, library), resolveAtlasData('images/${file}', TEXT, library));
 
     public inline static function getAseAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromAseprite(image(file, library), resolveAtlasData(json('images/${file}', library)));
+        return FlxAtlasFrames.fromAseprite(image(file, library), resolveAtlasData('images/${file}', JSON, library));
 
     public inline static function getFrames(file:String, ?type:String, ?library:String):FlxAtlasFrames {
         return switch ((type ?? "").toLowerCase().trim()) {
@@ -91,28 +86,48 @@ class Assets {
         return null;
     }
 
-    public static function getPath(file:String, type:AssetType, ?library:String):String {
-        var basePath:String = file;
-        if (library != null)
-            basePath = '${library}/' + file;
+    public static inline function getPath(file:String, type:AssetType, ?library:String):String {
+        return getStructure(file, type, library).getPath(file, type, library);
+    }
 
+    public static function getStructure(file:String, type:AssetType, ?library:String):AssetStructure {
         #if ENGINE_RUNTIME_ASSETS
-        var modPath:String = type.cycleExtensions(currentDirectory + basePath);
-        if (FileTools.exists(modPath))
-            return modPath;
+        for (structure in assetStructures) {
+            var path:String = structure.getPath(file, type, library);
+            if (structure.entryExists(path)) return structure;
+        }
         #end
 
-        return type.cycleExtensions(defaultDirectory + basePath);
+        return defaultAssetStructure;
+    }
+
+    public static function listFiles(method:AssetStructure->String):Array<String> {
+        var output:Array<String> = [];
+
+        var defaultString:String = method(defaultAssetStructure);
+        if (defaultString != null) output.push(defaultString);
+
+        for (structure in assetStructures) {
+            var string:String = method(structure);
+            if (string != null) output.push(string);
+        }
+
+        return output;
     }
 
     public static function filterPath(path:String, type:AssetType):String {
         var extensions:Array<String> = type.getExtensions();
-        var ext:String = extensions.pop();
+        var output:String = null;
 
-        while (!FileTools.exists(path + ext) && extensions.length > 0)
-            ext = extensions.pop();
+        while (extensions.length != 0) {
+            var current:String = path + extensions.pop();
+            if (FileTools.exists(current)) {
+                output = current;
+                break;
+            }
+        }
 
-        return path + ext;
+        return output;
     }
 
     // Asset handling & cache
@@ -147,9 +162,10 @@ class Assets {
     }
 
     public static function createGraphic(path:String, ?library:String, ?key:String):FlxGraphic {
-        var realPath:String = getPath(path, IMAGE, library);
+        var structure:AssetStructure = getStructure(path, IMAGE, library);
+        var realPath:String = structure.getPath(path, IMAGE, library);
+        var bitmap:BitmapData = structure.createBitmapData(realPath);
 
-        var bitmap:BitmapData = #if ENGINE_RUNTIME_ASSETS BitmapData.fromFile(realPath) #else OpenFLAssets.getBitmapData(realPath) #end;
         if (bitmap == null) {
             trace('Invalid graphic path "${realPath}"!');
             return null;
@@ -161,35 +177,15 @@ class Assets {
     }
 
     public static function createSound(path:String, ?library:String, stream:Bool = false):Sound {
-        var realPath:String = getPath(path, SOUND, library);
+        var structure:AssetStructure = getStructure(path, SOUND, library);
+        var realPath:String = structure.getPath(path, SOUND, library);
 
-        /*
-        if (realPath.contains(":"))
-            realPath = realPath.substring(realPath.indexOf(":") + 1);
-        */
-
-        if (!FileTools.exists(realPath)) {
+        if (!structure.entryExists(realPath)) {
             trace('Invalid sound path "${realPath}"!');
             return null;
         }
 
-        var sound:Sound = null;
-        
-        if (stream) {
-            // var bytes:haxe.io.Bytes = #if ENGINE_RUNTIME_ASSETS sys.io.File.getBytes(realPath) #else OpenFLAssets.getBytes(realPath) #end ;
-            // using fromBytes is broken for now... (TODO: do not use filesystem if ENGINE_RUNTIME_ASSETS is disabled)
-
-            var buffer:AudioBuffer = AudioBuffer.fromVorbisFile(VorbisFile.fromFile(realPath));
-            sound = Sound.fromAudioBuffer(buffer);
-        }
-        else {
-            #if ENGINE_RUNTIME_ASSETS 
-            sound = Sound.fromFile(realPath);
-            #else
-            sound = OpenFLAssets.getSound(realPath);
-            #end
-        }
-
+        var sound:Sound = (stream) ? structure.createSoundStream(realPath) : structure.createSound(realPath);
         OpenFLAssets.cache.setSound(path, sound);
         return sound;
     }
@@ -200,12 +196,10 @@ class Assets {
     public inline static function registerGraphic(key:String, asset:FlxGraphic):Void
         loadedGraphics.set(key, asset);
 
-    inline static function resolveAtlasData(key:String):String {
-        #if ENGINE_RUNTIME_ASSETS
-        return (key.startsWith(currentDirectory) && currentDirectory != defaultDirectory) ? FileTools.getContent(key) : key;
-        #else
-        return key;
-        #end
+    public static function resolveAtlasData(path:String, type:AssetType, library:String):String {
+        var structure:AssetStructure = getStructure(path, type, library);
+        var path:String = structure.getPath(path, type, library);
+        return structure.getAtlasData(path);
     }
 
     // Assets clearing
@@ -284,6 +278,7 @@ enum abstract AssetType(String) from String to String {
     #if ENGINE_SCRIPTING
     var SCRIPT = "script";
     #end
+
     #if VIDEO_CUTSCENES
     var VIDEO = "video";
     #end
@@ -304,19 +299,12 @@ enum abstract AssetType(String) from String to String {
             #if ENGINE_SCRIPTING
             case SCRIPT: [".hx", ".hxs", ".hscript"];
             #end
+            
             #if VIDEO_CUTSCENES
             case VIDEO:  [".mp4", ".webm", ".mov", ".avi"];
             #end
 
             case NONE: [""];
         }
-    }
-
-    public function cycleExtensions(path:String):String {
-        for (ext in getExtensions())
-            if (FileTools.exists(path + ext))
-                return path + ext;
-
-        return path;
     }
 }

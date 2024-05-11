@@ -1,5 +1,6 @@
 package states.menus;
 
+/*
 import flixel.FlxCamera;
 import flixel.text.FlxText;
 import objects.CheckerboardBG;
@@ -371,3 +372,4 @@ class ModItem extends FlxSprite {
     }
 }
 #end
+*/

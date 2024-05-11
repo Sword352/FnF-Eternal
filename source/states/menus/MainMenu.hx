@@ -86,8 +86,8 @@ class MainMenu extends MusicBeatState {
             'Eternal Engine v${Tools.gameVersion}${devState}');
         bottomText.setFormat(Assets.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
-        bottomText.scrollFactor.set();
         bottomText.y = FlxG.height - bottomText.height;
+        bottomText.scrollFactor.set();
         add(bottomText);
 
         items = new FlxSpriteGroup();
@@ -150,7 +150,7 @@ class MainMenu extends MusicBeatState {
 
             #if ENGINE_MODDING
             if (subState == null && controls.justPressed("open mods"))
-                openSubState(new ModsMenu());
+                openSubState(new core.mods.ModsOverlay());
             #end
         }
 

@@ -41,7 +41,7 @@ class GameplayOptionSubState extends BaseOptionSubState {
         addOption(option);
 
         var option = new BoolOptionItem("Judgements On User Interface", "uiJudgements");
-        option.description = "If enabled, show combo and ratings on the user interface instead of the\ngame world, making them easier to read.";
+        option.description = "If enabled, show combo and ratings on the user interface instead of the game\nworld, making them easier to read.";
         addOption(option);
 
         var option = new BoolOptionItem("Simplify Combo Number", "simplifyComboNum");

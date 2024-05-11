@@ -105,9 +105,11 @@ class ResetScoreScreen extends MusicBeatSubState {
             var song:String = '${rawName}-${difficulty}';
             if (story) song += "_story";
 
+            /*
             #if ENGINE_MODDING
             song = Mods.currentMod.id + "_" + song;
             #end
+            */
 
             HighScore.scoreMap.set(song, HighScore.defaultMeasure);
         }

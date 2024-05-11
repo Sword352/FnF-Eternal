@@ -37,7 +37,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         addOption(option);
 
         var option = new BoolOptionItem("Disable Antialiasing", "noAntialiasing");
-        option.description = "If enabled, disable antialiasing. Improves performance at the cost of\nsharper visuals.";
+        option.description = "If enabled, disable antialiasing. Improves performance at the cost of sharper\nvisuals.";
         option.onChange = onChangeAntialiasing;
         addOption(option);
 
@@ -48,7 +48,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         #end
 
         var option = new BoolOptionItem("Disable Flashing Lights", "noFlashingLights");
-        option.description = "Whether to disable flashing lights. It is highly recommended to\nenable this option if you are epileptical!";
+        option.description = "Whether to disable flashing lights. It is highly recommended to enable this\noption if you are epileptical!";
         addOption(option);
 
         boyfriend = new FlxSprite(0, 0, Assets.image("menus/options/options-bf"));

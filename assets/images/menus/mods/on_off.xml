@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="on_off.png">
+	<!-- Created with Adobe Animate version 23.0.1.70 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="off0000" x="9" y="9" width="35" height="37"/>
+	<SubTexture name="off0001" x="9" y="9" width="35" height="37"/>
+	<SubTexture name="off0002" x="53" y="9" width="35" height="37"/>
+	<SubTexture name="off0003" x="53" y="9" width="35" height="37"/>
+	<SubTexture name="on0000" x="10" y="56" width="34" height="33"/>
+	<SubTexture name="on0001" x="10" y="56" width="34" height="33"/>
+	<SubTexture name="on0002" x="54" y="56" width="34" height="33"/>
+	<SubTexture name="on0003" x="54" y="56" width="34" height="33"/>
+</TextureAtlas>

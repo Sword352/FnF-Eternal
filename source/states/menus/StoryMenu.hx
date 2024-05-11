@@ -307,7 +307,8 @@ class StoryMenu extends MusicBeatState {
     }
 
     function updateDifficultySprite():Void {
-        var graphic = Assets.image('menus/story/${difficulties[currentDifficulty]}');
+        // TODO: do not lowercase the difficulty (this is a temporary workaround for openfl assets)
+        var graphic = Assets.image('menus/story/${difficulties[currentDifficulty].toLowerCase()}');
         if (difficultySprite.graphic == graphic) return;
 
         FlxTween.cancelTweensOf(difficultySprite);
@@ -378,27 +379,22 @@ class StoryMenu extends MusicBeatState {
     }
 
     public static function loadWeeks():Array<WeekStructure> {
-        var allWeeks:String = Assets.getPath("data/weeks", NONE);
+        var directories:Array<String> = Assets.listFiles((structure) -> {
+            var path:String = structure.getPath("data/weeks", NONE);
+            structure.entryExists(path) ? path : null;
+        });
 
-        if (!FileTools.exists(allWeeks) || !FileTools.isDirectory(allWeeks))
-            return null;
+        if (directories.length == 0) return null;
 
         var list:Array<WeekStructure> = [];
-
         var foundWeeks:Array<String> = [];
-        var orderPath:String = Assets.txt("data/weeks/weekOrder");
 
-        if (FileTools.exists(orderPath)) {
-            foundWeeks = FileTools.getContent(orderPath).split("\n").map((f) -> {
-                f = f.trim();
-                if (!f.endsWith(".yaml") && !f.endsWith(".yml"))
-                    f += ".yml";
-                return f;
-            });
-        } else foundWeeks = FileTools.readDirectory(allWeeks);
+        for (directory in directories)
+            for (entry in FileTools.readDirectory(directory))
+                foundWeeks.push(FileTools.getContent(directory + "/" + entry));
 
         for (file in foundWeeks) {
-            var data = Tools.parseYAML(FileTools.getContent(allWeeks + "/" + file));
+            var data = Tools.parseYAML(file);
 
             var songs:Array<WeekSong> = cast data.songs;
             if (songs == null || songs.length == 0) continue;
@@ -426,6 +422,20 @@ class StoryMenu extends MusicBeatState {
                 characters: data.characters
             });
         }
+
+        // TODO: reimplement back week orders without messing with mod orders.
+        /*
+        var orders:Array<String> = Assets.listFiles((structure) -> {
+            var path:String = structure.getPath("data/weeks/weekOrder", TEXT);
+
+            if (structure.entryExists(path)) {
+                allWeeks.remove(entry.getPath("data/weeks", NONE));
+                return structure.getContent(path);
+            }
+            
+            return null;
+        });
+        */
 
         return list;
     }
