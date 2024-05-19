@@ -9,6 +9,7 @@
 
 ### Medium Priority
 - V-Slice chart format support
+- Add jack detection to note inputs
 - Allow difficulties to be changed in the pause menu (freeplay only)
 - Allow multi-events (2 or more events having the same time value)
 - Do all of the TODO stuff that can be found in the code

@@ -23,7 +23,7 @@ class ChartPlayState extends MusicBeatSubState {
     var strumLines:Array<StrumLine>;
     var opponentStrumline:StrumLine;
     var playerStrumline:StrumLine;
-    var notes:Array<Note>;
+    var noteSpawner:NoteSpawner;
 
     var ratings:Array<Rating> = Rating.getDefaultList();
 
@@ -93,13 +93,15 @@ class ChartPlayState extends MusicBeatSubState {
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}');
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent);
-        opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed / parent.music.pitch;
-        add(opponentStrumline);
+        var noteSkinExists:Bool = parent.chart.gameplayInfo.noteSkins != null;
+        var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
+        var oppNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, oppNoteSkin);
+        opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed / parent.music.pitch;
+
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, plrNoteSkin);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
-        add(playerStrumline);
 
         if (playAsOpponent) {
             var temp:StrumLine = playerStrumline;
@@ -112,25 +114,27 @@ class ChartPlayState extends MusicBeatSubState {
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(onMiss);
 
+        strumLines = [opponentStrumline, playerStrumline];
+        if (playAsOpponent) strumLines.reverse();
+
+        noteSpawner = new NoteSpawner(strumLines, startTime);
+        add(noteSpawner);
+
+        add(opponentStrumline);
+        add(playerStrumline);
+
         if (Options.downscroll) {
-            playerStrumline.downscroll = opponentStrumline.downscroll = true;
             playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
         }
         if (Options.centeredStrumline) {
+            playerStrumline.x = FlxG.width / 2;
             opponentStrumline.visible = false;
-            playerStrumline.screenCenter(X);
         }
 
         createUI();
 
         opponentStrumline.tweenReceptors(0, 0.05);
         playerStrumline.tweenReceptors(0, 0.05);
-
-        strumLines = [opponentStrumline, playerStrumline];
-        if (playAsOpponent) strumLines.reverse();
-
-        // TODO: recycle notes
-        notes = ChartLoader.generateNotes(parent.chart, startTime, strumLines);
 
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
         FlxG.stage.application.window.onKeyUp.add(onKeyUp);
@@ -158,18 +162,8 @@ class ChartPlayState extends MusicBeatSubState {
             playerStrumline.cpu = !playerStrumline.cpu;
 
         parent.updateCurrentBPM();
-
-        while (notes.length > 0) {
-            var note:Note = notes[0];
-            if ((note.time - conductor.time) > (1800 / note.getScrollSpeed()))
-                break;
-
-            strumLines[note.strumline].addNote(note);
-            notes.shift();
-        }
-
-        updateUI();
         super.update(elapsed);
+        updateUI();
     }
 
     override function stepHit(step:Int):Void
@@ -222,7 +216,7 @@ class ChartPlayState extends MusicBeatSubState {
             displayCombo();
 
         if (rating.displayNoteSplash && !Options.noNoteSplash)
-            playerStrumline.popSplash(note.direction);
+            playerStrumline.popSplash(note);
 
         playerStrumline.hitNote(note);
     }
@@ -382,16 +376,12 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function destroy():Void {
-        while (notes.length > 0)
-            notes.pop().destroy();
-
         while (ratings.length > 0)
             ratings.pop().destroy();
 
         strumLines = null;
         startTimer = null;
         ratings = null;
-        notes = null;
         icons = null;
 
         FlxG.stage.application.window.onKeyDown.remove(onKeyDown);

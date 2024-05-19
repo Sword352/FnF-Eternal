@@ -10,10 +10,6 @@ class Receptor extends OffsetSprite {
     public var centeredOffsets:Bool = true;
     public var direction:Int = 0;
 
-    public var scrollSpeed:Null<Float> = null;
-    public var scrollMult:Null<Float> = null;
-    public var dirAngle:Null<Float> = null;
-
     public function new(direction:Int = 0, skin:String = "default"):Void {
         super();
 
@@ -47,8 +43,9 @@ class Receptor extends OffsetSprite {
                     frames = Assets.getSparrowAtlas("notes/receptors");
 
                     var dir:String = Note.directions[direction];
-                    for (anim in mainAnimations)
+                    for (anim in mainAnimations) {
                         animation.addByPrefix('${anim} ${dir}', '${dir} ${anim}', 24, false);
+                    }
 
                     playAnimation("static", true);
 
@@ -57,6 +54,9 @@ class Receptor extends OffsetSprite {
 
                     centeredOffsets = true;
                     centerOffsets();
+
+                    antialiasing = FlxSprite.defaultAntialiasing;
+                    flipX = flipY = false;
                 default:
                     // softcoded noteskin
                     var config:NoteSkinConfig = NoteSkin.get(v);
@@ -67,7 +67,7 @@ class Receptor extends OffsetSprite {
                     var dir:String = Note.directions[direction];
 
                     NoteSkin.applyGenericSkin(this, skinData, "static " + dir, dir);
-                    centeredOffsets = (skinData.centeredOffsets ?? false);
+                    centeredOffsets = skinData.centeredOffsets ?? false;
             }
         }
 

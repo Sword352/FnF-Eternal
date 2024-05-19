@@ -3,7 +3,7 @@
     <h1 align="center">Friday Night Funkin': Eternal Engine</h1>
 </p>
 
-[Friday Night Funkin'](https://github.com/FunkinCrew/Funkin) rewrite and modding engine made from the ground up, offering a much cleaner code base. Aims to be a beginner-friendly modding framework, for both source and soft modding.
+[Friday Night Funkin'](https://github.com/FunkinCrew/Funkin) rewrite and modding engine made from the ground up. Aims to be a beginner-friendly modding framework, for both source and soft modding.
 
 - This project is in **alpha** state, some features such as dialogues are still missing.
 - Feedback is always appreciated and contribution is welcome.

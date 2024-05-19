@@ -30,6 +30,7 @@ class Splash extends OffsetSprite {
 
     override function update(elapsed:Float):Void {
         super.update(elapsed);
+        
         if (animation.curAnim.finished)
             kill();
     }
@@ -57,6 +58,9 @@ class Splash extends OffsetSprite {
                         }
                     }
 
+                    antialiasing = FlxSprite.defaultAntialiasing;
+                    flipX = flipY = false;
+
                     centeredOffsets = true;
                     maxVariation = 2;
 
@@ -64,6 +68,7 @@ class Splash extends OffsetSprite {
                     maxSpeed = 1.2;
                     alpha = 0.6;
 
+                    scale.set(1, 1);
                     pop(0);
                 default:
                     // softcoded noteskin

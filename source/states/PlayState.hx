@@ -51,6 +51,8 @@ class PlayState extends MusicBeatState {
     public var stage:Stage;
 
     public var strumLines:FlxTypedGroup<StrumLine>;
+    public var noteSpawner:NoteSpawner;
+
     public var opponentStrumline:StrumLine;
     public var playerStrumline:StrumLine;
 
@@ -98,8 +100,6 @@ class PlayState extends MusicBeatState {
     public var cameraTargets:Array<Character>;
     public var targetCharacter:Character;
 
-    public var notes:Array<Note> = [];
-
     public var validScore:Bool = (gameMode != DEBUG);
     public var startTime:Float;
 
@@ -111,8 +111,6 @@ class PlayState extends MusicBeatState {
     public var camFollow(get, set):FlxObject;
     public var camFollowPos(get, set):FlxPoint;
     public var defaultCamZoom(get, set):Float;
-
-    public var unspawnNotes(get, set):Array<Note>;
 
     inline function get_boyfriend():Character return player;
     inline function set_boyfriend(v:Character):Character return player = v;
@@ -131,9 +129,6 @@ class PlayState extends MusicBeatState {
 
     inline function get_camFollowPos():FlxPoint return camPos;
     inline function set_camFollowPos(v:FlxPoint):FlxPoint return camPos = v;
-
-    inline function get_unspawnNotes():Array<Note> return notes;
-    inline function set_unspawnNotes(v:Array<Note>):Array<Note> return notes = v;
 
     // ==============================================
 
@@ -185,7 +180,7 @@ class PlayState extends MusicBeatState {
         #end
 
         var noteSkinExists:Bool = song.gameplayInfo.noteSkins != null;
-        var playerNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
+        var plrNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
         var oppNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
         music = new SongPlayback(song.meta.folder);
@@ -230,14 +225,13 @@ class PlayState extends MusicBeatState {
             add(player);
 
             if (player.noteSkin != null)
-                playerNoteSkin = player.noteSkin;
+                plrNoteSkin = player.noteSkin;
         }
 
         cameraTargets = [opponent, spectator, player];
 
         strumLines = new FlxTypedGroup<StrumLine>();
         strumLines.cameras = [camHUD];
-        add(strumLines);
 
         opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, oppNoteSkin);
         opponentStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
@@ -245,7 +239,7 @@ class PlayState extends MusicBeatState {
         opponentStrumline.onHold.add(onOpponentHold);
         strumLines.add(opponentStrumline);
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, playerNoteSkin);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, plrNoteSkin);
         playerStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         playerStrumline.onNoteHit.add(botplayNoteHit);
         playerStrumline.onHold.add(onHold);
@@ -254,6 +248,10 @@ class PlayState extends MusicBeatState {
 
         if (opponent != null) opponentStrumline.characters.push(opponent);
         if (player != null) playerStrumline.characters.push(player);
+
+        noteSpawner = new NoteSpawner(strumLines.members, startTime);
+        add(noteSpawner);
+        add(strumLines);
 
         eventManager = new EventManager();
         eventManager.loadEvents(song.events);
@@ -265,12 +263,11 @@ class PlayState extends MusicBeatState {
         add(hud);
 
         if (Options.downscroll) {
-            playerStrumline.downscroll = opponentStrumline.downscroll = true;
             playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
         }
         if (Options.centeredStrumline) {
+            playerStrumline.x = FlxG.width / 2;
             opponentStrumline.visible = false;
-            playerStrumline.screenCenter(X);
         }
 
         if (gameMode == FREEPLAY)
@@ -289,16 +286,12 @@ class PlayState extends MusicBeatState {
             add(ratingSprites);
         }
 
-        // generates all of the notes
+        // look for notetype scripts
         #if ENGINE_SCRIPTING
         var types:Array<String> = [];
-        #end
 
-        for (data in song.notes) {
-            if (data.time < startTime) continue;
-
-            #if ENGINE_SCRIPTING
-            var type:String = data.type;
+        for (note in song.notes) {
+            var type:String = note.type;
             if (type != null && !types.contains(type)) {
                 if (!Note.defaultTypes.contains(type)) {
                     var path:String = Assets.script("scripts/notetypes/" + type);
@@ -307,23 +300,8 @@ class PlayState extends MusicBeatState {
 
                 types.push(type);
             }
-
-            if (cancellableCall("onNoteCreation", [data])) continue;
-            #end
-
-            var note:Note = new Note(data.time, data.direction, data.type, (data.strumline == 1) ? playerNoteSkin : oppNoteSkin);
-            note.parentStrumline = strumLines.members[data.strumline];
-            note.strumline = data.strumline;
-            note.length = data.length;
-            notes.push(note);
-
-            #if ENGINE_SCRIPTING
-            hxsCall("onNoteCreationPost", [note, data]);
-            #end
         }
-
-        notes.sort((n1, n2) -> Std.int(n1.time - n2.time));
-        //
+        #end
 
         FlxG.stage.application.window.onKeyDown.add(onKeyDown);
         FlxG.stage.application.window.onKeyUp.add(onKeyUp);
@@ -371,8 +349,6 @@ class PlayState extends MusicBeatState {
             return;
         #end
 
-        spawnNotes();
-
         super.update(elapsed);
 
         if (health <= minHealth && subState == null)
@@ -414,21 +390,6 @@ class PlayState extends MusicBeatState {
         #if ENGINE_SCRIPTING
         hxsCall("onUpdatePost", [elapsed]);
         #end
-    }
-
-    public inline function spawnNotes():Void {
-        // TODO: maybe move this into the note class?
-        while (notes.length > 0) {
-            var note:Note = notes[0];
-            if ((note.time - conductor.time) > ((1800 / note.getScrollSpeed()) + note.spawnTimeOffset))
-                break;
-
-            #if ENGINE_SCRIPTING hxsCall("onNoteSpawn", [note]); #end
-            strumLines.members[note.strumline].addNote(note);
-            #if ENGINE_SCRIPTING hxsCall("onNoteSpawnPost", [note]); #end
-
-            notes.shift();
-        }
     }
 
     override function stepHit(step:Int):Void {
@@ -731,7 +692,7 @@ class PlayState extends MusicBeatState {
             displayCombo(combo);
 
         if (rating.displayNoteSplash && !Options.noNoteSplash)
-            playerStrumline.popSplash(note.direction);
+            playerStrumline.popSplash(note);
 
         if (rating.causesMiss)
             miss(note);
@@ -799,7 +760,7 @@ class PlayState extends MusicBeatState {
         hud.updateScoreText();
 
         if (note != null && !note.noMissAnim)
-            playMissAnimation(note.direction, note.isSustainNote && !note.baseVisible);
+            playMissAnimation(note.direction, note.isSustainNote && !note.visible);
 
         if (spectator != null && spectator.animation.exists("sad")
             && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
@@ -943,11 +904,6 @@ class PlayState extends MusicBeatState {
 
         FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
         FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
-
-        // Destroy remaining notes
-        while (notes.length > 0)
-            notes.pop().destroy();
-        notes = null;
 
         while (ratings.length > 0)
             ratings.pop().destroy();

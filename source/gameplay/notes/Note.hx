@@ -2,11 +2,12 @@ package gameplay.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
-import flixel.math.FlxAngle;
 
-import globals.NoteSkin;
 import objects.TiledSprite;
 import objects.OffsetSprite;
+
+import globals.NoteSkin;
+import globals.ChartFormat.ChartNote;
 
 class Note extends OffsetSprite {
     public static final defaultTypes:Array<String> = ["Alt Animation", "No Animation"];
@@ -29,8 +30,8 @@ class Note extends OffsetSprite {
     public var strumline:Int = 0;
 
     public var length(default, set):Float = 0;
-    public var sustain(default, null):Sustain;
     public var isSustainNote(get, never):Bool;
+    public var sustain(default, set):Sustain;
 
     public var type(default, set):String;
     public var skin(default, set):String;
@@ -39,43 +40,22 @@ class Note extends OffsetSprite {
     public var noSingAnim:Bool = false;
     public var noMissAnim:Bool = false;
 
+    public var splashSkin:String = null;
     public var avoid:Bool = false;
+
     public var earlyHitMult:Float = 1;
     public var lateHitMult:Float = 1;
 
-    public var followX:Bool = true;
-    public var followY:Bool = true;
-    public var followAngle:Bool = true;
-    public var followAlpha:Bool = true;
-    public var followSpeed:Bool = true;
-
-    public var offsetX:Float = 0;
-    public var offsetY:Float = 0;
-    public var dirAngle(get, default):Float = 180;
-
-    public var lateKillOffset:Float = 0;
-    public var spawnTimeOffset:Float = 0;
-
     public var alphaMult:Float = 1;
-    public var lateAlpha:Float = 0.3;
     public var sustainAlpha:Float = 0.6;
 
     public var holdBehindStrum:Bool = Options.holdBehindStrums;
-    public var quantizeSustain:Bool = false;
-    public var baseVisible:Bool = true;
-
-    public var autoDistance:Bool = true;
-    public var autoClipSustain:Bool = true;
-    public var flipSustain:Bool = true;
     public var overrideSustain:Bool = false;
-    public var killIfLate:Bool = true;
-    public var noStrumFollow:Bool = false;
+    public var quantizeSustain:Bool = false;
 
-    public var scrollMult(get, default):Float = (Options.downscroll ? -1 : 1);
+    public var downscroll(get, default):Bool = Options.downscroll;
     public var scrollSpeed(get, default):Float = 1;
     public var distance(get, default):Float = 0;
-
-    public var downscroll(get, never):Bool;
 
     public function new(time:Float = 0, direction:Int = 0, type:String = null, skin:String = "default"):Void {
         super();
@@ -83,29 +63,43 @@ class Note extends OffsetSprite {
         this.time = time;
         this.direction = direction;
         this.type = type;
+        this.skin = skin;
 
-        // in case the notetype sets it
-        if (frames == null)
-            this.skin = skin;
-
-        resetPosition();
         moves = false;
     }
 
+    /**
+     * Reset this `Note`'s properties, making it ready to use for recycling.
+     * @param data The chart note data
+     * @return `this`
+     */
+    public function setup(data:ChartNote):Note {
+        time = data.time;
+        direction = data.direction;
+        strumline = data.strumline;
+        length = data.length;
+        type = data.type;
+
+        goodHit = false;
+        missed = false;
+        visible = true;
+
+        alphaMult = 1;
+        alpha = 1;
+
+        playAnimation(directions[direction], true);
+        updateHitbox();
+        
+        return this;
+    }
+
     public function follow(receptor:FlxSprite):Void {
-        var angleRad:Float = FlxAngle.asRadians(dirAngle - 90);
+        x = receptor.x;
+        y = receptor.y + distance;
+        alpha = receptor.alpha * alphaMult;
 
-        if (followX)
-            x = receptor.x + offsetX + distance * FlxMath.fastCos(angleRad);
-
-        if (followY)
-            y = receptor.y + offsetY + distance * FlxMath.fastSin(angleRad);
-
-        if (followAlpha) {
-            alpha = receptor.alpha * alphaMult;
-            if (isSustainNote)
-                sustain.alpha = sustainAlpha * alpha;
-        }
+        if (isSustainNote)
+            sustain.alpha = sustainAlpha * alpha;
     }
 
     public function clipSustain(receptor:FlxSprite):Void {
@@ -141,22 +135,19 @@ class Note extends OffsetSprite {
         return rating;
     }
 
-    public inline function resetPosition():Void {
-        // making sure it goes off screen
-        this.x = -FlxG.width;
-        this.y = -FlxG.height;
-    }
-
     public inline function resetTypeProps():Void {
         animSuffix = null;
-        earlyHitMult = lateHitMult = 1;
-        avoid = noSingAnim = noMissAnim = false;
+        splashSkin = null;
+        earlyHitMult = 1;
+        lateHitMult = 1;
+        noSingAnim = false;
+        noMissAnim = false;
+        overrideSustain = false;
+        avoid = false;
     }
 
-    public function getScrollSpeed(mult:Float = 1):Float {
-        var receptor:Receptor = parentStrumline?.receptors.members[direction];
-        var speed:Float = (followSpeed && parentStrumline != null) ? ((receptor.scrollSpeed ?? parentStrumline.scrollSpeed) * mult) : (@:bypassAccessor this.scrollSpeed);
-        return Math.abs(speed * scrollMult);
+    public inline function getScrollSpeed():Float {
+        return Math.abs(parentStrumline?.scrollSpeed ?? @:bypassAccessor this.scrollSpeed);
     }
 
     override function update(elapsed:Float):Void {
@@ -166,17 +157,15 @@ class Note extends OffsetSprite {
         super.update(elapsed);
     }
 
-    override function draw():Void {
-        if (isSustainNote && sustain.exists && sustain.visible && !holdBehindStrum)
-            sustain.draw();
-
-        if (baseVisible)
-            super.draw();
+    override function kill():Void {
+        sustain?.kill();
+        sustain = null;
+        super.kill();
     }
 
     override function destroy():Void {
-        sustain = FlxDestroyUtil.destroy(sustain);
         parentStrumline = null;
+        sustain = null;
         skin = null;
         type = null;
 
@@ -184,15 +173,15 @@ class Note extends OffsetSprite {
     }
 
     function set_length(v:Float):Float {
-        if (v >= 100) {
-            if (sustain == null)
-                sustain = new Sustain(this);
-        } else if (isSustainNote) {
-            sustain.destroy();
-            sustain = null;
-        }
-
+        if (v < 100) v = 0;
         return length = v;
+    }
+
+    function set_sustain(v:Sustain):Sustain {
+        if (v != null)
+            v.parent = this;
+
+        return sustain = v;
     }
 
     function set_type(v:String):String {
@@ -217,16 +206,25 @@ class Note extends OffsetSprite {
                 // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
-                    var dir:String = directions[direction];
-
                     frames = Assets.getSparrowAtlas("notes/notes");
-                    animation.addByPrefix(dir, '${dir}0', 0);
-                    animation.addByPrefix(dir + " hold", '${dir} hold piece', 0);
-                    animation.addByPrefix(dir + " tail", '${dir} hold end', 0);
-                    playAnimation(dir, true);
+
+                    for (dir in directions) {
+                        animation.addByPrefix(dir, '${dir}0', 0);
+                        animation.addByPrefix(dir + " hold", '${dir} hold piece', 0);
+                        animation.addByPrefix(dir + " tail", '${dir} hold end', 0);
+                    }
+
+                    playAnimation(directions[direction], true);
 
                     scale.set(0.7, 0.7);
                     updateHitbox();
+
+                    // make sure to reset some props for noteskin swapping.
+                    antialiasing = FlxSprite.defaultAntialiasing;
+                    flipX = flipY = false;
+
+                    quantizeSustain = false;
+                    sustainAlpha = 0.6;
                 default:
                     // softcoded noteskin
                     var config:NoteSkinConfig = NoteSkin.get(v);
@@ -244,35 +242,23 @@ class Note extends OffsetSprite {
         return skin = v;
     }
 
-    inline function get_distance():Float {
-        if (!autoDistance) return this.distance;
-
-        var timing:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
-        return FlxMath.signOf(scrollMult) * ((time - timing) * scrollSpeed);
-    }
-
     inline function get_scrollSpeed():Float
-        return getScrollSpeed(0.45);
-
-    inline function get_scrollMult():Float {
-        var receptor:Receptor = parentStrumline?.receptors.members[direction];
-        return (followSpeed && parentStrumline != null) ? (receptor.scrollMult ?? parentStrumline.scrollMult) : this.scrollMult;
-    }
-
-    inline function get_dirAngle():Float {
-        if (!followAngle) return this.dirAngle;
-        return (parentStrumline?.receptors.members[direction].dirAngle ?? parentStrumline?.dirAngle ?? this.dirAngle);
-    }
-
-    inline function get_late():Bool {
-        return this.late || (Conductor.self.time - time) > (safeZoneOffset * lateHitMult);
-    }
+        return getScrollSpeed() * 0.45;
 
     inline function get_downscroll():Bool
-        return scrollMult < 0;
+        return parentStrumline?.downscroll ?? this.downscroll;
 
     inline function get_isSustainNote():Bool
         return sustain != null;
+
+    function get_distance():Float {
+        var timing:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
+        return (downscroll ? -1 : 1) * ((time - timing) * scrollSpeed);
+    }
+
+    function get_late():Bool {
+        return this.late || (Conductor.self.time - time) > (safeZoneOffset * lateHitMult);
+    }
 
     function get_canBeHit():Bool {
         if (goodHit || missed)
@@ -297,7 +283,7 @@ class Note extends OffsetSprite {
 }
 
 class Sustain extends TiledSprite {
-    public var parent:Note;
+    public var parent(default, set):Note;
     public var tail:Tail;
 
     public function new(parent:Note):Void {
@@ -307,7 +293,6 @@ class Sustain extends TiledSprite {
         alpha = 0.6;
 
         this.parent = parent;
-        reloadGraphic();
     }
 
     override function update(elapsed:Float):Void {
@@ -325,6 +310,19 @@ class Sustain extends TiledSprite {
 
         if (tail.exists && tail.visible)
             tail.draw();
+    }
+
+    override function kill():Void {
+        tail.clipRect = null;
+        tail.kill();
+
+        clipRect = null;
+        super.kill();
+    }
+
+    override function revive():Void {
+        tail.revive();
+        super.revive();
     }
 
     override function destroy():Void {
@@ -348,13 +346,9 @@ class Sustain extends TiledSprite {
         setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
         if (parent.downscroll) y -= height;
 
-        // TODO: finish this
-        var angleRad:Float = FlxAngle.asRadians(parent.dirAngle - 90);
-        tail.x = x + height * FlxMath.fastCos(angleRad);
-        tail.y = y + ((parent.downscroll ? -tail.height : height) * FlxMath.fastSin(angleRad));
-        angle = tail.angle = parent.dirAngle - 180;
+        tail.setPosition(x, y + (parent.downscroll ? -tail.height : height));
 
-        var flip:Bool = (parent.flipSustain && parent.downscroll);
+        var flip:Bool = parent.downscroll;
         if (parent.flipY) flip = !flip;
         flipY = flip;
     }
@@ -362,7 +356,6 @@ class Sustain extends TiledSprite {
     public inline function reloadGraphic():Void {
         var dir:String = Note.directions[parent.direction];
 
-        // TODO: find a better solution (FlxTiledSprite does not support animations at the moment)
         frames = parent.frames;
         animation.copyFrom(parent.animation);
         animation.play(dir + " hold", true);
@@ -386,9 +379,13 @@ class Sustain extends TiledSprite {
         origin.set();
     }
 
-    override function set_height(v:Float):Float {
-        if (!regen) regen = (v != height && v > 0);
-        return height = v;
+    function set_parent(v:Note):Note {
+        parent = v;
+
+        if (v != null)
+            reloadGraphic();
+
+        return v;
     }
 
     override function set_antialiasing(v:Bool):Bool {

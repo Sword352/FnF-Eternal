@@ -3,10 +3,22 @@ package globals;
 import states.substates.GameOverScreen.GameOverData;
 
 @:structInit class Chart {
+    public static var current:Chart;
+
     public var notes:Array<ChartNote>;
     public var events:Array<ChartEvent>;
     public var gameplayInfo:GameplayInfo;
     public var meta:SongMeta;
+
+    public function new(notes:Array<ChartNote>, meta:SongMeta, gameplayInfo:GameplayInfo, events:Array<ChartEvent>):Void {
+        this.notes = notes;
+        this.events = events;
+        
+        this.gameplayInfo = gameplayInfo;
+        this.meta = meta;
+
+        current = this;
+    }
 
     public inline function toStruct():ChartJson {
         return {
