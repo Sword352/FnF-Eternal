@@ -7,7 +7,7 @@
     },
     "gameplayInfo": {
         "instrumental": "Inst",
-        "voices": ["Voices"],
+        "voices": ["Voices-bf", "Voices-dad"],
         
         "bpm": 100,
         "scrollSpeed": 1,

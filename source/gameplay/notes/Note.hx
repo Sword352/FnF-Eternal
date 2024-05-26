@@ -2,8 +2,6 @@ package gameplay.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
-
-import objects.TiledSprite;
 import objects.OffsetSprite;
 
 import globals.NoteSkin;
@@ -17,7 +15,7 @@ class Note extends OffsetSprite {
     static function get_safeZoneOffset():Float
         return 166.66 * Conductor.self.playbackRate;
 
-    public var goodHit:Bool = false;
+    public var beenHit:Bool = false;
     public var missed:Bool = false;
 
     public var canBeHit(get, default):Bool = false;
@@ -27,11 +25,17 @@ class Note extends OffsetSprite {
     public var direction:Int = 0;
 
     public var parentStrumline:StrumLine;
+    public var holdCover:HoldCover;
     public var strumline:Int = 0;
 
     public var length(default, set):Float = 0;
-    public var isSustainNote(get, never):Bool;
     public var sustain(default, set):Sustain;
+
+    public var holdable(get, never):Bool;
+    public var invalidatedHold(get, never):Bool;
+    public var finishedHold:Bool = false;
+    public var perfectHold:Bool = true;
+    public var unheldTime:Float;
 
     public var type(default, set):String;
     public var skin(default, set):String;
@@ -39,8 +43,6 @@ class Note extends OffsetSprite {
     public var animSuffix:String;
     public var noSingAnim:Bool = false;
     public var noMissAnim:Bool = false;
-
-    public var splashSkin:String = null;
     public var avoid:Bool = false;
 
     public var earlyHitMult:Float = 1;
@@ -49,7 +51,6 @@ class Note extends OffsetSprite {
     public var alphaMult:Float = 1;
     public var sustainAlpha:Float = 0.6;
 
-    public var holdBehindStrum:Bool = Options.holdBehindStrums;
     public var overrideSustain:Bool = false;
     public var quantizeSustain:Bool = false;
 
@@ -80,9 +81,14 @@ class Note extends OffsetSprite {
         length = data.length;
         type = data.type;
 
-        goodHit = false;
+        beenHit = false;
         missed = false;
         visible = true;
+
+        perfectHold = true;
+        finishedHold = false;
+        unheldTime = 0;
+        holdCover = null;
 
         alphaMult = 1;
         alpha = 1;
@@ -98,8 +104,8 @@ class Note extends OffsetSprite {
         y = receptor.y + distance;
         alpha = receptor.alpha * alphaMult;
 
-        if (isSustainNote)
-            sustain.alpha = sustainAlpha * alpha;
+        if (holdable)
+            sustain.alpha = sustainAlpha * alpha * (invalidatedHold ? 0.5 : 1);
     }
 
     public function clipSustain(receptor:FlxSprite):Void {
@@ -137,7 +143,6 @@ class Note extends OffsetSprite {
 
     public inline function resetTypeProps():Void {
         animSuffix = null;
-        splashSkin = null;
         earlyHitMult = 1;
         lateHitMult = 1;
         noSingAnim = false;
@@ -151,7 +156,7 @@ class Note extends OffsetSprite {
     }
 
     override function update(elapsed:Float):Void {
-        if (isSustainNote && sustain.exists && sustain.active)
+        if (holdable && sustain.exists && sustain.active)
             sustain.update(elapsed);
 
         super.update(elapsed);
@@ -164,8 +169,9 @@ class Note extends OffsetSprite {
     }
 
     override function destroy():Void {
-        parentStrumline = null;
         sustain = null;
+        holdCover = null;
+        parentStrumline = null;
         skin = null;
         type = null;
 
@@ -173,8 +179,7 @@ class Note extends OffsetSprite {
     }
 
     function set_length(v:Float):Float {
-        if (v < 100) v = 0;
-        return length = v;
+        return length = Math.max(v, 0);
     }
 
     function set_sustain(v:Sustain):Sustain {
@@ -248,8 +253,11 @@ class Note extends OffsetSprite {
     inline function get_downscroll():Bool
         return parentStrumline?.downscroll ?? this.downscroll;
 
-    inline function get_isSustainNote():Bool
-        return sustain != null;
+    inline function get_invalidatedHold():Bool
+        return unheldTime > 1;
+
+    inline function get_holdable():Bool
+        return length != 0;
 
     function get_distance():Float {
         var timing:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
@@ -261,7 +269,7 @@ class Note extends OffsetSprite {
     }
 
     function get_canBeHit():Bool {
-        if (goodHit || missed)
+        if (beenHit || missed)
             return false;
 
         if (parentStrumline != null)
@@ -272,161 +280,12 @@ class Note extends OffsetSprite {
     }
 
     override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (isSustainNote) sustain.cameras = v;
+        if (holdable) sustain.cameras = v;
         return super.set_cameras(v);
     }
 
     override function set_camera(v:FlxCamera):FlxCamera {
-        if (isSustainNote) sustain.camera = v;
+        if (holdable) sustain.camera = v;
         return super.set_camera(v);
-    }
-}
-
-class Sustain extends TiledSprite {
-    public var parent(default, set):Note;
-    public var tail:Tail;
-
-    public function new(parent:Note):Void {
-        super(null, 0, 0, false, true);
-
-        tail = new Tail();
-        alpha = 0.6;
-
-        this.parent = parent;
-    }
-
-    override function update(elapsed:Float):Void {
-        if (tail.exists && tail.active)
-            tail.update(elapsed);
-
-        if (!parent.overrideSustain)
-            updateSustain();
-
-        super.update(elapsed);
-    }
-
-    override function draw():Void {
-        super.draw();
-
-        if (tail.exists && tail.visible)
-            tail.draw();
-    }
-
-    override function kill():Void {
-        tail.clipRect = null;
-        tail.kill();
-
-        clipRect = null;
-        super.kill();
-    }
-
-    override function revive():Void {
-        tail.revive();
-        super.revive();
-    }
-
-    override function destroy():Void {
-        tail = FlxDestroyUtil.destroy(tail);
-        parent = null;
-
-        super.destroy();
-    }
-
-    inline function updateSustain():Void {
-        var finalHeight:Float = (parent.length * parent.scrollSpeed) - tail.height;
-
-        // quantize the sustain, useful for noteskins with patterns
-        if (parent.quantizeSustain)  {
-            var tileHeight:Float = graphic.height * scale.y;
-            finalHeight = Math.fround(finalHeight / tileHeight) * tileHeight;
-        }
-
-        height = finalHeight;
-
-        setPosition(parent.x + ((parent.width - width) * 0.5), parent.y + (parent.height * 0.5));
-        if (parent.downscroll) y -= height;
-
-        tail.setPosition(x, y + (parent.downscroll ? -tail.height : height));
-
-        var flip:Bool = parent.downscroll;
-        if (parent.flipY) flip = !flip;
-        flipY = flip;
-    }
-
-    public inline function reloadGraphic():Void {
-        var dir:String = Note.directions[parent.direction];
-
-        frames = parent.frames;
-        animation.copyFrom(parent.animation);
-        animation.play(dir + " hold", true);
-        loadFrame(frame ?? parent.frame);
-
-        tail.frames = parent.frames;
-        tail.animation.copyFrom(parent.animation);
-        tail.animation.play(dir + " tail", true);
-
-        scale.set(parent.scale.x, parent.scale.y);
-        tail.scale.set(scale.x, scale.y);
-        updateHitbox();
-
-        antialiasing = parent.antialiasing;
-        flipX = parent.flipX;
-    }
-
-    override function updateHitbox():Void {
-        width = graphic.width * scale.x;
-        tail.updateHitbox();
-        origin.set();
-    }
-
-    function set_parent(v:Note):Note {
-        parent = v;
-
-        if (v != null)
-            reloadGraphic();
-
-        return v;
-    }
-
-    override function set_antialiasing(v:Bool):Bool {
-        if (tail != null) tail.antialiasing = v;
-        return super.set_antialiasing(v);
-    }
-
-    override function set_alpha(v:Float):Float {
-        if (tail != null) tail.alpha = v;
-        return super.set_alpha(v);
-    }
-
-    override function set_flipX(v:Bool):Bool {
-        if (tail != null) tail.flipX = v;
-        return super.set_flipX(v);
-    }
-
-    override function set_flipY(v:Bool):Bool {
-        if (tail != null) tail.flipY = v;
-        return super.set_flipY(v);
-    }
-
-    override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (tail != null) tail.cameras = v;
-        return super.set_cameras(v);
-    }
-
-    override function set_camera(v:FlxCamera):FlxCamera {
-        if (tail != null) tail.camera = v;
-        return super.set_camera(v);
-    }
-}
-
-class Tail extends FlxSprite {
-    // avoids rounding effect (shoutout to Ne_Eo)
-    override function set_clipRect(v:FlxRect):FlxRect {
-        clipRect = v;
-
-        if (frames != null)
-			frame = frames.frames[animation.frameIndex];
-        
-        return v;
     }
 }

@@ -12,7 +12,6 @@ class Rating {
     public var hits:Int = 0;
     public var missThreshold:Int = 0;
 
-    public var causesMiss:Bool;
     public var displayNoteSplash:Bool;
     public var displayCombo:Bool;
 
@@ -29,7 +28,6 @@ class Rating {
         rating.displayCombo = displayCombo;
         if (copyHits) rating.hits = hits;
         rating.accuracyMod = accuracyMod;
-        rating.causesMiss = causesMiss;
         rating.hitWindow = hitWindow;
         rating.image = image;
         rating.rank = rank;
@@ -46,7 +44,6 @@ class Rating {
 
         displayNoteSplash = true;
         displayCombo = true;
-        causesMiss = false;
 
         missThreshold = 1;
         hits = 0;

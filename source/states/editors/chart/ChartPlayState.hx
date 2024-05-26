@@ -1,16 +1,13 @@
 package states.editors.chart;
 
 import flixel.text.FlxText;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxStringUtil;
 import flixel.group.FlxSpriteGroup;
+import flixel.tweens.*;
 
 import gameplay.Rating;
 import gameplay.notes.*;
 import objects.HealthIcon;
 import gameplay.ComboPopup;
-import gameplay.notes.StrumLine.NoteHit;
-
 import globals.ChartLoader;
 
 /**
@@ -75,10 +72,8 @@ class ChartPlayState extends MusicBeatSubState {
 
         var background:FlxSprite = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK, false, "charteditor_substatebg");
-        background.alpha = 0;
+        background.alpha = 0.6;
         add(background);
-
-        FlxTween.tween(background, {alpha: 0.6}, 0.25);
 
         comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
         add(comboSprites);
@@ -110,7 +105,9 @@ class ChartPlayState extends MusicBeatSubState {
         }
 
         opponentStrumline.onNoteHit.add(onOpponentNoteHit);
-        playerStrumline.onNoteHit.add(onBotplayNoteHit);
+        playerStrumline.onNoteHit.add(processNoteHit);
+        playerStrumline.onHoldInvalidation.add(onHoldInvalidation);
+        playerStrumline.onGhostPress.add((_) -> onMiss());
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(onMiss);
 
@@ -133,15 +130,12 @@ class ChartPlayState extends MusicBeatSubState {
 
         createUI();
 
-        opponentStrumline.tweenReceptors(0, 0.05);
-        playerStrumline.tweenReceptors(0, 0.05);
-
-        FlxG.stage.application.window.onKeyDown.add(onKeyDown);
-        FlxG.stage.application.window.onKeyUp.add(onKeyUp);
-
         conductor.time = startTime - (850 * parent.music.pitch);
         conductor.playbackRate = parent.music.pitch;
         parent.music.onSongEnd.add(close);
+
+        camera.alpha = 0;
+        FlxTween.tween(camera, {alpha: 1}, 0.6, {ease: FlxEase.circOut});
 
         startTimer = new FlxTimer().start(0.85, (_) -> {
             conductor.music = parent.music.instrumental;
@@ -175,32 +169,16 @@ class ChartPlayState extends MusicBeatSubState {
                 icon.bop();
     }
 
-    inline function onKeyDown(rawKey:Int, _):Void {
-        var dir:Int = playerStrumline.getDirFromKey(Tools.convertLimeKey(rawKey));
-        if (playerStrumline.cpu || dir == -1) return;
-
-        var noteHit:NoteHit = playerStrumline.keyHit(dir);
-        if (noteHit != null) {
-            switch (noteHit) {
-                case NOTE_HIT(note):
-                    onNoteHit(note);
-                case MISSED:
-                    onMiss();
-            }
-        }
-    }
-
-    inline function onKeyUp(rawKey:Int, _):Void {
-        var dir:Int = playerStrumline.getDirFromKey(Tools.convertLimeKey(rawKey), true);
-        if (dir != -1 && !playerStrumline.cpu)
-            playerStrumline.keyRelease(dir);
+    inline function processNoteHit(note:Note):Void {
+        if (playerStrumline.cpu)
+            onBotplayNoteHit(note);
+        else
+            onNoteHit(note);
     }
 
     inline function onNoteHit(note:Note):Void {
-        note.goodHit = true;
         note.ID = -1;
 
-        playerStrumline.receptors.members[note.direction].playAnimation("confirm", true);
         totalPlayerNotes++;
         health += 0.023;
 
@@ -217,8 +195,6 @@ class ChartPlayState extends MusicBeatSubState {
 
         if (rating.displayNoteSplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note);
-
-        playerStrumline.hitNote(note);
     }
 
     inline function onBotplayNoteHit(note:Note):Void {
@@ -229,6 +205,16 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function onHold(_):Void {
         health += 0.023;
+    }
+
+    inline function onHoldInvalidation(note:Note):Void {
+        var remainingLength:Float = note.length - (conductor.time - note.time);
+        var fraction:Float = (remainingLength / (conductor.stepCrochet * 2)) + 1;
+
+        health -= 0.0475 * fraction;
+        accuracyNotes += Math.floor(fraction);
+        missCount++;
+        combo = 0;
     }
 
     inline function onOpponentNoteHit(_):Void {
@@ -319,9 +305,9 @@ class ChartPlayState extends MusicBeatSubState {
 
         for (i in 0...icons.length) {
             var icon:HealthIcon = icons[i];
-
             icon.x = (i == 0) ? (infos.x - icon.width - 5) : (infos.x + infos.width + 5);
             icon.health = (i == 0 ? 100 - actualHealth : actualHealth);
+            icon.centerToObject(infos, Y);
         }
     }
 
@@ -329,19 +315,16 @@ class ChartPlayState extends MusicBeatSubState {
         infos = new FlxText(0, FlxG.height * ((playerStrumline.downscroll) ? 0.1 : 0.875));
         infos.setFormat(Assets.font("vcr"), 20, FlxColor.WHITE, CENTER);
         infos.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
-        infos.alpha = 0;
         add(infos);
 
         oppNoteCount = new FlxText(0, FlxG.height * ((playerStrumline.downscroll) ? 0.95 : 0.025), 0, "0 0 0 0");
         oppNoteCount.setFormat(infos.font, 32);
         oppNoteCount.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
-        oppNoteCount.alpha = 0;
         add(oppNoteCount);
 
         playerNoteCount = new FlxText(0, oppNoteCount.y, 0, "0 0 0 0");
         playerNoteCount.setFormat(infos.font, 32);
         playerNoteCount.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
-        playerNoteCount.alpha = 0;
         add(playerNoteCount);
 
         updateUI();
@@ -352,26 +335,10 @@ class ChartPlayState extends MusicBeatSubState {
             var parentIcon:HealthIcon = parentIcons[i];
 
             var icon:HealthIcon = new HealthIcon(0, 0, parentIcon.character);
-            icon.y = infos.y + ((infos.height - icon.height) * 0.5);
             icon.flipX = (i == 1);
-            icon.bopping = true;
             icon.health = 50;
-            icon.alpha = 0;
-
-            icon.bopSpeed *= parent.music.pitch;
             icons.push(icon);
             add(icon);
-        }
-
-        for (text in [infos, oppNoteCount, playerNoteCount]) {
-            var twn = FlxTween.tween(text, {alpha: 1}, 1, {startDelay: 0.25});
-            if (text == infos) {
-                twn.onUpdate = (_) -> {
-                    if (icons != null)
-                        for (icon in icons)
-                            icon.alpha = text.alpha;
-                };
-            }
         }
     }
 
@@ -384,8 +351,6 @@ class ChartPlayState extends MusicBeatSubState {
         ratings = null;
         icons = null;
 
-        FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
-        FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
         FlxG.mouse.visible = true;
 
         parent.music.onSongEnd.remove(close);

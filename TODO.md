@@ -8,7 +8,7 @@
 - Finish the FNF modpack port
 
 ### Medium Priority
-- V-Slice chart format support
+- V-Slice data support (characters, charts...)
 - Add jack detection to note inputs
 - Allow difficulties to be changed in the pause menu (freeplay only)
 - Allow multi-events (2 or more events having the same time value)

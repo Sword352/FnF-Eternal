@@ -6,18 +6,42 @@ import objects.OffsetSprite;
 class Receptor extends OffsetSprite {
     public static final mainAnimations:Array<String> = ["static", "press", "confirm"];
 
+    public var direction:Int = 0;
+    public var parentStrumline:StrumLine;
+
     public var skin(default, set):String;
     public var centeredOffsets:Bool = true;
-    public var direction:Int = 0;
+
+    public var animTimer:Float = -1;
 
     public function new(direction:Int = 0, skin:String = "default"):Void {
         super();
 
         this.direction = direction;
         this.skin = skin;
+
+        animation.finishCallback = (name) -> {
+            if (parentStrumline != null && name.startsWith("confirm"))
+                animTimer = Conductor.self.time;
+        };
+    }
+
+    override function update(elapsed:Float):Void {
+        if (animTimer != -1 && (Conductor.self.time - animTimer) >= 100) {
+            var anim:String = "static";
+
+            if (parentStrumline != null && !parentStrumline.cpu && parentStrumline.heldKeys[direction])
+                anim = "press";
+
+            playAnimation(anim, true);
+        }
+
+        super.update(elapsed);
     }
 
     override public function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
+        animTimer = -1;
+
         if (mainAnimations.contains(name))
             name += ' ${Note.directions[direction]}';
 
@@ -31,6 +55,7 @@ class Receptor extends OffsetSprite {
 
     override function destroy():Void {
         skin = null;
+        parentStrumline = null;
         super.destroy();
     }
 

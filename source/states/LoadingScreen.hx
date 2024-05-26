@@ -188,6 +188,7 @@ class LoadingScreen extends FlxState {
 
     inline function loadNoteAssets():Void {
         var noteSkins:Array<String> = ["default", "default"];
+        var preloaded:Array<String> = [];
 
         for (index => string in [song.gameplayInfo.opponent, song.gameplayInfo.player]) {
             var data = characters[string];
@@ -196,8 +197,6 @@ class LoadingScreen extends FlxState {
                 noteSkins[index] = song.gameplayInfo.noteSkins[index];
         }
 
-        var preloaded:Array<String> = [];
-
         for (skin in noteSkins) {
             if (preloaded.contains(skin)) continue;
 
@@ -205,13 +204,15 @@ class LoadingScreen extends FlxState {
             var note:Array<String> = ["notes/notes", null];
             var strum:Array<String> = ["notes/receptors", null];
             var splash:Array<String> = ["notes/noteSplashes", null];
+            var covers:Array<String> = ["notes/holds", null];
 
             if (skin != "default") {
                 var data:NoteSkinConfig = NoteSkin.get(skin);
                 var refs:Map<Array<String>, GenericSkin> = [
                     note => data.note,
                     strum => data.receptor,
-                    splash => data.splash
+                    splash => data.splash,
+                    covers => data.holdCover
                 ];
 
                 for (k => v in refs) {
@@ -225,8 +226,15 @@ class LoadingScreen extends FlxState {
             }
 
             var toPreload:Array<Array<String>> = [note, strum];
-            if (!Options.noNoteSplash) toPreload.push(splash);
-            for (data in toPreload) Assets.image(data[0], data[1]);
+
+            if (!Options.noNoteSplash) {
+                toPreload.push(splash);
+                if (!Options.holdBehindStrums)
+                    toPreload.push(covers);
+            }
+
+            for (data in toPreload)
+                Assets.image(data[0], data[1]);
 
             preloaded.push(skin);
         }

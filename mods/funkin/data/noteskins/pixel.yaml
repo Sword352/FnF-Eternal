@@ -49,3 +49,5 @@ note: {
     scale: [6, 6],
     antialiasing: false
 }
+
+disableSplashes: true

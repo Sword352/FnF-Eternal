@@ -35,14 +35,12 @@ class GameplayUI extends FlxSpriteGroup {
 
         iconP1 = new HealthIcon(0, 0, game.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
         iconP1.state = NEUTRAL;
-        iconP1.bopping = true;
         iconP1.flipX = true;
         iconP1.health = 50;
         add(iconP1);
 
         iconP2 = new HealthIcon(0, 0, game.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
         iconP2.state = NEUTRAL;
-        iconP2.bopping = true;
         iconP2.health = 50;
         add(iconP2);
 
@@ -80,6 +78,9 @@ class GameplayUI extends FlxSpriteGroup {
         iconP2.x = healthBarPos - iconP2.width + iconSpacing;
         iconP1.x = healthBarPos - iconSpacing;
 
+        iconP1.y = healthBar.y - (iconP1.height / 2);
+        iconP2.y = healthBar.y - (iconP2.height / 2);
+
         // update time display
         if (timeDisplay?.alpha > 0 && game.music.playing) {
             var length:Float = game.music.instrumental.length;
@@ -108,9 +109,6 @@ class GameplayUI extends FlxSpriteGroup {
     public function repositionUI(downscroll:Bool = false):Void {
         healthBar.y = FlxG.height * ((downscroll) ? 0.1 : 0.875);
         scoreText.y = healthBar.y + 50;
-
-        iconP1.y = healthBar.y - (iconP1.height * 0.5);
-        iconP2.y = healthBar.y - (iconP2.height * 0.5);
 
         if (timeDisplay != null)
             timeDisplay.y = (downscroll ? FlxG.height * 0.95 : 25);

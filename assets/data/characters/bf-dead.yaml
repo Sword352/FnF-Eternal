@@ -1,9 +1,0 @@
-image: "characters/BF_DEATH"
-
-danceBeat: 1
-danceSteps: ["deathLoop"]
-
-animations:
-- { name: "firstDeath",   prefix: "BF dies",         fps: 24, loop: false }
-- { name: "deathLoop",    prefix: "BF Dead Loop",    fps: 24, loop: false }
-- { name: "deathConfirm", prefix: "BF Dead confirm", fps: 24, loop: false }

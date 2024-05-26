@@ -23,7 +23,7 @@ class GameOverScreen extends MusicBeatSubState {
     var overrideCode:Bool = false;
     #end
 
-    public function new(x:Float = 0, y:Float = 0, character:String = "bf-dead"):Void {
+    public function new(x:Float = 0, y:Float = 0, character:String = "boyfriend-dead"):Void {
         super();
 
         this.characterStr = character;

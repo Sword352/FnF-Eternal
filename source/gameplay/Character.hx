@@ -1,7 +1,7 @@
 package gameplay;
 
 import flixel.math.FlxPoint;
-
+import objects.HealthIcon;
 import objects.DancingSprite;
 import states.substates.GameOverScreen;
 import states.substates.GameOverScreen.GameOverData;
@@ -66,10 +66,10 @@ class Character extends DancingSprite {
     public var cameraOffsets:Array<Float>;
     public var globalOffsets:Array<Float>;
 
-    public var healthIcon:String = objects.HealthIcon.DEFAULT_ICON;
+    public var healthIcon:String = HealthIcon.DEFAULT_ICON;
     public var healthBarColor:FlxColor = FlxColor.GRAY;
 
-    public var gameOverChar:String = "bf-dead";
+    public var gameOverChar:String;
     public var gameOverData:GameOverData;
 
     public var noteSkin:String = "default";
@@ -122,9 +122,9 @@ class Character extends DancingSprite {
         extra = config.extra;
 
         healthBarColor = (config.healthBarColor == null) ? ((type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000) : Tools.getColor(config.healthBarColor);
-        healthIcon = config.icon ?? objects.HealthIcon.DEFAULT_ICON;
+        healthIcon = config.icon ?? HealthIcon.DEFAULT_ICON;
 
-        gameOverChar = config.gameOverChar ?? "bf-dead";
+        gameOverChar = config.gameOverChar;
         noteSkin = config.noteSkin;
 
         if (type == GAMEOVER && config.gameOverData != null)
@@ -148,7 +148,7 @@ class Character extends DancingSprite {
             playAnimation(danceSteps[0], true);
         }
 
-        if (type == PLAYER && data.playerFlip) {
+        if (type == PLAYER && config.playerFlip) {
             swapAnimations(singAnimations[0], singAnimations[3]);
             swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
             flipX = !flipX;
@@ -264,22 +264,11 @@ class Character extends DancingSprite {
     }
 
     inline function loadDefault():Void {
-        // simpler version of boyfriend, doesn't contain special animations or anything fancy
-        frames = Assets.getSparrowAtlas("characters/BOYFRIEND");
+        var file:String = Assets.yaml("data/characters/boyfriend");
+        var content:String = FileTools.getContent(file);
+        setup(Tools.parseYAML(content));
 
-        animation.addByPrefix("idle", "BF idle dance", 24, false);
-        animation.addByPrefix("singLEFT", "BF NOTE LEFT0", 24, false);
-        animation.addByPrefix("singDOWN", "BF NOTE DOWN0", 24, false);
-        animation.addByPrefix("singUP", "BF NOTE UP0", 24, false);
-        animation.addByPrefix("singRIGHT", "BF NOTE RIGHT0", 24, false);
-        animation.addByPrefix("singLEFTmiss", "BF NOTE LEFT MISS", 24, false);
-        animation.addByPrefix("singDOWNmiss", "BF NOTE DOWN MISS", 24, false);
-        animation.addByPrefix("singUPmiss", "BF NOTE UP MISS", 24, false);
-        animation.addByPrefix("singRIGHTmiss", "BF NOTE RIGHT MISS", 24, false);
-
-        danceSteps = ["idle"];
-        cameraOffsets = [-150, -150];
-
-        forceDance(true);
+        healthIcon = HealthIcon.DEFAULT_ICON;
+        healthBarColor = FlxColor.GRAY;
     }
 }

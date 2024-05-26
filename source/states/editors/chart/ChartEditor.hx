@@ -260,7 +260,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
             incrementTime(conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
 
         icons.forEach((icon) -> {
-            icon.scale.x = icon.scale.y = Tools.lerp(icon.scale.x, 100 / icon.frameHeight, 15 * music.pitch);
+            icon.x = checkerboard.x + (checkerboard.width * icon.ID) - (icon.width * (1 - icon.ID));
+            icon.y = 85 - (icon.height / 2);
         });
 
         if (requestSortNotes) {
@@ -322,8 +323,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
             if (metronome.volume > 0)
                 metronome.play(true);
 
-            opponentIcon.scale.add(0.15, 0.15);
-            playerIcon.scale.add(0.15, 0.15);
+            opponentIcon.bop();
+            playerIcon.bop();
         }
 
         super.beatHit(beat);
@@ -597,6 +598,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
 
     inline function pauseMusic():Void {
         music.pause();
+        icons.forEach((icon) -> icon.resetBop());
         metronome.stop();
     }
 
@@ -679,6 +681,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
 
         music.onSongEnd.add(() -> {
             conductor.resetPrevTime();
+            icons.forEach((icon) -> icon.resetBop());
             line.y = 0;
         });
 
@@ -702,13 +705,13 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
     }
 
     inline function loadIcons():Void {
-        playerIcon.character = getIcon(chart.gameplayInfo.player);
-        playerIcon.setGraphicSize(0, 100);
-        playerIcon.updateHitbox();
-
         opponentIcon.character = getIcon(chart.gameplayInfo.opponent);
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
+
+        playerIcon.character = getIcon(chart.gameplayInfo.player);
+        playerIcon.setGraphicSize(0, 100);
+        playerIcon.updateHitbox();
     }
 
     inline function loadData():Void {
@@ -1018,21 +1021,27 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
         icons = new FlxTypedGroup<HealthIcon>();
         add(icons);
 
-        opponentIcon = new HealthIcon(checkerboard.x, 35, getIcon(chart.gameplayInfo.opponent));
+        opponentIcon = new HealthIcon(0, 0, getIcon(chart.gameplayInfo.opponent));
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
-        opponentIcon.x -= opponentIcon.width;
         opponentIcon.scrollFactor.set();
         opponentIcon.healthAnim = false;
+        opponentIcon.ID = 0;
         icons.add(opponentIcon);
 
-        playerIcon = new HealthIcon(checkerboard.x + checkerboard.width, 35, getIcon(chart.gameplayInfo.player));
+        playerIcon = new HealthIcon(0, 0, getIcon(chart.gameplayInfo.player));
         playerIcon.setGraphicSize(0, 100);
         playerIcon.updateHitbox();
         playerIcon.scrollFactor.set();
         playerIcon.healthAnim = false;
         playerIcon.flipX = true;
+        playerIcon.ID = 1;
         icons.add(playerIcon);
+
+        icons.forEach((icon) -> {
+            icon.size.set(icon.width, icon.height);
+            icon.bopSize *= icon.scale.x;
+        });
 
         hoverBox = new HoverBox();
         hoverBox.onRelease = onHoverBoxRelease;

@@ -1,7 +1,7 @@
 package gameplay.notes;
 
 import flixel.FlxBasic;
-import gameplay.notes.Note.Sustain;
+import gameplay.notes.Sustain;
 import globals.ChartFormat.Chart;
 import globals.ChartFormat.ChartNote;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -125,7 +125,7 @@ class NoteSpawner extends FlxBasic {
     inline function getNote(chartNote:ChartNote):Note {
         var parent:StrumLine = strumLines[chartNote.strumline];
 
-        var note:Note = notes.recycle(Note).setup(chartNote);
+        var note:Note = notes.recycle(Note, noteConstructor).setup(chartNote);
         note.parentStrumline = parent;
 
         // don't swap the noteskin if it's the same!
@@ -136,5 +136,9 @@ class NoteSpawner extends FlxBasic {
             note.sustain = sustains.recycle(Sustain);
 
         return note;
+    }
+
+    inline function noteConstructor():Note {
+        return new Note(0, 0, null, strumLines[0].skin);
     }
 }

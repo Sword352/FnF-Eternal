@@ -10,13 +10,13 @@ class HealthIcon extends OffsetSprite {
     public var state(default, set):HealthState = "neutral";
     public var character(get, set):String;
 
+    public var size:FlxPoint = FlxPoint.get(150, 150);
     public var healthAnim:Bool = true;
-    public var bopping:Bool = false;
 
-    public var bopIntensity:Float = 0.2;
-    public var bopSpeed:Float = 15;
+    public var bopSize:Float = 25;
+    public var bopDuration:Float = 1.5;
+    public var bopStep:Int = -1;
     
-    var storedScale:FlxPoint = FlxPoint.get(1, 1);
     var storedOffsets:FlxPoint = FlxPoint.get();
     var animOffsets:FlxPoint = FlxPoint.get();
     var _character:String;
@@ -37,10 +37,12 @@ class HealthIcon extends OffsetSprite {
             else if (state != LOSING) state = LOSING;
         }
 
-        if (bopping) {
-            scale.set(Tools.lerp(scale.x, storedScale.x, bopSpeed), Tools.lerp(scale.y, storedScale.y, bopSpeed));
-            offset.x = 50 * _facingHorizontalMult * (scale.x - storedScale.x);
-            offset.y = -height * ((scale.y - storedScale.x) * 0.35);
+        if (bopStep != -1) {            
+            var ratio:Float = Math.min(Conductor.self.decStep - bopStep, bopDuration) / bopDuration;
+
+            setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio), FlxMath.lerp(size.y + bopSize, size.y, ratio));
+            updateHitbox();
+
             offset.addPoint(storedOffsets);
             offset.addPoint(animOffsets);
         }
@@ -49,14 +51,22 @@ class HealthIcon extends OffsetSprite {
     }
 
     public inline function bop():Void {
-        if (bopping)
-            scale.add(bopIntensity, bopIntensity);
+        bopStep = Conductor.self.step;
+    }
+
+    public function resetBop():Void {
+        setGraphicSize(size.x, size.y);
+        updateHitbox();
+        bopStep = -1;
+
+        offset.addPoint(storedOffsets);
+        offset.addPoint(animOffsets);
     }
 
     override function destroy():Void {
         storedOffsets = FlxDestroyUtil.put(storedOffsets);
         animOffsets = FlxDestroyUtil.put(animOffsets);
-        storedScale = FlxDestroyUtil.put(storedScale);
+        size = FlxDestroyUtil.put(size);
 
         _character = null;
         state = null;
@@ -74,6 +84,7 @@ class HealthIcon extends OffsetSprite {
             changeAdvanced(Tools.parseYAML(FileTools.getContent(configPath)));
 
         playAnimation("neutral", true);
+        size.set(width, height);
     }
 
     function changeAdvanced(config:HealthIconConfig):Void {
@@ -84,7 +95,7 @@ class HealthIcon extends OffsetSprite {
         else {
             var newGraphic:FlxGraphic = Assets.image('icons/${character}');
             if (newGraphic == null) newGraphic = Assets.image('icons/${DEFAULT_ICON}');
-            loadGraphic(newGraphic, true, Math.floor(newGraphic.width / (config.size ?? 2)), newGraphic.height);
+            loadGraphic(newGraphic, true, Math.floor(newGraphic.width / (config.frames ?? Math.floor(newGraphic.width / newGraphic.height))), newGraphic.height);
         }
 
         resetValues();
@@ -99,7 +110,6 @@ class HealthIcon extends OffsetSprite {
 
         antialiasing = config.antialiasing ?? FlxSprite.defaultAntialiasing;
         storedOffsets.set(offset.x, offset.y);
-        storedScale.set(scale.x, scale.y);
     }
 
     function changeSimple(icon:String):Void {
@@ -109,7 +119,7 @@ class HealthIcon extends OffsetSprite {
             _character = DEFAULT_ICON;
         }
 
-        var size:Int = findSize(icon);
+        var size:Int = Math.floor(newGraphic.width / newGraphic.height);
         loadGraphic(newGraphic, true, Math.floor(newGraphic.width / size), newGraphic.height);
         for (i in 0...size) animation.add([NEUTRAL, LOSING, WINNING][i], [i], 0);
 
@@ -121,7 +131,6 @@ class HealthIcon extends OffsetSprite {
     function resetValues():Void {
         antialiasing = FlxSprite.defaultAntialiasing;
         animationOffsets.clear();
-        storedScale.set(1, 1);
         storedOffsets.set();
         animOffsets.set();
     }
@@ -146,20 +155,10 @@ class HealthIcon extends OffsetSprite {
 
     inline function get_character():String
         return _character;
-
-    inline static function findSize(icon:String):Int {
-        var path:String = Assets.txt('images/icons/${icon}');
-        if (!FileTools.exists(path)) return 2;
-
-        var value:Null<Int> = Std.parseInt(FileTools.getContent(path).trim());
-        if (value == null || Math.isNaN(value)) return 2;
-
-        return value;
-    }
 }
 
 typedef HealthIconConfig = {
-    var ?size:Int;
+    var ?frames:Int;
     var ?animations:Array<YAMLAnimation>;
     var ?globalOffsets:Array<Float>;
 

@@ -179,26 +179,6 @@ class ChartLoader {
             return output;
         }
     */
-    
-    // used for simple notes
-    public static function generateNotes(chart:Chart, minTime:Float = 0, ?strumLines:Array<StrumLine>):Array<Note> {
-        var notes:Array<Note> = [];
-
-        for (data in chart.notes) {
-            if (data.time < minTime) continue;
-
-            var note:Note = new Note(data.time, data.direction);
-            note.strumline = data.strumline;
-            note.length = data.length;
-            notes.push(note);
-
-            if (strumLines != null)
-                note.parentStrumline = strumLines[note.strumline];
-        }
-
-        notes.sort((n1, n2) -> Std.int(n1.time - n2.time));
-        return notes;
-    }
 
     public static function loadChart(song:String, ?difficulty:String):Chart {
         if (difficulty == null)

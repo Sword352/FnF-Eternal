@@ -3,7 +3,7 @@ package gameplay.notes;
 import flixel.tweens.*;
 import flixel.util.FlxSignal;
 import flixel.group.FlxSpriteGroup;
-import gameplay.notes.Note.Sustain;
+import gameplay.notes.Sustain;
 import globals.NoteSkin;
 
 /**
@@ -26,9 +26,14 @@ class StrumLine extends FlxSpriteGroup {
     public var receptors:FlxTypedSpriteGroup<Receptor>;
 
     /**
-     * Splash pool of this strumline.
+     * Splash group of this strumline.
      */
     public var splashes:FlxTypedSpriteGroup<Splash>;
+
+    /**
+     * Hold cover group of this strumline.
+     */
+    public var holdCovers:FlxTypedSpriteGroup<HoldCover>;
 
     /**
      * Spacing between each receptors of this strumline.
@@ -36,12 +41,12 @@ class StrumLine extends FlxSpriteGroup {
     public var receptorSpacing(default, set):Float = 112;
 
     /**
-     * Defines whether the notes go from top to bottom, instead of bottom to top.
+     * Defines whether notes move from top to bottom, instead of bottom to top.
      */
     public var downscroll:Bool = Options.downscroll;
 
     /**
-     * Defines how fast the notes moves.
+     * Defines the note movement speed.
      */
     public var scrollSpeed:Float = 1;
 
@@ -56,22 +61,42 @@ class StrumLine extends FlxSpriteGroup {
     public var skin(default, set):String;
 
     /**
-     * Directions held by the player. Only matters if `cpu` is equal to false.
+     * Defined by the noteskin, this tells whether splashes are disabled.
      */
-    public var holdKeys:Array<Bool> = [false, false, false, false];
-
-    /**
-     * If false, the player misses if a key has been pressed while there's no notes on screen.
-     */
-    public var ghostTap:Bool = Options.ghostTapping;
+    public var splashDisabled:Bool = false;
 
     /**
      * Defines whether notes are automatically hit.
      */
-    public var cpu:Bool = false;
+    public var cpu(default, set):Bool = false;
 
     /**
-     * Signal dispatched when a note has been hit. Only matters if `cpu` is equal to true.
+     * Directions held by the player.
+     */
+    public var heldKeys:Array<Bool> = [false, false, false, false];
+
+    /**
+     * If false, the player misses if a key has been pressed while there's no notes on screen.
+     */
+    public var ghostTapping:Bool = Options.ghostTapping;
+
+    /**
+     * Set this to true if you wish to disable inputs.
+     */
+    public var inactiveInputs:Bool = false;
+
+    /**
+     * Map defining keys and it's directions for player inputs (`key => direction`).
+     */
+    public var keys:Map<Int, Int>;
+
+    /**
+     * Defines the time in milliseconds in which the player can release a hold note without missing it, just before it ends.
+     */
+    public var releaseImmunityTime:Float = 50;
+
+    /**
+     * Signal dispatched when a note has been hit.
      */
     public var onNoteHit:NoteSignal = new NoteSignal();
 
@@ -81,9 +106,19 @@ class StrumLine extends FlxSpriteGroup {
     public var onHold:NoteSignal = new NoteSignal();
 
     /**
-     * Signal dispatched when a note is missed. Only matters if `cpu` is equal to false.
+     * Signal dispatched when a hold note can no longer be hit.
+     */
+    public var onHoldInvalidation:NoteSignal = new NoteSignal();
+
+    /**
+     * Signal dispatched when a note is missed.
      */
     public var onMiss:NoteSignal = new NoteSignal();
+
+    /**
+     * Signal dispatched when a ghost key hit happens.
+     */
+    public var onGhostPress:FlxTypedSignal<Int->Void> = new FlxTypedSignal<Int->Void>();
 
     /**
      * Internal array containing notes to remove this frame.
@@ -96,7 +131,7 @@ class StrumLine extends FlxSpriteGroup {
     var lastStep:Int = 0;
 
     /**
-     * Creates a new `StrumLine`
+     * Creates a new `StrumLine`.
      * @param x Initial `x` position.
      * @param y Initial `y` position.
      * @param cpu Defines whether notes are automatically hit.
@@ -112,13 +147,16 @@ class StrumLine extends FlxSpriteGroup {
         add(receptors);
 
         splashes = new FlxTypedSpriteGroup<Splash>();
+        holdCovers = new FlxTypedSpriteGroup<HoldCover>();
         add(splashes);
 
         // cache note splashes
         if (!Options.noNoteSplash && !cpu) {
-            var cache:Splash = new Splash(skin);
-            splashes.add(cache);
-            cache.kill();
+            splashes.add(new Splash(skin)).kill();
+
+            // don't cache the hold cover if we can't see them anyways
+            if (!Options.holdBehindStrums)
+                holdCovers.add(new HoldCover(skin)).kill();
         }
 
         sustains = new FlxTypedSpriteGroup<Sustain>();
@@ -129,6 +167,8 @@ class StrumLine extends FlxSpriteGroup {
         else
             add(sustains);
 
+        add(holdCovers);
+
         notes = new FlxTypedSpriteGroup<Note>();
         notes.active = false;
         add(notes);
@@ -136,6 +176,7 @@ class StrumLine extends FlxSpriteGroup {
         for (i in 0...4) {
             var receptor:Receptor = new Receptor(i, skin);
             receptor.x = receptorSpacing * (i - 2);
+            receptor.parentStrumline = this;
             receptors.add(receptor);
         }
     }
@@ -144,64 +185,18 @@ class StrumLine extends FlxSpriteGroup {
      * Updates this strumline.
      */
     override function update(elapsed:Float):Void {
-        notes.forEachAlive((note) -> {
-            var receptor:Receptor = receptors.members[note.direction];
-
-            if (cpu && note.canBeHit && !note.avoid) {
-                note.goodHit = true;
-                onNoteHit.dispatch(note);
-
-                receptor.playAnimation("confirm", true);
-                singCharacters(note);
-
-                hitNote(note);
-            }
-
-            if (!cpu && note.late && !note.missed && !note.goodHit)
-                miss(note);
-
-            if ((note.avoid || note.missed || note.isSustainNote) && Conductor.self.time > note.time + note.length + (400 / note.getScrollSpeed()))
-                notesToRemove.push(note);
-
-            if (note.isSustainNote && (note.goodHit || note.missed)) {
-                if (lastStep != Conductor.self.step) {
-                    if (cpu || holdKeys[note.direction]) {
-                        receptor.playAnimation("confirm", true);
-                        singCharacters(note);
-                        onHold.dispatch(note);
-                    } else
-                        onMiss.dispatch(note);
-                }
-
-                if (Conductor.self.time >= note.time + note.length && (cpu || holdKeys[note.direction]))
-                    notesToRemove.push(note);
-            }
-
-            note.follow(receptor);
-            note.update(elapsed);
-
-            if (note.isSustainNote && (note.goodHit || note.missed) && (cpu || holdKeys[note.direction]))
-                note.clipSustain(receptors.members[note.direction]);
-        });
-
+        notes.forEachAlive(noteBehaviour);
         super.update(elapsed);
 
         while (notesToRemove.length > 0)
             removeNote(notesToRemove.pop());
 
-        if (cpu) {
-            receptors.forEachAlive((receptor) -> {
-                if (receptor.animation.curAnim.name.startsWith("confirm") && receptor.animation.curAnim.finished)
-                    receptor.playAnimation("static", true);
-            });
-        }
-
         lastStep = Conductor.self.step;
     }
 
     /**
-     * Adds a note to this strumline and sorts the note order afterwards.
-     * @param note The note to add
+     * Adds a note to this strumline.
+     * @param note Note to add.
      */
     public function addNote(note:Note):Void {
         notes.add(note);
@@ -209,17 +204,22 @@ class StrumLine extends FlxSpriteGroup {
         if (note.sustain != null) {
             sustains.add(note.sustain);
 
+            /*
             if (sustains.members.length > 1)
-                sustains.members.sort((a, b) -> Std.int(a.parent.time - b.parent.time));
+                sustains.members.sort(sortSustains);
+            */
         }
 
+        // sorting is not required I believe?
+        /*
         if (notes.members.length > 1)
-            notes.members.sort((a, b) -> Std.int(a.time - b.time));
+            notes.members.sort(sortNotes);
+        */
     }
 
     /**
      * Removes a note from this strumline and kills it.
-     * @param note The note to remove
+     * @param note Note to remove.
      */
     public function removeNote(note:Note):Void {
         if (note.sustain != null)
@@ -230,115 +230,200 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     /**
-     * Method which hits the passed note.
+     * Hits the passed note.
      * The note either gets removed, or hidden if it's a hold note.
-     * @param note The note to hit
+     * @param note Note to hit.
      */
     public function hitNote(note:Note):Void {
-        if (note.isSustainNote) {
-            note.visible = false;
-            if (!cpu) resizeLength(note);
-        } else
+        note.beenHit = true;
+
+        if (!note.holdable)
             notesToRemove.push(note);
-    }
-
-    /**
-     * Key hit behaviour.
-     * @param direction The pressed direction
-     * @return The result, as a `NoteHit` enum instance
-     */
-    public inline function keyHit(direction:Int):NoteHit {
-        var receptor:Receptor = receptors.members[direction];
-        for (character in characters) character.holding = true;
-        holdKeys[direction] = true;
-
-        var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == direction && note.canBeHit);
-        var noteToHit:Note = possibleNotes[0];
-
-        // TODO: is it really worth it sorting, considering notes are already sorted?
-        // possibleNotes.sort((a, b) -> Std.int(a.time - b.time));
-
-        if (noteToHit != null)
-            return NOTE_HIT(noteToHit);
-
-        receptor.playAnimation("press", true);
-        return (!ghostTap) ? MISSED : null;
-    }
-
-    /**
-     * Key release behaviour.
-     * @param direction The released direction
-     */
-    public inline function keyRelease(direction:Int):Void {
-        holdKeys[direction] = false;
-        receptors.members[direction].playAnimation("static", true);
-        for (character in characters) character.holding = holdKeys.contains(true);
-    }
-
-    // TODO: move this somewhere else
-    /**
-     * Converts a key to note direction.
-     * @param key The key to convert
-     * @param release Whether this check is done on key up
-     * @return The found direction, or -1 if no direction has been found
-     */
-    public inline function getDirFromKey(key:Int, release:Bool = false):Int {
-        var controls:Controls = Controls.global;
-        var actions:Array<String> = Note.directions;
-        var output:Int = -1;
-
-        for (i in 0...actions.length) {
-            for (k in controls.keybinds[actions[i]][0]) {
-                if (key == k && (release || !holdKeys[i])) {
-                    output = i;
-                    break;
-                }
-            }
-
-            if (output != -1)
-                break;
+        else {
+            if (!cpu) resizeLength(note);
+            if (!Options.holdBehindStrums) spawnCover(note);
+            note.visible = false;
         }
 
-        return output;
+        playConfirm(note.direction);
+        singCharacters(note);
     }
 
-    /**
-     * Internal method which runs on miss.
-     * @param note The missed note
-     */
-    inline function miss(note:Note):Void {
-        if (note.isSustainNote) {
+    inline function noteBehaviour(note:Note):Void {
+        if (cpu && !note.avoid && note.canBeHit)
+            cpuBehaviour(note);
+
+        if (!cpu && !note.beenHit && !note.missed && note.late)
+            lateNoteBehaviour(note);
+
+        if ((note.missed || note.avoid || note.holdable) && Conductor.self.time > note.time + note.length + (400 / note.getScrollSpeed()))
+            notesToRemove.push(note);
+
+        if (note.holdable && !note.finishedHold && (note.beenHit || note.missed)) {
+            if (canHold(note)) {
+                if (lastStep != Conductor.self.step || !note.beenHit)
+                    heldSustainBehaviour(note);
+            }
+            else if (!note.missed)
+                unheldSustainBehaviour(note);
+
+            if (note.missed && !note.invalidatedHold) {
+                note.unheldTime += FlxG.elapsed;
+                if (note.invalidatedHold)
+                    invalidateHoldNote(note);
+            }
+
+            if (Conductor.self.time >= note.time + note.length)
+                finishHoldNote(note);
+        }
+
+        note.follow(getReceptor(note.direction));
+        note.update(FlxG.elapsed);
+
+        if (note.holdable && note.beenHit)
+            note.clipSustain(getReceptor(note.direction));
+    }
+
+    inline function canHold(note:Note):Bool {
+        // also returns true if the sustain has been held but was released a little bit earlier, to make inputs feel better and easier
+        return !note.invalidatedHold && (cpu || heldKeys[note.direction] || (note.beenHit && Conductor.self.time >= note.time + note.length - releaseImmunityTime));
+    }
+
+    inline function cpuBehaviour(note:Note):Void {
+        onNoteHit.dispatch(note);
+        hitNote(note);
+    }
+
+    inline function lateNoteBehaviour(note:Note):Void {
+        if (note.holdable) {
+            note.perfectHold = false;
             note.visible = false;
             // resizeLength(note);
-        } else
+        } else {
             note.alphaMult = 0.3;
+        }
 
         note.missed = true;
         onMiss.dispatch(note);
     }
 
+    inline function heldSustainBehaviour(note:Note):Void {
+        if (note.holdCover == null && !Options.holdBehindStrums && !splashDisabled)
+            spawnCover(note);
+
+        note.beenHit = true;
+        note.missed = false;
+        note.unheldTime = 0;
+
+        playConfirm(note.direction);
+        singCharacters(note);
+
+        onHold.dispatch(note);
+    }
+
+    inline function unheldSustainBehaviour(note:Note):Void {
+        if (note.holdCover != null) {
+            note.holdCover.kill();
+            note.holdCover = null;
+        }
+
+        note.beenHit = false;
+        note.perfectHold = false;
+        note.missed = true;
+
+        onMiss.dispatch(note);
+    }
+
+    inline function finishHoldNote(note:Note):Void {
+        if (note.beenHit)
+            notesToRemove.push(note);
+
+        note.finishedHold = true;
+    }
+
+    inline function invalidateHoldNote(note:Note):Void {
+        onHoldInvalidation.dispatch(note);
+    }
+
     /**
-     * Internal method which resize the hold note length of the passed note if the player has hit the note earlier or later.
-     * If the length becomes less than 100 ms, the note gets removed.
-     * @param note 
+     * Method called when a key is pressed.
+     */
+    inline function onKeyDown(rawKey:Int, _):Void {
+        var key:Int = Tools.convertLimeKey(rawKey);
+        var dir:Int = getDirFromKey(key);
+
+        if (dir == -1 || heldKeys[dir] || inactiveInputs) return;
+
+        #if ENGINE_SCRIPTING
+        if (PlayState.current?.cancellableCall("onKeyPress", [key, dir]))
+            return;
+        #end
+
+        for (character in characters) character.holding = true;
+        heldKeys[dir] = true;
+
+        var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == dir && note.canBeHit);
+        var noteToHit:Note = possibleNotes[0];
+
+        if (noteToHit != null) {
+            onNoteHit.dispatch(noteToHit);
+            hitNote(noteToHit);
+        }
+        else {
+            if (!ghostTapping) onGhostPress.dispatch(dir);
+            playPress(dir);
+        }
+    }
+
+    /**
+     * Method called when a key is released.
+     */
+    inline function onKeyUp(rawKey:Int, _):Void {
+        var key:Int = Tools.convertLimeKey(rawKey);
+        var dir:Int = getDirFromKey(key);
+
+        if (dir == -1) return;
+
+        #if ENGINE_SCRIPTING
+        if (PlayState.current?.cancellableCall("onKeyRelease", [key, dir]))
+            return;
+        #end
+
+        heldKeys[dir] = false;
+        playStatic(dir);
+
+        for (character in characters)
+            character.holding = heldKeys.contains(true);
+    }
+
+    /**
+     * Finds the corresponding direction for the passed key.
+     */
+    inline function getDirFromKey(key:Int):Int {
+        return keys[key] ?? -1;
+    }
+
+    /**
+     * Resizes the hold length of the passed note if the player has hit the note earlier or later.
+     * The note gets removed if the new length is 0.
      */
     inline function resizeLength(note:Note):Void {
-        if (note == null) return;
-
         note.length += (note.time - Conductor.self.time);
-        if (note.length < 100) removeNote(note);
         note.time = Conductor.self.time;
+
+        if (note.length == 0)
+            removeNote(note);
     }
 
     /**
      * Makes this strumline's `characters` sing.
-     * @param note The note used to make the character sings
+     * @param note Parent note.
      */
     public function singCharacters(note:Note):Void {
         if (note.noSingAnim) return;
 
         for (character in characters) {
-            if (!note.isSustainNote || note.visible || character.animation.name != character.singAnimations[note.direction] || !Options.noHoldStutter)
+            if (!note.holdable || !Options.noHoldStutter || character.animation.name != character.singAnimations[note.direction])
                 character.sing(note.direction, note.animSuffix);
             else
                 character.holdTime = 0;
@@ -348,59 +433,168 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     /**
-     * Runs a quick tween on all receptors of this strumline.
-     * @param delay The time to wait before the tween starts
-     * @param dirDelay The extra wait time per receptor.
+     * Runs the start tween on all receptors of this strumline.
      */
-    public function tweenReceptors(delay:Float = 0.5, dirDelay:Float = 0.2):Void {
+    public function runStartTweens():Void {
         for (receptor in receptors) {
             receptor.alpha = 0;
             receptor.y -= 10;
             FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
-                startDelay: delay + (dirDelay * receptor.direction),
+                startDelay: 0.5 + (0.2 * receptor.direction),
                 ease: FlxEase.circOut
             });
         }
     }
 
     /**
-     * Pops a splash on this strumline.
-     * @param note The note used to make the splash
+     * Adds a splash to this strumline.
+     * @param note Parent note.
      */
     public function popSplash(note:Note):Void {
-        var skin:String = note.splashSkin ?? this.skin;
-        var splash:Splash = splashes.recycle(Splash, () -> new Splash(skin));
+        if (splashDisabled) return;
 
-        if (splash.skin != skin)
-            splash.skin = skin;
-
-        var receptor:Receptor = receptors.members[note.direction];
+        var splash:Splash = splashes.recycle(Splash, splashConstructor);
+        var receptor:Receptor = getReceptor(note.direction);
         splash.setPosition(receptor.x, receptor.y);
         splash.pop(note.direction);
+    }
+
+    /**
+     * Adds a hold cover to this strumline.
+     * @param note Parent note.
+     */
+    public function spawnCover(note:Note):Void {
+        if (splashDisabled) return;
+
+        var cover:HoldCover = holdCovers.recycle(HoldCover, holdCoverConstructor);
+        cover.start(note);
+
+        cover.centerToObject(getReceptor(note.direction));
+        note.holdCover = cover;
+    }
+
+    inline function splashConstructor():Splash {
+        return new Splash(skin);
+    }
+
+    inline function holdCoverConstructor():HoldCover {
+        return new HoldCover(skin);
+    }
+
+    /*
+    inline function sortNotes(a:Note, b:Note):Int {
+        return Std.int(a.time - b.time);
+    }
+
+    inline function sortSustains(a:Sustain, b:Sustain):Int {
+        return sortNotes(a.parent, b.parent);
+    }
+    */
+
+    /**
+     * Plays the press animation on the specified receptor.
+     * @param direction The receptor's direction.
+     */
+    public inline function playPress(direction:Int):Void {
+        getReceptor(direction).playAnimation("press", true);
+    }
+
+    /**
+     * Plays the confirm animation on the specified receptor.
+     * @param direction The receptor's direction.
+     */
+    public inline function playConfirm(direction:Int):Void {
+        getReceptor(direction).playAnimation("confirm", true);
+    }
+
+    /**
+     * Plays the static animation on the specified receptor.
+     * @param direction The receptor's direction.
+     */
+    public inline function playStatic(direction:Int):Void {
+        getReceptor(direction).playAnimation("static", true);
+    }
+
+    /**
+     * Returns the receptor matching the passed direction.
+     * @param direction Direction to check.
+     */
+    public inline function getReceptor(direction:Int):Receptor {
+        return receptors.members[direction];
+    }
+
+    inline function enableInputs():Void {
+        // inputs are already enabled, don't add them again
+        if (keys != null) return;
+
+        // register key listeners
+        FlxG.stage.application.window.onKeyDown.add(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.add(onKeyUp);
+
+        // and map the keys
+        keys = [
+            for (i in 0...Note.directions.length)
+                for (key in Controls.global.keybinds[Note.directions[i]][0])
+                    key => i
+        ];
+    }
+
+    inline function disableInputs():Void {
+        // inputs are already disabled, don't remove them again
+        if (keys == null) return;
+
+        // remove the key listeners
+        FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
+        FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
+
+        // and clear the keys
+        keys = null;
     }
 
     /**
      * Clean up memory.
      */
     override function destroy():Void {
-        onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
-        onMiss = cast FlxDestroyUtil.destroy(onMiss);
+        onHoldInvalidation = cast FlxDestroyUtil.destroy(onHoldInvalidation);
         onHold = cast FlxDestroyUtil.destroy(onHold);
+
+        onNoteHit = cast FlxDestroyUtil.destroy(onNoteHit);
+        onGhostPress = cast FlxDestroyUtil.destroy(onGhostPress);
+        onMiss = cast FlxDestroyUtil.destroy(onMiss);
 
         notesToRemove = null;
         characters = null;
-        holdKeys = null;
+        heldKeys = null;
         skin = null;
 
+        disableInputs();
         super.destroy();
     }
 
     // Setter methods
 
+    function set_cpu(v:Bool):Bool {
+        if (!v)
+            enableInputs();
+        else
+            disableInputs();
+
+        return cpu = v;
+    }
+
     function set_skin(v:String):String {
         if (v != null) {
             receptors?.forEach((r) -> r.skin = v);
-            receptorSpacing = ((v == "default") ? 112 : (NoteSkin.get(v)?.receptor?.spacing ?? 112));
+
+            switch (v) {
+                case "default":
+                    receptorSpacing = 112;
+                    splashDisabled = false;
+                default:
+                    var noteSkin:NoteSkinConfig = NoteSkin.get(v);
+                    receptorSpacing = noteSkin?.receptor?.spacing ?? 112;
+                    splashDisabled = noteSkin?.disableSplashes ?? false;
+            }
         }
 
         return skin = v;
@@ -410,23 +604,6 @@ class StrumLine extends FlxSpriteGroup {
         receptors?.forEach((r) -> r.x = x + (v * (r.direction - 2)));
         return receptorSpacing = v;
     }
-}
-
-// TODO: do not use an enum
-
-/**
- * Represent a `keyHit` result.
- */
-enum NoteHit {
-    /**
-     * Value holding the note to hit.
-     */
-    NOTE_HIT(note:Note);
-
-    /**
-     * Value returned when the player misses.
-     */
-    MISSED;
 }
 
 typedef NoteSignal = FlxTypedSignal<Note->Void>;

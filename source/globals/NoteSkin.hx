@@ -41,6 +41,8 @@ class NoteSkin {
     }
 
     public static inline function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {
+        sprite.animationOffsets.clear();
+
         if (skin.frameRect != null)
             sprite.loadGraphic(Assets.image(skin.image, skin.library), true, skin.frameRect[0], skin.frameRect[1]);
         else
@@ -70,18 +72,23 @@ class NoteSkin {
         Tools.addYamlAnimations(sprite, animations);
         sprite.playAnimation(mainAnim, true);
 
-        if (skin.scale != null) {
+        if (skin.scale != null)
             sprite.scale.set(skin.scale[0] ?? 1, skin.scale[1] ?? 1);
-            sprite.updateHitbox();
-        }
+        else
+            sprite.scale.set(1, 1);
+
+        sprite.updateHitbox();
 
         if (skin.flip != null) {
             sprite.flipX = skin.flip[0] ?? false;
             sprite.flipY = skin.flip[1] ?? false;
         }
+        else {
+            sprite.flipX = false;
+            sprite.flipY = false;
+        }
 
-        if (skin.antialiasing != null)
-            sprite.antialiasing = skin.antialiasing;
+        sprite.antialiasing = skin.antialiasing ?? FlxSprite.defaultAntialiasing;
 
         if (skin.centeredOffsets) {
             sprite.centerOrigin();
@@ -93,7 +100,9 @@ class NoteSkin {
 typedef NoteSkinConfig = {
     var note:NoteConfig;
     var receptor:ReceptorConfig;
+    var holdCover:GenericSkin;
     var splash:SplashConfig;
+    var disableSplashes:Bool;
 }
 
 typedef NoteConfig = GenericSkin & {
