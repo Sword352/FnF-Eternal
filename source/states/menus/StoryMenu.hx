@@ -467,7 +467,6 @@ class WeekSprite extends FlxSpriteGroup {
 }
 
 class StoryMenuCharacter extends DancingSprite {
-    var globalOffsets:Array<Float>;
     var character:String;
 
     public function setup(character:String, data:StoryCharacterData):Void {
@@ -479,12 +478,13 @@ class StoryMenuCharacter extends DancingSprite {
 
         danceSteps = data.danceSteps ?? ["idle"];
         beat = data.danceBeat ?? 1;
-
-        globalOffsets = data.globalOffsets ?? [0, 0];
         flipX = data.flipX ?? false;
 
         scale.set(data.scale ?? 1, data.scale ?? 1);
         updateHitbox();
+
+        if (data.globalOffsets != null)
+            offset.add(data.globalOffsets[0] ?? 0, data.globalOffsets[1] ?? 0);
 
         forceDance(true);
         animation.finish();
@@ -492,13 +492,7 @@ class StoryMenuCharacter extends DancingSprite {
         currentDance = 0;
     }
 
-    override function forceDance(forced:Bool = false):Void {
-        super.forceDance(forced);
-        offset.add(globalOffsets[0] ?? 0, globalOffsets[1] ?? 0);
-    }
-
     override function destroy():Void {
-        globalOffsets = null;
         character = null;
         super.destroy();
     }

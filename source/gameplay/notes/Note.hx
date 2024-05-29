@@ -280,12 +280,12 @@ class Note extends OffsetSprite {
     }
 
     override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (holdable) sustain.cameras = v;
+        if (sustain != null) sustain.cameras = v;
         return super.set_cameras(v);
     }
 
     override function set_camera(v:FlxCamera):FlxCamera {
-        if (holdable) sustain.camera = v;
+        if (sustain != null) sustain.camera = v;
         return super.set_camera(v);
     }
 }

@@ -8,7 +8,7 @@ animations:
   - { name: "singRIGHT", prefix: "Dad Sing Note RIGHT", fps: 24, loop: false, offsets: [0, 27]   }
 
 singDuration: 6.1
-globalOffsets: [-150, -450]
+globalOffsets: [150, 450]
 cameraOffsets: [150, -75]
 
 icon: "dad"

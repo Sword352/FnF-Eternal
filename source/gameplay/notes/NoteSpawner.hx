@@ -132,7 +132,7 @@ class NoteSpawner extends FlxBasic {
         if (note.skin != parent.skin)
             note.skin = parent.skin;
 
-        if (note.length != 0)
+        if (note.holdable)
             note.sustain = sustains.recycle(Sustain);
 
         return note;

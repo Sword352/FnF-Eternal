@@ -56,9 +56,9 @@ class HoldCover extends OffsetSprite {
                         animation.addByPrefix(direction + "-end", "holdCoverEnd" + color, 24, false);
                         animation.addByPrefix(direction, "holdCover" + color + "0", 24);
 
-                        addOffset(direction + "-start", 12, -43);
-                        addOffset(direction + "-end", 12, -43);
-                        addOffset(direction, 12, -43);
+                        offsets.add(direction + "-start", 12, -43);
+                        offsets.add(direction + "-end", 12, -43);
+                        offsets.add(direction, 12, -43);
                     }
 
                     playAnimation("left", true);

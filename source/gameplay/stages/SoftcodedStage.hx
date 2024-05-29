@@ -192,10 +192,8 @@ class SoftcodedStage extends Stage {
                     add(sprite);
             }
 
-            if (obj.animations != null) {
+            if (obj.animations != null)
                 Tools.addYamlAnimations(sprite, obj.animations);
-                sprite.playAnimation(obj.animations[0].name, true);
-            }
 
             if (obj.animationSpeed != null)
                 sprite.animation.timeScale = obj.animationSpeed;
@@ -229,8 +227,8 @@ class SoftcodedStage extends Stage {
             player.setPosition(playerPos[0], playerPos[1]);
 
             if (player.globalOffsets != null) {
-                player.x += player.globalOffsets[0] ?? 0;
-                player.y += player.globalOffsets[1] ?? 0;
+                player.x -= player.globalOffsets[0] ?? 0;
+                player.y -= player.globalOffsets[1] ?? 0;
             }
 
             if (playerCam != null) {
@@ -244,8 +242,8 @@ class SoftcodedStage extends Stage {
             opponent.setPosition(opponentPos[0], opponentPos[1]);
 
             if (opponent.globalOffsets != null) {
-                opponent.x += opponent.globalOffsets[0] ?? 0;
-                opponent.y += opponent.globalOffsets[1] ?? 0;
+                opponent.x -= opponent.globalOffsets[0] ?? 0;
+                opponent.y -= opponent.globalOffsets[1] ?? 0;
             }
 
             if (opponentCam != null) {
@@ -266,8 +264,8 @@ class SoftcodedStage extends Stage {
             }
 
             if (spectator.globalOffsets != null) {
-                spectator.x += spectator.globalOffsets[0] ?? 0;
-                spectator.y += spectator.globalOffsets[1] ?? 0;
+                spectator.x -= spectator.globalOffsets[0] ?? 0;
+                spectator.y -= spectator.globalOffsets[1] ?? 0;
             }
         }
 

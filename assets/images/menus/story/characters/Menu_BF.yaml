@@ -1,6 +1,6 @@
 animations:
 - { name: "idle",    prefix: "M BF Idle", fps: 24, loop: false }
-- { name: "confirm", prefix: "M bf HEY",  fps: 24, loop: false, offsets: [2, -10] }
+- { name: "confirm", prefix: "M bf HEY",  fps: 24, loop: false, offsets: [1] }
 
-globalOffsets: [0, -10]
+globalOffsets: [0, -30]
 scale: 0.8

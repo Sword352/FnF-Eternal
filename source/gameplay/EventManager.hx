@@ -132,7 +132,6 @@ class EventManager extends FlxBasic {
 
                 character.setup(newCharacter.data);
                 character.data = newCharacter.data;
-                character.animationOffsets = newCharacter.animationOffsets;
                 character.playAnimation(oldAnim);
             case "change scroll speed":
                 var newSpeed:Float = event.arguments[0];

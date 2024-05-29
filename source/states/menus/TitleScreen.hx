@@ -405,12 +405,6 @@ class TitleScreen extends MusicBeatState {
 
                 sprite.scale.set(data.scale[0], data.scale[1]);
                 sprite.updateHitbox();
-
-                // apply animation offsets after hitbox update
-                if (sprite.animation.curAnim != null) {
-                    sprite.playAnimation(sprite.animation.curAnim.name, true);
-                    sprite.animation.finish();
-                }
             }
 
             if (data.position != null) {

@@ -1,5 +1,6 @@
 package objects;
 
+import flixel.FlxCamera;
 import flixel.math.FlxPoint;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
@@ -11,14 +12,13 @@ class HealthIcon extends OffsetSprite {
     public var character(get, set):String;
 
     public var size:FlxPoint = FlxPoint.get(150, 150);
+    public var globalOffsets:FlxPoint = FlxPoint.get();
     public var healthAnim:Bool = true;
 
     public var bopSize:Float = 25;
     public var bopDuration:Float = 1.5;
     public var bopStep:Int = -1;
     
-    var storedOffsets:FlxPoint = FlxPoint.get();
-    var animOffsets:FlxPoint = FlxPoint.get();
     var _character:String;
 
     public function new(x:Float = 0, y:Float = 0, icon:String = "face") {
@@ -37,14 +37,10 @@ class HealthIcon extends OffsetSprite {
             else if (state != LOSING) state = LOSING;
         }
 
-        if (bopStep != -1) {            
+        if (bopStep != -1) {
             var ratio:Float = Math.min(Conductor.self.decStep - bopStep, bopDuration) / bopDuration;
-
-            setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio), FlxMath.lerp(size.y + bopSize, size.y, ratio));
+            setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio));
             updateHitbox();
-
-            offset.addPoint(storedOffsets);
-            offset.addPoint(animOffsets);
         }
 
         super.update(elapsed);
@@ -58,14 +54,14 @@ class HealthIcon extends OffsetSprite {
         setGraphicSize(size.x, size.y);
         updateHitbox();
         bopStep = -1;
+    }
 
-        offset.addPoint(storedOffsets);
-        offset.addPoint(animOffsets);
+    override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint {
+        return super.getScreenPosition(result, camera).subtractPoint(globalOffsets);
     }
 
     override function destroy():Void {
-        storedOffsets = FlxDestroyUtil.put(storedOffsets);
-        animOffsets = FlxDestroyUtil.put(animOffsets);
+        globalOffsets = FlxDestroyUtil.put(globalOffsets);
         size = FlxDestroyUtil.put(size);
 
         _character = null;
@@ -104,12 +100,11 @@ class HealthIcon extends OffsetSprite {
         scale.set(config.scale == null ? 1 : (config.scale[0] ?? 1), config.scale == null ? 1 : (config.scale[1] ?? 1));
         updateHitbox();
 
-        var offsetX:Float = -(config.globalOffsets != null ? (config.globalOffsets[0] ?? 0) : 0);
-        var offsetY:Float = -(config.globalOffsets != null ? (config.globalOffsets[1] ?? 0) : 0);
-        offset.add(offsetX, offsetY);
+        var offsetX:Float = (config.globalOffsets != null ? (config.globalOffsets[0] ?? 0) : 0);
+        var offsetY:Float = (config.globalOffsets != null ? (config.globalOffsets[1] ?? 0) : 0);
+        globalOffsets.set(offsetX, offsetY);
 
         antialiasing = config.antialiasing ?? FlxSprite.defaultAntialiasing;
-        storedOffsets.set(offset.x, offset.y);
     }
 
     function changeSimple(icon:String):Void {
@@ -130,15 +125,8 @@ class HealthIcon extends OffsetSprite {
 
     function resetValues():Void {
         antialiasing = FlxSprite.defaultAntialiasing;
-        animationOffsets.clear();
-        storedOffsets.set();
-        animOffsets.set();
-    }
-
-    override function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame:Int = 0) {
-        super.playAnimation(name, force, reversed, frame);
-        animOffsets.set(offset.x, offset.y);
-        offset.addPoint(storedOffsets);
+        globalOffsets.set();
+        offsets.clear();
     }
 
     function set_state(v:HealthState):HealthState {

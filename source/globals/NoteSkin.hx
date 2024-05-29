@@ -41,7 +41,7 @@ class NoteSkin {
     }
 
     public static inline function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {
-        sprite.animationOffsets.clear();
+        sprite.offsets.clear();
 
         if (skin.frameRect != null)
             sprite.loadGraphic(Assets.image(skin.image, skin.library), true, skin.frameRect[0], skin.frameRect[1]);

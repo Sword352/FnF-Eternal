@@ -447,7 +447,7 @@ class PlayState extends MusicBeatState {
 
         camSubState.zoom = camGame.zoom;
 
-        var playerPosition:FlxPoint = player?.getScreenPosition() ?? FlxPoint.get(camPos.x, camPos.y);
+        var playerPosition:FlxPoint = player?.getScreenCoords() ?? FlxPoint.get(camPos.x, camPos.y);
         openSubState(new GameOverScreen(playerPosition.x, playerPosition.y, player?.gameOverChar ?? player?.character ?? "boyfriend-dead"));
         playerPosition.put();
 

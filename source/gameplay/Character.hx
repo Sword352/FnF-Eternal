@@ -143,12 +143,10 @@ class Character extends DancingSprite {
         if (config.scale != null) {
             scale.set(config.scale[0] ?? 1, config.scale[1] ?? 1);
             updateHitbox();
-
-            // re-apply offsets
-            playAnimation(danceSteps[0], true);
         }
 
         if (type == PLAYER && config.playerFlip) {
+            // TODO: flipped offsets
             swapAnimations(singAnimations[0], singAnimations[3]);
             swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
             flipX = !flipX;
@@ -168,10 +166,10 @@ class Character extends DancingSprite {
             animation._animations.set(firstAnimation, secondAnim);
         }
 
-        if (animationOffsets.exists(firstAnimation) && animationOffsets.exists(secondAnimation)) {
-            var secondOffsets = animationOffsets.get(secondAnimation);
-            animationOffsets.set(secondAnimation, animationOffsets.get(firstAnimation));
-            animationOffsets.set(firstAnimation, secondOffsets);
+        if (offsets.exists(firstAnimation) && offsets.exists(secondAnimation)) {
+            var secondOffsets = offsets.get(secondAnimation);
+            offsets.addPoint(secondAnimation, offsets.get(firstAnimation));
+            offsets.addPoint(firstAnimation, secondOffsets);
         }
     }
 
@@ -187,6 +185,7 @@ class Character extends DancingSprite {
 
     public function getCamDisplace():FlxPoint {
         var point:FlxPoint = getMidpoint();
+        
         if (cameraOffsets != null)
             point.add(cameraOffsets[0] ?? 0, cameraOffsets[1] ?? 0);
 

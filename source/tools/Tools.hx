@@ -174,18 +174,15 @@ class Tools {
 
                 if (animation.offsets != null) {
                     if (offsetSprite)
-                        cast(sprite, OffsetSprite).addOffset(animation.name, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0);
+                        (cast sprite:OffsetSprite).offsets.add(animation.name, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0);
                     else
-                        sprite.frames.setFramesOffsetByPrefix(animation.prefix, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0, false);
+                        sprite.frames.addFramesOffsetByPrefix(animation.prefix, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0, false);
                 }
             }
             catch (e) {}
         }
 
-        if (offsetSprite)
-            cast(sprite, OffsetSprite).playAnimation(animations[0].name, true);
-        else
-            sprite.animation.play(animations[0].name, true);
+        sprite.animation.play(animations[0].name, true);
     }
 
     public static inline function lerp(start:Float, goal:Float, speed:Float = 1):Float {
