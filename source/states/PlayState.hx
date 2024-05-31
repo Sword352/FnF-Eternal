@@ -659,6 +659,9 @@ class PlayState extends MusicBeatState {
         #if ENGINE_SCRIPTING
         hxsCall("onOpponentNoteHit", [note]);
         #end
+
+        if (music.voices.length == 1)
+            music.playerVolume = 1;
     }
 
     public function onBotplayNoteHit(note:Note):Void {
@@ -707,6 +710,9 @@ class PlayState extends MusicBeatState {
         #if ENGINE_SCRIPTING
         hxsCall("onOpponentNoteHold", [note]);
         #end
+
+        if (music.voices.length == 1)
+            music.playerVolume = 1;
     }
 
     public function onMiss(note:Note):Void {
