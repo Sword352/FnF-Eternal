@@ -14,6 +14,7 @@ import music.SongPlayback;
 
 import objects.Camera;
 import gameplay.ComboPopup;
+import gameplay.events.SongEventExecutor;
 
 import states.menus.StoryMenu;
 import states.menus.FreeplayMenu;
@@ -37,7 +38,7 @@ class PlayState extends MusicBeatState {
     public static var gameMode:GameMode = FREEPLAY;
     public static var lossCounter:Int = 0;
 
-    public var eventManager:EventManager;
+    public var events:SongEventExecutor;
     public var music:SongPlayback;
 
     public var camGame:FlxCamera;
@@ -89,47 +90,16 @@ class PlayState extends MusicBeatState {
     public var cameraZoom:Float = 1;
     public var hudZoom:Float = 1;
 
-    public var camBeatZoom:Float = 0.03;
-    public var hudBeatZoom:Float = 0.05;
-    public var beatZoomInterval:Float = 4;
+    public var gameBeatBump:Float = 0.03;
+    public var hudBeatBump:Float = 0.05;
+    public var camBumpInterval:Float = 4;
 
+    public var cameraFocus(default, set):Character;
+    public var camPos:FlxPoint = FlxPoint.get();
     public var camDisplace:FlxObject;
-    public var camPos:FlxPoint;
-
-    public var cameraTargets:Array<Character>;
-    public var targetCharacter:Character;
 
     public var validScore:Bool = (gameMode != DEBUG);
     public var startTime:Float;
-
-    // ======= Base game compatibility ==============
-    public var boyfriend(get, set):Character;
-    public var gf(get, set):Character;
-    public var dad(get, set):Character;
-
-    public var camFollow(get, set):FlxObject;
-    public var camFollowPos(get, set):FlxPoint;
-    public var defaultCamZoom(get, set):Float;
-
-    inline function get_boyfriend():Character return player;
-    inline function set_boyfriend(v:Character):Character return player = v;
-
-    inline function get_gf():Character return spectator;
-    inline function set_gf(v:Character):Character return spectator = v;
-
-    inline function get_dad():Character return opponent;
-    inline function set_dad(v:Character):Character return opponent = v;
-
-    inline function get_defaultCamZoom():Float return cameraZoom;
-    inline function set_defaultCamZoom(v:Float):Float return cameraZoom = v;
-
-    inline function get_camFollow():FlxObject return camDisplace;
-    inline function set_camFollow(v:FlxObject):FlxObject return camDisplace = v;
-
-    inline function get_camFollowPos():FlxPoint return camPos;
-    inline function set_camFollowPos(v:FlxPoint):FlxPoint return camPos = v;
-
-    // ==============================================
 
     public function new(startTime:Float = 0):Void {
         this.startTime = startTime;
@@ -165,11 +135,9 @@ class PlayState extends MusicBeatState {
         camSubState.bgColor.alpha = 0;
         FlxG.cameras.add(camSubState, false);
 
-        camPos = FlxPoint.get();
-
-        camDisplace = new FlxObject(0, 0, 1, 1);
+        camDisplace = new FlxObject(FlxG.width * 0.5, FlxG.height * 0.5, 1, 1);
+        camDisplace.visible = camDisplace.active = false;
         camGame.follow(camDisplace, LOCKON);
-        camDisplace.visible = false;
         add(camDisplace);
 
         super.create();
@@ -192,7 +160,7 @@ class PlayState extends MusicBeatState {
                 music.createVoice(voiceFile);
 
         conductor.beatsPerMeasure = (song.gameplayInfo.beatsPerMeasure ?? 4);
-        beatZoomInterval = conductor.beatsPerMeasure;
+        camBumpInterval = conductor.beatsPerMeasure;
 
         conductor.stepsPerBeat = (song.gameplayInfo.stepsPerBeat ?? 4);
         conductor.bpm = song.gameplayInfo.bpm;
@@ -227,8 +195,6 @@ class PlayState extends MusicBeatState {
                 plrNoteSkin = player.noteSkin;
         }
 
-        cameraTargets = [opponent, spectator, player];
-
         strumLines = new FlxTypedGroup<StrumLine>();
         strumLines.cameras = [camHUD];
 
@@ -254,10 +220,6 @@ class PlayState extends MusicBeatState {
         noteSpawner = new NoteSpawner(strumLines.members, startTime);
         add(noteSpawner);
         add(strumLines);
-
-        eventManager = new EventManager();
-        eventManager.loadEvents(song.events);
-        add(eventManager);
 
         hud = new GameplayUI();
         hud.visible = !Options.hideUi;
@@ -318,13 +280,7 @@ class PlayState extends MusicBeatState {
         // Calling the stage create post function here, in case it modifies some camera position values
         stage.createPost();
 
-        // Run the first camera event, then snap the camera's position to it's intended position
-        if (song.events.length > 0 && song.events[0].event.toLowerCase().trim() == "change camera target" && song.events[0].time <= 10)
-            eventManager.runEvent(eventManager.events.shift());
-        else
-            camDisplace.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
-
-        snapCamera();
+        add(events = new SongEventExecutor());
 
         if (startTime <= 0) {
             #if ENGINE_SCRIPTING
@@ -355,8 +311,6 @@ class PlayState extends MusicBeatState {
 
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, cameraSpeed);
         camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, cameraSpeed);
-
-        updateCamPos();
         updateCamLerp();
 
         #if ENGINE_DISCORD_RPC
@@ -401,9 +355,9 @@ class PlayState extends MusicBeatState {
     override function beatHit(beat:Int):Void {
         #if ENGINE_SCRIPTING if (cancellableCall("onBeatHit", [beat])) return; #end
 
-        if (beat != 0 && beat % beatZoomInterval == 0) {
-            camGame.zoom += camBeatZoom;
-            camHUD.zoom += hudBeatZoom;
+        if (beat != 0 && beat % camBumpInterval == 0) {
+            camGame.zoom += gameBeatBump;
+            camHUD.zoom += hudBeatBump;
         }
 
         gameDance(beat);
@@ -461,32 +415,8 @@ class PlayState extends MusicBeatState {
         FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(conductor.time, 0) : 0));
     }
 
-    public function changeCamTarget(target:Int):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onCamTargetChange", [target]))
-            return;
-        #end
-
-        targetCharacter = cameraTargets[target];
-        stage.onCamFocusChange(target);
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onCamTargetChangePost", [target]);
-        #end
-    }
-
     public inline function snapCamera():Void {
-        updateCamPos();
         camDisplace.setPosition(camPos.x, camPos.y);
-    }
-
-    public inline function updateCamPos():Void {
-        if (targetCharacter == null)
-            return;
-
-        var position:FlxPoint = targetCharacter.getCamDisplace();
-        camPos.set(position.x, position.y);
-        position.put();
     }
 
     public inline function updateCamLerp():Void {
@@ -883,8 +813,7 @@ class PlayState extends MusicBeatState {
         countdownSounds = null;
 
         camPos = FlxDestroyUtil.put(camPos);
-        targetCharacter = null;
-        cameraTargets = null;
+        cameraFocus = null;
 
         rankSDCB = null;
         rankFC = null;
@@ -914,6 +843,27 @@ class PlayState extends MusicBeatState {
     inline public function setTime(time:Float):Void {
         conductor.time = time;
         startSong(time);
+    }
+
+    function set_cameraFocus(v:Character):Character {
+        if (v != null) {
+            #if ENGINE_SCRIPTING
+            if (cancellableCall("onCamFocusChange", [v])) return cameraFocus;
+            #end
+
+            var cameraPosition:FlxPoint = v.getCamDisplace();
+            camPos.copyFrom(cameraPosition);
+            cameraPosition.put();
+    
+            stage.onCamFocusChange(v);
+            cameraFocus = v;
+    
+            #if ENGINE_SCRIPTING
+            hxsCall("onCamFocusChangePost", [v]);
+            #end
+        }
+
+        return v;
     }
 
     inline function set_health(v:Float):Float

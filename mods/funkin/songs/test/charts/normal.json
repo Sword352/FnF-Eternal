@@ -2,226 +2,226 @@
     "events": [
         {
             "arguments": [
-                0
+                0, true
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 0
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 3200
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 6400
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 9600
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 12800
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 14400
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 16000
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 17600
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 19200
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 20800
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 22400
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 24000
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 25600
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 28800
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 32000
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 35200
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 38400
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 41600
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 44800
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 48000
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 51200
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 57600
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 64000
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 70400
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 76800
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 80000
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 83200
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 86400
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 89600
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 92800
         },
         {
             "arguments": [
                 0
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 96000
         },
         {
             "arguments": [
                 2
             ],
-            "event": "change camera target",
+            "type": "change camera target",
             "time": 99200
         }
     ],

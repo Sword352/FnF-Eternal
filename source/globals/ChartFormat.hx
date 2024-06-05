@@ -48,7 +48,7 @@ typedef ChartJson = {
 }
 
 typedef ChartEvent = {
-    var event:String;
+    var type:String;
     var time:Float;
     var arguments:Array<Any>;
 }

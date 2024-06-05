@@ -10,7 +10,6 @@ import haxe.ui.containers.properties.*;
 import haxe.ui.styles.StyleSheet;
 
 import globals.ChartLoader;
-import gameplay.EventManager.EventDetails;
 import haxe.Json;
 
 class ChartSubScreen extends FlxSubState {

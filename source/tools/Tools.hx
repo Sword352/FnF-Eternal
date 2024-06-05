@@ -38,6 +38,18 @@ class Tools {
     static inline function get_gameVersion():String
         return openfl.Lib.application.meta["version"];
 
+    public static inline function camelCase(string:String):String {
+        var output:String = string.toLowerCase();
+        if (!output.contains(" ")) return output;
+
+        var parts:Array<String> = output.split(" ");
+
+        for (i in 1...parts.length)
+            parts[i] = capitalize(parts[i]);
+
+        return parts.join("");
+    }
+
     public static inline function capitalize(value:String, lower:Bool = true):String
         return value.split(" ").map((f) -> {
             var fragment:String = f.substring(1, f.length);

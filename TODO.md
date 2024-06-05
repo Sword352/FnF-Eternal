@@ -2,7 +2,6 @@
 - Dialogue cutscenes implementation
 - Add unlockable freeplay songs support
 
-- Finish the built-in events
 - Finish controller input support
 - Finish the audio offset support
 - Finish the FNF modpack port

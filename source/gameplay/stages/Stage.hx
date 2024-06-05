@@ -2,6 +2,8 @@ package gameplay.stages;
 
 import flixel.FlxBasic;
 import states.PlayState;
+
+import gameplay.Character;
 import globals.ChartFormat.ChartEvent;
 
 class Stage extends FlxBasic {
@@ -36,17 +38,17 @@ class Stage extends FlxBasic {
     inline function get_hudZoom():Float return game.hudZoom;
     inline function set_hudZoom(v):Float return game.hudZoom = game.camHUD.zoom = v;
 
-    var camBeatZoom(get, set):Float;
-    inline function get_camBeatZoom():Float return game.camBeatZoom;
-    inline function set_camBeatZoom(v):Float return game.camBeatZoom = v;
+    var gameBeatBump(get, set):Float;
+    inline function get_gameBeatBump():Float return game.gameBeatBump;
+    inline function set_gameBeatBump(v):Float return game.gameBeatBump = v;
 
-    var hudBeatZoom(get, set):Float;
-    inline function get_hudBeatZoom():Float return game.hudBeatZoom;
-    inline function set_hudBeatZoom(v):Float return game.hudBeatZoom = v;
+    var hudBeatBump(get, set):Float;
+    inline function get_hudBeatBump():Float return game.hudBeatBump;
+    inline function set_hudBeatBump(v):Float return game.hudBeatBump = v;
 
-    var beatZoomInterval(get, set):Float;
-    inline function get_beatZoomInterval():Float return game.beatZoomInterval;
-    inline function set_beatZoomInterval(v):Float return game.beatZoomInterval = v;
+    var camBumpInterval(get, set):Float;
+    inline function get_camBumpInterval():Float return game.camBumpInterval;
+    inline function set_camBumpInterval(v):Float return game.camBumpInterval = v;
 
     public function new():Void {
         super();
@@ -71,7 +73,7 @@ class Stage extends FlxBasic {
     public function onSongEnd():Void {}
 
     public function onCountdownTick(loop:Int):Void {}
-    public function onCamFocusChange(target:Int):Void {}
+    public function onCamFocusChange(target:Character):Void {}
 
     public function onEventTrigger(event:ChartEvent):Void {}
     public function onEventPreload(event:ChartEvent):Void {}

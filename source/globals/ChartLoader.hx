@@ -136,8 +136,8 @@ class ChartLoader {
             var intendedTarget:Int = (section.mustHitSection) ? 2 : 0;
             if (intendedTarget != currentTarget) {
                 finalData.events.push({
-                    event: "Change Camera Target",
-                    arguments: [intendedTarget],
+                    type: "change camera target",
+                    arguments: [intendedTarget, true],
                     time: time
                 });
                 currentTarget = intendedTarget;
@@ -146,7 +146,7 @@ class ChartLoader {
             var intendedBPM:Null<Float> = (section.changeBPM) ? section.bpm : null;
             if (intendedBPM != null && intendedBPM != currentBPM) {
                 finalData.events.push({
-                    event: "Change BPM",
+                    type: "change bpm",
                     arguments: [intendedBPM],
                     time: time
                 });

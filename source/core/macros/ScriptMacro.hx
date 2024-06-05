@@ -1,10 +1,12 @@
-package core.scripting;
+package core.macros;
 
 #if macro
 import haxe.macro.Compiler;
 
-// Macro used to compile unused classes for HScript's flexibility
-class HScriptInclude {
+/**
+ * Macro used to compile unused classes for scripting flexibility.
+ */
+class ScriptMacro {
     /**
      * FORMAT: `"packageToImport" => [array of exclusions]`
      * The array of exclusions can be null if it does not require it

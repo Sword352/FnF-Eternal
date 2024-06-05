@@ -9,8 +9,8 @@ import core.scripting.ScriptableState.ScriptableSubState as SubState;
 #end
 
 class MusicBeatState extends State {
-    var controls:Controls = Controls.global;
-    var conductor(default, set):Conductor;
+    public var conductor(default, set):Conductor;
+    public var controls:Controls = Controls.global;
 
     override function create():Void {
         super.create();
@@ -93,8 +93,8 @@ class MusicBeatState extends State {
 }
 
 class MusicBeatSubState extends SubState {
-    var conductor(default, set):Conductor;
-    var controls:Controls = Controls.global;
+    public var conductor(default, set):Conductor;
+    public var controls:Controls = Controls.global;
 
     public function new():Void {
         super();

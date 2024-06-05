@@ -15,22 +15,19 @@ import states.editors.chart.ChartUndos;
 import states.editors.UndoList;
 
 import objects.HealthIcon;
-import objects.CheckerboardBG;
 import gameplay.notes.Note;
 import gameplay.notes.Receptor;
 
 import music.SongPlayback;
 import globals.ChartFormat;
-import globals.ChartLoader;
-import gameplay.EventManager;
+import gameplay.events.EventList;
+import gameplay.events.EventTypes;
 
-import haxe.ui.Toolkit;
 import haxe.ui.core.Screen;
 import haxe.ui.notifications.*;
 import haxe.ui.components.VerticalScroll;
 
 import flixel.util.FlxStringUtil;
-import flixel.util.FlxGradient;
 import haxe.Json;
 
 class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements core.crash.CrashHandler.ICrashListener #end {
@@ -49,10 +46,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
     public var difficulty:String;
     public var chart:Chart;
 
-    public var eventList:Map<String, EventDetails>;
+    public var eventList:Map<String, EventMeta>;
     public var noteTypes:Array<String>;
 
-    public var currentEvent:EventDetails;
+    public var currentEvent:EventMeta;
     public var currentNoteType:String;
     public var eventArgs:Array<Any>;
 
@@ -382,8 +379,8 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
             event.y = getMouseY();
             event.data = {
                 time: getTimeFromY(event.y),
-                event: currentEvent.name,
-                arguments: eventArgs.copy()
+                arguments: eventArgs.copy(),
+                type: currentEvent.type
             };
 
             chart.events.push(event.data);
@@ -649,7 +646,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
 
         if (chart.events.length > 0) {
             for (event in chart.events) {
-                if (event.event.toLowerCase().trim() != "change bpm") continue;
+                if (event.type != "change bpm") continue;
                 if (event.time > conductor.time) break;
 
                 stepOffset += ((event.time - lastChange) / (((60 / currentBPM) * 1000) / conductor.stepsPerBeat));
@@ -715,10 +712,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
     }
 
     inline function loadData():Void {
-        eventList = EventManager.getEventList();
-        currentEvent = EventManager.defaultEvents[0];
-        eventArgs = [for (arg in currentEvent.arguments) arg.value];
+        eventList = EventList.getMetas();
+        currentEvent = eventList.get("change camera target");
 
+        eventArgs = [for (arg in currentEvent.arguments) arg.defaultValue];
         noteTypes = Note.defaultTypes.copy();
 
         #if ENGINE_SCRIPTING
@@ -803,7 +800,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
 
         events.forEachAlive((event) -> {
             if (event.selected)
-                clipboard.register(Event(event.data.event, event.data.time - conductor.time, event.data.arguments?.copy() ?? null));
+                clipboard.register(Event(event.data.type, event.data.time - conductor.time, event.data.arguments.copy()));
         });
     }
 
@@ -831,7 +828,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
                     noteRewinds.push(data);
                 case Event(event, conductorDiff, arguments):
                     var data:ChartEvent = {
-                        event: event,
+                        type: event,
                         time: conductor.time + conductorDiff,
                         arguments: arguments
                     };

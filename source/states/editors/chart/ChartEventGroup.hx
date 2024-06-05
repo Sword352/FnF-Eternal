@@ -2,8 +2,10 @@ package states.editors.chart;
 
 import flixel.text.FlxText;
 import flixel.group.FlxGroup;
-import globals.ChartFormat.ChartEvent;
 import states.editors.SelectionHelper.SelectableSprite;
+
+import globals.ChartFormat.ChartEvent;
+import gameplay.events.EventTypes.EventMeta;
 
 class ChartEventGroup extends FlxTypedGroup<EventSprite> {
     override function update(elapsed:Float):Void {
@@ -82,7 +84,11 @@ class EventSprite extends SelectableSprite {
     }
 
     override function draw():Void {
-        var displayText:String = data.event;
+        if (!isOnScreen(camera)) return;
+
+        var eventMeta:EventMeta = (cast FlxG.state:ChartEditor).eventList.get(data.type);
+        var displayText:String = eventMeta?.name ?? data.type;
+
         if (data.arguments != null)
             displayText += '\nArguments: ${data.arguments.join(", ")}';
 

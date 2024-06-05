@@ -14,7 +14,7 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 
-import gameplay.EventManager;
+import gameplay.events.EventTypes;
 import globals.ChartFormat;
 import globals.ChartLoader;
 import haxe.Json;
@@ -497,31 +497,35 @@ class EventDialog extends CollapsibleDialog {
             skipCallback = false;
             return;
         }
+
+        for (event in parent.eventList) {
+            if (event.name == eventDropdown.value) {
+                parent.currentEvent = event;
+                break;
+            }
+        }
         
-        parent.currentEvent = parent.eventList.get(eventDropdown.value);
         rebuildArguments();
 
         if (parent.currentEvent.arguments != null) {
             while (parent.eventArgs.length != 0) parent.eventArgs.pop();
-            for (arg in parent.currentEvent.arguments) parent.eventArgs.push(arg.value);
+            for (arg in parent.currentEvent.arguments) parent.eventArgs.push(arg.defaultValue);
         }
     
         if (parent.selectedEvent != null) {
-            parent.selectedEvent.data.event = eventDropdown.value;
+            parent.selectedEvent.data.type = parent.currentEvent.type;
             parent.selectedEvent.data.arguments = parent.eventArgs.copy();
         }
     }
 
     function rebuildArguments(withValues:Bool = false):Void {
-        var details:EventDetails = parent.eventList.get(parent.currentEvent.name);
+        var meta:EventMeta = parent.currentEvent;
 
         scrollView._height = null; // temporary until max-height gets fixed
         argContainer.removeAllComponents();
 
-        if (details.arguments == null) return;
-
-        for (i in 0...details.arguments.length) {
-            var argument:EventArgument = details.arguments[i];
+        for (i in 0...meta.arguments.length) {
+            var argument:EventArgument = meta.arguments[i];
 
             var text:Label = new Label();
             text.verticalAlign = "center";
@@ -539,30 +543,35 @@ class EventDialog extends CollapsibleDialog {
         var component:Component = null;
 
         switch (argument.type) {
-            case STRING:
-                var textField:TextField = new TextField();
-                textField.text = value ?? argument.value ?? "";
-                component = textField;
             case BOOL:
                 var checkBox:CheckBox = new CheckBox();
-                checkBox.selected = value ?? argument.value ?? false;
+                checkBox.selected = value ?? argument.defaultValue ?? false;
                 component = checkBox;
-            case FLOAT, INT, NUMBER:
+            case FLOAT, INT:
                 var stepper:NumberStepper = new NumberStepper();
                 if (argument.step != null) stepper.step = argument.step;
                 if (argument.min != null) stepper.min = argument.min;
                 if (argument.max != null) stepper.max = argument.max;
-                stepper.value = value ?? argument.value ?? 0;
+                stepper.value = value ?? argument.defaultValue ?? 0;
                 component = stepper;
             case COLOR:
                 var colorPicker:ColorPickerPopup = new ColorPickerPopup();
-                colorPicker.value = value ?? Tools.getColor(argument.value);
+                colorPicker.value = value ?? Tools.getColor(argument.defaultValue);
                 component = colorPicker;
             case LIST:
                 var dropdown:DropDown = new DropDown();
                 for (value in argument.list) dropdown.dataSource.add(value);
-                if (value != null) dropdown.value = value;
+
+                if (value != null)
+                    dropdown.value = value;
+                else if (argument.defaultValue != null)
+                    dropdown.value = argument.defaultValue;
+
                 component = dropdown;
+            default:
+                var textField:TextField = new TextField();
+                textField.text = value ?? argument.defaultValue ?? "";
+                component = textField;
         };
 
         component.onChange = (_) -> {
@@ -576,7 +585,7 @@ class EventDialog extends CollapsibleDialog {
     }
 
     public function refresh():Void {
-        parent.currentEvent = parent.eventList.get(parent.selectedEvent.data.event);
+        parent.currentEvent = parent.eventList.get(parent.selectedEvent.data.type);
         skipCallback = true;
 
         // do stuff on our own since .value and onChange are apparently unreliable?

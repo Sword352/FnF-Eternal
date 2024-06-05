@@ -54,7 +54,7 @@ class OffsetSprite extends FlxSprite {
     }
 
     /**
-	 * Returns the screen position of this object, without animation offsets applied.
+	 * Returns the screen position of this object without accounting for animation offsets.
 	 * @param  result  Optional arg for the returning point
 	 * @param  camera  The desired "screen" coordinate space. If `null`, `FlxG.camera` is used.
 	 * @return The screen position of this object.

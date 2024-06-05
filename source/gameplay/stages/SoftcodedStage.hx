@@ -119,9 +119,9 @@ class SoftcodedStage extends Stage {
         if (data.cameraZoom != null) camZoom = data.cameraZoom;
         if (data.hudZoom != null) hudZoom = data.hudZoom;
 
-        if (data.camBeatZoom != null) camBeatZoom = data.camBeatZoom;
-        if (data.hudBeatZoom != null) hudBeatZoom = data.hudBeatZoom;
-        if (data.camBeat != null) beatZoomInterval = data.camBeat;
+        if (data.camBeatZoom != null) gameBeatBump = data.camBeatZoom;
+        if (data.hudBeatZoom != null) hudBeatBump = data.hudBeatZoom;
+        if (data.camBeat != null) camBumpInterval = data.camBeat;
 
         if (data.playerPos != null) playerPos = arrayCheck(data.playerPos);
         if (data.spectatorPos != null) spectatorPos = arrayCheck(data.spectatorPos);

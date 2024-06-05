@@ -29,7 +29,7 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
     public function new(title:String, ?optionField:String):Void {
         super();
 
-        this.option = optionField ?? formatOption(title);
+        this.option = optionField ?? Tools.camelCase(title);
         this.title = title;
 
         background = new FlxSprite();
@@ -137,18 +137,5 @@ class BaseOptionItem<T> extends FlxSpriteGroup {
         if (v != null)
             descriptionText.text = v;
         return description = v;
-    }
-
-    // convert option title to snake case field
-    inline function formatOption(option:String):String {
-        var output:String = option.toLowerCase();
-        if (!output.contains(" ")) return output;
-
-        var parts:Array<String> = output.split(" ");
-
-        for (i in 1...parts.length)
-            parts[i] = Tools.capitalize(parts[i]);
-
-        return parts.join("");
     }
 }
