@@ -3,6 +3,7 @@ package ui;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
+import external.Memory;
 
 class FPSOverlay extends Sprite {
     static final memoryUnits:Array<String> = ["bytes", "kb", "mb", "gb"];
@@ -88,14 +89,14 @@ class FPSOverlay extends Sprite {
     }
 
     inline function updateFPS():Void {
-        /**
-         * Uses exponential smoothing to avoid noisy values
-         * value = (old * (1 - a)) + (new * a)
-         */
-
         var deltaTime:Int = FlxG.game.ticks - ticks;
-        fps = (fps * 0.8) + (Math.floor(1000 / deltaTime) * 0.2);
         ticks = FlxG.game.ticks;
+
+        // the dt can somewhat be 0 from time to times on some targets (notably hl)
+        if (deltaTime > 0) {
+            // use exponential smoothing to avoid flickering values.
+            fps = (fps * 0.8) + (Math.floor(1000 / deltaTime) * 0.2);
+        }
     }
 
     inline function getText():String {
@@ -108,7 +109,7 @@ class FPSOverlay extends Sprite {
     }
 
     inline function getMemory():String {
-        var memory:Float = #if windows external.Memory.get(); #else openfl.system.System.totalMemory; #end
+        var memory:Float = Memory.usage();
         var iterations:Int = 0;
 
         while (memory >= 1024) {
