@@ -75,7 +75,7 @@ class Stage extends FlxBasic {
     public function onCountdownTick(loop:Int):Void {}
     public function onCamFocusChange(target:Character):Void {}
 
-    public function onEventTrigger(event:ChartEvent):Void {}
+    public function onEventExecution(event:ChartEvent):Void {}
     public function onEventPreload(event:ChartEvent):Void {}
 
     public inline function add(sprite:FlxSprite):FlxSprite {

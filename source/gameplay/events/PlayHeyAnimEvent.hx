@@ -8,16 +8,16 @@ package gameplay.events;
     type: "play hey anim",
     arguments: [
         {name: "Character", type: "List", tempValue: "Player", list: ["Opponent", "Spectator", "Player"]},
-        {name: "Duration in beats", type: "Float", tempValue: "1"}
+        {name: "Duration", type: "Float", tempValue: "1", unit: "beats", list: null} // must provide null list (TODO: figure out why)
     ]
 }))
-class PlayHeyAnimEvent extends BaseSongEvent {
+class PlayHeyAnimEvent extends SongEvent {
     override function execute(_):Void {
         var target:Character = getCharacter(character);
         if (target == null) return;
 
         target.playAnimation("hey", true);
-        target.animEndTime = game.conductor.crochet * durationInBeats / 1000;
+        target.animEndTime = game.conductor.crochet * duration / 1000;
     }
 
     inline function getCharacter(value:String):Character {

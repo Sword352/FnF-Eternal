@@ -4,8 +4,6 @@ import flixel.FlxBasic;
 import flixel.math.FlxPoint;
 import haxe.ui.core.Screen;
 
-using flixel.util.FlxColorTransformUtil;
-
 class SelectionHelper extends FlxBasic {
     // connect a hover box to the selector
     public var hoverBox:HoverBox;
@@ -126,9 +124,9 @@ class SelectionHelper extends FlxBasic {
 // base class for selectable sprites
 class SelectableSprite extends FlxSprite {
     // handled by SelectionHelper
+    public var selected(default, set):Bool = false;
     public var startingPos:FlxPoint = FlxPoint.get();
     public var dragging:Bool = false;
-    public var selected:Bool = false;
     //
 
     // used by class extensions
@@ -137,17 +135,11 @@ class SelectableSprite extends FlxSprite {
     public function onSelect():Void {}
     public function onRelease():Void {}
     public function onDrag():Void {}
-
-    function updateColor(selected:Bool):Void {
-        var offset:Float = (selected ? 75 : 0);
-        colorTransform.setOffsets(offset, offset, offset, 0);
-    }
     //
 
-    override function draw():Void {
-        updateColor(selected);
-        super.draw();
-        updateColor(false);
+    function set_selected(v:Bool):Bool {
+        colorTransform.redOffset = colorTransform.blueOffset = colorTransform.greenOffset = (v ? 75 : 0);
+        return selected = v;
     }
 
     override function destroy():Void {

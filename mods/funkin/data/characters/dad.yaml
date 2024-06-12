@@ -9,7 +9,7 @@ animations:
 
 singDuration: 6.1
 globalOffsets: [150, 450]
-cameraOffsets: [150, -75]
+cameraOffsets: [-150, 75]
 
 icon: "dad"
 healthBarColor: [175, 103, 207]

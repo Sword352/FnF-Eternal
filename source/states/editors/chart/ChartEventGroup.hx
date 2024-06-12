@@ -46,7 +46,7 @@ class EventSprite extends SelectableSprite {
     override function update(elapsed:Float):Void {
         var editor:ChartEditor = cast FlxG.state;
 
-        alpha = text.alpha = (data.time < Conductor.self.time && editor.hasLateAlpha) ? ChartEditor.lateAlpha : 1;
+        alpha = text.alpha = (data.time < Conductor.self.time && editor.lateAlphaOn) ? ChartEditor.lateAlpha : 1;
         color = text.color = (FlxG.mouse.overlaps(this)) ? ChartEditor.hoverColor : FlxColor.WHITE;
 
         #if FLX_DEBUG

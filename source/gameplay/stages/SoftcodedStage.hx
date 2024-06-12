@@ -4,7 +4,7 @@ import objects.OffsetSprite;
 import objects.DancingSprite;
 
 #if ENGINE_SCRIPTING
-import core.scripting.HScript;
+import core.scripting.Script;
 #end
 
 typedef StageConfig = {
@@ -64,7 +64,7 @@ class SoftcodedStage extends Stage {
     public var spriteByName:Map<String, FlxSprite> = [];
 
     #if ENGINE_SCRIPTING
-    public var script:HScript;
+    public var script:Script;
     #end
 
     var spectatorPos:Array<Float> = [600, 0];
@@ -107,7 +107,7 @@ class SoftcodedStage extends Stage {
         #if ENGINE_SCRIPTING
         var scriptPath:String = Assets.script(basePath);
         if (FileTools.exists(scriptPath)) {
-            script = new HScript(scriptPath);
+            script = Script.load(scriptPath);
             script.set("this", this);
 
             game.addScript(script);
@@ -226,30 +226,18 @@ class SoftcodedStage extends Stage {
         if (player != null) {
             player.setPosition(playerPos[0], playerPos[1]);
 
-            if (player.globalOffsets != null) {
-                player.x -= player.globalOffsets[0] ?? 0;
-                player.y -= player.globalOffsets[1] ?? 0;
-            }
-
             if (playerCam != null) {
-                if (player.cameraOffsets == null) player.cameraOffsets = [0, 0];
-                player.cameraOffsets[0] += playerCam[0];
-                player.cameraOffsets[1] += playerCam[1];
+                player.cameraOffsets.x += playerCam[0];
+                player.cameraOffsets.y += playerCam[1];
             }
         }
 
         if (opponent != null && opponent != spectator) {
             opponent.setPosition(opponentPos[0], opponentPos[1]);
 
-            if (opponent.globalOffsets != null) {
-                opponent.x -= opponent.globalOffsets[0] ?? 0;
-                opponent.y -= opponent.globalOffsets[1] ?? 0;
-            }
-
             if (opponentCam != null) {
-                if (opponent.cameraOffsets == null) opponent.cameraOffsets = [0, 0];
-                opponent.cameraOffsets[0] += opponentCam[0];
-                opponent.cameraOffsets[1] += opponentCam[1];
+                opponent.cameraOffsets.x += opponentCam[0];
+                opponent.cameraOffsets.y += opponentCam[1];
             }
         }
 
@@ -258,14 +246,8 @@ class SoftcodedStage extends Stage {
             spectator.visible = showSpectator;
 
             if (spectatorCam != null) {
-                if (spectator.cameraOffsets == null) spectator.cameraOffsets = [0, 0];
-                spectator.cameraOffsets[0] += spectatorCam[0];
-                spectator.cameraOffsets[1] += spectatorCam[1];
-            }
-
-            if (spectator.globalOffsets != null) {
-                spectator.x -= spectator.globalOffsets[0] ?? 0;
-                spectator.y -= spectator.globalOffsets[1] ?? 0;
+                spectator.cameraOffsets.x += spectatorCam[0];
+                spectator.cameraOffsets.y += spectatorCam[1];
             }
         }
 

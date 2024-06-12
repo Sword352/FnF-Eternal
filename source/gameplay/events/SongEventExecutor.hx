@@ -10,11 +10,13 @@ class SongEventExecutor extends FlxBasic {
     /**
      * Stored event executors.
      */
-    var _executors:Map<String, BaseSongEvent>;
+    var _executors:Map<String, SongEvent>;
+
     /**
      * Internal reference to the song events.
      */
     var _events:Array<ChartEvent>;
+
     /**
      * Internal counter which track the next event to execute.
      */
@@ -43,7 +45,7 @@ class SongEventExecutor extends FlxBasic {
                 continue;
             }
 
-            var cls:Class<BaseSongEvent> = EventList.list.get(event.type);
+            var cls:Class<SongEvent> = EventList.list.get(event.type);
 
             if (cls != null)
                 _executors.set(event.type, Type.createInstance(cls, []));
@@ -89,11 +91,22 @@ class SongEventExecutor extends FlxBasic {
      * @param event Event to execute
      */
     function executeEvent(event:ChartEvent):Void {
-        var executor:BaseSongEvent = _executors[event.type];
+        var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
+
+        #if ENGINE_SCRIPTING
+        if (PlayState.current.cancellableCall("onEventExecution", [event]))
+            return;
+        #end
 
         executor.currentEvent = event;
         executor.execute(event);
+
+        #if ENGINE_SCRIPTING
+        PlayState.current.hxsCall("onEventExecutionPost", [event]);
+        #end
+
+        PlayState.current.stage.onEventExecution(event);
     }
 
     /**
@@ -101,11 +114,18 @@ class SongEventExecutor extends FlxBasic {
      * @param event Event to preload
      */
     function preloadEvent(event:ChartEvent):Void {
-        var executor:BaseSongEvent = _executors[event.type];
+        var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
+
+        #if ENGINE_SCRIPTING
+        if (PlayState.current.cancellableCall("onEventPreload", [event]))
+            return;
+        #end
         
         executor.currentEvent = event;
         executor.preload(event);
+
+        PlayState.current.stage.onEventPreload(event);
     }
 
     /**

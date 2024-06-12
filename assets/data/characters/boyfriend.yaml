@@ -24,5 +24,5 @@ animations:
 icon: bf
 healthBarColor: [49, 176, 209]
 
-cameraOffsets: [-150, -150]
+cameraOffsets: [150, 150]
 gameOverChar: boyfriend-dead

@@ -18,7 +18,7 @@ import gameplay.Character;
         {name: "Snap?", type: "Bool", tempValue: "false"}
     ]
 }))
-class ChangeCameraTargetEvent extends BaseSongEvent {
+class ChangeCameraTargetEvent extends SongEvent {
     override function execute(event:ChartEvent) {
         var target:Character = getCharacter(targetCharacter);
         if (target == null) return;

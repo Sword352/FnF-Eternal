@@ -85,7 +85,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
     public var metronome:FlxSound;
 
     public var preferences(get, set):Dynamic; // for convenience
-    public var hasLateAlpha:Bool;
+    public var lateAlphaOn:Bool;
     public var beatSnap:Int;
 
     public var skipUpdate:Bool = false;
@@ -728,7 +728,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements cor
         add(clipboard = new Clipboard<ChartClipboardItems>());
         add(undoList = new UndoList<ChartUndos>());
 
-        hasLateAlpha = preferences.lateAlpha ?? true;
+        lateAlphaOn = preferences.lateAlpha ?? true;
         beatSnap = preferences.beatSnap ?? 16;
     }
 

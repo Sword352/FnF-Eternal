@@ -16,6 +16,6 @@ antialiasing: false
 icon: bf-pixel
 noteSkin: pixel
 
-cameraOffsets: [200, -25]
+cameraOffsets: [-200, 25]
 globalOffsets: [182.5, 157,5]
 healthBarColor: [0, 255, 255]

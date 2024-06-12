@@ -1,28 +1,28 @@
 package gameplay.events;
 
 #if ENGINE_SCRIPTING
-import core.scripting.HScript;
+import core.scripting.Script;
 import globals.ChartFormat.ChartEvent;
 
 /**
  * Scripted event executor.
  * NOTE: this does not and shouldn't rely on the macro!
  */
-class ScriptedEvent extends BaseSongEvent {
-    var _scripts:Map<String, HScript> = [];
+class ScriptedEvent extends SongEvent {
+    var _scripts:Map<String, Script> = [];
 
     override function preload(event:ChartEvent):Void {
-        var script:HScript = _scripts[event.type];
+        var script:Script = _scripts[event.type];
 
         if (script != null)
             script.call("onPreload", event.arguments);
     }
 
     override function execute(event:ChartEvent):Void {
-        var script:HScript = _scripts[event.type];
+        var script:Script = _scripts[event.type];
 
         if (script != null)
-            script.call("onTrigger", event.arguments);
+            script.call("onExecution", event.arguments);
     }
 
     public function add(event:String):Void {

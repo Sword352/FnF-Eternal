@@ -21,7 +21,7 @@ class Memory {
             return pmc.WorkingSetSize;
     ')
     #end
-    public static function usage():Float {
+    public static function getProcessUsage():Float {
         #if (windows && cpp)
         return 0;
         #elseif hl

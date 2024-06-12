@@ -5,7 +5,7 @@ import globals.ChartFormat.ChartEvent;
 /**
  * Base song event class. Extend this to code your song events.
  */
-class BaseSongEvent {
+class SongEvent {
     /**
      * Reference to the current relevant event.
      */

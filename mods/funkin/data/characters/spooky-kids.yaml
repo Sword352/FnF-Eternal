@@ -14,4 +14,4 @@ danceBeat: 1
 
 icon: spooky
 healthBarColor: "#063970"
-cameraOffsets: [175, -35]
+cameraOffsets: [-175, 35]

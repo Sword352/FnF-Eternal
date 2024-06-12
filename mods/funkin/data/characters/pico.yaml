@@ -12,7 +12,7 @@ animations:
 - { name: singUPmiss,    prefix: pico Up note miss,    offsets: [-19, 67]  }
 - { name: singRIGHTmiss, prefix: Pico NOTE LEFT miss,  offsets: [-60, 41]  }
 
-cameraOffsets: [150, -50]
+cameraOffsets: [-150, 50]
 
 playerFlip: true
 flip: [true]

@@ -209,7 +209,7 @@ class DebugNote extends SelectableSprite {
     public static final sustainColors:Array<FlxColor> = [0xC24A98, 0x00FEFE, 0x13FB05, 0xF9383E];
 
     public var data(default, set):ChartNote = null;
-    public var editing:Bool = false;
+    public var editing(default, set):Bool = false;
 
     public var alphaShader:SustainShader;
     public var alphaY:Float = 0;
@@ -261,7 +261,7 @@ class DebugNote extends SelectableSprite {
 
             sustain.updateHitbox();
 
-            if (editor.hasLateAlpha) {
+            if (editor.lateAlphaOn) {
                 var normalized:Float = (sustain.height - alphaY) / sustain.height;
                 alphaShader.rectHeight.value[0] = normalized;
                 alphaShader.rectY.value[0] = 1 - normalized;
@@ -272,16 +272,11 @@ class DebugNote extends SelectableSprite {
             }
         }
 
-        alpha = (editor.hasLateAlpha && data.time < Conductor.self.time ? ChartEditor.lateAlpha : 1);
+        alpha = (editor.lateAlphaOn && data.time < Conductor.self.time ? ChartEditor.lateAlpha : 1);
 
         #if FLX_DEBUG
 		flixel.FlxBasic.activeCount++;
 		#end
-    }
-
-    override function updateColor(selected:Bool):Void {
-        super.updateColor(selected);
-        if (editing) colorTransform.alphaOffset = -120;
     }
 
     override function draw():Void {
@@ -341,6 +336,11 @@ class DebugNote extends SelectableSprite {
 
         editor.requestSortNotes = true;
         editor.chart.notes.push(data);
+    }
+
+    function set_editing(v:Bool):Bool {
+        colorTransform.alphaOffset = (v ? -120 : 0);
+        return editing = v;
     }
 
     override function set_x(v:Float):Float {

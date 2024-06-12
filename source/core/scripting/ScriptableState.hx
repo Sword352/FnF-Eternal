@@ -89,10 +89,10 @@ class ScriptableState extends TransitionState {
     public inline function loadScriptsGlobally(path:String):Void
         scriptPack.loadScriptsGlobally(path);
 
-    public inline function loadScript(path:String):HScript
+    public inline function loadScript(path:String):Script
         return scriptPack.loadScript(path);
 
-    public inline function addScript(script:HScript):HScript
+    public inline function addScript(script:Script):Script
         return scriptPack.addScript(script);
 
     public inline function hxsSet(key:String, obj:Dynamic):Void
@@ -171,10 +171,10 @@ class ScriptableSubState extends FlxSubState {
     public inline function loadScriptsGlobally(path:String):Void
         scriptPack.loadScriptsGlobally(path);
 
-    public inline function loadScript(path:String):HScript
+    public inline function loadScript(path:String):Script
         return scriptPack.loadScript(path);
 
-    public inline function addScript(script:HScript):HScript
+    public inline function addScript(script:Script):Script
         return scriptPack.addScript(script);
 
     public inline function hxsSet(key:String, obj:Dynamic):Void

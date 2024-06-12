@@ -13,7 +13,7 @@ import gameplay.notes.StrumLine;
         {name: "To", type: "String", tempValue: "?"}
     ]
 }))
-class ChangeCharacterEvent extends BaseSongEvent {
+class ChangeCharacterEvent extends SongEvent {
     /**
      * Internal character storage.
      */
@@ -23,16 +23,29 @@ class ChangeCharacterEvent extends BaseSongEvent {
         if (_characters[target] == null)
             _characters.set(target, []);
 
+        switch (target) {
+            case "Opponent":
+                if (game.opponent?.character == to)
+                    _characters[target].set(to, game.opponent);
+            case "Spectator":
+                if (game.spectator?.character == to)
+                    _characters[target].set(to, game.spectator);
+            case "Player":
+                if (game.player?.character == to)
+                    _characters[target].set(to, game.player);
+        }
+
         if (_characters[target].exists(to))
             return;
 
         var character:Character = new Character(0, 0, to, (target == "Player" ? PLAYER : DEFAULT));
         _characters[target].set(to, character);
 
+        // preload the health icon
         if (character.healthIcon != null)
             Assets.image('icons/${character.healthIcon}');
 
-        // hide the character while still allowing it to preload
+        // hide the character while still allowing it to preload (TODO: find a smarter solution)
         character.alpha = 0.0000001;
 
         var targetCharacter:Character = getTarget(target);

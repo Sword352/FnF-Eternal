@@ -11,7 +11,7 @@ import flixel.tweens.FlxEase;
     name: "Change Scroll Speed",
     arguments: [
         {name: "New Speed", type: "Float", tempValue: "1"},
-        {name: "Ease Duration", type: "Float", tempValue: "0"},
+        {name: "Duration", type: "Float", tempValue: "0", unit: "s"},
         {
             name: "Ease", type: "List", tempValue: "Linear",
             list: ["Linear", "Quad", "Cube", "Quart", "Quint", "Smooth Step", "Smoother Step", "Sine", "Bounce", "Circ", "Expo", "Back", "Elastic"]
@@ -19,11 +19,11 @@ import flixel.tweens.FlxEase;
         {name: "Ease Mode", type: "List", tempValue: "In", list: ["In", "Out", "In/Out"]}
     ]
 }))
-class ChangeScrollSpeedEvent extends BaseSongEvent {
+class ChangeScrollSpeedEvent extends SongEvent {
     override function execute(_):Void {
         for (strumline in game.strumLines) {
-            if (easeDuration > 0)
-                FlxTween.tween(strumline, {scrollSpeed: newSpeed}, easeDuration, {ease: resolveEase(ease, easeMode)});
+            if (duration > 0)
+                FlxTween.tween(strumline, {scrollSpeed: newSpeed}, duration, {ease: resolveEase(ease, easeMode)});
             else
                 strumline.scrollSpeed = newSpeed;
         }

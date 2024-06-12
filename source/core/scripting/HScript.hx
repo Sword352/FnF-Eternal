@@ -4,148 +4,48 @@ package core.scripting;
 import hscript.Parser;
 import hscript.Interp;
 
-class HScript {
-    public static final importPresets:Map<String, Dynamic> = [
-        // Flixel
-        "FlxG" => flixel.FlxG,
-        "FlxSprite" => flixel.FlxSprite,
-        "FlxText" => flixel.text.FlxText,
-        "FlxSound" => flixel.sound.FlxSound,
-        "FlxTween" => flixel.tweens.FlxTween,
-        "FlxEase" => flixel.tweens.FlxEase,
-        "FlxTimer" => flixel.util.FlxTimer,
-        "FlxMath" => flixel.math.FlxMath,
-        "FlxPoint" => flixel.math.FlxPoint.FlxPoint_HSC,
-        "FlxGroup" => flixel.group.FlxGroup,
-        "FlxAxes" => flixel.util.FlxAxes.FlxAxes_HSC,
-        "FlxColor" => flixel.util.FlxColor.FlxColor_HSC,
-        "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
+/**
+ * HScript implementation.
+ */
+class HScript extends Script {
+    /**
+     * HScript parser for this script
+     */
+    var _parser:Parser;
 
-        #if ENGINE_DISCORD_RPC "DiscordPresence" => DiscordPresence, #end
+    /**
+     * HScript interpreter for this script
+     */
+    var _interp:Interp;
 
-        // Funkin
-        "Options" => Options,
-        "Conductor" => Conductor,
-        "OffsetSprite" => objects.OffsetSprite,
-        "DancingSprite" => objects.DancingSprite,
+    override function execute():Void {
+        _parser = new Parser();
+        _interp = new Interp();
 
-        // Transition stuff
-        "Transition" => Transition,
-        "TranitionState" => TransitionState,
-        "TransitionSubState" => TransitionSubState,
+        _parser.allowJSON = _parser.allowMetadata = _parser.allowTypes = true;
+        _interp.allowPublicVariables = _interp.allowStaticVariables = true;
+        _interp.staticVariables = Script.staticFields;
 
-        #if ENGINE_MODDING
-        // Custom state and substate
-        "ModState" => core.scripting.ScriptableState.ModState,
-        "ModSubState" => core.scripting.ScriptableState.ModSubState,
-        #end
-
-        // Misc
-        "PlayState" => states.PlayState,
-        "FlxRuntimeShader" => flixel.addons.display.FlxRuntimeShader,
-        "ShaderFilter" => openfl.filters.ShaderFilter,
-
-        // Tools
-        "Std" => Std,
-        "Math" => Math,
-        "Tools" => Tools,
-        "StringTools" => StringTools,
-
-        "Assets" => Assets,
-        "Paths" => Assets, // base game compat
-        "OpenFLAssets" => openfl.Assets,
-        "FileTools" => FileTools,
-
-        #if sys
-        "Sys" => Sys, "File" => sys.io.File, "FileSystem" => sys.FileSystem,
-        #end
-
-        "Reflect" => Reflect,
-        "Type" => Type,
-    ];
-
-    // allows for static variables in scripts
-    public static final sharedFields:Map<String, Dynamic> = [];
-
-    public var alive(default, null):Bool = false;
-    // public var priority(default, set):Int = -1; // TODO
-
-    public var parser(default, null):Parser;
-    public var interp(default, null):Interp;
-
-    public var script(default, null):String;
-    public var path(default, null):String;
-
-    public var object(get, set):Dynamic;
-    public var parent:ScriptPack;
-
-    public function new(path:String):Void {
-        this.path = path;
-
-        parser = new Parser();
-        interp = new Interp();
-        parser.allowJSON = parser.allowMetadata = parser.allowTypes = true;
-        interp.allowPublicVariables = interp.allowStaticVariables = true;
-        interp.staticVariables = sharedFields;
-        
-        try {
-            script = FileTools.getContent(this.path);
-            interp.execute(parser.parseString(script, this.path.substring(this.path.lastIndexOf("/") + 1)));
-
-            alive = true;
-            applyPresets();
-        }
-        catch (e) {
-            trace('Failed to load script "${path}"! [${e.message}]');
-            destroy();
-            return;
-        }
+        var fileName:String = path.substring(path.lastIndexOf("/") + 1);
+        _interp.execute(_parser.parseString(script, fileName));
     }
 
-    public function set(key:String, obj:Dynamic):Dynamic {
-        if (alive) interp.variables.set(key, obj);
-        return obj;
+    override function set(key:String, value:Dynamic):Dynamic {
+        _interp?.variables.set(key, value);
+        return value;
     }
 
-    public inline function get(key:String):Null<Dynamic>
-        return alive ? interp.variables.get(key) : null;
-
-    public inline function exists(key:String):Bool
-        return alive ? interp.variables.exists(key) : false;
-
-    public function call(func:String, ?args:Array<Dynamic>):Dynamic {
-        if (!exists(func))
-            return null;
-
-        var func:Dynamic = get(func);
-        try return Reflect.callMethod(null, func, args)
-        catch (e) {
-            trace('${path}: Failed to call "${func}"! [${e.message}]');
-            return null;
-        }
+    override function get(key:String):Dynamic {
+        return _interp?.variables.get(key);
     }
 
-    public function destroy():Void {
-        if (interp != null)
-            call("onDestroy");
-
-        if (parent != null) {
-            parent.scripts.remove(this);
-            parent = null;
-        }
-
-        alive = false;
-        parser = null;
-        interp = null;
-        script = null;
-        path = null;
+    override function exists(key:String):Bool {
+        return _interp?.variables.exists(key);
     }
 
-    inline function applyPresets():Void {
-        for (i in importPresets.keys())
-            set(i, importPresets.get(i));
+    override function applyPresets():Void {
+        super.applyPresets();
 
-        // allows to load modules from other scripts
         set("importModule", (module:String) -> {
             var path:String = Assets.script(module);
             if (!FileTools.exists(path)) {
@@ -156,24 +56,25 @@ class HScript {
             var moduleScript:HScript = new HScript(path);
             if (!moduleScript.alive) return;
 
-            for (customClass in moduleScript.interp.customClasses.keys())
-                set(customClass, moduleScript.interp.customClasses.get(customClass));
+            for (customClass in moduleScript._interp.customClasses.keys())
+                set(customClass, moduleScript._interp.customClasses.get(customClass));
 
             // add the script to the pack as well in case it has code outside of classes
             parent?.addScript(moduleScript);
         });
-
-        // allows to close the script at any time
-        set("closeScript", destroy);
     }
 
-    inline function set_object(v:Dynamic):Dynamic {
-        if (interp != null)
-            interp.scriptObject = v;
-        return v;
+    override function destroy():Void {
+        super.destroy();
+
+        _interp = null;
+        _parser = null;
     }
 
-    inline function get_object():Dynamic
-        return interp?.scriptObject ?? null;
+    override function get_object():Dynamic
+        return _interp?.scriptObject;
+
+    override function set_object(v:Dynamic):Dynamic
+        return _interp.scriptObject = v;
 }
 #end

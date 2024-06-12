@@ -4,6 +4,7 @@ import haxe.ui.core.Component;
 import haxe.ui.components.*;
 import haxe.ui.components.popups.ColorPickerPopup;
 import haxe.ui.containers.menus.*;
+import haxe.ui.containers.HBox;
 import haxe.ui.notifications.*;
 import haxe.ui.events.*;
 
@@ -581,6 +582,19 @@ class EventDialog extends CollapsibleDialog {
                 parent.selectedEvent.data.arguments[loopIndex] = component.value;
         };
 
+        if (argument.unit != null) {
+            var container:HBox = new HBox();
+            var label:Label = new Label();
+
+            container.horizontalSpacing += 5;
+            label.verticalAlign = "center";
+            label.text = argument.unit;
+
+            container.addComponent(component);
+            container.addComponent(label);
+            return container;
+        }
+
         return component;
     }
 
@@ -623,7 +637,7 @@ class PreferenceDialog extends CollapsibleDialog {
     public function new():Void {
         super();
 
-        lateNote.selected = parent.hasLateAlpha;
+        lateNote.selected = parent.lateAlphaOn;
         beatSep.selected = cast parent.preferences.beatSep ?? true;
         measureSep.selected = cast parent.preferences.measureSep ?? true;
         beatIndices.selected = cast parent.preferences.beatIndices ?? false;
@@ -634,7 +648,7 @@ class PreferenceDialog extends CollapsibleDialog {
     @:bind(lateNote, UIEvent.CHANGE)
     function lateNote_change(_):Void {
         parent.preferences.lateAlpha = lateNote.selected;
-        parent.hasLateAlpha = lateNote.selected;
+        parent.lateAlphaOn = lateNote.selected;
     }
 
     @:bind(beatSep, UIEvent.CHANGE)

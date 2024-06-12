@@ -10,7 +10,7 @@ class EventList {
     /**
      * Event list for builtin events.
      */
-    public static final list:Map<String, Class<BaseSongEvent>> = cast SongEventMacro.getList();
+    public static final list:Map<String, Class<SongEvent>> = cast SongEventMacro.getList();
 
     /**
      * Metadata list for builtin events.

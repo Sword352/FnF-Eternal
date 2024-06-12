@@ -8,14 +8,17 @@ typedef EventMeta = {
      * Display name for this event.
      */
     var name:String;
+
     /**
      * Type which is tied to this event metadata.
      */
     var type:String;
+
     /**
      * Event description.
      */
     var ?description:String;
+
     /**
      * Event arguments.
      */
@@ -30,30 +33,42 @@ typedef EventArgument = {
      * Display name for this argument.
      */
     var name:String;
+
     /**
      * The value type of this argument.
      */
     var type:EventArgumentType;
+
     /**
      * Default value for this argument.
      */
     var ?defaultValue:Dynamic;
+
     /**
      * Temporary workaround. Represents `defaultValue` as a string.
      */
     var ?tempValue:String;
+
     /**
      * List of possible values for this argument. Only matters if the type is a `List`.
      */
     var ?list:Array<Dynamic>;
+
+    /**
+     * Additional unit text to display in the chart editor.
+     */
+    var ?unit:String;
+
     /**
      * Step precision for the number stepper. Only matters if the type is an `Int` or `Float`.
      */
     var ?step:Float;
+
     /**
      * Minimum number value for this argument. Only matters if the type is an `Int` or `Float`.
      */
     var ?min:Float;
+
     /**
      * Maximum number value for this argument. Only matters if the type is an `Int` or `Float`.
      */
@@ -111,8 +126,8 @@ enum abstract EventArgumentType(Int) from Int to Int {
             case "Float": FLOAT;
             case "Int": INT;
             case "Bool": BOOL;
-            case "String(List)": LIST;
-            case "Int(Color)": COLOR;
+            case "List": LIST;
+            case "Color": COLOR;
             case _: STRING;
         }
     }

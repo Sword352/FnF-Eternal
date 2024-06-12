@@ -7,53 +7,14 @@ import states.substates.GameOverScreen;
 import states.substates.GameOverScreen.GameOverData;
 
 #if ENGINE_SCRIPTING
-import core.scripting.HScript;
+import core.scripting.Script;
 import core.scripting.ScriptableState;
 #end
-
-typedef CharacterConfig = {
-    var image:String;
-    var animations:Array<YAMLAnimation>;
-
-    var ?atlasType:String;
-    var ?library:String;
-
-    var ?antialiasing:Bool;
-    var ?flip:Array<Bool>;
-    var ?scale:Array<Float>;
-
-    var ?singAnimations:Array<String>;
-    var ?singDuration:Float;
-
-    var ?danceSteps:Array<String>;
-    var ?danceBeat:Float;
-
-    var ?cameraOffsets:Array<Float>;
-    var ?globalOffsets:Array<Float>;
-
-    var ?icon:String;
-    var ?noteSkin:String;
-    var ?healthBarColor:Dynamic;
-
-    var ?gameOverChar:String;
-    var ?gameOverData:GameOverData;
-
-    var ?playerFlip:Bool;
-    var ?extra:Dynamic;
-}
-
-enum abstract CharacterType(String) from String to String {
-    var DEFAULT = "default";
-    var PLAYER = "player";
-    var GAMEOVER = "gameover";
-    var DEBUG = "debug";
-}
 
 class Character extends DancingSprite {
     public static final defaultAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"];
 
     public var character(default, set):String;
-    public var data:CharacterConfig;
     public var type:CharacterType;
 
     public var singAnimations:Array<String> = defaultAnimations.copy();
@@ -63,8 +24,8 @@ class Character extends DancingSprite {
     public var holdTime:Float = 0;
     public var holding:Bool = false;
 
-    public var cameraOffsets:Array<Float>;
-    public var globalOffsets:Array<Float>;
+    public var cameraOffsets:FlxPoint = FlxPoint.get();
+    public var globalOffsets:FlxPoint = FlxPoint.get();
 
     public var healthIcon:String = HealthIcon.DEFAULT_ICON;
     public var healthBarColor:FlxColor = FlxColor.GRAY;
@@ -76,7 +37,7 @@ class Character extends DancingSprite {
     public var extra:Dynamic = null;
 
     #if ENGINE_SCRIPTING
-    var script:HScript;
+    var script:Script;
     #end
 
     public function new(x:Float = 0, y:Float = 0, character:String = "bf", type:CharacterType = DEFAULT):Void {
@@ -117,8 +78,15 @@ class Character extends DancingSprite {
         danceSteps = config.danceSteps ?? ["idle"];
         beat = config.danceBeat ?? 2;
 
-        cameraOffsets = config.cameraOffsets;
-        globalOffsets = config.globalOffsets;
+        cameraOffsets.set();
+        globalOffsets.set();
+
+        if (config.cameraOffsets != null)
+            cameraOffsets.set(config.cameraOffsets[0] ?? 0, config.cameraOffsets[1] ?? 0);
+
+        if (config.globalOffsets != null)
+            globalOffsets.set(config.globalOffsets[0] ?? 0, config.globalOffsets[1] ?? 0);
+
         extra = config.extra;
 
         healthBarColor = (config.healthBarColor == null) ? ((type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000) : Tools.getColor(config.healthBarColor);
@@ -183,13 +151,12 @@ class Character extends DancingSprite {
         holdTime = 0;
     }
 
-    public function getCamDisplace():FlxPoint {
-        var point:FlxPoint = getMidpoint();
-        
-        if (cameraOffsets != null)
-            point.add(cameraOffsets[0] ?? 0, cameraOffsets[1] ?? 0);
+    override function setPosition(x:Float = 0, y:Float = 0):Void {
+        super.setPosition(x - globalOffsets.x, y - globalOffsets.y);   
+    }
 
-        return point;
+    public function getCamDisplace():FlxPoint {
+        return getMidpoint().subtractPoint(cameraOffsets);
     }
 
     #if ENGINE_SCRIPTING
@@ -204,8 +171,8 @@ class Character extends DancingSprite {
         destroyScript();
         #end
 
-        cameraOffsets = null;
-        globalOffsets = null;
+        cameraOffsets = FlxDestroyUtil.put(cameraOffsets);
+        globalOffsets = FlxDestroyUtil.put(globalOffsets);
 
         gameOverData = null;
         gameOverChar = null;
@@ -217,8 +184,6 @@ class Character extends DancingSprite {
         character = null;
 
         extra = null;
-        data = null;
-        type = null;
 
         super.destroy();
     }
@@ -230,25 +195,24 @@ class Character extends DancingSprite {
                 default:
                     var filePath:String = Assets.yaml('data/characters/${v}');
 
-                    if (FileTools.exists(filePath)) {
-                        data = Tools.parseYAML(FileTools.getContent(filePath));
-                        setup(data);
-                    } else {
+                    if (FileTools.exists(filePath))
+                        setup(Tools.parseYAML(FileTools.getContent(filePath)));
+                    else {
                         trace('Could not find character "${v}"!');
                         loadDefault();
-                        data = null;
                     }
 
                     #if ENGINE_SCRIPTING
                     destroyScript();
 
-                    if (type != DEBUG && FlxG.state is ScriptableState) {
+                    if (PlayState.current != null && type != DEBUG) {
                         var scriptPath:String = Assets.script('data/characters/${v}');
+                        
                         if (FileTools.exists(scriptPath)) {
-                            script = new HScript(scriptPath);
+                            script = Script.load(scriptPath);
                             script.set("this", this);
 
-                            cast(FlxG.state, ScriptableState).addScript(script);
+                            PlayState.current.addScript(script);
                             script.call("onCharacterCreation");
                         }
                     }
@@ -270,4 +234,42 @@ class Character extends DancingSprite {
         healthIcon = HealthIcon.DEFAULT_ICON;
         healthBarColor = FlxColor.GRAY;
     }
+}
+
+typedef CharacterConfig = {
+    var image:String;
+    var animations:Array<YAMLAnimation>;
+
+    var ?atlasType:String;
+    var ?library:String;
+
+    var ?antialiasing:Bool;
+    var ?flip:Array<Bool>;
+    var ?scale:Array<Float>;
+
+    var ?singAnimations:Array<String>;
+    var ?singDuration:Float;
+
+    var ?danceSteps:Array<String>;
+    var ?danceBeat:Float;
+
+    var ?cameraOffsets:Array<Float>;
+    var ?globalOffsets:Array<Float>;
+
+    var ?icon:String;
+    var ?noteSkin:String;
+    var ?healthBarColor:Dynamic;
+
+    var ?gameOverChar:String;
+    var ?gameOverData:GameOverData;
+
+    var ?playerFlip:Bool;
+    var ?extra:Dynamic;
+}
+
+enum abstract CharacterType(Int) from Int to Int {
+    var DEFAULT;
+    var PLAYER;
+    var GAMEOVER;
+    var DEBUG;
 }

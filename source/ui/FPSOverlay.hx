@@ -109,7 +109,7 @@ class FPSOverlay extends Sprite {
     }
 
     inline function getMemory():String {
-        var memory:Float = Memory.usage();
+        var memory:Float = Memory.getProcessUsage();
         var iterations:Int = 0;
 
         while (memory >= 1024) {

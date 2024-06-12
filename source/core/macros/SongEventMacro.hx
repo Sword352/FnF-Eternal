@@ -94,16 +94,17 @@ class SongEventMacro {
 		for (argument in event.arguments) {
 			var converted:String = validateName(argument.name);
 			var argumentIndex:Int = event.arguments.indexOf(argument);
+
+			var defaultValue:Dynamic = EventMacroFixer.fixMacroValue(argument);
 			var type:ComplexType = null;
 			
 			switch (argument.type) {
-				case STRING | LIST:  type = macro: String;
-				case INT | COLOR:    type = macro: Int;
-				case FLOAT:          type = macro: Float;
-				case _:              type = macro: Bool;
+				case LIST:        type = macro: String;
+				case STRING:      type = macro: String;
+				case INT | COLOR: type = macro: Int;
+				case FLOAT:       type = macro: Float;
+				case _:           type = macro: Bool;
 			}
-
-			var defaultValue:Dynamic = EventMacroFixer.fixMacroValue(argument);
 
 			fields.push({
 				name: "get_" + converted,
@@ -133,10 +134,12 @@ class SongEventMacro {
 
 	/**
 	 * Converts the passed name into a valid field string
-	 * TODO: make it so an underscore is added if the name starts with a number
 	 */
 	static function validateName(string:String):String {
 		var output:String = string.toLowerCase();
+
+		if (~/[0-9]/.match(output.charAt(0)))
+			output = "_" + output;
 
 		// convert into camel case (can't use the method from Tools as it has undesirable imports)
 		if (output.contains(" ")) {
@@ -151,7 +154,7 @@ class SongEventMacro {
 		}
 
 		// filter the text to make the field name valid
-		return ~/[^a-zA-Z0-9]*/g.replace(output, "");
+		return ~/[^a-zA-Z0-9-_]*/g.replace(output, "");
 	}
 	#end
 }

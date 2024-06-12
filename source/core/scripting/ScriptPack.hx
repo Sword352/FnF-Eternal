@@ -1,7 +1,8 @@
 package core.scripting;
 
+#if ENGINE_SCRIPTING
 class ScriptPack {
-    public var scripts:Array<HScript> = [];
+    public var scripts:Array<Script> = [];
     public var imports:Map<String, Dynamic> = [];
     public var parent:Dynamic = null;
 
@@ -31,8 +32,8 @@ class ScriptPack {
         #end
     }
 
-    public function loadScript(path:String):HScript {
-        var script:HScript = new HScript(path);
+    public function loadScript(path:String):Script {
+        var script:Script = Script.load(path);
         if (!script.alive) return null;
         return addScript(script);
     }
@@ -55,7 +56,7 @@ class ScriptPack {
         }
     }
 
-    public function addScript(script:HScript):HScript {
+    public function addScript(script:Script):Script {
         script.parent = this;
         script.object = parent;
 
@@ -116,3 +117,4 @@ class ScriptPack {
         parent = null;
     }
 }
+#end

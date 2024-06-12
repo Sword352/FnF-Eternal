@@ -18,7 +18,7 @@ import globals.ChartFormat.ChartEvent;
         tempValue: "100"
     }]
 }))
-class ChangeBpmEvent extends BaseSongEvent {
+class ChangeBpmEvent extends SongEvent {
     override function execute(event:ChartEvent):Void {
         game.conductor.beatOffset.step += (event.time - game.conductor.beatOffset.time) / game.conductor.stepCrochet;
         game.conductor.beatOffset.time = event.time;
