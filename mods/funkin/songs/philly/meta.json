@@ -7,14 +7,12 @@
     },
     "gameplayInfo": {
         "instrumental": "Inst",
-        "voices": ["Voices"],
-
-        "scrollSpeed": 1, 
-        "bpm": 175,
-    
+        "voices": ["Voices-bf", "Voices-pico"],
         "spectator": "girlfriend",
         "player": "boyfriend",
         "opponent": "pico",
-        "stage": "philly"
+        "stage": "philly",
+        "scrollSpeed": 1, 
+        "bpm": 175
     }
 }

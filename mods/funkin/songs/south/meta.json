@@ -7,14 +7,12 @@
     },
     "gameplayInfo": {
         "instrumental": "Inst",
-        "voices": ["Voices"],
-
-        "scrollSpeed": 1.1,
-        "bpm": 165,
-    
+        "voices": ["Voices-bf", "Voices-spooky"],
         "spectator": "girlfriend",
         "opponent": "spooky-kids",
         "player": "boyfriend",
-        "stage": "spooky"
+        "stage": "spooky",
+        "scrollSpeed": 1.1,
+        "bpm": 165
     }
 }

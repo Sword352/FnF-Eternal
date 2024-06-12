@@ -7,15 +7,12 @@
     },
     "gameplayInfo": {
         "instrumental": "Inst",
-        "voices": ["Voices"],
-
-        "scrollSpeed": 1,
-        "bpm": 120,
-    
+        "voices": ["Voices-bf", "Voices-dad"],
         "opponent": "dad",
         "spectator": "girlfriend",
         "player": "boyfriend",
-    
-        "stage": "stage"
+        "stage": "stage",
+        "scrollSpeed": 1,
+        "bpm": 120
     }
 }

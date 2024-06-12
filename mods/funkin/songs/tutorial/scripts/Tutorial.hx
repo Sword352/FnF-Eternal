@@ -4,7 +4,7 @@ function onCreatePost() {
 }
 
 function onUpdate(elapsed) {
-    cameraZoom = Tools.lerp(cameraZoom, (targetCharacter == spectator) ? 1.1 : 0.9, 5);
+    cameraZoom = Tools.lerp(cameraZoom, (cameraFocus == spectator) ? 1.1 : 0.9, 5);
 }
 
 // no gameover on tutorial
