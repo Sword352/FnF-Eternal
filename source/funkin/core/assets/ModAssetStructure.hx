@@ -1,6 +1,6 @@
 package funkin.core.assets;
 
-#if ENGINE_MODDING
+#if sys
 class ModAssetStructure extends RuntimeAssetStructure {
     public function new(mod:String):Void {
         super(Mods.FOLDER + mod);

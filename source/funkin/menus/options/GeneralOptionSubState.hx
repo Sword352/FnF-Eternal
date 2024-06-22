@@ -41,7 +41,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         option.onChange = onChangeAntialiasing;
         addOption(option);
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         var option = new BoolOptionItem("Disable Discord RPC", "noDiscordRpc");
         option.description = "Whether to disable the Discord Rich Presence.";
         addOption(option);

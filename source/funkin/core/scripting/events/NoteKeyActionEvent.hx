@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 /**
  * Event dispatched whenever a note key is pressed or released in gameplay.
  */
@@ -15,4 +14,3 @@ class NoteKeyActionEvent extends ScriptEvent {
      */
     @:eventConstructor public var direction:Int;
 }
-#end

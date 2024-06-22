@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 import funkin.gameplay.notes.Note;
 
 /**
@@ -56,4 +55,3 @@ class NoteHoldEvent extends ScriptEvent {
         note = null;
     }
 }
-#end

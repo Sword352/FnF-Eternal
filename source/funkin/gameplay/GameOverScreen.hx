@@ -33,10 +33,8 @@ class GameOverScreen extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         character = new Character(position.x, position.y, characterStr, GAMEOVER);
         data = formatData(character.gameOverData ?? PlayState.song.gameplayInfo.gameOverData);
@@ -58,9 +56,7 @@ class GameOverScreen extends MusicBeatSubState {
         conductor.music = FlxG.sound.music;
         conductor.resetTime();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -94,9 +90,7 @@ class GameOverScreen extends MusicBeatSubState {
         if (controls.justPressed("accept") && allowInputs)
             accept();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     override function beatHit(beat:Int):Void {
@@ -107,9 +101,7 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     function accept():Void {
-        #if ENGINE_SCRIPTING
         if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
 
         Assets.clearAssets = Options.reloadAssets;
         allowInputs = false;

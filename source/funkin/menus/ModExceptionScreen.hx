@@ -1,6 +1,5 @@
 package funkin.menus;
 
-#if ENGINE_MODDING // no need to compile that state if modding is disabled
 import flixel.FlxState;
 import flixel.text.FlxText;
 
@@ -40,7 +39,7 @@ class ModExceptionScreen extends FlxState {
             FlxG.openURL(Tools.githubURL);
 
         if (FlxG.keys.justPressed.ESCAPE) {
-            #if ENGINE_DISCORD_RPC
+            #if DISCORD_RPC
             DiscordPresence.shutdown();
             #end
             Sys.exit(0);
@@ -55,4 +54,3 @@ class ModExceptionScreen extends FlxState {
         }
     }
 }
-#end

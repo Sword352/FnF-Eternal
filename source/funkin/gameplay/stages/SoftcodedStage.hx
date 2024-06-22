@@ -7,10 +7,7 @@ import funkin.data.StageData;
 class SoftcodedStage extends Stage {
     public var stage(default, null):String;
     public var spriteByName:Map<String, FlxSprite> = [];
-
-    #if ENGINE_SCRIPTING
     public var script:Script;
-    #end
 
     var spectatorPos:Array<Float> = [600, 0];
     var opponentPos:Array<Float> = [350, 0];
@@ -49,7 +46,6 @@ class SoftcodedStage extends Stage {
             return;
         }
 
-        #if ENGINE_SCRIPTING
         var scriptPath:String = Assets.script(basePath);
         if (FileTools.exists(scriptPath)) {
             script = Script.load(scriptPath);
@@ -58,7 +54,6 @@ class SoftcodedStage extends Stage {
             game.scripts.add(script);
             script.call("onStageCreation");
         }
-        #end
 
         if (data.cameraSpeed != null) camSpeed = data.cameraSpeed;
         if (data.cameraZoom != null) camZoom = data.cameraZoom;
@@ -80,12 +75,9 @@ class SoftcodedStage extends Stage {
         if (data.hideSpectator != null) showSpectator = !data.hideSpectator;
 
         if (data.uiStyle != null) {
-            #if ENGINE_SCRIPTING
             // ui style script
             var path:String = Assets.script('scripts/uiStyles/${data.uiStyle}');
             if (FileTools.exists(path)) game.scripts.load(path);
-            #end
-
             uiStyle = "-" + data.uiStyle;
         }
 
@@ -146,17 +138,12 @@ class SoftcodedStage extends Stage {
                 sprite.animation.timeScale = obj.animationSpeed;
 
             if (obj.name != null) {
-                #if ENGINE_SCRIPTING
                 script?.set(obj.name, sprite);
-                #end
-
                 spriteByName.set(obj.name, sprite);
             }
         }
 
-        #if ENGINE_SCRIPTING
         script?.call("onStageCreationPost");
-        #end
     }
 
     override function createPost():Void {
@@ -224,10 +211,7 @@ class SoftcodedStage extends Stage {
         spectatorLayer = null;
         fgSprites = null;
 
-        #if ENGINE_SCRIPTING
         script = null;
-        #end
-
         stage = null;
 
         super.destroy();

@@ -18,7 +18,7 @@ class Controls {
         "back",
         "autoplay",
         "debug",
-        #if ENGINE_MODDING "open mods", #end
+        "open mods",
         "volume up",
         "volume down",
         "volume mute"
@@ -36,9 +36,7 @@ class Controls {
         "volume up" => [[PLUS, NUMPADPLUS], []],
         "volume down" => [[MINUS, NUMPADMINUS], []],
         "volume mute" => [[ZERO, NUMPADZERO], []],
-        #if ENGINE_MODDING
         "open mods" => [[TAB], []],
-        #end
     ];
 
     public static var global(default, null):Controls;

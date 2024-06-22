@@ -13,7 +13,7 @@ class Options {
     public static var autoPause(default, set):Bool = true;
     public static var noFlashingLights:Bool = false;
 
-    #if ENGINE_DISCORD_RPC
+    #if DISCORD_RPC
     public static var noDiscordRpc(default, set):Bool = false;
     #end
 
@@ -88,7 +88,7 @@ class Options {
         return autoPause = v;
     }
 
-    #if ENGINE_DISCORD_RPC
+    #if DISCORD_RPC
     static function set_noDiscordRpc(v:Bool):Bool {
         DiscordPresence.presence.hide(v);
         return noDiscordRpc = v;

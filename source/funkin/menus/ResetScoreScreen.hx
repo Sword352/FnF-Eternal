@@ -20,10 +20,8 @@ class ResetScoreScreen extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         background = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -51,9 +49,7 @@ class ResetScoreScreen extends MusicBeatSubState {
         FlxTween.tween(instructions, {alpha: 1}, 0.25);
         FlxTween.tween(background, {alpha: 0.45}, 0.25);
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -72,24 +68,19 @@ class ResetScoreScreen extends MusicBeatSubState {
         text.angle = 5 * FlxMath.fastSin(rotateSine);
         text.y -= FlxMath.fastCos(rotateSine * 1.5);
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function resetScore():Void {
-        #if ENGINE_SCRIPTING
-        if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
+        if (scripts.quickEvent("onAccept").cancelled)
+            return;
 
         for (rawName in songs) {
             var song:String = '${rawName}-${difficulty}';
             if (story) song += "_story";
 
             /*
-            #if ENGINE_MODDING
             song = Mods.currentMod.id + "_" + song;
-            #end
             */
 
             HighScore.scoreMap.set(song, HighScore.defaultMeasure);

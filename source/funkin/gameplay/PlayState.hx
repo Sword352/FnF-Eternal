@@ -104,10 +104,8 @@ class PlayState extends MusicBeatState {
         Tools.stopMusic();
         current = this;
 
-        #if ENGINE_SCRIPTING
         scripts.loadScripts('songs/${song.meta.folder}/scripts');
         scripts.loadScripts('scripts/gameplay', true);
-        #end
 
         camGame = new Camera();
         camGame.bgColor.alpha = 0;
@@ -128,9 +126,7 @@ class PlayState extends MusicBeatState {
 
         super.create();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreate");
-        #end
 
         var noteSkinExists:Bool = song.gameplayInfo.noteSkins != null;
         var plrNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
@@ -229,7 +225,6 @@ class PlayState extends MusicBeatState {
         }
 
         // look for notetype scripts
-        #if ENGINE_SCRIPTING
         var types:Array<String> = [];
 
         for (note in song.notes) {
@@ -243,7 +238,6 @@ class PlayState extends MusicBeatState {
                 types.push(type);
             }
         }
-        #end
 
         conductor.enableInterpolation = true;
 
@@ -251,7 +245,7 @@ class PlayState extends MusicBeatState {
         // since they can be modified
         cacheExtra();
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = 'Playing ${song.meta.name} (${Tools.capitalize(gameMode)})';
         #end
 
@@ -268,16 +262,11 @@ class PlayState extends MusicBeatState {
         if (gameMode != DEBUG)
             trace('${song.meta.name} - Took ${((Lib.getTimer() - createTime) / 1000)}s to load');
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override public function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdate", [elapsed]);
-        #end
-
         super.update(elapsed);
 
         if (health <= 0 && subState == null)
@@ -287,7 +276,7 @@ class PlayState extends MusicBeatState {
         camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, cameraSpeed);
         updateCamLerp();
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         if (music.playing && conductor.time >= 0 && conductor.time <= music.instrumental.length)
             DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (conductor.time * 0.001));
         #end
@@ -313,10 +302,7 @@ class PlayState extends MusicBeatState {
         }
 
         stage.updatePost(elapsed);
-
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     override function stepHit(step:Int):Void {
@@ -348,11 +334,10 @@ class PlayState extends MusicBeatState {
     }
 
     public function pause():Void {
-        #if ENGINE_SCRIPTING
-        if (scripts.quickEvent("onPause").cancelled) return;
-        #end
+        if (scripts.quickEvent("onPause").cancelled)
+            return;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.state = "Paused";
         #end
 
@@ -369,7 +354,7 @@ class PlayState extends MusicBeatState {
         if (event.stopMusic)
             music.stop();
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         if (event.changePresence)
             DiscordPresence.presence.state = "Game Over";
         #end
@@ -426,7 +411,7 @@ class PlayState extends MusicBeatState {
         var event:CountdownEvent = scripts.dispatchEvent("onCountdownTick", Events.get(CountdownEvent).setup(TICK, tick, null, sound, tick - 2));
         if (event.cancelled) return;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         if (event.changePresence)
             DiscordPresence.presence.state = suffix + (done ? '!' : '...');
         #end
@@ -457,9 +442,8 @@ class PlayState extends MusicBeatState {
     }
 
     public function startSong(time:Float = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (scripts.quickEvent("onSongStart").cancelled) return;
-        #end
+        if (scripts.quickEvent("onSongStart").cancelled)
+            return;
 
         conductor.music = music.instrumental;
         music.play(time);
@@ -720,7 +704,7 @@ class PlayState extends MusicBeatState {
             if (!FlxG.autoPause)
                 pause();
 
-            #if ENGINE_DISCORD_RPC
+            #if DISCORD_RPC
             DiscordPresence.presence.state = "Paused";
             #end
         }
@@ -729,7 +713,7 @@ class PlayState extends MusicBeatState {
     override function destroy():Void {
         current = null;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.state = "";
         #end
 

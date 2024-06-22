@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 import funkin.gameplay.components.Character;
 
 /**
@@ -16,4 +15,3 @@ class CameraFocusEvent extends ScriptEvent {
         character = null;
     }
 }
-#end

@@ -4,13 +4,6 @@ import openfl.media.Sound;
 import openfl.Assets as OpenFLAssets;
 import openfl.display.BitmapData;
 
-#if (ENGINE_RUNTIME_ASSETS && !ENGINE_MODDING)
-class DefaultAssetStructure extends RuntimeAssetStructure {
-    public function new():Void {
-        super("assets");
-    }
-}
-#else
 class DefaultAssetStructure extends AssetStructure {
     public function new():Void {
         super();
@@ -36,4 +29,3 @@ class DefaultAssetStructure extends AssetStructure {
         return OpenFLAssets.getSound(path);
     }
 }
-#end

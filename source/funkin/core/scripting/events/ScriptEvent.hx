@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 /**
  * Basic scripting event class.
  */
@@ -54,4 +53,3 @@ class ScriptEvent implements IFlxDestroyable {
 
     }
 }
-#end

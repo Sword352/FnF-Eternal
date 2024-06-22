@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 import flixel.FlxSubState;
 
 /**
@@ -27,4 +26,3 @@ enum abstract SubStateEventAction(String) from String to String {
     var OPEN = "OPEN";
     var CLOSE = "CLOSE";
 }
-#end

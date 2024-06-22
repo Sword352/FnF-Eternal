@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 import funkin.gameplay.notes.StrumLine;
 import funkin.data.ChartFormat.ChartNote;
 
@@ -54,4 +53,3 @@ class NoteIncomingEvent extends ScriptEvent {
         skin = null;
     }
 }
-#end

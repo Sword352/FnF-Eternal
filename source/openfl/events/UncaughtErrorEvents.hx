@@ -40,7 +40,7 @@ import openfl.events.UncaughtErrorEvent;
 @:noDebug
 #end
 class UncaughtErrorEvents extends EventDispatcher {
-    @:noCompletion private var __enabled:Bool = #if ENGINE_CRASH_HANDLER true #else false #end;
+    @:noCompletion private var __enabled:Bool = #if CRASH_HANDLER true #else false #end;
 
     /**
         Creates an UncaughtErrorEvents instance. Developer code shouldn't

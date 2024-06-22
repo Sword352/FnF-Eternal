@@ -1,12 +1,8 @@
 package funkin.core.modding;
 
 /*
-#if ENGINE_MODDING
 import funkin.menus.ModExceptionScreen;
-
-#if ENGINE_SCRIPTING
 import funkin.core.scripting.HScript;
-#end
 
 class DeprecatedMods {
     public static final MODS_PATH:String = "mods/";
@@ -14,9 +10,7 @@ class DeprecatedMods {
     public static var currentMod(default, null):Mod;
     public static var mods(default, null):Array<Mod> = [];
 
-    #if ENGINE_SCRIPTING
     static var initScript:HScript;
-    #end
 
     public static function init():Void {
         refreshMods(false);
@@ -77,7 +71,7 @@ class DeprecatedMods {
 
             mod.restartGame = data.restartGame ?? false;
 
-            #if ENGINE_DISCORD_RPC
+            #if DISCORD_RPC
             mod.discordClient = data.discordClient;
             #end
 
@@ -176,11 +170,10 @@ class DeprecatedMods {
 
         Assets.currentDirectory = (currentMod == null) ? Assets.defaultDirectory : '${MODS_PATH}${currentMod.folder}/';
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.reconnect(currentMod?.discordClient ?? DiscordPresence.DEFAULT_ID);
         #end
 
-        #if ENGINE_SCRIPTING
         // clear all the static variables
         HScript.sharedFields.clear();
         
@@ -195,7 +188,6 @@ class DeprecatedMods {
             initScript = new HScript(scriptPath);
             initScript.call("init");
         }
-        #end
     }
 }
 
@@ -210,7 +202,7 @@ class DeprecatedMods {
 
     public var restartGame:Bool;
 
-    #if ENGINE_DISCORD_RPC
+    #if DISCORD_RPC
     public var discordClient:String;
     #end
 

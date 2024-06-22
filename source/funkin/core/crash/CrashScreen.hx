@@ -1,6 +1,6 @@
 package funkin.core.crash;
 
-#if ENGINE_CRASH_HANDLER
+#if CRASH_HANDLER
 import flixel.FlxCamera;
 import flixel.FlxSubState;
 import flixel.text.FlxText;
@@ -104,7 +104,7 @@ class CrashScreen extends FlxSubState {
     override function update(elapsed:Float):Void {
         #if sys
         if (FlxG.keys.justPressed.ESCAPE) {
-            #if ENGINE_DISCORD_RPC
+            #if DISCORD_RPC
             DiscordPresence.shutdown();
             #end
             Sys.exit(0);

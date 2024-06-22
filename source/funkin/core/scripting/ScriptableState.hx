@@ -1,6 +1,5 @@
 package funkin.core.scripting;
 
-#if ENGINE_SCRIPTING
 import flixel.FlxState;
 import flixel.FlxSubState;
 import funkin.core.scripting.events.StateEvents;
@@ -99,4 +98,3 @@ class ScriptableSubState extends FlxSubState {
         super.destroy();
     }
 }
-#end

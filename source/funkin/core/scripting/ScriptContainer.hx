@@ -1,6 +1,5 @@
 package funkin.core.scripting;
 
-#if ENGINE_SCRIPTING
 /**
  * Script colletion which can contain scripts and manage them.
  */
@@ -34,23 +33,18 @@ class ScriptContainer implements IFlxDestroyable {
      * @param global Whether to check for scripts in all asset trees.
      */
     public function loadScripts(path:String, global:Bool = false):Void {
-        #if ENGINE_RUNTIME_ASSETS
         if (global) {
             var directories:Array<String> = Assets.listFiles((structure) -> {
                 var path:String = structure.getPath('${path}/', NONE);
                 structure.entryExists(path) ? path : null;
             });
-    
-            for (directory in directories)
-                _loadScripts(directory);
-
-            return;
+            for (directory in directories) _loadScripts(directory);
         }
-        #end
-
-        var realPath:String = Assets.getPath('${path}/', NONE);
-        if (!FileTools.exists(realPath) || !FileTools.isDirectory(realPath)) return;
-        _loadScripts(realPath);
+        else {
+            var realPath:String = Assets.getPath('${path}/', NONE);
+            if (!FileTools.exists(realPath) || !FileTools.isDirectory(realPath)) return;
+            _loadScripts(realPath);
+        }
     }
 
     /**
@@ -184,4 +178,3 @@ class ScriptContainer implements IFlxDestroyable {
         parent = null;
     }
 }
-#end

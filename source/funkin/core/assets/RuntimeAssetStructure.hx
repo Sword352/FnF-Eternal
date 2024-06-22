@@ -1,6 +1,6 @@
 package funkin.core.assets;
 
-#if ENGINE_RUNTIME_ASSETS
+#if sys
 import sys.FileSystem;
 import sys.io.File;
 import openfl.display.BitmapData;

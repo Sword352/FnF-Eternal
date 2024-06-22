@@ -52,16 +52,14 @@ class StoryMenu extends MusicBeatState {
 
         PlayState.gameMode = STORY;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Story Menu";
         #end
 
         super.create();
 
-        #if ENGINE_SCIRPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         Tools.playMusicCheck("freakyMenu");
         conductor.music = FlxG.sound.music;
@@ -138,9 +136,7 @@ class StoryMenu extends MusicBeatState {
 
         changeSelection();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -200,9 +196,7 @@ class StoryMenu extends MusicBeatState {
                 arrow.animation.play(animation, true);
         }
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     override function beatHit(beat:Int):Void {
@@ -306,9 +300,7 @@ class StoryMenu extends MusicBeatState {
             return;
         }
 
-        #if ENGINE_SCRIPTING
         if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
 
         allowInputs = false;
         FlxG.sound.play(Assets.sound("confirmMenu"));

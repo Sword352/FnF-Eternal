@@ -34,10 +34,8 @@ class SongEventExecutor extends FlxBasic {
 
         _executors = [];
 
-        #if ENGINE_SCRIPTING
         // declare the executor so scripted events share the same
         var scriptedExecutor:ScriptedEvent = null;
-        #end
 
         for (event in _events) {
             if (_executors.exists(event.type)) {
@@ -50,15 +48,11 @@ class SongEventExecutor extends FlxBasic {
             if (cls != null)
                 _executors.set(event.type, Type.createInstance(cls, []));
             else {
-                #if ENGINE_SCRIPTING
                 if (scriptedExecutor == null)
                     scriptedExecutor = new ScriptedEvent();
 
                 _executors.set(event.type, scriptedExecutor);
                 scriptedExecutor.add(event.type);
-                #else
-                _executors.set(event.type, null);
-                #end
             }
 
             preloadEvent(event);

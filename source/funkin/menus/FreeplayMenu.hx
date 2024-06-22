@@ -47,7 +47,7 @@ class FreeplayMenu extends MusicBeatState {
             error = true;
         }
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Freeplay Menu";
         #end
 
@@ -55,10 +55,8 @@ class FreeplayMenu extends MusicBeatState {
 
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         background = new Background(this);
         add(background);
@@ -82,9 +80,7 @@ class FreeplayMenu extends MusicBeatState {
             goBack.x = overlay.width - goBack.width - 10;
             add(goBack);
 
-            #if ENGINE_SCRIPTING
             scripts.call("onCreatePost");
-            #end
 
             return;
         }
@@ -133,9 +129,7 @@ class FreeplayMenu extends MusicBeatState {
 
         changeSelection();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -144,7 +138,7 @@ class FreeplayMenu extends MusicBeatState {
 
         if (error) {
             if (allowInputs && controls.justPressed("back")) leave();
-            #if ENGINE_SCRIPTING scripts.call("onUpdatePost", [elapsed]); #end
+            scripts.call("onUpdatePost", [elapsed]);
             return;
         }
 
@@ -154,12 +148,10 @@ class FreeplayMenu extends MusicBeatState {
 
             if (Options.editorAccess && FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER) {
                 openChartEditor();
-
-                #if ENGINE_SCRIPTING
                 scripts.call("onUpdatePost", [elapsed]);
-                #end
 
-                return; // avoid conflicts with other keybinds
+                // avoid conflicts with other keybinds
+                return;
             }
 
             if (controls.justPressed("accept")) accept();
@@ -194,9 +186,7 @@ class FreeplayMenu extends MusicBeatState {
         difficultyText.text = diffText;
         difficultyText.centerToObject(scoreBG, X);
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function changeSelection(change:Int = 0):Void {
@@ -238,9 +228,8 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        #if ENGINE_SCRIPTING
-        if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
+        if (scripts.quickEvent("onAccept").cancelled)
+            return;
 
         allowInputs = false;
 

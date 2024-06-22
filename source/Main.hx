@@ -10,7 +10,7 @@ import funkin.menus.TitleScreen;
 import funkin.ui.SoundTray;
 import funkin.ui.FPSOverlay;
 
-#if ENGINE_CRASH_HANDLER
+#if CRASH_HANDLER
 import funkin.core.crash.CrashHandler;
 #end
 
@@ -49,11 +49,11 @@ class GameInstance extends FlxGame {
 class InitState extends FlxState {
     override function create():Void {
         // Init some backend stuff
-        #if ENGINE_CRASH_HANDLER
+        #if CRASH_HANDLER
         CrashHandler.init();
         #end
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.init();
         #end
 
@@ -84,10 +84,8 @@ class InitState extends FlxState {
             }
         });
 
-        #if ENGINE_MODDING
         // Load mods
         Mods.init();
-        #end
 
         // Load save data
         OptionsManager.load();
@@ -95,10 +93,8 @@ class InitState extends FlxState {
         HighScore.load();
 
         /*
-        #if ENGINE_MODDING
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen
         if (Mods.mods.length == 0) return;
-        #end
         */
 
         // Go to the titlescreen

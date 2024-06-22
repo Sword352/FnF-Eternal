@@ -14,8 +14,8 @@ import funkin.utils.*;
 import funkin.save.*;
 import funkin.save.Options;
 
-#if ENGINE_MODDING import funkin.core.modding.Mods; #end
-#if ENGINE_DISCORD_RPC import funkin.core.DiscordPresence; #end
+import funkin.core.modding.Mods;
+#if DISCORD_RPC import funkin.core.DiscordPresence; #end
 import funkin.core.assets.Assets;
 
 import funkin.core.scripting.*;

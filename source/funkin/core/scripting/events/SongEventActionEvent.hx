@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 import funkin.gameplay.events.SongEvent;
 import funkin.data.ChartFormat.ChartEvent;
 
@@ -23,4 +22,3 @@ class SongEventActionEvent extends ScriptEvent {
         executor = null;
     }
 }
-#end

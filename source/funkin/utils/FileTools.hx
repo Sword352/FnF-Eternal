@@ -1,32 +1,33 @@
 package funkin.utils;
 
-#if ENGINE_RUNTIME_ASSETS
+#if sys
 import sys.io.File;
 import sys.FileSystem;
 #else
 import openfl.Assets;
 #end
 
-// Used for compatibility with ENGINE_RUNTIME_ASSETS and non-sys targets
+/**
+ * Cross-platform file utility.
+ * TODO: Deprecate this and make a better tool so that it relies on asset trees rather
+ */
 class FileTools {
-    inline public static function getContent(path:String):String {
-        #if ENGINE_RUNTIME_ASSETS
+    public static inline function getContent(path:String):String {
+        #if sys
         return File.getContent(path);
         #else
         return Assets.getText(path);
         #end
     }
 
-    inline public static function createDirectory(path:String):Void {
+    public static inline function createDirectory(path:String):Void {
         #if sys
         FileSystem.createDirectory(path);
-        #else
-        trace("Cannot create a directory on a non-sys target!");
         #end
     }
 
-    inline public static function readDirectory(path:String):Array<String> {
-        #if ENGINE_RUNTIME_ASSETS
+    public static inline function readDirectory(path:String):Array<String> {
+        #if sys
         return FileSystem.readDirectory(path);
         #else
         // original by @MAJigsaw77
@@ -51,16 +52,16 @@ class FileTools {
         #end
     }
 
-    inline public static function isDirectory(path:String):Bool {
-        #if ENGINE_RUNTIME_ASSETS
+    public static inline function isDirectory(path:String):Bool {
+        #if sys
         return FileSystem.isDirectory(path);
         #else
         return exists(path) && !path.contains(".");
         #end
     }
 
-    inline public static function exists(path:String):Bool {
-        #if ENGINE_RUNTIME_ASSETS
+    public static inline function exists(path:String):Bool {
+        #if sys
         return FileSystem.exists(path);
         #else
         return Assets.exists(path);

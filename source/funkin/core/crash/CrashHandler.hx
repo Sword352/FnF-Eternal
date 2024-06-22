@@ -1,6 +1,6 @@
 package funkin.core.crash;
 
-#if ENGINE_CRASH_HANDLER
+#if CRASH_HANDLER
 import flixel.FlxState;
 
 import haxe.CallStack;
@@ -20,7 +20,7 @@ class CrashHandler {
         "“duh what did you do bro” - Sword",
         "“so true” - Sword",
         "“bruh” - Sword",
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         "#DISCORD “Well, looks like ${user} crashed the game.” - Sword", "#DISCORD “${user} should really take a break!” - Sword",
         #end
         "“Looks like a pipe exploded” - LeonBrother",
@@ -91,7 +91,7 @@ class CrashHandler {
     public static function getNextQuote():String {
         FlxG.random.shuffle(quotes);
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         var output:String = FlxG.random.getObject(quotes);
 
         if (output.startsWith("#DISCORD "))

@@ -3,7 +3,6 @@ package funkin.core.scripting.events;
 import funkin.gameplay.notes.Note;
 import funkin.gameplay.components.Rating;
 
-#if ENGINE_SCRIPTING
 /**
  * Event dispatched whenever a note hit happens in gameplay.
  */
@@ -126,4 +125,3 @@ class NoteHitEvent extends ScriptEvent {
         rating = null;
     }
 }
-#end

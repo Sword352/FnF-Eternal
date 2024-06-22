@@ -42,14 +42,12 @@ class OptionsMenu extends MusicBeatState {
             {name: "Exit", action: exit, noSound: true},
         ];
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         Assets.clearAssets = !toPlayState || Options.reloadAssets;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "In the options";
         #end
 
@@ -103,9 +101,7 @@ class OptionsMenu extends MusicBeatState {
 
         changeSelection();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -141,9 +137,7 @@ class OptionsMenu extends MusicBeatState {
             }
         }
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function changeSelection(i:Int = 0):Void {
@@ -155,9 +149,7 @@ class OptionsMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        #if ENGINE_SCRIPTING
         if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
 
         var category:OptionCategory = categories[currentSelection];
         if (!category.noSound) FlxG.sound.play(Assets.sound("scrollMenu"));

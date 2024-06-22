@@ -1,6 +1,6 @@
 package funkin.core;
 
-#if ENGINE_DISCORD_RPC
+#if DISCORD_RPC
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
 
@@ -12,9 +12,7 @@ class DiscordPresence {
     public static var username(default, null):String;
     public static var presence(default, null):RPCWrapper;
 
-    #if ENGINE_MODDING
     static var lastClient:String;
-    #end
 
     public static function init():Void {
         presence = new RPCWrapper();
@@ -41,13 +39,10 @@ class DiscordPresence {
         handlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
         Discord.Initialize(id, cpp.RawPointer.addressOf(handlers), 1, null);
 
-        #if ENGINE_MODDING
         lastClient = id;
-        #end
     }
 
-    #if ENGINE_MODDING
-    public inline static function reconnect(id:String):Void {
+    public static function reconnect(id:String):Void {
         // TODO: connect to the default ID if `id` is invalid
         if (lastClient != null && lastClient == id)
             return;
@@ -56,15 +51,11 @@ class DiscordPresence {
             shutdown();
         connect(id);
     }
-    #end
 
     public static function shutdown():Void {
         Discord.Shutdown();
-        username = null;
-
-        #if ENGINE_MODDING
         lastClient = null;
-        #end
+        username = null;
     }
 
     static function onReady(request:cpp.RawConstPointer<DiscordUser>):Void {

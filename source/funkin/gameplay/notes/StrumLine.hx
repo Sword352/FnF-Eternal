@@ -390,14 +390,12 @@ class StrumLine extends FlxSpriteGroup {
 
         if (dir == -1 || heldKeys[dir] || inactiveInputs) return;
 
-        #if ENGINE_SCRIPTING
         // TODO: fix weird heldKeys handling (some keys may be ignored if the direction gets changed from a script)
         if (PlayState.current != null) {
             var event:NoteKeyActionEvent = PlayState.current.scripts.dispatchEvent("onKeyPress", Events.get(NoteKeyActionEvent).setup(key, dir));
             if (event.cancelled || heldKeys[event.direction]) return;
             dir = event.direction;
         }
-        #end
 
         for (character in characters) character.holding = true;
         heldKeys[dir] = true;
@@ -420,13 +418,11 @@ class StrumLine extends FlxSpriteGroup {
 
         if (dir == -1) return;
 
-        #if ENGINE_SCRIPTING
         if (PlayState.current != null) {
             var event:NoteKeyActionEvent = PlayState.current.scripts.dispatchEvent("onKeyRelease", Events.get(NoteKeyActionEvent).setup(key, dir));
             if (event.cancelled) return;
             dir = event.direction;
         }
-        #end
 
         heldKeys[dir] = false;
         playStatic(dir);

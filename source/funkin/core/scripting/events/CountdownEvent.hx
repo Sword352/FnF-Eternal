@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 /**
  * Event dispatched whenever a countdown starts or a countdown tick happens in gameplay.
  */
@@ -64,4 +63,3 @@ enum abstract CountdownAction(String) to String {
     var START = "START";
     var TICK = "TICK";
 }
-#end

@@ -1,9 +1,6 @@
 package funkin.core.modding;
 
-#if ENGINE_MODDING
-import openfl.events.KeyboardEvent;
 import funkin.core.assets.ModAssetStructure;
-import funkin.core.assets.ZipAssetStructure;
 import funkin.core.assets.AssetStructure;
 
 class Mods {
@@ -218,4 +215,3 @@ enum ModVersionState {
     OUTDATED_BUILD;
     OUTDATED_MOD;
 }
-#end

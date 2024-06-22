@@ -31,9 +31,7 @@ class Character extends DancingSprite {
     public var noteSkin:String = "default";
     public var extra:Dynamic = null;
 
-    #if ENGINE_SCRIPTING
     var script:Script;
-    #end
 
     public function new(x:Float = 0, y:Float = 0, character:String = "bf", type:CharacterType = DEFAULT):Void {
         super(x, y);
@@ -154,17 +152,13 @@ class Character extends DancingSprite {
         return getMidpoint().subtractPoint(cameraOffsets);
     }
 
-    #if ENGINE_SCRIPTING
     inline function destroyScript():Void {
         script?.destroy();
         script = null;
     }
-    #end
 
     override function destroy():Void {
-        #if ENGINE_SCRIPTING
         destroyScript();
-        #end
 
         cameraOffsets = FlxDestroyUtil.put(cameraOffsets);
         globalOffsets = FlxDestroyUtil.put(globalOffsets);
@@ -197,7 +191,6 @@ class Character extends DancingSprite {
                         loadDefault();
                     }
 
-                    #if ENGINE_SCRIPTING
                     destroyScript();
 
                     if (PlayState.current != null && type != DEBUG) {
@@ -211,7 +204,6 @@ class Character extends DancingSprite {
                             script.call("onCharacterCreation");
                         }
                     }
-                    #end
             }
 
             animation.finish();

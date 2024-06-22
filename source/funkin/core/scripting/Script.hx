@@ -1,6 +1,5 @@
 package funkin.core.scripting;
 
-#if ENGINE_SCRIPTING
 import haxe.PosInfos;
 import haxe.Exception;
 
@@ -29,7 +28,7 @@ class Script implements IFlxDestroyable {
         "FlxColor" => flixel.util.FlxColor.FlxColor_HSC,
         "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         "DiscordPresence" => DiscordPresence,
         #end
 
@@ -234,4 +233,3 @@ class Script implements IFlxDestroyable {
     function set_object(v:Dynamic):Dynamic
         return null;
 }
-#end

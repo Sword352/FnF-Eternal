@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 /**
  * Event dispatched whenever a beat happens in gameplay.
  */
@@ -35,4 +34,3 @@ class BeatHitEvent extends ScriptEvent {
      */
     @:eventValue public var iconBops:Bool = true;
 }
-#end

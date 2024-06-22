@@ -17,10 +17,8 @@ class KeybindSubState extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         itemGroup = new FlxTypedGroup<KeybindItem>();
         add(itemGroup);
@@ -33,9 +31,7 @@ class KeybindSubState extends MusicBeatSubState {
 
         changeSelection();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -63,9 +59,7 @@ class KeybindSubState extends MusicBeatSubState {
                         (horizontalSelection == 0 ? t.secondKeybind : t.firstKeybind).alpha = 0;
                 });
 
-                #if ENGINE_SCRIPTING
                 scripts.call("onUpdatePost", [elapsed]);
-                #end
 
                 // we're returning here so it does not instantly detect the keybind
                 return;
@@ -81,9 +75,7 @@ class KeybindSubState extends MusicBeatSubState {
         }
 
         if (!changing) {
-            #if ENGINE_SCRIPTING
             scripts.call("onUpdatePost", [elapsed]);
-            #end
             return;
         }
 
@@ -115,9 +107,7 @@ class KeybindSubState extends MusicBeatSubState {
             targetItem.updateText(gotFromGamepad);
         }
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function changeSelection(i:Int = 0):Void {

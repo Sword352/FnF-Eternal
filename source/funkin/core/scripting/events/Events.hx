@@ -1,6 +1,5 @@
 package funkin.core.scripting.events;
 
-#if ENGINE_SCRIPTING
 /**
  * Event pooling singleton, used to store event instances so that we can re-use them later.
  */
@@ -110,5 +109,4 @@ private class EventPool {
     }
 }
 
-typedef PoolContainer = Array<Array<ScriptEvent>>;
-#end
+private typedef PoolContainer = Array<Array<ScriptEvent>>;

@@ -1,6 +1,5 @@
 package funkin.core.scripting;
 
-#if ENGINE_SCRIPTING
 import hscript.Parser;
 import hscript.Interp;
 
@@ -88,4 +87,3 @@ class HScript extends Script {
     override function set_object(v:Dynamic):Dynamic
         return _interp.scriptObject = v;
 }
-#end

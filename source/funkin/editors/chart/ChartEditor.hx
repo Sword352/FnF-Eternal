@@ -31,7 +31,7 @@ import haxe.ui.components.VerticalScroll;
 import flixel.util.FlxStringUtil;
 import haxe.Json;
 
-class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements funkin.core.crash.CrashHandler.ICrashListener #end {
+class ChartEditor extends MusicBeatState #if CRASH_HANDLER implements funkin.core.crash.CrashHandler.ICrashListener #end {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
     public static final separatorWidth:Int = 4;
@@ -131,7 +131,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements fun
         FlxG.cameras.reset(new Camera());
         FlxG.mouse.visible = FlxG.mouse.useSystemCursor = true;
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Charting " + chart.meta.name;
         #end
 
@@ -719,12 +719,10 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements fun
         eventArgs = [for (arg in currentEvent.arguments) arg.defaultValue];
         noteTypes = Note.defaultTypes.copy();
 
-        #if ENGINE_SCRIPTING
         var softcodedTypes:String = Assets.getPath("scripts/notetypes", NONE);
         if (FileTools.exists(softcodedTypes))
             for (script in FileTools.readDirectory(softcodedTypes))
                 noteTypes.push(script.substring(0, script.lastIndexOf(".")));
-        #end
 
         add(clipboard = new Clipboard<ChartClipboardItems>());
         add(undoList = new UndoList<ChartUndos>());
@@ -1124,7 +1122,7 @@ class ChartEditor extends MusicBeatState #if ENGINE_CRASH_HANDLER implements fun
 
         spawnEvents(chart.events);
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Charting " + chart.meta.name;
         #end
     }

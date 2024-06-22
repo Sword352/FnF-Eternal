@@ -1,6 +1,5 @@
 package funkin.gameplay.events;
 
-#if ENGINE_SCRIPTING
 import funkin.data.ChartFormat.ChartEvent;
 
 /**
@@ -44,4 +43,3 @@ class ScriptedEvent extends SongEvent {
         super.destroy();
     }
 }
-#end

@@ -57,14 +57,12 @@ class TitleScreen extends MusicBeatState {
     override function create():Void {
         super.create();
 
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Title Screen";
         #end
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         // initialize elements
         spritesGroup = new FlxSpriteGroup();
@@ -116,9 +114,7 @@ class TitleScreen extends MusicBeatState {
 
         firstTime = false;
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -128,9 +124,7 @@ class TitleScreen extends MusicBeatState {
         if (allowInputs && controls.justPressed("accept"))
             accept();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     override function beatHit(beat:Int):Void {
@@ -159,9 +153,7 @@ class TitleScreen extends MusicBeatState {
     }
 
     function accept():Void {
-        #if ENGINE_SCRIPTING
         if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
 
         if (!skippedIntro) {
             clearSequences();
@@ -207,10 +199,8 @@ class TitleScreen extends MusicBeatState {
                     ngSprite.visible = false;
             case "skip intro":
                 skipIntro();
-            #if ENGINE_SCRIPTING
             case "call function":
                 scripts.call(seq.arguments[0], seq.arguments[1]);
-            #end
         }
     }
 
@@ -232,9 +222,7 @@ class TitleScreen extends MusicBeatState {
     }
 
     function skipIntro():Void {
-        #if ENGINE_SCRIPTING
         if (scripts.quickEvent("onIntroSkip").cancelled) return;
-        #end
 
         flash();
         skippedIntro = true;
@@ -392,10 +380,8 @@ class TitleScreen extends MusicBeatState {
 
             group.add(sprite);
 
-            #if ENGINE_SCRIPTING
             if (data.name != null)
                 scripts.set(data.name, sprite);
-            #end
         }
     }
 

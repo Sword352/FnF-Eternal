@@ -13,10 +13,7 @@ class Assets {
     public static var clearAssets:Bool = true;
     
     public static final defaultAssetStructure:DefaultAssetStructure = new DefaultAssetStructure();
-
-    #if ENGINE_RUNTIME_ASSETS
     public static final assetStructures:Array<AssetStructure> = [];
-    #end
 
     static final loadedGraphics:Map<String, FlxGraphic> = [];
     static final loadedSounds:Map<String, Sound> = [];
@@ -91,12 +88,10 @@ class Assets {
     }
 
     public static function getStructure(file:String, type:AssetType, ?library:String):AssetStructure {
-        #if ENGINE_RUNTIME_ASSETS
         for (structure in assetStructures) {
             var path:String = structure.getPath(file, type, library);
             if (structure.entryExists(path)) return structure;
         }
-        #end
 
         return defaultAssetStructure;
     }
@@ -274,10 +269,7 @@ enum abstract AssetType(String) from String to String {
     var TEXT = "txt";
     var JSON = "json";
     var YAML = "yaml";
-
-    #if ENGINE_SCRIPTING
     var SCRIPT = "script";
-    #end
 
     #if VIDEO_CUTSCENES
     var VIDEO = "video";
@@ -295,10 +287,7 @@ enum abstract AssetType(String) from String to String {
             case TEXT:  [".txt"];
             case JSON:  [".json"];
             case YAML:  [".yaml", ".yml"];
-
-            #if ENGINE_SCRIPTING
             case SCRIPT: [".hx", ".hxs", ".hscript"];
-            #end
             
             #if VIDEO_CUTSCENES
             case VIDEO:  [".mp4", ".webm", ".mov", ".avi"];

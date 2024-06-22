@@ -1,6 +1,5 @@
 package funkin.core.modding;
 
-#if ENGINE_MODDING
 import flixel.FlxCamera;
 import flixel.text.FlxText;
 import flixel.math.FlxRect;
@@ -796,4 +795,3 @@ class ScrollBar extends VerticalScroll {
 function mouseOverlaps(sprite:FlxSprite):Bool {
     return FlxG.mouse.overlaps(sprite, FlxG.state.subState.camera) && (sprite.clipRect == null || FlxG.mouse.screenY >= sprite.y + sprite.clipRect.y * sprite.scale.y);
 }
-#end

@@ -1,7 +1,7 @@
 package funkin.core.scripting;
 
 /*
-#if (ENGINE_SCRIPTING && cpp)
+#if (cpp)
 class CppiaScript extends Script {
     var _host:Dynamic;
 

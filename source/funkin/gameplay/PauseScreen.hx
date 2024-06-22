@@ -29,10 +29,8 @@ class PauseScreen extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         // Caching
         Assets.sound("scrollMenu");
@@ -70,9 +68,7 @@ class PauseScreen extends MusicBeatSubState {
         FlxTween.tween(songText, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
         FlxTween.tween(lossCounter, {alpha: 1, y: 52}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -88,9 +84,7 @@ class PauseScreen extends MusicBeatSubState {
         if (controls.justPressed("accept"))
             accept(currentList[currentSelection]);
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function changeSelection(i:Int = 0):Void {

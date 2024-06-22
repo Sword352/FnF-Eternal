@@ -35,19 +35,16 @@ class MainMenu extends MusicBeatState {
     var cameraSpeed:Float = 4.5;
 
     override function create():Void {
-        #if ENGINE_DISCORD_RPC
+        #if DISCORD_RPC
         DiscordPresence.presence.details = "Main Menu";
         #end
 
         super.create();
 
-        #if ENGINE_SCRIPTING
         initStateScripts();
         scripts.call("onCreate");
-        #end
 
         Tools.playMusicCheck("freakyMenu");
-
         FlxG.cameras.reset(new Camera());
 
         background = new FlxSprite();
@@ -73,8 +70,7 @@ class MainMenu extends MusicBeatState {
         if (Tools.devState.length > 0)
             devState = ' (${Tools.devState})';
 
-        bottomText = new FlxText(5, 0, 0, #if ENGINE_MODDING 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\n' + #end
-            'Eternal Engine v${Tools.gameVersion}${devState}');
+        bottomText = new FlxText(5, 0, 0, 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\nEternal Engine v${Tools.gameVersion}${devState}');
         bottomText.setFormat(Assets.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
         bottomText.y = FlxG.height - bottomText.height;
@@ -112,9 +108,7 @@ class MainMenu extends MusicBeatState {
         currentSelection = lastSelection % itemList.length;
         changeSelection();
 
-        #if ENGINE_SCRIPTING
         scripts.call("onCreatePost");
-        #end
     }
 
     override function update(elapsed:Float):Void {
@@ -130,15 +124,11 @@ class MainMenu extends MusicBeatState {
             if (controls.justPressed("accept")) accept();
             if (controls.justPressed("back")) leave();
 
-            #if ENGINE_MODDING
             if (subState == null && controls.justPressed("open mods"))
                 openSubState(new funkin.core.modding.ModsOverlay());
-            #end
         }
 
-        #if ENGINE_SCRIPTING
         scripts.call("onUpdatePost", [elapsed]);
-        #end
     }
 
     function changeSelection(i:Int = 0):Void {
@@ -165,9 +155,8 @@ class MainMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        #if ENGINE_SCRIPTING
-        if (scripts.quickEvent("onAccept").cancelled) return;
-        #end
+        if (scripts.quickEvent("onAccept").cancelled)
+            return;
 
         allowInputs = false;
         FlxG.sound.play(Assets.sound("confirmMenu"));
