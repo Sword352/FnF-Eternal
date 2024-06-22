@@ -71,7 +71,7 @@
 	<!-- [[ Defines ]] -->
 
 	<!-- Keep the song event classes compiled -->
-	<haxeflag name="--macro" value="core.macros.SongEventMacro.keepClasses()" />
+	<haxeflag name="--macro" value="funkin.core.macros.SongEventMacro.keepClasses()" />
 
 	<!-- Disable the HaxeUI custom cursors -->
 	<haxedef name="haxeui_flixel_no_custom_cursors" />
@@ -92,11 +92,11 @@
 		<haxeflag name="-dce" value="no" unless="hl" />
 
 		<!-- Add completion for the custom event metadata -->
-		<haxeflag name="--macro" value='core.macros.ScriptEventMacro.addCompletion()' />
+		<haxeflag name="--macro" value='funkin.core.macros.ScriptEventMacro.addCompletion()' />
 
 		<!-- Run the import macro that will compile some additional classes -->
 		<!-- Comment this out if you wish to disable that! -->
-		<haxeflag name="--macro" value='core.macros.IncludeMacro.addAdditionalClasses()' />
+		<haxeflag name="--macro" value='funkin.core.macros.IncludeMacro.addAdditionalClasses()' />
 	</section>
 
 	<!-- Required for HaxeUI states -->

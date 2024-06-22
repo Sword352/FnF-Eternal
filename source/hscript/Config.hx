@@ -3,12 +3,12 @@ package hscript;
 class Config {
 	// Runs support for custom classes in these
 	public static final ALLOWED_CUSTOM_CLASSES = [
-		"flixel", "openfl.display"
+		"flixel", "funkin", "openfl.display"
 	];
 
 	// Runs support for abstract support in these
 	public static final ALLOWED_ABSTRACT_AND_ENUM = [
-		"flixel", "openfl.display.BlendMode"
+		"flixel", "funkin", "openfl.display.BlendMode"
 	];
 
 	// Incase any of your files fail

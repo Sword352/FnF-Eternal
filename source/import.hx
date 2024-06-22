@@ -8,23 +8,24 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
 
-import globals.Controls;
-import globals.HighScore;
-import globals.Options;
-import tools.*;
+import funkin.core.Controls;
+import funkin.utils.*;
 
-#if ENGINE_MODDING import core.mods.Mods; #end
-#if ENGINE_DISCORD_RPC import core.DiscordPresence; #end
-import core.assets.Assets;
+import funkin.save.*;
+import funkin.save.Options;
 
-import core.scripting.*;
-import core.scripting.events.*;
+#if ENGINE_MODDING import funkin.core.modding.Mods; #end
+#if ENGINE_DISCORD_RPC import funkin.core.DiscordPresence; #end
+import funkin.core.assets.Assets;
 
-import music.Conductor;
-import music.MusicBeatState;
-import states.PlayState;
-import states.Transition;
+import funkin.core.scripting.*;
+import funkin.core.scripting.events.*;
 
-using tools.Tools;
+import funkin.Conductor;
+import funkin.MusicBeatState;
+import funkin.gameplay.PlayState;
+import funkin.Transition;
+
+using funkin.utils.Tools;
 using StringTools;
 #end
