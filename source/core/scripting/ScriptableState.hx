@@ -3,151 +3,65 @@ package core.scripting;
 #if ENGINE_SCRIPTING
 import flixel.FlxState;
 import flixel.FlxSubState;
-
-#if ENGINE_MODDING
-@:keep class ModState extends ScriptableState {
-    var controls:Controls = Controls.global;
-
-    public function new(script:String):Void {
-        super();
-
-        var path:String = Assets.script('scripts/states/${script}');
-        if (!FileTools.exists(path)) {
-            trace('Could not find state script(s) at "${script}"!');
-            return;
-        }
-
-        if (!FileTools.isDirectory(path)) loadScript(path);
-        loadScriptsFrom('scripts/states/${script}');
-    }
-
-    override function create():Void {
-        hxsCall("onCreate");
-        super.create();
-        hxsCall("onCreatePost");
-    }
-
-    override function update(elapsed:Float):Void {
-        hxsCall("onUpdate", [elapsed]);
-        super.update(elapsed);
-        hxsCall("onUpdatePost", [elapsed]);
-    }
-
-    override function destroy():Void {
-        controls = null;
-        super.destroy();
-    }
-}
-
-@:keep class ModSubState extends ScriptableSubState {
-    var controls:Controls = Controls.global;
-
-    public function new(script:String):Void {
-        super();
-
-        var path:String = Assets.script('scripts/substates/${script}');
-        if (!FileTools.exists(path)) {
-            trace('Could not find substate script(s) at "${script}"!');
-            return;
-        }
-
-        if (!FileTools.isDirectory(path)) loadScript(path);
-        loadScriptsFrom('scripts/substates/${script}');
-    }
-
-    override function create():Void {
-        hxsCall("onCreate");
-        super.create();
-        hxsCall("onCreatePost");
-    }
-
-    override function update(elapsed:Float):Void {
-        hxsCall("onUpdate", [elapsed]);
-        super.update(elapsed);
-        hxsCall("onUpdatePost", [elapsed]);
-    }
-
-    override function destroy():Void {
-        controls = null;
-        super.destroy();
-    }
-}
-#end
+import core.scripting.events.StateEvents;
 
 class ScriptableState extends TransitionState {
-    public var scriptPack:ScriptPack;
-    var noSubstateCalls:Bool = false;
+    public var scripts:ScriptContainer;
 
     public function new():Void {
         super();
-        scriptPack = new ScriptPack(this);
+        scripts = new ScriptContainer(this);
     }
-
-    public inline function loadScriptsFrom(path:String):Void
-        scriptPack.loadScriptsFrom(path);
-
-    public inline function loadScriptsGlobally(path:String):Void
-        scriptPack.loadScriptsGlobally(path);
-
-    public inline function loadScript(path:String):Script
-        return scriptPack.loadScript(path);
-
-    public inline function addScript(script:Script):Script
-        return scriptPack.addScript(script);
-
-    public inline function hxsSet(key:String, obj:Dynamic):Void
-        scriptPack.set(key, obj);
-
-    public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.call(func, args);
-
-    public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
-        return scriptPack.cancellableCall(func, args);
 
     inline function initStateScripts():Void {
         var stateString:String = formatStateName(this);
 
         var singleScript:String = Assets.script('scripts/states/${stateString}');
-        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
+        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript))
+            scripts.load(singleScript);
 
-        loadScriptsFrom('scripts/states/${stateString}');
+        scripts.loadScripts('scripts/states/${stateString}');
     }
 
-    override function openSubState(SubState:FlxSubState):Void {
-        if (!noSubstateCalls)
-            hxsCall("onSubStateOpened", [SubState]);
-
-        super.openSubState(SubState);
-        hxsCall("onSubStateOpenedPost", [SubState]);
+    override function openSubState(subState:FlxSubState):Void {
+        if (!subStateEvent(OPEN, subState)) return;
+        super.openSubState(subState);
     }
 
     override function closeSubState():Void {
-        if (!noSubstateCalls)
-            hxsCall("onSubStateClosed");
-
+        if (!subStateEvent(CLOSE, subState)) return;
         super.closeSubState();
-        hxsCall("onSubStateClosedPost");
     }
 
-    override function onFocusLost():Void {
-        hxsCall("onFocusLost");
+    function subStateEvent(type:SubStateEventAction, subState:FlxSubState):Bool {
+        var event:SubStateEvent = Events.get(SubStateEvent).setup(type, subState);
+        scripts.dispatchEvent("onSubState" + Tools.capitalize(type), event);
+
+        if (!event.cancelled) {
+            switch (type) {
+                case OPEN:
+                    onSubStateOpen(subState);
+                case CLOSE:
+                    onSubStateClose(subState);
+            }
+        }
+
+        return !event.cancelled;
     }
 
-    override function onFocus():Void {
-        hxsCall("onFocus");
+    function onSubStateOpen(subState:FlxSubState):Void {}
+    function onSubStateClose(subState:FlxSubState):Void {}
+
+    function superOpenSubState(subState:FlxSubState):Void {
+        super.openSubState(subState);
     }
 
-    override function draw():Void {
-        if (cancellableCall("onDraw"))
-            return;
-
-        super.draw();
-        hxsCall("onDrawPost");
+    function superCloseSubState():Void {
+        super.closeSubState();
     }
 
     override function destroy():Void {
-        scriptPack.destroy();
-        scriptPack = null;
+        scripts = FlxDestroyUtil.destroy(scripts);
         super.destroy();
     }
 
@@ -158,68 +72,30 @@ class ScriptableState extends TransitionState {
 }
 
 class ScriptableSubState extends FlxSubState {
-    public var scriptPack:ScriptPack;
+    public var scripts:ScriptContainer;
 
     public function new():Void {
         super();
-        scriptPack = new ScriptPack(this);
+        scripts = new ScriptContainer(this);
     }
-
-    public inline function loadScriptsFrom(path:String):Void
-        scriptPack.loadScriptsFrom(path);
-
-    public inline function loadScriptsGlobally(path:String):Void
-        scriptPack.loadScriptsGlobally(path);
-
-    public inline function loadScript(path:String):Script
-        return scriptPack.loadScript(path);
-
-    public inline function addScript(script:Script):Script
-        return scriptPack.addScript(script);
-
-    public inline function hxsSet(key:String, obj:Dynamic):Void
-        scriptPack.set(key, obj);
-
-    public inline function hxsCall(func:String, ?args:Array<Dynamic>):Dynamic
-        return scriptPack.call(func, args);
-
-    public inline function cancellableCall(func:String, ?args:Array<Dynamic>):Bool
-        return scriptPack.cancellableCall(func, args);
 
     inline function initStateScripts():Void {
         var stateString:String = ScriptableState.formatStateName(this);
 
         var singleScript:String = Assets.script('scripts/substates/${stateString}');
-        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript)) loadScript(singleScript);
+        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript))
+            scripts.load(singleScript);
 
-        loadScriptsFrom('scripts/substates/${stateString}');
+        scripts.loadScripts('scripts/substates/${stateString}');
     }
 
     override function close():Void {
-        hxsCall("onClose");
+        scripts.call("onClose");
         super.close();
-        hxsCall("onClosePost");
-    }
-
-    override function onFocusLost():Void {
-        hxsCall("onFocusLost");
-    }
-
-    override function onFocus():Void {
-        hxsCall("onFocus");
-    }
-
-    override function draw():Void {
-        if (cancellableCall("onDraw"))
-            return;
-
-        super.draw();
-        hxsCall("onDrawPost");
     }
 
     override function destroy():Void {
-        scriptPack.destroy();
-        scriptPack = null;
+        scripts = FlxDestroyUtil.destroy(scripts);
         super.destroy();
     }
 }

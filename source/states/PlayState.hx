@@ -38,12 +38,12 @@ class PlayState extends MusicBeatState {
     public static var gameMode:GameMode = FREEPLAY;
     public static var lossCounter:Int = 0;
 
-    public var events:SongEventExecutor;
-    public var music:SongPlayback;
-
     public var camGame:FlxCamera;
     public var camHUD:FlxCamera;
     public var camSubState:FlxCamera;
+
+    public var events:SongEventExecutor;
+    public var music:SongPlayback;
 
     public var spectator:Character;
     public var opponent:Character;
@@ -58,33 +58,21 @@ class PlayState extends MusicBeatState {
 
     public var ratingSprites:FlxTypedSpriteGroup<RatingSprite>;
     public var comboSprites:FlxTypedSpriteGroup<ComboSprite>;
+    public var countdownSprite:FlxSprite;
     public var hud:GameplayUI;
 
-    public var countdownGraphics:Array<String> = [null, 'ui/gameplay/ready', 'ui/gameplay/set', 'ui/gameplay/go'];
-    public var countdownSounds:Array<String> = ['gameplay/intro3', 'gameplay/intro2', 'gameplay/intro1', 'gameplay/introGo'];
-    public var countdownSprite:FlxSprite;
-
     public var score:Float = 0;
-    public var combo:Int = 0;
-    public var ratings:Array<Rating> = Rating.getDefaultList();
-
     public var misses:Int = 0;
-    public var missScoreLoss:Float = 10;
-
+    public var combo:Int = 0;
+    public var health(default, set):Float = 1;
     public var accuracy(get, never):Float;
+
     public var accuracyDisplay(get, never):Float;
     public var accuracyMod:Float = 0;
     public var accuracyNotes:Int = 0;
 
-    public var health(default, set):Float = 1;
-    public var minHealth:Float = 0;
-    public var maxHealth:Float = 2;
-    public var healthIncrement:Float = 0.023;
-    public var healthLoss:Float = 0.0475;
-
+    public var ratings:Array<Rating> = Rating.getDefaultList();
     public var rank(get, never):String;
-    public var rankSDCB:String = "SDCB";
-    public var rankFC:String = "FC";
 
     public var cameraSpeed:Float = 3;
     public var cameraZoom:Float = 1;
@@ -118,9 +106,8 @@ class PlayState extends MusicBeatState {
         current = this;
 
         #if ENGINE_SCRIPTING
-        loadScriptsFrom('songs/${song.meta.folder}/scripts');
-        loadScriptsGlobally('scripts/gameplay');
-        noSubstateCalls = true;
+        scripts.loadScripts('songs/${song.meta.folder}/scripts');
+        scripts.loadScripts('scripts/gameplay', true);
         #end
 
         camGame = new Camera();
@@ -143,7 +130,7 @@ class PlayState extends MusicBeatState {
         super.create();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreate");
+        scripts.call("onCreate");
         #end
 
         var noteSkinExists:Bool = song.gameplayInfo.noteSkins != null;
@@ -200,19 +187,11 @@ class PlayState extends MusicBeatState {
 
         opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, oppNoteSkin);
         opponentStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
-        opponentStrumline.onNoteHit.add(onOpponentNoteHit);
-        opponentStrumline.onHold.add(onOpponentHold);
         strumLines.add(opponentStrumline);
 
         playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, plrNoteSkin);
         playerStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         strumLines.add(playerStrumline);
-
-        playerStrumline.onNoteHit.add(processPlayerNoteHit);
-        playerStrumline.onHoldInvalidation.add(onHoldInvalidation);
-        playerStrumline.onGhostPress.add(onGhostPress);
-        playerStrumline.onMiss.add(onMiss);
-        playerStrumline.onHold.add(onHold);
 
         if (opponent != null) opponentStrumline.characters.push(opponent);
         if (player != null) playerStrumline.characters.push(player);
@@ -259,7 +238,7 @@ class PlayState extends MusicBeatState {
             if (type != null && !types.contains(type)) {
                 if (!Note.defaultTypes.contains(type)) {
                     var path:String = Assets.script("scripts/notetypes/" + type);
-                    if (FileTools.exists(path)) loadScript(path);
+                    if (FileTools.exists(path)) scripts.load(path);
                 }
 
                 types.push(type);
@@ -274,7 +253,7 @@ class PlayState extends MusicBeatState {
         cacheExtra();
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.getHandle()})';
+        DiscordPresence.presence.details = 'Playing ${song.meta.name} (${Tools.capitalize(gameMode)})';
         #end
 
         // Calling the stage create post function here, in case it modifies some camera position values
@@ -282,31 +261,27 @@ class PlayState extends MusicBeatState {
 
         add(events = new SongEventExecutor());
 
-        if (startTime <= 0) {
-            #if ENGINE_SCRIPTING
-            if (!cancellableCall("onCountdownStart"))
-            #end
-                startCountdown();
-        } else
+        if (startTime <= 0)
+            startCountdown();
+        else
             setTime(startTime);
 
         if (gameMode != DEBUG)
             trace('${song.meta.name} - Took ${((Lib.getTimer() - createTime) / 1000)}s to load');
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override public function update(elapsed:Float):Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onUpdate", [elapsed]))
-            return;
+        scripts.call("onUpdate", [elapsed]);
         #end
 
         super.update(elapsed);
 
-        if (health <= minHealth && subState == null)
+        if (health <= 0 && subState == null)
             gameOver();
 
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, cameraSpeed);
@@ -341,38 +316,41 @@ class PlayState extends MusicBeatState {
         stage.updatePost(elapsed);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     override function stepHit(step:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onStepHit", [step])) return; #end
-
+        super.stepHit(step);
         stage.stepHit(step);
         music.resync();
     }
 
     override function beatHit(beat:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onBeatHit", [beat])) return; #end
+        var event:BeatHitEvent = Events.get(BeatHitEvent).setup(conductor.step, beat, conductor.measure, beat != 0 && beat % camBumpInterval == 0);
+        scripts.dispatchEvent("onBeatHit", event);
+        if (event.cancelled) return;
 
-        if (beat != 0 && beat % camBumpInterval == 0) {
+        if (event.cameraBump) {
             camGame.zoom += gameBeatBump;
             camHUD.zoom += hudBeatBump;
         }
 
-        gameDance(beat);
-        hud.beatHit();
+        if (event.allowDance)
+            gameDance(beat);
+
+        if (event.iconBops)
+            hud.beatHit();
     }
 
     override function measureHit(measure:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onMeasureHit", [measure])) return; #end
+        super.measureHit(measure);
         stage.measureHit(measure);
     }
 
     public function pause():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onPause"))
-            return;
+        if (scripts.quickEvent("onPause").cancelled) return;
         #end
 
         #if ENGINE_DISCORD_RPC
@@ -380,34 +358,28 @@ class PlayState extends MusicBeatState {
         #end
 
         openSubState(new PauseScreen());
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onPausePost");
-        #end
     }
 
     public function gameOver():Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onGameOver"))
-            return;
-        #end
+        var character:String = player?.gameOverChar ?? player?.character ?? "boyfriend-dead";
+        var position:FlxPoint = player?.getScreenCoords() ?? FlxPoint.get(camPos.x, camPos.y);
 
-        music.stop();
-        persistentDraw = false;
+        var event:GameOverEvent = scripts.dispatchEvent("onGameOver", Events.get(GameOverEvent).setup(character, position, camGame.zoom));
+        if (event.cancelled) return;
+
+        if (event.stopMusic)
+            music.stop();
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = "Game Over";
+        if (event.changePresence)
+            DiscordPresence.presence.state = "Game Over";
         #end
 
-        camSubState.zoom = camGame.zoom;
+        persistentDraw = event.persistentDraw;
+        camSubState.zoom = event.zoom;
 
-        var playerPosition:FlxPoint = player?.getScreenCoords() ?? FlxPoint.get(camPos.x, camPos.y);
-        openSubState(new GameOverScreen(playerPosition.x, playerPosition.y, player?.gameOverChar ?? player?.character ?? "boyfriend-dead"));
-        playerPosition.put();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onGameOverPost");
-        #end
+        openSubState(new GameOverScreen(event.position.x, event.position.y, event.character));
+        event.position.put();
     }
 
     inline public function openChartEditor():Void {
@@ -423,62 +395,71 @@ class PlayState extends MusicBeatState {
         camDisplace.setPosition(Tools.lerp(camDisplace.x, camPos.x, cameraSpeed), Tools.lerp(camDisplace.y, camPos.y, cameraSpeed));
     }
 
-    public function startCountdown(ticks:Int = 4, changeBeat:Bool = true):Void {
-        if (changeBeat)
-            conductor.beat = -(ticks + 1);
+    // TODO: make a class for countdowns
+    public function startCountdown():Void {
+        var event:CountdownEvent = scripts.dispatchEvent("onCountdownStart", Events.get(CountdownEvent).setup(START, -1, "ui/gameplay/countdown" + stage.uiStyle));
+        if (event.cancelled) return;
+
+        // avoids division by 0 and invalid frames
+        var frames:Int = (event.totalTicks > 1 ? event.totalTicks - 1 : event.totalTicks);
+        var graphic = Assets.image(event.graphicAsset);
 
         countdownSprite = new FlxSprite();
+        countdownSprite.loadGraphic(graphic, true, graphic.width, Math.floor(graphic.height / frames));
+        countdownSprite.animation.add("countdown", [for (i in 0...frames) i], 0);
+        countdownSprite.animation.play("countdown");
         countdownSprite.cameras = [camHUD];
         countdownSprite.alpha = 0;
         add(countdownSprite);
 
-        new FlxTimer().start(conductor.crochet * 0.001, (tmr) -> countdownTick(tmr.elapsedLoops - 1, ticks), ticks);
-        // countdownTick(0, ticks);
+        // store a local ref so that the values won't reset since its pooled
+        var totalTicks:Int = event.totalTicks;
+
+        FlxTimer.loop(conductor.crochet / 1000, (elapsedLoops) -> countdownTick(elapsedLoops, totalTicks), totalTicks);
+        conductor.beat = -totalTicks - 1;
     }
 
-    inline function countdownTick(tick:Int, totalLoops:Int):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onCountdownTick", [tick]))
-            return;
-        #end
+    inline function countdownTick(tick:Int, totalTicks:Int):Void {
+        var suffix:String = (tick == totalTicks ? "Go" : Std.string(totalTicks - tick));
+        var done:Bool = tick == totalTicks;
 
-        var done:Bool = (tick == totalLoops - 1);
-
-        stage.onCountdownTick(tick);
-        gameDance(tick);
+        var sound:String = 'gameplay/intro${suffix}' + stage.uiStyle;
+        var event:CountdownEvent = scripts.dispatchEvent("onCountdownTick", Events.get(CountdownEvent).setup(TICK, tick, null, sound, tick - 2));
+        if (event.cancelled) return;
 
         #if ENGINE_DISCORD_RPC
-        DiscordPresence.presence.state = (done ? 'Go' : Std.string(totalLoops - tick - 1)) + (done ? '!' : '...');
+        if (event.changePresence)
+            DiscordPresence.presence.state = suffix + (done ? '!' : '...');
         #end
 
-        var graphic:String = countdownGraphics[tick];
-        var sound:String = countdownSounds[tick];
+        if (event.allowBeatEvents) {
+            gameDance(tick - 1 + (totalTicks % 2));
+            stage.onCountdownTick(tick);
+        }
 
-        if (graphic != null) countdownSprite.loadGraphic(Assets.image(graphic + stage.uiStyle));
-        if (sound != null) FlxG.sound.play(Assets.sound(sound + stage.uiStyle));
+        if (event.spriteFrame != -1) countdownSprite.animation.frameIndex = event.spriteFrame;
+        if (event.soundAsset != null) FlxG.sound.play(Assets.sound(event.soundAsset));
 
-        countdownSprite.alpha = (graphic == null ? 0 : 1);
+        countdownSprite.alpha = (event.spriteFrame == -1 ? 0 : 1);
         countdownSprite.screenCenter();
 
-        FlxTween.cancelTweensOf(countdownSprite);
-        FlxTween.tween(countdownSprite, {y: countdownSprite.y + 50 * (tick + 1), alpha: 0}, conductor.crochet * 0.001, {
-            ease: FlxEase.smootherStepInOut,
-            onComplete: (!done) ? null : (_) -> {
+        if (event.allowTween && event.spriteFrame != -1) {
+            countdownSprite.y -= 50;
+            FlxTween.tween(countdownSprite, {y: countdownSprite.y + 100, alpha: 0}, conductor.crochet * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+        }
+
+        if (done) {
+            FlxTimer.wait(conductor.crochet / 1000, () -> {
                 remove(countdownSprite, true);
                 countdownSprite = FlxDestroyUtil.destroy(countdownSprite);
                 startSong();
-            }
-        });
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onCountdownTickPost", [tick]);
-        #end
+            });
+        }
     }
 
     public function startSong(time:Float = 0):Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onSongStart"))
-            return;
+        if (scripts.quickEvent("onSongStart").cancelled) return;
         #end
 
         conductor.music = music.instrumental;
@@ -489,16 +470,13 @@ class PlayState extends MusicBeatState {
     }
 
     public function endSong():Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSongEnd"))
-            return;
-        #end
+        var event:SongEndEvent = scripts.dispatchEvent("onSongEnd", Events.get(SongEndEvent).setup(weekToUnlock, validScore));
+        if (event.cancelled) return;
 
-        conductor.music = null;
-        stage.onSongEnd();
-        lossCounter = 0;
+        if (event.resetLossCount)
+            lossCounter = 0;
 
-        if (validScore) {
+        if (event.saveScore) {
             var song:String = '${song.meta.folder}-${currentDifficulty}';
             if (gameMode == STORY) song += "_story";
 
@@ -510,25 +488,29 @@ class PlayState extends MusicBeatState {
             });
         }
 
-        switch (gameMode) {
-            case STORY:
-                if (songPlaylist.length > 0) {
-                    Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
-                    FlxG.switchState(LoadingScreen.new.bind(0));
-                }
-                else {
-                    if (weekToUnlock != null) {
-                        SongProgress.unlock(weekToUnlock, true);
-                        weekToUnlock = null;
+        if (event.leaveState) {
+            switch (gameMode) {
+                case STORY:
+                    if (songPlaylist.length > 0) {
+                        Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
+                        FlxG.switchState(LoadingScreen.new.bind(0));
                     }
-                    
-                    FlxG.switchState(StoryMenu.new);
-                }
-            case DEBUG:
-                openChartEditor();
-            default:
-                FlxG.switchState(FreeplayMenu.new);
+                    else {
+                        if (event.unlockedWeek != null)
+                            SongProgress.unlock(event.unlockedWeek, true);
+                        
+                        weekToUnlock = null;
+                        FlxG.switchState(StoryMenu.new);
+                    }
+                case DEBUG:
+                    openChartEditor();
+                default:
+                    FlxG.switchState(FreeplayMenu.new);
+            }
         }
+
+        conductor.music = null;
+        stage.onSongEnd();
     }
 
     inline function gameDance(beat:Int):Void {
@@ -541,163 +523,119 @@ class PlayState extends MusicBeatState {
         stage.beatHit(beat);
     }
 
-    inline function processPlayerNoteHit(note:Note):Void {
-        if (playerStrumline.cpu)
-            onBotplayNoteHit(note);
-        else
-            onPlayerNoteHit(note);
+    public function onNoteHit(event:NoteHitEvent):Void {
+        scripts.dispatchEvent("onNoteHit", event);
+        if (event.cancelled) return;
+
+        score += event.score;
+        health += event.health;
+
+        if (event.increaseAccuracy) {
+            accuracyMod += event.accuracy;
+            accuracyNotes++;
+        }
+
+        if (event.increaseCombo) combo++;
+        if (event.increaseHits) event.rating.hits++;
+
+        if (event.displayRating) displayRating(event.rating);
+        if (event.displayCombo) displayCombo(combo);
+
+        if (event.displaySplash)
+            event.note.parentStrumline.popSplash(event.note);
+
+        if (event.unmutePlayer)
+            music.playerVolume = event.playerVolume;
+
+        if (event.updateScoreText)
+            hud.updateScoreText();
     }
 
-    public function onGhostPress(direction:Int):Void {
-        playMissAnimation(direction);
-        onMiss(null);
+    public function onNoteHold(event:NoteHoldEvent):Void {
+        scripts.dispatchEvent("onNoteHold", event);
+        if (event.cancelled) return;
+
+        if (event.unmutePlayer)
+            music.playerVolume = event.playerVolume;
+
+        health += event.health;
     }
 
-    public function onPlayerNoteHit(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onNoteHit", [note]))
-            return;
-        #end
+    public function onNoteHoldInvalidation(event:NoteHoldInvalidationEvent):Void {
+        scripts.dispatchEvent("onNoteHoldInvalidation", event);
+        if (event.cancelled) return;
 
-        music.playerVolume = 1;
-        health += healthIncrement;
+        score -= event.scoreLoss * Math.floor(event.fraction);
+        health -= event.healthLoss * Math.floor(event.fraction);
 
-        var rating:Rating = note.findRating(ratings);
+        if (event.decreaseAccuracy) accuracyNotes += Math.floor(event.fraction);
+        if (event.increaseMisses) misses++;
+        if (event.breakCombo) combo = 0;
 
-        score += rating.scoreIncrement;
-        accuracyMod += rating.accuracyMod;
-        accuracyNotes++;
+        if (event.characterMiss) characterMisses(event.note, -1, event.spectatorSad);
+        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
 
-        rating.hits++;
-        displayRating(rating);
-
-        combo++;
-        if (rating.displayCombo && combo >= 10)
-            displayCombo(combo);
-
-        if (rating.displayNoteSplash && !Options.noNoteSplash)
-            playerStrumline.popSplash(note);
-
+        music.playerVolume = event.playerVolume;
         hud.updateScoreText();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onNoteHitPost", [note]);
-        #end
     }
 
-    public function onOpponentNoteHit(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onOpponentNoteHit", [note]);
-        #end
+    public function onMiss(event:NoteMissEvent):Void {
+        scripts.dispatchEvent("onMiss", event);
+        if (event.cancelled) return;
 
-        if (music.voices.length == 1)
-            music.playerVolume = 1;
-    }
+        score -= event.scoreLoss;
+        health -= event.healthLoss;
 
-    public function onBotplayNoteHit(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onBotplayNoteHit", [note]))
-            return;
-        #end
+        if (event.breakCombo) combo = 0;
+        if (event.decreaseAccuracy) accuracyNotes++;
+        if (event.increaseMisses) misses++;
 
-        health += healthIncrement;
-        music.playerVolume = 1;
-    }
+        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
+        if (event.characterMiss) characterMisses(event.note, -1, event.spectatorSad);
 
-    public function onHold(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onNoteHold", [note]))
-            return;
-        #end
-
-        health += healthIncrement;
-        music.playerVolume = 1;
-    }
-
-    public function onHoldInvalidation(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onNoteHoldInvalidation", [note]))
-            return;
-        #end
-
-        var remainingLength:Float = note.length - (conductor.time - note.time);
-        var fraction:Float = (remainingLength / (conductor.stepCrochet * 2)) + 1;
-
-        health -= healthLoss * fraction;
-        score -= missScoreLoss * Math.floor(fraction);
-        accuracyNotes += Math.floor(fraction);
-        misses++;
-
+        music.playerVolume = event.playerVolume;
         hud.updateScoreText();
-        characterMisses(note);
-        playMissSound(0.4);
-
-        music.playerVolume = 0;
-        combo = 0;
     }
 
-    public function onOpponentHold(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onOpponentNoteHold", [note]);
-        #end
+    public function onGhostPress(event:GhostPressEvent):Void {
+        scripts.dispatchEvent("onGhostPress", event);
+        if (event.cancelled || event.ghostTapping) return;
 
-        if (music.voices.length == 1)
-            music.playerVolume = 1;
-    }
+        score -= event.scoreLoss;
+        health -= event.healthLoss;
 
-    public function onMiss(note:Note):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onMiss", [note]))
-            return;
-        #end
+        if (event.breakCombo) combo = 0;
+        if (event.decreaseAccuracy) accuracyNotes++;
+        if (event.increaseMisses) misses++;
 
-        combo = 0;
-        music.playerVolume = 0;
+        if (event.characterMiss) characterMisses(null, event.direction, event.spectatorSad);
+        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
 
-        score -= missScoreLoss;
-        health -= healthLoss;
-
-        misses++;
-        accuracyNotes++;
+        music.playerVolume = event.playerVolume;
         hud.updateScoreText();
-
-        characterMisses(note);
-        playMissSound();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onMissPost", [note]);
-        #end
     }
 
-    public function characterMisses(note:Note):Void {
-        if (note != null && !note.noMissAnim)
-            playMissAnimation(note.direction);
+    public function characterMisses(note:Note, direction:Int = -1, spectatorSad:Bool = true):Void {
+        if (direction != -1 || (note != null && !note.noMissAnim)) {
+            for (player in playerStrumline.characters) {
+                player.sing(note?.direction ?? direction, "miss");
+                player.animEndTime = (conductor.crochet / 1000);
+                player.currentDance = 0;
+            }
+        }
 
-        if (spectator != null && spectator.animation.exists("sad") && (note == null || spectator.animation.name != "sad" || spectator.animation.finished)) {
+        if (spectatorSad && spectator?.animation.exists("sad")) {
             spectator.playAnimation("sad", true);
             spectator.animEndTime = (conductor.crochet / 1000);
             spectator.currentDance = 0;
         }
     }
 
-    public inline function playMissSound(volume:Float = 0.1):Void {
-        FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + 0.1));
-    }
-
-    public inline function playMissAnimation(direction:Int):Void {
-        for (player in playerStrumline.characters) {
-            player.sing(direction, "miss");
-            player.animEndTime = (conductor.crochet / 1000);
-            player.currentDance = 0;
-        }
+    public inline function playMissSound(volume:Float = 0.1, difference:Float = 0.1):Void {
+        FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
     }
 
     public function displayRating(rating:Rating):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onRatingDisplay", [rating]))
-            return;
-        #end
-
         if (rating.image == null) return;
 
         if (Options.noComboStack) {
@@ -720,11 +658,6 @@ class PlayState extends MusicBeatState {
     }
 
     public function displayCombo(combo:Int):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onComboDisplay", [combo]))
-            return;
-        #end
-
         var separatedCombo:String = Std.string(combo);
         if (!Options.simplifyComboNum)
             while (separatedCombo.length < 3)
@@ -755,12 +688,7 @@ class PlayState extends MusicBeatState {
     }
 
     // Overrides
-    override function openSubState(subState:FlxSubState):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSubStateOpened", [subState]))
-            return;
-        #end
-
+    override function onSubStateOpen(subState:FlxSubState):Void {
         Tools.pauseEveryTween();
         Tools.pauseEveryTimer();
         music?.pause();
@@ -773,22 +701,17 @@ class PlayState extends MusicBeatState {
 
         if (playerStrumline != null)
             playerStrumline.inactiveInputs = true;
-        
-        super.openSubState(subState);
+
+        super.onSubStateOpen(subState);
     }
 
-    override function closeSubState():Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSubStateClosed"))
-            return;
-        #end
-
+    override function onSubStateClose(subState:FlxSubState):Void {
         Tools.resumeEveryTween();
         Tools.resumeEveryTimer();
         music?.resume();
 
         playerStrumline.inactiveInputs = false;
-        super.closeSubState();
+        super.onSubStateClose(subState);
     }
 
     override function onFocusLost():Void {
@@ -815,14 +738,8 @@ class PlayState extends MusicBeatState {
             ratings.pop().destroy();
         ratings = null;
 
-        countdownGraphics = null;
-        countdownSounds = null;
-
         camPos = FlxDestroyUtil.put(camPos);
         cameraFocus = null;
-
-        rankSDCB = null;
-        rankFC = null;
 
         super.destroy();
     }
@@ -836,44 +753,35 @@ class PlayState extends MusicBeatState {
 
         for (i in 0...10)
             Assets.image('ui/gameplay/num${i}' + stage.uiStyle);
-
-        for (sprite in countdownGraphics)
-            if (sprite != null)
-                Assets.image(sprite + stage.uiStyle);
-
-        for (sound in countdownSounds)
-            if (sound != null)
-                Assets.sound(sound + stage.uiStyle);
     }
 
-    inline public function setTime(time:Float):Void {
+    public inline function setTime(time:Float):Void {
         conductor.time = time;
         startSong(time);
     }
 
     function set_cameraFocus(v:Character):Character {
         if (v != null) {
-            #if ENGINE_SCRIPTING
-            if (cancellableCall("onCamFocusChange", [v])) return cameraFocus;
-            #end
+            var event:CameraFocusEvent = scripts.dispatchEvent("onCameraFocus", Events.get(CameraFocusEvent).setup(v));
+            if (event.cancelled) return cameraFocus;
 
-            var cameraPosition:FlxPoint = v.getCamDisplace();
-            camPos.copyFrom(cameraPosition);
-            cameraPosition.put();
+            v = event.character;
+
+            if (v != null) {
+                var cameraPosition:FlxPoint = v.getCamDisplace();
+                camPos.copyFrom(cameraPosition);
+                cameraPosition.put();
+            }
     
             stage.onCamFocusChange(v);
             cameraFocus = v;
-    
-            #if ENGINE_SCRIPTING
-            hxsCall("onCamFocusChangePost", [v]);
-            #end
         }
 
         return v;
     }
 
     inline function set_health(v:Float):Float
-        return health = hud.healthDisplay = FlxMath.bound(v, minHealth, maxHealth);
+        return health = hud.healthDisplay = FlxMath.bound(v, 0, 2);
 
     inline function get_accuracy():Float {
         if (accuracyNotes == 0) return 0;
@@ -893,8 +801,8 @@ class PlayState extends MusicBeatState {
         }
 
         if (rank.length < 1) {
-            if (misses < 1) rank = rankFC;
-            else if (misses > 0 && misses < 10) rank = rankSDCB;
+            if (misses < 1) rank = "FC";
+            else if (misses > 0 && misses < 10) rank = "SDCB";
         }
 
         return rank;
@@ -905,12 +813,4 @@ enum abstract GameMode(String) from String to String {
     var STORY = "story";
     var FREEPLAY = "freeplay";
     var DEBUG = "debug";
-
-    public function getHandle():String {
-        return switch (this:GameMode) {
-            case STORY: "Story";
-            case FREEPLAY: "Freeplay";
-            case DEBUG: "Debug";
-        }
-    }
 }

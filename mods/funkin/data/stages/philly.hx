@@ -48,8 +48,8 @@ function onUpdatePost(elapsed:Float):Void {
     }
 }
 
-function onBeatHit(beat:Int):Void {
-    if (!trainEnabled && ++trainCooldown > 8 && beat % 8 == 4 && FlxG.random.bool(30)) {
+function onBeatHit(event):Void {
+    if (!trainEnabled && ++trainCooldown > 8 && event.beat % 8 == 4 && FlxG.random.bool(30)) {
         trainCooldown = FlxG.random.int(-4, 0);
         startTrain();
     }
@@ -65,12 +65,12 @@ function onMeasureHit():Void {
     lightTiming = Conductor.self.time;
 }
 
-function onSubStateOpened():Void {
+function onSubStateOpen(_):Void {
     if (trainEnabled)
         trainSound.pause();
 }
 
-function onSubStateClosed():Void {
+function onSubStateClose(_):Void {
     if (trainEnabled)
         trainSound.resume();
 }

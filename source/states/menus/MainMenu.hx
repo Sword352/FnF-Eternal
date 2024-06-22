@@ -34,10 +34,6 @@ class MainMenu extends MusicBeatState {
     var itemSpacing:Float = 145;
     var cameraSpeed:Float = 4.5;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         #if ENGINE_DISCORD_RPC
         DiscordPresence.presence.details = "Main Menu";
@@ -47,12 +43,7 @@ class MainMenu extends MusicBeatState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         Tools.playMusicCheck("freakyMenu");
@@ -122,22 +113,13 @@ class MainMenu extends MusicBeatState {
         changeSelection();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
         cameraTarget.setPosition(Tools.lerp(cameraTarget.x, itemMidpoint.x, cameraSpeed), Tools.lerp(cameraTarget.y, itemMidpoint.y, cameraSpeed));
@@ -155,16 +137,11 @@ class MainMenu extends MusicBeatState {
         }
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     function changeSelection(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [i]))
-            return;
-        #end
-
         currentSelection = FlxMath.wrap(currentSelection + i, 0, itemList.length - 1);
 
         for (item in itemOrder) {
@@ -185,16 +162,11 @@ class MainMenu extends MusicBeatState {
 
         if (i != 0)
             FlxG.sound.play(Assets.sound("scrollMenu"));
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [i]);
-        #end
     }
 
     function accept():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         allowInputs = false;
@@ -209,10 +181,6 @@ class MainMenu extends MusicBeatState {
         }
         else
             new FlxTimer().start(1.1, (_) -> goToNextState());
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     function leave():Void {

@@ -26,13 +26,12 @@ class HScript extends Script {
         _interp.allowPublicVariables = _interp.allowStaticVariables = true;
         _interp.staticVariables = Script.staticFields;
 
-        var fileName:String = path.substring(path.lastIndexOf("/") + 1);
         _interp.execute(_parser.parseString(script, fileName));
     }
 
-    override function set(key:String, value:Dynamic):Dynamic {
-        _interp?.variables.set(key, value);
-        return value;
+    override function set(key:String, v:Dynamic):Dynamic {
+        _interp?.variables.set(key, v);
+        return v;
     }
 
     override function get(key:String):Dynamic {
@@ -41,6 +40,15 @@ class HScript extends Script {
 
     override function exists(key:String):Bool {
         return _interp?.variables.exists(key);
+    }
+
+    override function buildPosInfos(_):haxe.PosInfos {
+        return _interp.posInfos();
+    }
+
+    // temporary until I can find a way not to trace the file pos again (TODO)
+    override function buildError(exception:String):String {
+        return exception; // exception.substring(exception.lastIndexOf(":") + 2, exception.length);
     }
 
     override function applyPresets():Void {
@@ -56,11 +64,14 @@ class HScript extends Script {
             var moduleScript:HScript = new HScript(path);
             if (!moduleScript.alive) return;
 
-            for (customClass in moduleScript._interp.customClasses.keys())
-                set(customClass, moduleScript._interp.customClasses.get(customClass));
+            for (customClass in moduleScript._interp.customClasses.keys()) {
+                var cls = moduleScript._interp.customClasses.get(customClass);
+                parent?.set(customClass, cls);
+                set(customClass, cls);
+            }
 
-            // add the script to the pack as well in case it has code outside of classes
-            parent?.addScript(moduleScript);
+            // add the script to the script container as well in case it has code outside of classes
+            parent?.add(moduleScript);
         });
     }
 

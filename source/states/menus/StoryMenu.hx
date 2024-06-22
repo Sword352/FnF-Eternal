@@ -39,10 +39,6 @@ class StoryMenu extends MusicBeatState {
     var allowInputs:Bool = true;
     var error:Bool = false;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         weeks = loadWeeks();
 
@@ -64,12 +60,7 @@ class StoryMenu extends MusicBeatState {
 
         #if ENGINE_SCIRPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         Tools.playMusicCheck("freakyMenu");
@@ -148,24 +139,15 @@ class StoryMenu extends MusicBeatState {
         changeSelection();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
         if (error) return;
 
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (allowInputs) {
             if (controls.justPressed("back")) {
@@ -219,7 +201,7 @@ class StoryMenu extends MusicBeatState {
         }
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
@@ -232,11 +214,6 @@ class StoryMenu extends MusicBeatState {
     }
 
     function changeSelection(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [i]))
-            return;
-        #end
-
         currentSelection = FlxMath.wrap(currentSelection + i, 0, weeks.length - 1);
 
         if (i != 0)
@@ -285,25 +262,12 @@ class StoryMenu extends MusicBeatState {
                 character.centerToObject(yellowOverlay, Y);
             }
         }
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [i]);
-        #end
     }
 
     function changeDifficulty(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onDifficultyChange", [i]))
-            return;
-        #end
-
         currentDifficulty = FlxMath.wrap(currentDifficulty + i, 0, difficulties.length - 1);
         updateDifficultySprite();
         updateScore();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onDifficultyChangePost", [i]);
-        #end
     }
 
     function updateDifficultySprite():Void {
@@ -343,8 +307,7 @@ class StoryMenu extends MusicBeatState {
         }
 
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         allowInputs = false;
@@ -364,10 +327,6 @@ class StoryMenu extends MusicBeatState {
         PlayState.songPlaylist = songs;
 
         new FlxTimer().start(1, (_) -> FlxG.switchState(LoadingScreen.new.bind(0)));
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     override function destroy():Void {

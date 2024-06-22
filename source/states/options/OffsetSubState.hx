@@ -13,21 +13,12 @@ class OffsetSubState extends MusicBeatSubState {
     var holdTime:Float = 0;
     var lastBPM:Float = 0;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         super.create();
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         conductor = new Conductor();
@@ -59,22 +50,13 @@ class OffsetSubState extends MusicBeatSubState {
         FlxTween.tween(logo, {y: (FlxG.height - logo.height) * 0.5}, beatDuration, {ease: FlxEase.backOut, onComplete: (_) -> music.play()});
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (music.playing) {
             logo.scale.set(Tools.lerp(logo.scale.x, 0.4, 6), Tools.lerp(logo.scale.y, 0.4, 6));
@@ -96,7 +78,7 @@ class OffsetSubState extends MusicBeatSubState {
         }
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 

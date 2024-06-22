@@ -94,17 +94,11 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        #if ENGINE_SCRIPTING
-        if (PlayState.current.cancellableCall("onEventExecution", [event]))
-            return;
-        #end
+        var scriptEvent:SongEventActionEvent = PlayState.current.scripts.dispatchEvent("onEventExecution", Events.get(SongEventActionEvent).setup(event, executor));
+        if (scriptEvent.cancelled) return;
 
         executor.currentEvent = event;
         executor.execute(event);
-
-        #if ENGINE_SCRIPTING
-        PlayState.current.hxsCall("onEventExecutionPost", [event]);
-        #end
 
         PlayState.current.stage.onEventExecution(event);
     }
@@ -117,10 +111,8 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        #if ENGINE_SCRIPTING
-        if (PlayState.current.cancellableCall("onEventPreload", [event]))
-            return;
-        #end
+        var scriptEvent:SongEventActionEvent = PlayState.current.scripts.dispatchEvent("onEventPreload", Events.get(SongEventActionEvent).setup(event, executor));
+        if (scriptEvent.cancelled) return;
         
         executor.currentEvent = event;
         executor.preload(event);

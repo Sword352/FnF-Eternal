@@ -23,20 +23,20 @@ class BaseOptionSubState extends MusicBeatSubState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
+        scripts.call("onCreate");
         #end
 
         add(optionsGroup);
         changeSelection();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         #end
 
         super.update(elapsed);
@@ -45,16 +45,15 @@ class BaseOptionSubState extends MusicBeatSubState {
         if (controls.justPressed("back")) leave();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
-    function changeSelection(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [i]))
-            return;
-        #end
+    function superUpdate(elapsed:Float):Void {
+        super.update(elapsed);
+    }
 
+    function changeSelection(i:Int = 0):Void {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, optionsGroup.length - 1);
 
         for (item in optionsGroup) {
@@ -64,10 +63,6 @@ class BaseOptionSubState extends MusicBeatSubState {
 
         if (i != 0)
             FlxG.sound.play(Assets.sound("scrollMenu"));
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [i]);
-        #end
     }
 
     inline function leave():Void {

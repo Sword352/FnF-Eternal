@@ -3,10 +3,6 @@ package gameplay.stages;
 import objects.OffsetSprite;
 import objects.DancingSprite;
 
-#if ENGINE_SCRIPTING
-import core.scripting.Script;
-#end
-
 typedef StageConfig = {
     var ?cameraSpeed:Float;
     var ?camBeatZoom:Float;
@@ -110,7 +106,7 @@ class SoftcodedStage extends Stage {
             script = Script.load(scriptPath);
             script.set("this", this);
 
-            game.addScript(script);
+            game.scripts.add(script);
             script.call("onStageCreation");
         }
         #end
@@ -135,9 +131,11 @@ class SoftcodedStage extends Stage {
         if (data.hideSpectator != null) showSpectator = !data.hideSpectator;
 
         if (data.uiStyle != null) {
+            #if ENGINE_SCRIPTING
             // ui style script
             var path:String = Assets.script('scripts/uiStyles/${data.uiStyle}');
-            if (FileTools.exists(path)) game.loadScript(path);
+            if (FileTools.exists(path)) game.scripts.load(path);
+            #end
 
             uiStyle = "-" + data.uiStyle;
         }

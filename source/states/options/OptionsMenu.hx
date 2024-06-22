@@ -24,10 +24,6 @@ class OptionsMenu extends MusicBeatState {
 
     var allowInputs:Bool = true;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     public function new(toPlayState:Bool = false):Void {
         this.toPlayState = toPlayState;
         super();
@@ -48,12 +44,7 @@ class OptionsMenu extends MusicBeatState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         Assets.clearAssets = !toPlayState || Options.reloadAssets;
@@ -113,22 +104,13 @@ class OptionsMenu extends MusicBeatState {
         changeSelection();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
 
@@ -160,40 +142,26 @@ class OptionsMenu extends MusicBeatState {
         }
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     function changeSelection(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [i]))
-            return;
-        #end
-
         currentSelection = FlxMath.wrap(currentSelection + i, 0, categories.length - 1);
         uiGroup.forEach((element) -> element.alpha = (element.ID == currentSelection ? 1 : 0.4));
 
         if (i != 0)
             FlxG.sound.play(Assets.sound("scrollMenu"));
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [i]);
-        #end
     }
 
     function accept():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         var category:OptionCategory = categories[currentSelection];
         if (!category.noSound) FlxG.sound.play(Assets.sound("scrollMenu"));
         category.action();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     inline function goToGeneral():Void {
@@ -221,19 +189,18 @@ class OptionsMenu extends MusicBeatState {
         FlxG.switchState(toPlayState ? (Assets.clearAssets ? LoadingScreen.new.bind(0) : PlayState.new.bind(0)) : MainMenu.new);
     }
 
-    override function openSubState(subState:FlxSubState):Void {
-        if (uiGroup != null && !(subState is TransitionSubState)) uiGroup.visible = false;
-        super.openSubState(subState);
+    override function onSubStateOpen(subState:FlxSubState):Void {
+        if (uiGroup != null && !(subState is TransitionSubState))
+            uiGroup.visible = false;
+
+        super.onSubStateOpen(subState);
     }
 
-    override function closeSubState():Void {
-        var transition:Bool = (subState is TransitionSubState);
-        super.closeSubState();
+    override function onSubStateClose(subState:FlxSubState):Void {
+        if (subState is TransitionSubState) return;
+        uiGroup.visible = allowInputs = true;
 
-        if (!transition) {
-            uiGroup.visible = true;
-            allowInputs = true;
-        }
+        super.onSubStateClose(subState);
     }
 
     override function destroy():Void {

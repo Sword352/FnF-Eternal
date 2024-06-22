@@ -91,9 +91,12 @@
 		<!-- Comment this out if you wish to disable that! -->
 		<haxeflag name="-dce" value="no" unless="hl" />
 
+		<!-- Add completion for the custom event metadata -->
+		<haxeflag name="--macro" value='core.macros.ScriptEventMacro.addCompletion()' />
+
 		<!-- Run the import macro that will compile some additional classes -->
 		<!-- Comment this out if you wish to disable that! -->
-		<haxeflag name="--macro" value='core.macros.ScriptMacro.addAdditionalClasses()' />
+		<haxeflag name="--macro" value='core.macros.IncludeMacro.addAdditionalClasses()' />
 	</section>
 
 	<!-- Required for HaxeUI states -->

@@ -3,7 +3,7 @@ package hscript;
 class Config {
 	// Runs support for custom classes in these
 	public static final ALLOWED_CUSTOM_CLASSES = [
-		"flixel", "funkin", "eternal", "openfl.display"
+		"flixel", "openfl.display"
 	];
 
 	// Runs support for abstract support in these

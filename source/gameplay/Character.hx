@@ -6,11 +6,6 @@ import objects.DancingSprite;
 import states.substates.GameOverScreen;
 import states.substates.GameOverScreen.GameOverData;
 
-#if ENGINE_SCRIPTING
-import core.scripting.Script;
-import core.scripting.ScriptableState;
-#end
-
 class Character extends DancingSprite {
     public static final defaultAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"];
 
@@ -212,7 +207,7 @@ class Character extends DancingSprite {
                             script = Script.load(scriptPath);
                             script.set("this", this);
 
-                            PlayState.current.addScript(script);
+                            PlayState.current.scripts.add(script);
                             script.call("onCharacterCreation");
                         }
                     }

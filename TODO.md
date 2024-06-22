@@ -24,7 +24,6 @@
 - FlxAnimate support
 - Zip mod support
 
-- Better error handling for the story menu, ModState and ModSubState
 - Replace the placeholders BF and GF story menu character spritesheets
 - Continue README and wiki stuff, add git wiki
 
@@ -37,7 +36,6 @@
 - Lua scripting implementation?
 
 - "Debug Mode" option?
-  * Possibility to hot reload ModState and ModSubState
   * In-game traces overlay
 
 ### Bugs/Issues to Fix

@@ -1,6 +1,7 @@
 package core.scripting;
 
 #if ENGINE_SCRIPTING
+import haxe.PosInfos;
 import haxe.Exception;
 
 /**
@@ -40,12 +41,6 @@ class Script implements IFlxDestroyable {
         "Transition" => Transition,
         "TranitionState" => TransitionState,
         "TransitionSubState" => TransitionSubState,
-
-        #if ENGINE_MODDING
-        // Custom state and substate
-        "ModState" => core.scripting.ScriptableState.ModState,
-        "ModSubState" => core.scripting.ScriptableState.ModSubState,
-        #end
 
         // Misc
         "PlayState" => states.PlayState,
@@ -95,6 +90,11 @@ class Script implements IFlxDestroyable {
     public var path(default, null):String;
 
     /**
+     * File name of this script.
+     */
+    public var fileName(default, null):String;
+
+    /**
      * File content of this script.
      */
     public var script(default, null):String;
@@ -110,9 +110,9 @@ class Script implements IFlxDestroyable {
     public var object(get, set):Dynamic;
 
     /**
-     * Script pack this script belongs to.
+     * `ScriptContainer` this script belongs to.
      */
-    public var parent:ScriptPack;
+    public var parent:ScriptContainer;
 
     // public var priority:Int = -1; // TODO
 
@@ -122,6 +122,7 @@ class Script implements IFlxDestroyable {
      */
     public function new(path:String):Void {
         this.path = path;
+        this.fileName = path.substring(path.lastIndexOf("/") + 1);
 
         try {
             this.script = FileTools.getContent(path);
@@ -173,7 +174,7 @@ class Script implements IFlxDestroyable {
         try
             return Reflect.callMethod(null, func, arguments)
         catch (e:Exception) {
-            trace('${path}: Failed to call "${func}"! [${e.message}]');
+            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
             return null;
         }
     }
@@ -185,9 +186,10 @@ class Script implements IFlxDestroyable {
         call("onDestroy");
 
         if (parent != null)
-            parent.scripts.remove(this);
+            parent.remove(this);
 
         alive = false;
+        fileName = null;
         script = null;
         parent = null;
         path = null;
@@ -203,6 +205,22 @@ class Script implements IFlxDestroyable {
 
         // allows to close the script at any time
         set("closeScript", destroy);
+    }
+
+    /**
+     * Internal method which returns pos infos for the call error trace. (override me!)
+     * @param exception Error exception.
+     */
+    function buildPosInfos(exception:Exception):PosInfos {
+        return null;
+    }
+
+    /**
+     * Internal method allowing to modify the error to trace. (override me!)
+     * @param exception Error string.
+     */
+    function buildError(exception:String):String {
+        return exception;
     }
 
     /**

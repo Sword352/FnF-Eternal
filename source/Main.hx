@@ -59,8 +59,9 @@ class InitState extends FlxState {
 
         Conductor.init();
         Controls.init();
-        NoteSkin.init();
         Assets.init();
+        NoteSkin.init();
+        Events.init();
 
         Toolkit.theme = "eternal";
         Toolkit.init();

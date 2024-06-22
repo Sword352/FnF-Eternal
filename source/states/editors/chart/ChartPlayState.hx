@@ -107,7 +107,7 @@ class ChartPlayState extends MusicBeatSubState {
         opponentStrumline.onNoteHit.add(onOpponentNoteHit);
         playerStrumline.onNoteHit.add(processNoteHit);
         playerStrumline.onHoldInvalidation.add(onHoldInvalidation);
-        playerStrumline.onGhostPress.add((_) -> onMiss());
+        playerStrumline.onGhostMiss.add((_) -> onMiss());
         playerStrumline.onHold.add(onHold);
         playerStrumline.onMiss.add(onMiss);
 
@@ -178,12 +178,10 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function onNoteHit(note:Note):Void {
         note.ID = -1;
-
         totalPlayerNotes++;
-        health += 0.023;
 
         var rating:Rating = note.findRating(ratings);
-
+        health += rating.healthIncrement;
         accuracyMod += rating.accuracyMod;
         accuracyNotes++;
 
@@ -193,7 +191,7 @@ class ChartPlayState extends MusicBeatSubState {
         if (rating.displayCombo && combo > 0)
             displayCombo();
 
-        if (rating.displayNoteSplash && !Options.noNoteSplash)
+        if (rating.displaySplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note);
     }
 

@@ -43,7 +43,7 @@ class Note extends OffsetSprite {
     public var animSuffix:String;
     public var noSingAnim:Bool = false;
     public var noMissAnim:Bool = false;
-    public var avoid:Bool = false;
+    public var lateKill:Bool = true;
 
     public var earlyHitMult:Float = 1;
     public var lateHitMult:Float = 1;
@@ -70,16 +70,29 @@ class Note extends OffsetSprite {
     }
 
     /**
-     * Reset this `Note`'s properties, making it ready to use for recycling.
-     * @param data The chart note data
+     * Setups this `Note` from a `ChartNote`.
+     * @param data `ChartNote` entry
      * @return `this`
      */
-    public function setup(data:ChartNote):Note {
-        time = data.time;
-        direction = data.direction;
-        strumline = data.strumline;
-        length = data.length;
-        type = data.type;
+    public inline function setupData(data:ChartNote):Note {
+        return setup(data.time, data.direction, data.strumline, data.length, data.type);
+    }
+
+    /**
+     * Reset this `Note`'s properties, making it ready to use for recycling.
+     * @param time Time for this note.
+     * @param direction Direction for this note.
+     * @param strumline Strumline index for this note.
+     * @param length Hold length for this note.
+     * @param type Note type for this note.
+     * @return `this`
+     */
+    public function setup(time:Float, direction:Int, strumline:Int, length:Float, type:String):Note {
+        this.time = time;
+        this.direction = direction;
+        this.strumline = strumline;
+        this.length = length;
+        this.type = type;
 
         beenHit = false;
         missed = false;
@@ -148,7 +161,7 @@ class Note extends OffsetSprite {
         noSingAnim = false;
         noMissAnim = false;
         overrideSustain = false;
-        avoid = false;
+        lateKill = true;
     }
 
     public inline function getScrollSpeed():Float {

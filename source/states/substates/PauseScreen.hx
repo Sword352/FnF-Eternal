@@ -25,21 +25,12 @@ class PauseScreen extends MusicBeatSubState {
     var items:FlxTypedGroup<Alphabet>;
     var music:FlxSound;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         super.create();
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         // Caching
@@ -79,22 +70,13 @@ class PauseScreen extends MusicBeatSubState {
         FlxTween.tween(lossCounter, {alpha: 1, y: 52}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (music.volume < 0.5)
             music.volume += 0.01 * elapsed;
@@ -106,16 +88,11 @@ class PauseScreen extends MusicBeatSubState {
             accept(currentList[currentSelection]);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     function changeSelection(i:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [i]))
-            return;
-        #end
-
         currentSelection = FlxMath.wrap(currentSelection + i, 0, currentList.length - 1);
 
         for (i in items) {
@@ -125,18 +102,9 @@ class PauseScreen extends MusicBeatSubState {
 
         if (i != 0)
             FlxG.sound.play(Assets.sound("scrollMenu"));
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [i]);
-        #end
     }
 
     function accept(item:String):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept", [item]))
-            return;
-        #end
-
         switch (item.toLowerCase()) {
             case "resume":
                 close();
@@ -162,10 +130,6 @@ class PauseScreen extends MusicBeatSubState {
                     default: FreeplayMenu.new;
                 });
         }
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost", [item]);
-        #end
     }
 
     function changeList(list:String):Void {

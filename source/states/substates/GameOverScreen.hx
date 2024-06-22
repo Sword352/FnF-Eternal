@@ -19,10 +19,6 @@ class GameOverScreen extends MusicBeatSubState {
     var allowInputs:Bool = true;
     var started:Bool = false;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     public function new(x:Float = 0, y:Float = 0, character:String = "boyfriend-dead"):Void {
         super();
 
@@ -37,12 +33,7 @@ class GameOverScreen extends MusicBeatSubState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         character = new Character(position.x, position.y, characterStr, GAMEOVER);
@@ -66,22 +57,13 @@ class GameOverScreen extends MusicBeatSubState {
         conductor.resetTime();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
             if (character.animation.curAnim.curFrame >= 12 && camera.target == null)
@@ -111,7 +93,7 @@ class GameOverScreen extends MusicBeatSubState {
             accept();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
@@ -124,8 +106,7 @@ class GameOverScreen extends MusicBeatSubState {
 
     function accept():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         Assets.clearAssets = Options.reloadAssets;
@@ -140,10 +121,6 @@ class GameOverScreen extends MusicBeatSubState {
         new FlxTimer().start(0.7, (_) -> {
             camera.fade(Tools.getColor(data.fadeColor), data.fadeDuration, false, FlxG.resetState);
         });
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     override function destroy():Void {

@@ -52,10 +52,6 @@ class TitleScreen extends MusicBeatState {
     var allowInputs:Bool = true;
     var skippedIntro:Bool;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool;
-    #end
-
     public static var firstTime:Bool = true;
 
     override function create():Void {
@@ -67,12 +63,7 @@ class TitleScreen extends MusicBeatState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         // initialize elements
@@ -126,28 +117,19 @@ class TitleScreen extends MusicBeatState {
         firstTime = false;
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (allowInputs && controls.justPressed("accept"))
             accept();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
@@ -178,8 +160,7 @@ class TitleScreen extends MusicBeatState {
 
     function accept():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         if (!skippedIntro) {
@@ -194,10 +175,6 @@ class TitleScreen extends MusicBeatState {
 
             new FlxTimer().start(1, (_) -> FlxG.switchState(MainMenu.new));
         }
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     inline function clearSequences():Void {
@@ -232,17 +209,12 @@ class TitleScreen extends MusicBeatState {
                 skipIntro();
             #if ENGINE_SCRIPTING
             case "call function":
-                hxsCall(seq.arguments[0], seq.arguments[1]);
+                scripts.call(seq.arguments[0], seq.arguments[1]);
             #end
         }
     }
 
     function createAlphabet(text:String):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onAlphabetCreate", [text]))
-            return;
-        #end
-
         if (text == "RandomText1")
             text = randomText[0];
         else if (text == "RandomText2")
@@ -253,10 +225,6 @@ class TitleScreen extends MusicBeatState {
         alphabet.screenCenter(X);
         alphabet.y = (Math.max(alphabetGroup.countLiving() - 1, 0) * 60) + 200;
         alphabetGroup.add(alphabet);
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAlphabetCreatePost", [text]);
-        #end
     }
 
     inline function clearAlphabets():Void {
@@ -265,8 +233,7 @@ class TitleScreen extends MusicBeatState {
 
     function skipIntro():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onSkipIntro"))
-            return;
+        if (scripts.quickEvent("onIntroSkip").cancelled) return;
         #end
 
         flash();
@@ -285,10 +252,6 @@ class TitleScreen extends MusicBeatState {
             alphabetGroup.destroy();
             alphabetGroup = null;
         }
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSkipIntroPost");
-        #end
     }
 
     inline function flash():Void
@@ -431,7 +394,7 @@ class TitleScreen extends MusicBeatState {
 
             #if ENGINE_SCRIPTING
             if (data.name != null)
-                hxsSet(data.name, sprite);
+                scripts.set(data.name, sprite);
             #end
         }
     }

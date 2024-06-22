@@ -8,8 +8,8 @@ function onCreatePost():Void {
     Assets.sound("thunder_2");
 }
 
-function onBeatHit(beat:Int):Void {
-    if (!FlxG.random.bool(10) || beat <= (lastBeat + awaitBeat)) return;
+function onBeatHit(event):Void {
+    if (!FlxG.random.bool(10) || event.beat <= (lastBeat + awaitBeat)) return;
 
     background.animation.play("lighting", true);
 
@@ -23,15 +23,15 @@ function onBeatHit(beat:Int):Void {
         }
     }
 
-    lastBeat = beat;
+    lastBeat = event.beat;
     awaitBeat = FlxG.random.int(8, 24);
 }
 
-function onSubStateOpened():Void {
+function onSubStateOpen(_):Void {
     thunder?.pause();
 }
 
-function onSubStateClosed():Void {
+function onSubStateClose(_):Void {
     thunder?.resume();
 }
 

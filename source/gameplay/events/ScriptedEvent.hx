@@ -1,7 +1,6 @@
 package gameplay.events;
 
 #if ENGINE_SCRIPTING
-import core.scripting.Script;
 import globals.ChartFormat.ChartEvent;
 
 /**
@@ -29,7 +28,7 @@ class ScriptedEvent extends SongEvent {
         var path:String = Assets.script("data/events/" + event);
 
         if (FileTools.exists(path))
-            _scripts.set(event, game.loadScript(path));
+            _scripts.set(event, game.scripts.load(path));
         else
             _scripts.set(event, null);
     }

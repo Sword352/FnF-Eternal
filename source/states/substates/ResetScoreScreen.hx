@@ -17,21 +17,12 @@ class ResetScoreScreen extends MusicBeatSubState {
     var text:FlxText;
     var rotateSine:Float = 0;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         super.create();
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         background = new FlxSprite();
@@ -61,22 +52,13 @@ class ResetScoreScreen extends MusicBeatSubState {
         FlxTween.tween(background, {alpha: 0.45}, 0.25);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (FlxG.keys.justPressed.ENTER) {
             resetScore();
@@ -91,14 +73,13 @@ class ResetScoreScreen extends MusicBeatSubState {
         text.y -= FlxMath.fastCos(rotateSine * 1.5);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     function resetScore():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         for (rawName in songs) {
@@ -118,10 +99,6 @@ class ResetScoreScreen extends MusicBeatSubState {
 
         if (onReset != null)
             onReset();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onAcceptPost");
-        #end
     }
 
     override function destroy():Void {

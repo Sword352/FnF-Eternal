@@ -39,10 +39,6 @@ class FreeplayMenu extends MusicBeatState {
     var allowInputs:Bool = true;
     var error:Bool = false;
 
-    #if ENGINE_SCRIPTING
-    var overrideCode:Bool = false;
-    #end
-
     override function create():Void {
         songs = loadFreeplaySongs();
 
@@ -61,12 +57,7 @@ class FreeplayMenu extends MusicBeatState {
 
         #if ENGINE_SCRIPTING
         initStateScripts();
-        hxsCall("onCreate");
-
-        if (overrideCode) {
-            hxsCall("onCreatePost");
-            return;
-        }
+        scripts.call("onCreate");
         #end
 
         background = new Background(this);
@@ -92,7 +83,7 @@ class FreeplayMenu extends MusicBeatState {
             add(goBack);
 
             #if ENGINE_SCRIPTING
-            hxsCall("onCreatePost");
+            scripts.call("onCreatePost");
             #end
 
             return;
@@ -143,26 +134,17 @@ class FreeplayMenu extends MusicBeatState {
         changeSelection();
 
         #if ENGINE_SCRIPTING
-        hxsCall("onCreatePost");
+        scripts.call("onCreatePost");
         #end
     }
 
     override function update(elapsed:Float):Void {
-        #if ENGINE_SCRIPTING
-        hxsCall("onUpdate", [elapsed]);
+        scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
-
-        if (overrideCode) {
-            hxsCall("onUpdatePost", [elapsed]);
-            return;
-        }
-        #else
-        super.update(elapsed);
-        #end
 
         if (error) {
             if (allowInputs && controls.justPressed("back")) leave();
-            #if ENGINE_SCRIPTING hxsCall("onUpdatePost", [elapsed]); #end
+            #if ENGINE_SCRIPTING scripts.call("onUpdatePost", [elapsed]); #end
             return;
         }
 
@@ -174,7 +156,7 @@ class FreeplayMenu extends MusicBeatState {
                 openChartEditor();
 
                 #if ENGINE_SCRIPTING
-                hxsCall("onUpdatePost", [elapsed]);
+                scripts.call("onUpdatePost", [elapsed]);
                 #end
 
                 return; // avoid conflicts with other keybinds
@@ -213,16 +195,11 @@ class FreeplayMenu extends MusicBeatState {
         difficultyText.centerToObject(scoreBG, X);
 
         #if ENGINE_SCRIPTING
-        hxsCall("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", [elapsed]);
         #end
     }
 
     function changeSelection(change:Int = 0):Void {
-        #if ENGINE_SCRIPTING
-        if (cancellableCall("onSelectionChange", [change]))
-            return;
-        #end
-
         var maxSelect:Int = items.length - 1;
         var oldSelect:Int = selection;
         var doTween:Bool = false;
@@ -253,27 +230,16 @@ class FreeplayMenu extends MusicBeatState {
 
         background.intendedColor = songs[selection].color;
         updateScoreData();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onSelectionChangePost", [change]);
-        #end
     }
 
     function changeDiff(i:Int):Void {
-        #if ENGINE_SCRIPTING if (cancellableCall("onDifficultyChange")) return; #end
-
         difficulty = FlxMath.wrap(difficulty + i, 0, difficulties.length - 1);
         updateScoreData();
-
-        #if ENGINE_SCRIPTING
-        hxsCall("onDifficultyChangePost");
-        #end
     }
 
     function accept():Void {
         #if ENGINE_SCRIPTING
-        if (cancellableCall("onAccept"))
-            return;
+        if (scripts.quickEvent("onAccept").cancelled) return;
         #end
 
         allowInputs = false;

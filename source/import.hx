@@ -17,6 +17,9 @@ import tools.*;
 #if ENGINE_DISCORD_RPC import core.DiscordPresence; #end
 import core.assets.Assets;
 
+import core.scripting.*;
+import core.scripting.events.*;
+
 import music.Conductor;
 import music.MusicBeatState;
 import states.PlayState;

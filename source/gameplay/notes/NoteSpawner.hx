@@ -2,7 +2,6 @@ package gameplay.notes;
 
 import flixel.FlxBasic;
 import gameplay.notes.Sustain;
-import globals.ChartFormat.Chart;
 import globals.ChartFormat.ChartNote;
 import flixel.group.FlxGroup.FlxTypedGroup;
 
@@ -47,11 +46,11 @@ class NoteSpawner extends FlxBasic {
         visible = false;
 
         // make sure notes are sorted
-        Chart.current.notes.sort((a, b) -> Std.int(a.time - b.time));
+        PlayState.song.notes.sort((a, b) -> Std.int(a.time - b.time));
 
         // skip notes with a time value lower than the start time
         if (startTime != 0)
-            while (Chart.current.notes[currentNote].time < startTime)
+            while (PlayState.song.notes[currentNote].time < startTime)
                 currentNote++;
 
         // setup the pools
@@ -59,8 +58,8 @@ class NoteSpawner extends FlxBasic {
         sustains = new FlxTypedGroup<Sustain>();
 
         // cache a small amount of objects
-        var noteAmount:Int = Math.floor(Math.min(Chart.current.notes.length, 20));
-        var sustainAmount:Int = Math.floor(Math.min(Chart.current.notes.length, 8));
+        var noteAmount:Int = Math.floor(Math.min(PlayState.song.notes.length, 20));
+        var sustainAmount:Int = Math.floor(Math.min(PlayState.song.notes.length, 8));
 
         for (i in 0...noteAmount) {
             // by the way, this also cache sustain graphics
@@ -76,8 +75,8 @@ class NoteSpawner extends FlxBasic {
      * Updates this `NoteSpawner`.
      */
     override function update(elapsed:Float):Void {
-        while (currentNote < Chart.current.notes.length) {
-            var note:ChartNote = Chart.current.notes[currentNote];
+        while (currentNote < PlayState.song.notes.length) {
+            var note:ChartNote = PlayState.song.notes[currentNote];
             var strumLine:StrumLine = strumLines[note.strumline];
 
             if ((note.time - Conductor.self.time) > (1800 / strumLine.scrollSpeed))
@@ -89,18 +88,23 @@ class NoteSpawner extends FlxBasic {
                 continue;
             }
 
-            var newNote:Note = getNote(note);
+            var event:NoteIncomingEvent = null;
 
-            #if ENGINE_SCRIPTING
-            // The spawn callback is handled here.
-            if (PlayState.current != null)
-                PlayState.current.hxsCall("onNoteSpawn", [newNote]);
-            #end
+            if (PlayState.current != null) {
+                event = Events.get(NoteIncomingEvent).setup(note, note.time, note.direction, note.strumline, note.length, note.type, strumLine, strumLine.skin);
+                PlayState.current.scripts.dispatchEvent("onNoteIncoming", event);
 
-            strumLine.addNote(newNote);
-            currentNote++;
+                if (event.cancelled) {
+                    currentNote++;
+                    continue;
+                }
+            }
+
+            var newNote:Note = getNote(note, event);
+            newNote.parentStrumline.addNote(newNote);
 
             _lastNote = note;
+            currentNote++;
         }
     }
 
@@ -120,17 +124,34 @@ class NoteSpawner extends FlxBasic {
     /**
      * Recycling behaviour.
      * @param chartNote The note data
+     * @param event Optional `NoteIncomingEvent`. If not null, `chartNote` is unused.
      * @return A `Note` instance
      */
-    inline function getNote(chartNote:ChartNote):Note {
-        var parent:StrumLine = strumLines[chartNote.strumline];
+    inline function getNote(chartNote:ChartNote, ?event:NoteIncomingEvent):Note {
+        var parent:StrumLine = null;
 
-        var note:Note = notes.recycle(Note, noteConstructor).setup(chartNote);
+        if (event == null)
+            parent = strumLines[chartNote.strumline];
+        else
+            parent = strumLines[event.strumline] ?? event.strumLine;
+
+        // safety mesure
+        if (parent == null) {
+            trace("Invalid parent strumline for note " + chartNote + "!");
+            parent = strumLines[0];
+        }
+
+        var note:Note = notes.recycle(Note, noteConstructor);
         note.parentStrumline = parent;
+        
+        if (event == null)
+            note.setupData(chartNote);
+        else
+            note.setup(event.time, event.direction, event.strumline, event.length, event.type);
 
         // don't swap the noteskin if it's the same!
-        if (note.skin != parent.skin)
-            note.skin = parent.skin;
+        var skin:String = event?.skin ?? parent.skin;
+        if (note.skin != skin) note.skin = skin;
 
         if (note.holdable)
             note.sustain = sustains.recycle(Sustain);
