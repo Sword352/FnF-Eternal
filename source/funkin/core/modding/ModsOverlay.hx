@@ -43,11 +43,11 @@ class ModsOverlay extends MusicBeatSubState {
         text.screenCenter(X);
         add(text);
 
-        var engineVer:FlxText = new FlxText(PADDING_X, 50);
-        engineVer.setFormat(Assets.font("vcr"), 16);
-        engineVer.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
-        engineVer.text = 'Engine Version: ${Tools.gameVersion}';
-        add(engineVer);
+        var version:FlxText = new FlxText(PADDING_X, 50);
+        version.setFormat(Assets.font("vcr"), 16);
+        version.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
+        version.text = 'Version: ${Tools.gameVersion}';
+        add(version);
 
         add(scrollBar = new ScrollBar());
         add(infos = new ModInfos());

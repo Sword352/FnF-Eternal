@@ -2,7 +2,6 @@
 ; speeds up building time and completion
 ; you can add your own paths too
 
-\/.FNF-EternalEngine\/.*
 \/funkin\/.*
 \/hxdiscord_rpc\/.*
 \/flixel\/.*

@@ -28,7 +28,7 @@ class Main extends Sprite {
         super();
 
         // Bind the save file before the game launches so it's tied to the correct save file
-        FlxG.save.bind("misc", Tools.savePath);
+        FlxG.save.bind("save", Tools.savePath);
 
         game = new GameInstance();
         addChild(game);

@@ -70,7 +70,7 @@ class MainMenu extends MusicBeatState {
         if (Tools.devState.length > 0)
             devState = ' (${Tools.devState})';
 
-        bottomText = new FlxText(5, 0, 0, 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\nEternal Engine v${Tools.gameVersion}${devState}');
+        bottomText = new FlxText(5, 0, 0, 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\nEternal v${Tools.gameVersion}${devState}');
         bottomText.setFormat(Assets.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
         bottomText.y = FlxG.height - bottomText.height;

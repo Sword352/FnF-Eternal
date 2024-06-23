@@ -4,5 +4,5 @@ songs:
 - { name: Dadbattle, folder: dadbattle }
 
 image: week1
-characters: ["dad", "Menu_BF", "Menu_GF"]
+characters: ["dad", "bf", "gf"]
 tagline: DADDY DEAREST

@@ -1,5 +1,0 @@
-animations:
-- { name: "idle", prefix: "M GF Idle", fps: 24, loop: false }
-
-danceBeat: 2
-scale: 0.95

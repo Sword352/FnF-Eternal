@@ -1,0 +1,6 @@
+animations:
+- { name: idle,    prefix: idle, fps: 24, loop: false }
+- { name: confirm, prefix: confirm, fps: 24, loop: false, offsets: [0, 1] }
+
+globalOffsets: [0, -30]
+scale: 0.8

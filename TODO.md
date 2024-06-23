@@ -1,42 +1,74 @@
-### High Priority
-- Dialogue cutscenes implementation
-- Add unlockable freeplay songs support
+## TODO list
 
-- Finish controller input support
-- Finish the audio offset support
-- Finish the FNF modpack port
+- Finish the scripting backend rework
+  - Implement global modules
+  - Implement back overridable states
+  - Implement reloadable modules (?)
+  - Implement script priorities
+  - Allow more states and subStates to be scripted (LoadingScreen, Transition, ChartEditor...)
+  - Change most string enum abstracts to int once enums are supported in hscript
+    - IDEA: perhaps make a universal enum macro so that enums are converted into static values for now?
+  - Implement `Constants` singleton to be able to modify common values
+  - Add more events and expand the current ones (if possible)
+  - Make scripts initialization automatic in scriptable states (automatic `initStateScripts` call), along with calling `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost`
+  - Fix issues with events dispatched by the `StrumLine` class (more details there)
+  - Fix some events being repeatedly dispatched, such as `onGameOver`
+  - Perhaps rename `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost` to `create`/`createPost`/`update`/`updatePost`?
+  - Allow for a more class-based scripting api?
 
-### Medium Priority
-- V-Slice data support (characters, charts...)
-- Add jack detection to note inputs
-- Allow difficulties to be changed in the pause menu (freeplay only)
-- Allow multi-events (2 or more events having the same time value)
-- Do all of the TODO stuff that can be found in the code
+- Finish song events rework
+  - Add event descriptions in the chart editor
+  - Allow dropdown items to display a text different than their actual values
+  - Make `List` arguments dynamic
+  - Find a better workaround to allow default dynamic argument values with the event macro (deprecate `tempValue`)
+  - Better character preloading for the `ChangeCharacterEvent`
+  - Rename the `ChangeCameraTargetEvent` to `CameraFocusEvent` and make it's "target" argument a string
+  - Rename the `ChangeBpmEvent` to `TimingPointEvent` and make it be able to change the time signature
+  - Allow 2 events or more to have the same time value
 
-- Finish the crash handler rework
-- Finish the key formatting in `KeybindItem#formatKey`
+- Finish the modding support rework
+  - Clean up code
+  - Rework the asset tree (asset structures) system
+  - Implement back mod options
+  - Implement back the "mods not found" screen
+  - Make a better mods overlay
+  - Perhaps implement more modding tools?
+  - Implement zip mod support
+
+- Perhaps rework the `Controls` class?
+- Tweak the gameplay aspect
+
+- Make `Conductor` beats consistent
+  - Implement a stronger, more synced beat system
+  - Make it framerate independant
+
+- Rework a bit the chart format
+- Add support for VSlice charts
+- Do a huge overhaul on softcodable data (characters, noteskins, stages...)
+- Implement dialogue cutscenes
+- Add support for VSlice softcoded data
+
+- Implement texture atlas support
+- Implement multi-atlas features
+- Implement automatic atlas type finding everywhere
+- Implement tools for shaders
+
+- `HealthIcon` changes
+  - Implement more animation states
+  - Make it not use `health` as it is deprecated
+
+- Finish support for controller inputs
+- Finish support for the visual offset option
+- Finish the Friday Night Funkin' modpack
 - Finish the chart editor
 
-### Low Priority
-- Add a multi-atlas feature and implement auto atlas type finding to all softcoded sprites
-- Rework most of the menus + add credits menu
-- Better shader support and tools
-- FlxAnimate support
-- Zip mod support
+- Perform a major code cleanup
+- Complete all remaining TODOs from the code
+- Restore back HTML5 support
+- Rewrite the crash handler
 
-- Replace the placeholders BF and GF story menu character spritesheets
-- Continue README and wiki stuff, add git wiki
+- Remake most of the menus
+- Add a result screen
 
-### After GB Release
-- Add note colors support
-- Playback rate feature (freeplay only)
-
-  **Future plans**
-- Add modchart tools?
-- Lua scripting implementation?
-
-- "Debug Mode" option?
-  * In-game traces overlay
-
-### Bugs/Issues to Fix
-- Fix freezes happening due to GC clearing sessions
+- Add modding documentation
+- Add API documentation

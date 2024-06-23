@@ -29,8 +29,8 @@ typedef YAMLAnimation = {
 }
 
 class Tools {
-    public static final savePath:String = "Sword352/FNF-Eternal-Engine";
-    public static final githubURL:String = "https://github.com/Sword352/FNF-EternalEngine";
+    public static final savePath:String = "Sword352/FNF-Eternal";
+    public static final githubURL:String = "https://github.com/Sword352/FnF-Eternal/";
 
     public static final devState:String = "ALPHA";
 

@@ -4,5 +4,5 @@ songs:
 - { name: Blammed, folder: blammed }
 
 image: week3
-characters: ["pico", "Menu_BF", "Menu_GF"]
+characters: ["pico", "bf", "gf"]
 tagline: PICO

@@ -1,0 +1,5 @@
+animations:
+- { name: idle, prefix: idle, fps: 24, loop: false }
+
+danceBeat: 2
+scale: 0.95

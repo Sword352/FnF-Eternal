@@ -4,5 +4,5 @@ songs:
 - { name: Monster, folder: monster }
 
 image: week2
-characters: ["spooky-kids", "Menu_BF", "Menu_GF"]
+characters: ["spooky-kids", "bf", "gf"]
 tagline: SPOOKY MONTH

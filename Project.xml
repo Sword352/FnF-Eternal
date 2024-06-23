@@ -13,20 +13,20 @@
 
 	<!-- [[ Application Settings ]] -->
 
-	<app title="Friday Night Funkin': Eternal Engine" file="FunkinEternal" main="Main" version="0.1.0" company="Sword352" packageName="com.sword.EternalEngine" />
+	<app title="Friday Night Funkin': Eternal" file="EternalFunkin" main="Main" version="0.1.0" company="Sword352" packageName="com.sword.Eternal" />
 	<app preloader="flixel.system.FlxPreloader" />
 
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" allow-high-dpi="true" />
 	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
 	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
 
-	<icon path="app-icons/icon16.png"  size='16' />
-	<icon path="app-icons/icon32.png"  size='32' />
-	<icon path="app-icons/icon64.png"  size='64' />
-	<icon path="app-icons/icon128.png" size='128' />
-	<icon path="app-icons/icon256.png" size='256' />
-	<icon path="app-icons/icon512.png" size='512' />
-	<icon path="app-icons/iconDefault.png" />
+	<icon path="resources/icon16.png"  size='16' />
+	<icon path="resources/icon32.png"  size='32' />
+	<icon path="resources/icon64.png"  size='64' />
+	<icon path="resources/icon128.png" size='128' />
+	<icon path="resources/icon256.png" size='256' />
+	<icon path="resources/icon512.png" size='512' />
+	<icon path="resources/iconDefault.png" />
 
 	<source path="source" />
 	<assets path="assets" />

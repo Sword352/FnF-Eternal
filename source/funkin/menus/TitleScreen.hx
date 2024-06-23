@@ -29,8 +29,8 @@ typedef TitleSprite = {
 }
 
 typedef TitleSequence = {
-    var ?step:Int;
-    var ?beat:Int;
+    var ?step:Float;
+    var ?beat:Float;
     var ?action:String;
     var ?arguments:Array<Dynamic>;
 }
@@ -121,6 +121,14 @@ class TitleScreen extends MusicBeatState {
         scripts.call("onUpdate", [elapsed]);
         super.update(elapsed);
 
+        if (stepSequences != null)
+            while (stepSequences.length > 0 && stepSequences[0].step <= conductor.decStep)
+                runSequence(stepSequences.shift());
+
+        if (beatSequences != null)
+            while (beatSequences.length > 0 && beatSequences[0].beat <= conductor.decBeat)
+                runSequence(beatSequences.shift());
+
         if (allowInputs && controls.justPressed("accept"))
             accept();
 
@@ -128,10 +136,6 @@ class TitleScreen extends MusicBeatState {
     }
 
     override function beatHit(beat:Int):Void {
-        if (beatSequences != null)
-            while (beatSequences.length > 0 && beatSequences[0].beat <= beat)
-                runSequence(beatSequences.shift());
-
         for (group in [spritesGroup, preRenderSprites, postRenderSprites]) {
             if (group == null || group.length < 1)
                 continue;
@@ -142,14 +146,6 @@ class TitleScreen extends MusicBeatState {
         }
 
         super.beatHit(beat);
-    }
-
-    override function stepHit(step:Int):Void {
-        if (stepSequences != null)
-            while (stepSequences.length > 0 && stepSequences[0].step <= step)
-                runSequence(stepSequences.shift());
-
-        super.stepHit(step);
     }
 
     function accept():Void {
@@ -429,9 +425,10 @@ class TitleScreen extends MusicBeatState {
             {beat: 9, action: "create text", arguments: ["RandomText1"]},
             {beat: 11, action: "add text", arguments: ["RandomText2"]},
             {beat: 12, action: "delete text"},
-            {beat: 13, action: "create text", arguments: ["friday night"]},
-            {beat: 14, action: "add text", arguments: ["funkin"]},
-            {beat: 15, action: "add text", arguments: ["eternal engine"]},
+            {beat: 13, action: "create text", arguments: ["friday"]},
+            {beat: 14, action: "add text", arguments: ["night"]},
+            {beat: 14.5, action: "add text", arguments: ["funkin"]},
+            {beat: 15, action: "add text", arguments: ["eternal"]},
             {beat: 16, action: "skip intro"}
         ];
     }
@@ -442,7 +439,6 @@ class TitleScreen extends MusicBeatState {
             ["azt is such", "a silly goober"],
             ["neez duts", "lmao"],
             ["funkin", "eternally"],
-            ["psych engine fork", "i dont know what that is"],
             ["still waiting on week 8", "week 54 where you at"],
             ["mmm", "chez burgr"],
             ["his name isnt keith", "dumb eggy lol"],

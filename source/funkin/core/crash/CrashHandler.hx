@@ -29,7 +29,7 @@ class CrashHandler {
         "“Looks like it's crashing time!” - LeonBrother",
         "“erm... what the blast” - PlankDev",
         "“you're did it !!!!” - PlankDev",
-        "“Hi. I'm Eternal engine, and I'm a crashaholic.” - Moxie",
+        "“Hi. I'm Eternal, and I'm a crashaholic.” - Moxie",
         "“um hi i'm the friendly crash quote” - Glade",
         "“your funkin ain't fridayin” - Crazyb3ndy",
         "“now what happened here?” - EyeDaleHim",
@@ -124,7 +124,7 @@ class CrashHandler {
         FlxG.state.openSubState(new CrashScreen());
 
         // on critical crashes (either an FlxGame crash OR 3 crashes in a row)
-        // Lib.application.window.alert(msg + '\n\nPress OK to close the game.', "Friday Night Funkin': Eternal Engine - Exception Report");
+        // Lib.application.window.alert(msg + '\n\nPress OK to close the game.', "Friday Night Funkin': Eternal - Exception Report");
     }
 }
 

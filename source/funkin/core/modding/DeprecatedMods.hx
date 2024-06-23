@@ -119,16 +119,16 @@ class DeprecatedMods {
             return NONE;
 
         var modVersion:Array<Int> = [for (i in mod.apiVersion.split(".")) Std.parseInt(i)];
-        var engineVersion:Array<Int> = [for (i in Tools.gameVersion.split(".")) Std.parseInt(i)];
+        var version:Array<Int> = [for (i in Tools.gameVersion.split(".")) Std.parseInt(i)];
 
-        if (modVersion.length < 1 || engineVersion.length < 1) {
+        if (modVersion.length < 1 || version.length < 1) {
             trace('Could not resolve API version for "${mod.id}"');
             return NONE;
         }
 
         for (i in 0...modVersion.length) {
-            if (modVersion[i] == engineVersion[i]) continue;
-            return (modVersion[i] > engineVersion[i]) ? OUTDATED_BUILD : OUTDATED_MOD;
+            if (modVersion[i] == version[i]) continue;
+            return (modVersion[i] > version[i]) ? OUTDATED_BUILD : OUTDATED_MOD;
         }
 
         return UPDATED;
