@@ -14,7 +14,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 
 <details>
     <summary>
-        <h1>Features</h1>
+        <h2>Features</h2>
     </summary>
 
 - Reworked gameplay experience
@@ -70,7 +70,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 
 <details>
     <summary>
-        <h1>Compiling</h1>
+        <h2>Compiling</h2>
     </summary>
 
 1. Install the latest version of [Haxe](https://haxe.org/download)
@@ -118,7 +118,7 @@ After those steps, you can build the project with a command prompt by running th
 
 <details>
     <summary>
-        <h1>Credits</h1>
+        <h2>Credits</h2>
     </summary>
 
 Soon!
