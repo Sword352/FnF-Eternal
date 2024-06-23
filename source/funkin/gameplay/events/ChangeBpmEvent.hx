@@ -9,7 +9,7 @@ import funkin.data.ChartFormat.ChartEvent;
  * - make it be able to modify the time signature to
  * - rename this to "Timing Point"
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     type: "change bpm",
     name: "Change BPM",
     arguments: [{

@@ -1,11 +1,12 @@
 package funkin.gameplay.events;
 
 import funkin.gameplay.notes.StrumLine;
+import funkin.gameplay.components.Character;
 
 /**
  * Change character event. Changes the opponent/spectator/player into another character.
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     type: "change character",
     name: "Change Character",
     arguments: [

@@ -10,7 +10,7 @@ import funkin.gameplay.components.Character;
  * - switch from an int value to a string
  * - rename this to "Change Camera Focus"
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     type: "change camera target",
     name: "Change Camera Target",
     arguments: [

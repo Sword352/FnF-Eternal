@@ -135,7 +135,7 @@ class ScriptContainer implements IFlxDestroyable {
      * Dispatch an event on all scripts of this container and returns it.
      * @param method Method to call.
      * @param event Event to dispatch.
-     * @param put Whether to put the event after it's dispatchement.
+     * @param put Whether to put the event after it's dispatchment.
      */
     public function dispatchEvent<T:ScriptEvent>(method:String, event:T, put:Bool = true):T {
         for (script in _scripts) {

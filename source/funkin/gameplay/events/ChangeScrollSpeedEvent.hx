@@ -6,7 +6,7 @@ import flixel.tweens.FlxEase;
 /**
  * Change scroll speed event. Changes the strumline scroll speeds, either progressively or instantly.
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     type: "change scroll speed",
     name: "Change Scroll Speed",
     arguments: [

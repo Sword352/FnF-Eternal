@@ -135,7 +135,7 @@ class ChartLoader {
             if (intendedTarget != currentTarget) {
                 finalData.events.push({
                     type: "change camera target",
-                    arguments: [intendedTarget, true],
+                    arguments: [intendedTarget, time <= 0],
                     time: time
                 });
                 currentTarget = intendedTarget;

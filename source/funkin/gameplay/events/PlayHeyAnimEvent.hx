@@ -1,9 +1,11 @@
 package funkin.gameplay.events;
 
+import funkin.gameplay.components.Character;
+
 /**
  * Play hey anim event. Makes a character play the "Hey!" animation if available, for a short amount of time.
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     name: "Play \"Hey!\" Animation",
     type: "play hey anim",
     arguments: [

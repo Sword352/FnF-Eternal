@@ -55,7 +55,7 @@ class SongEventMacro {
 	 * Method used so that DCE doesn't exclude event classes from the compilation process.
 	 */
 	public static function keepClasses():Void {
-		Compiler.include("gameplay.events", true);
+		Compiler.include("funkin.gameplay.events", true);
 	}
 	#end
 

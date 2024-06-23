@@ -3,7 +3,7 @@ package funkin.gameplay.events;
 /**
  * Camera bump event. Modifies the camera bump interval and it's intensity.
  */
-@:build(core.macros.SongEventMacro.build({
+@:build(funkin.core.macros.SongEventMacro.build({
     type: "change camera bump",
     name: "Change Camera Bumping",
     arguments: [
