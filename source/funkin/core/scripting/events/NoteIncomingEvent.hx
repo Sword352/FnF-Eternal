@@ -50,6 +50,7 @@ class NoteIncomingEvent extends ScriptEvent {
     override function destroy():Void {
         data = null;
         strumLine = null;
+        type = null;
         skin = null;
     }
 }

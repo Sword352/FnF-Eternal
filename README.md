@@ -1,7 +1,7 @@
 <p align="center">
     <img src="art/logo.png" width="750" />
     <h1 align="center">Friday Night Funkin': Eternal</h1>
-    <h3 align="center">A framework made by modders, for modders</h3>
+    <h3 align="center">A framework made by modders for modders</h3>
 </p>
 
 Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/Funkin) modding framework designed from the ground up, which takes heavy inspiration from the base game to build a unique and performant experience. It aims to be user friendly and easy-to-use while still being extremely moddable.
@@ -9,7 +9,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 # Note
 
 - This project is still in development, meaning some features such as dialogue cutscenes are still missing.
-- For any questions, don't hesitate to message me on my Discord, @sword_352
+- For any questions, don't hesitate to message me on Discord, @sword_352
 - Feedback is always appreciated and contributions are welcome!
 
 <details>
@@ -20,9 +20,9 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 - Reworked gameplay experience
     - Reworked inputs
         - Fast responsivity
-        - Easier hold notes
+        - Simplified hold notes
 
-    - New user interface
+    - Reworked user interface
     - New mechanisms
     - Extreme optimisations & top performance
 
@@ -77,7 +77,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 2. Install [git-scm](https://git-scm.com/downloads)
 3. Install the required dependencies for your platform (if it is is not listed you can safely skip this):
 
-> Side note: by making a `.haxelib` folder in your installation, all of the dependencies to install are going to that folder, so that they won't mess with your installed librairies
+> Side note: by making a `.haxelib` folder in your installation, all of the librairies to install are going to that folder, so that they won't mess with your already installed ones
 
 <details>
     <summary>
