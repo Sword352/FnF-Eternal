@@ -124,10 +124,19 @@ class ChartLoader {
                     time: noteData[0],
                     direction: Std.int(direction % 4),
                     strumline: (shouldHit) ? 1 : 0,
+                    length: 0,
                     type: type
                 };
 
-                data.length = (noteData[2] != null && noteData[2] is Float) ? noteData[2] : 0;
+                if (noteData[2] != null && noteData[2] is Float) {
+                    var startLength:Float = cast noteData[2];
+
+                    if (startLength > 0) {
+                        // since hold notes starts a step later in legacy fnf, we have to compensate by adding a step's duration to the length
+                        data.length = startLength + ((60 / currentBPM) * 1000 / 4);
+                    }
+                }
+
                 finalData.notes.push(data);
             }
 
