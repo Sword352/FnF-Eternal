@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project >
+<project>
 	<!-- [[ Defines ]]-->
 		
 	<!-- Enables the crash handler. -->
@@ -29,6 +29,7 @@
 	<icon path="resources/iconDefault.png" />
 
 	<source path="source" />
+	<assets path="LICENSE" />
 	<assets path="assets" />
 	<assets path="mods" />
 
