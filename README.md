@@ -78,7 +78,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 
 <details>
     <summary>
-        <h2>Compiling</h2>
+        <h2>Building</h2>
     </summary>
 
 1. Install the latest version of [Haxe](https://haxe.org/download)
