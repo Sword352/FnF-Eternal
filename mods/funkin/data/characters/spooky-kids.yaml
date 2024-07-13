@@ -4,10 +4,10 @@ animations:
   - { name: "danceLeft",  prefix: "spooky dance idle", indices: [0, 2, 6],       fps: 12, loop: false }
   - { name: "danceRight", prefix: "spooky dance idle", indices: [8, 10, 12, 14], fps: 12, loop: false }
 
-  - { name: "singLEFT",  prefix: "note sing left",    fps: 24, loop: false, offsets: [130, -10]  }
-  - { name: "singDOWN",  prefix: "spooky DOWN note",  fps: 24, loop: false, offsets: [-50, -130] }
-  - { name: "singUP",    prefix: "spooky UP NOTE",    fps: 24, loop: false, offsets: [-20, 26]   }
-  - { name: "singRIGHT", prefix: "spooky sing right", fps: 24, loop: false, offsets: [-130, -14] }
+  - { name: "singLeft",  prefix: "note sing left",    fps: 24, loop: false, offsets: [130, -10]  }
+  - { name: "singDown",  prefix: "spooky DOWN note",  fps: 24, loop: false, offsets: [-50, -130] }
+  - { name: "singUp",    prefix: "spooky UP NOTE",    fps: 24, loop: false, offsets: [-20, 26]   }
+  - { name: "singRight", prefix: "spooky sing right", fps: 24, loop: false, offsets: [-130, -14] }
 
 danceSteps: ["danceLeft", "danceRight"]
 danceBeat: 1

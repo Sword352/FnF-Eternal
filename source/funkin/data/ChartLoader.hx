@@ -206,9 +206,6 @@ class ChartLoader {
         finalChart.meta = loadMeta(song);
         finalChart.gameplayInfo = resolveGameplayInfo(finalChart);
 
-        if (finalChart.gameplayInfo.stage == null)
-            finalChart.gameplayInfo.stage = "";
-
         // check for events
         if (finalChart.events == null) {
             var eventsPath:String = Assets.json('songs/${song}/events');

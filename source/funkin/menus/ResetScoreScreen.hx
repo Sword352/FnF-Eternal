@@ -83,10 +83,10 @@ class ResetScoreScreen extends MusicBeatSubState {
             song = Mods.currentMod.id + "_" + song;
             */
 
-            HighScore.scoreMap.set(song, HighScore.defaultMeasure);
+            Scoring.self.deleteSession(song);
         }
 
-        HighScore.save();
+        Scoring.self.save();
 
         if (onReset != null)
             onReset();

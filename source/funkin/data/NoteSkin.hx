@@ -89,11 +89,6 @@ class NoteSkin {
         }
 
         sprite.antialiasing = skin.antialiasing ?? FlxSprite.defaultAntialiasing;
-
-        if (skin.centeredOffsets) {
-            sprite.centerOrigin();
-            sprite.centerOffsets();
-        }
     }
 }
 
@@ -128,8 +123,6 @@ typedef GenericSkin = {
     var ?atlasType:String;
 
     var ?frameRect:Array<Int>;
-    var ?centeredOffsets:Bool;
-
     var ?antialiasing:Bool;
     var ?scale:Array<Float>;
     var ?flip:Array<Bool>;

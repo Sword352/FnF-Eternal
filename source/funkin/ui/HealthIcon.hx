@@ -2,6 +2,7 @@ package funkin.ui;
 
 import flixel.FlxCamera;
 import flixel.math.FlxPoint;
+import flixel.tweens.FlxEase;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.objects.OffsetSprite;
@@ -17,7 +18,7 @@ class HealthIcon extends OffsetSprite {
     public var healthAnim:Bool = true;
 
     public var bopSize:Float = 25;
-    public var bopDuration:Float = 1.5;
+    public var bopDuration:Float = 2;
     public var bopStep:Int = -1;
     
     var _character:String;
@@ -30,21 +31,39 @@ class HealthIcon extends OffsetSprite {
     }
 
     override function update(elapsed:Float):Void {
-        if (healthAnim) {
-            if (health > 20) {
-                if (health > 80 && state != WINNING) state = WINNING;
-                else if (health < 80 && state != NEUTRAL) state = NEUTRAL;
-            }
-            else if (state != LOSING) state = LOSING;
-        }
+        if (healthAnim)
+            updateState();
 
         if (bopStep != -1) {
-            var ratio:Float = Math.min(Conductor.self.decStep - bopStep, bopDuration) / bopDuration;
+            var ratio:Float = FlxEase.sineOut(Math.min(Conductor.self.decStep - bopStep, bopDuration) / bopDuration);
             setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio));
             updateHitbox();
         }
 
         super.update(elapsed);
+    }
+
+    function updateState():Void {
+        var currentState:HealthState = state;
+
+        switch (state) {
+            case WINNING:
+                if (health < 80)
+                    state = NEUTRAL;
+            case NEUTRAL:
+                if (health > 80)
+                    state = WINNING;
+                else if (health < 20)
+                    state = LOSING;
+            case LOSING:
+                if (health > 20)
+                    state = NEUTRAL;
+        }
+
+        if (currentState != state) {
+            // recursively calls this method to find the proper state
+            updateState();
+        }
     }
 
     public inline function bop():Void {

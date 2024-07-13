@@ -32,16 +32,18 @@ class BaseOptionSubState extends MusicBeatSubState {
 
     override function update(elapsed:Float):Void {
         scripts.call("onUpdate", [elapsed]);
-        super.update(elapsed);
-
-        if (optionsGroup.length > 1 && controls.anyJustPressed(["up", "down"])) changeSelection((controls.lastAction == "up") ? -1 : 1);
-        if (controls.justPressed("back")) leave();
-
+        superUpdate(elapsed);
         scripts.call("onUpdatePost", [elapsed]);
     }
 
     function superUpdate(elapsed:Float):Void {
         super.update(elapsed);
+
+        if (optionsGroup.length > 1 && controls.anyJustPressed(["up", "down"]))
+            changeSelection((controls.lastAction == "up") ? -1 : 1);
+
+        if (controls.justPressed("back"))
+            leave();
     }
 
     function changeSelection(i:Int = 0):Void {

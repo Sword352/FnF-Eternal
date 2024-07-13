@@ -16,10 +16,7 @@ import funkin.gameplay.components.Character;
 class PlayHeyAnimEvent extends SongEvent {
     override function execute(_):Void {
         var target:Character = getCharacter(character);
-        if (target == null) return;
-
-        target.playAnimation("hey", true);
-        target.animEndTime = game.conductor.crochet * duration / 1000;
+        target?.playSpecialAnim("hey", game.conductor.crochet * duration);
     }
 
     inline function getCharacter(value:String):Character {

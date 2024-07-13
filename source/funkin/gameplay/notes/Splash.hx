@@ -6,9 +6,7 @@ import funkin.objects.OffsetSprite;
 class Splash extends OffsetSprite {
     public var skin(default, set):String;
 
-    public var centeredOffsets:Bool = false;
     public var maxVariation:Int = 2;
-
     public var minSpeed:Float = 0.8;
     public var maxSpeed:Float = 1.2;
 
@@ -20,12 +18,11 @@ class Splash extends OffsetSprite {
     public function pop(direction:Int):Void {
         var anim:String = '${Note.directions[direction]}-${FlxG.random.int(1, maxVariation)}';
         animation.timeScale = FlxG.random.float(minSpeed, maxSpeed);
-        playAnimation(anim, true);
 
-        if (centeredOffsets) {
-            updateHitbox();
-            offset.set(width * 0.3, height * 0.3);
-        }
+        playAnimation(anim, true);
+        updateHitbox();
+
+        offset.set(width * 0.3, height * 0.3);
     }
 
     override function update(elapsed:Float):Void {
@@ -61,9 +58,7 @@ class Splash extends OffsetSprite {
                     antialiasing = FlxSprite.defaultAntialiasing;
                     flipX = flipY = false;
 
-                    centeredOffsets = true;
                     maxVariation = 2;
-
                     minSpeed = 0.8;
                     maxSpeed = 1.2;
                     alpha = 0.6;
@@ -84,7 +79,6 @@ class Splash extends OffsetSprite {
                         maxSpeed = skinData.speedVariation[1] ?? 1.2;
                     }
 
-                    centeredOffsets = skinData.centeredOffsets ?? false;
                     maxVariation = skinData.maxVariation ?? 2;
                     alpha = skinData.alpha ?? 0.6;
             }

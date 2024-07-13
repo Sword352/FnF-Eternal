@@ -11,7 +11,7 @@ import funkin.editors.chart.ChartEditor;
 
 import funkin.data.ChartFormat;
 import funkin.save.SongProgress;
-import funkin.save.HighScore;
+import funkin.save.Scoring;
 import haxe.Json;
 
 class FreeplayMenu extends MusicBeatState {
@@ -33,7 +33,7 @@ class FreeplayMenu extends MusicBeatState {
     public var playInst:Bool = false;
     public var inst:FlxSound;
 
-    public var scoreData:ScoreMeasure;
+    public var scoreData:GameSession;
     public var lerpScore:Float;
 
     var allowInputs:Bool = true;
@@ -276,8 +276,8 @@ class FreeplayMenu extends MusicBeatState {
         FlxG.switchState(() -> chartEditor);
     }
 
-    inline function updateScoreData():Void {
-        scoreData = HighScore.get('${songs[selection].folder}-${difficulties[difficulty]}');
+    function updateScoreData():Void {
+        scoreData = Scoring.self.getSession('${songs[selection].folder}-${difficulties[difficulty]}');
     }
 
     inline function iconFollow(icon:HealthIcon, item:Alphabet):Void {
@@ -504,7 +504,7 @@ class ExtraInfo extends FlxSpriteGroup {
         }
         
         var fullText:String = 'MISSES: ${parent.scoreData.misses}\nACCURACY: ${FlxMath.roundDecimal(lerpAccuracy, 2)}%';
-        if (parent.scoreData.rank.length > 0) fullText += '\nRANK: ${parent.scoreData.rank}';
+        if (parent.scoreData.rank?.length > 0) fullText += '\nRANK: ${parent.scoreData.rank}';
         text.text = fullText;
 
         updateBgScale();

@@ -22,14 +22,13 @@ class ChartPlayState extends MusicBeatSubState {
     var playerStrumline:StrumLine;
     var noteSpawner:NoteSpawner;
 
-    var ratings:Array<Rating> = Rating.getDefaultList();
+    var ratings:Array<Rating> = Rating.getDefault();
 
     var playerNoteCount:FlxText;
     var oppNoteCount:FlxText;
     var infos:FlxText;
 
-    var ratingSprites:FlxTypedSpriteGroup<RatingSprite>;
-    var comboSprites:FlxTypedSpriteGroup<ComboSprite>;
+    var comboPopup:ComboPopup;
     var icons:Array<HealthIcon> = [];
 
     var playAsOpponent:Bool = false;
@@ -75,18 +74,12 @@ class ChartPlayState extends MusicBeatSubState {
         background.alpha = 0.6;
         add(background);
 
-        comboSprites = new FlxTypedSpriteGroup<ComboSprite>();
-        add(comboSprites);
+        comboPopup = new ComboPopup(ratings.length);
+        comboPopup.cameras = cameras; // TODO: remove this when sprite group cameras are fixed
+        add(comboPopup);
 
-        ratingSprites = new FlxTypedSpriteGroup<RatingSprite>();
-        add(ratingSprites);
-
-        for (rating in ratings)
-            if (rating.image != null)
-                Assets.image('ui/gameplay/${rating.image}');
-
-        for (i in 0...10)
-            Assets.image('ui/gameplay/num${i}');
+        Assets.image('ui/gameplay/combo-numbers');
+        Assets.image('ui/gameplay/ratings');
 
         var noteSkinExists:Bool = parent.chart.gameplayInfo.noteSkins != null;
         var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
@@ -181,15 +174,15 @@ class ChartPlayState extends MusicBeatSubState {
         totalPlayerNotes++;
 
         var rating:Rating = note.findRating(ratings);
-        health += rating.healthIncrement;
+        health += rating.health;
         accuracyMod += rating.accuracyMod;
         accuracyNotes++;
 
-        displayRating(rating);
+        comboPopup.displayRating(rating);
 
         combo++;
-        if (rating.displayCombo && combo > 0)
-            displayCombo();
+        if (!rating.breakCombo && combo > 0)
+            comboPopup.displayCombo(combo);
 
         if (rating.displaySplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note);
@@ -230,49 +223,6 @@ class ChartPlayState extends MusicBeatSubState {
         combo = 0;
         accuracyNotes++;
         missCount++;
-    }
-
-    function displayCombo():Void {
-        var separatedCombo:String = Std.string(combo);
-        if (!Options.simplifyComboNum)
-            while (separatedCombo.length < 3)
-                separatedCombo = "0" + separatedCombo;
-
-        if (Options.noComboStack) {
-            for (spr in comboSprites)
-                spr.kill();
-        }
-
-        for (i in 0...separatedCombo.length) {
-            var sprite:ComboSprite = comboSprites.recycle(ComboSprite);
-            sprite.loadGraphic(Assets.image('ui/gameplay/num${separatedCombo.charAt(i)}'));
-            sprite.scale.set(0.5, 0.5);
-            sprite.updateHitbox();
-            sprite.screenCenter();
-            sprite.x += 43 * (i + 1);
-            sprite.y += 140;
-
-            comboSprites.remove(sprite, true);
-            comboSprites.insert(comboSprites.length + 1, sprite);
-        }
-    }
-
-    function displayRating(rating:Rating):Void {
-        if (rating.image == null) return;
-
-        if (Options.noComboStack) {
-            for (spr in ratingSprites)
-                spr.kill();
-        }
-
-        var sprite:RatingSprite = ratingSprites.recycle(RatingSprite);
-        sprite.loadGraphic(Assets.image('ui/gameplay/${rating.image}'));
-        sprite.scale.set(0.7, 0.7);
-        sprite.updateHitbox();
-        sprite.screenCenter();
-
-        ratingSprites.remove(sprite, true);
-        ratingSprites.insert(ratingSprites.length + 1, sprite);
     }
 
     function updateUI():Void {
@@ -341,9 +291,7 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function destroy():Void {
-        while (ratings.length > 0)
-            ratings.pop().destroy();
-
+        ratings = FlxDestroyUtil.destroyArray(ratings);
         strumLines = null;
         startTimer = null;
         ratings = null;

@@ -1,8 +1,7 @@
 spectatorPos: [500, 130]
 opponentPos: [200, 300]
-ratingPos: [700, 475]
 playerPos: [870, 450]
-playerCam: [0, -15]
+playerCam: [0, 15]
 
 sprites:
   - name: background

@@ -2,161 +2,240 @@ package funkin.gameplay.components;
 
 import flixel.math.FlxPoint;
 import funkin.ui.HealthIcon;
-import funkin.objects.DancingSprite;
+import funkin.objects.Bopper;
 import funkin.data.GameOverData;
 import funkin.data.CharacterData;
 
-class Character extends DancingSprite {
-    public static final defaultAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"];
+/**
+ * Object which allows for the creation of characters.
+ * Characters can be made by providing data in YAML files in the `data/characters` folder.
+ * Character-specific logic can also be implemented by creating a script under the same path and file name.
+ */
+class Character extends Bopper {
+    /**
+     * Sing animations for every characters, ordered by direction.
+     */
+    public static final singAnimations:Array<String> = ["singLeft", "singDown", "singUp", "singRight"];
 
+    /**
+     * Miss animations for every characters, ordered by direction.
+     */
+    public static final missAnimations:Array<String> = ["missLeft", "missDown", "missUp", "missRight"];
+
+    /**
+     * Character this instance represents.
+     */
     public var character(default, set):String;
-    public var type:CharacterType;
 
-    public var singAnimations:Array<String> = defaultAnimations.copy();
+    /**
+     * Current animation state.
+     */
+    public var animState:AnimationState = NONE;
+
+    /**
+     * Time in milliseconds to wait before the current animation stops.
+     * Ignored if equal to `-1`, only applies when the current animation state is `SINGING` or `DANCING`.
+     */
+    public var animDuration:Float = -1;
+
+    /**
+     * Represents the current position in the song when an animation is played.
+     * Only applies when the current animation state is `SINGING` or `DANCING`.
+     */
+    public var animTime:Float = 0;
+
+    /**
+     * Time in steps to wait before any sing animation stops.
+     */
     public var singDuration:Float = 4;
 
-    public var animEndTime:Float = 0;
-    public var holdTime:Float = 0;
-    public var holding:Bool = false;
-
+    /**
+     * Defines the pixel offsets to adjust the camera's scroll when focusing on this character.
+     */
     public var cameraOffsets:FlxPoint = FlxPoint.get();
+
+    /**
+     * Defines the pixel offsets to adjust this character's position.
+     */
     public var globalOffsets:FlxPoint = FlxPoint.get();
 
+    /**
+     * Defines the UI health icon for this character.
+     */
     public var healthIcon:String = HealthIcon.DEFAULT_ICON;
-    public var healthBarColor:FlxColor = FlxColor.GRAY;
 
+    /**
+     * Defines the color for this character's health bar side.
+     */
+    public var healthBarColor:Null<FlxColor> = FlxColor.GRAY;
+
+    /**
+     * Optional game over character to use when using this character.
+     */
     public var gameOverChar:String;
+
+    /**
+     * Optional game over data to apply when using this character.
+     */
     public var gameOverData:GameOverData;
 
+    /**
+     * Optional note skin for this character's strumline.
+     */
     public var noteSkin:String = "default";
-    public var extra:Dynamic = null;
 
+    /**
+     * Internal reference to the character script.
+     */
     var script:Script;
 
-    public function new(x:Float = 0, y:Float = 0, character:String = "bf", type:CharacterType = DEFAULT):Void {
+    /**
+     * Creates a new `Character`.
+     * @param x Initial `x` position.
+     * @param y Initial `y` position.
+     * @param character Character this instance represents.
+     */
+    public function new(x:Float = 0, y:Float = 0, character:String = "bf"):Void {
         super(x, y);
-
-        this.type = type;
         this.character = character;
     }
 
+    /**
+     * Update behaviour.
+     */
     override function update(elapsed:Float):Void {
         super.update(elapsed);
 
-        if (animation.curAnim == null || type == DEBUG)
-            return;
-
-        if (animEndTime > 0) {
-            animEndTime -= elapsed;
-            if (animEndTime <= 0) {
-                animEndTime = 0;
-                forceDance(true);
-            }
-        }
-
-        if (singAnimations.contains(animation.curAnim.name))
-            holdTime += elapsed;
-
-        if (!holding && holdTime >= Conductor.self.stepCrochet * singDuration * 0.001)
-            forceDance();
-    }
-
-    public function setup(config:CharacterData):Void {
-        frames = Assets.getFrames(config.image, config.atlasType, config.library);
-        Tools.addYamlAnimations(this, config.animations);
-
-        singAnimations = config.singAnimations ?? singAnimations;
-        singDuration = config.singDuration ?? 4;
-
-        danceSteps = config.danceSteps ?? ["idle"];
-        beat = config.danceBeat ?? 2;
-
-        cameraOffsets.set();
-        globalOffsets.set();
-
-        if (config.cameraOffsets != null)
-            cameraOffsets.set(config.cameraOffsets[0] ?? 0, config.cameraOffsets[1] ?? 0);
-
-        if (config.globalOffsets != null)
-            globalOffsets.set(config.globalOffsets[0] ?? 0, config.globalOffsets[1] ?? 0);
-
-        extra = config.extra;
-
-        healthBarColor = (config.healthBarColor == null) ? ((type == PLAYER) ? 0xFF66FF33 : 0xFFFF0000) : Tools.getColor(config.healthBarColor);
-        healthIcon = config.icon ?? HealthIcon.DEFAULT_ICON;
-
-        gameOverChar = config.gameOverChar;
-        noteSkin = config.noteSkin;
-
-        if (type == GAMEOVER && config.gameOverData != null)
-            gameOverData = GameOverScreen.formatData(config.gameOverData);
-
-        forceDance(true);
-
-        if (config.antialiasing != null)
-            antialiasing = config.antialiasing;
-
-        if (config.flip != null) {
-            flipX = config.flip[0] ?? false;
-            flipY = config.flip[1] ?? false;
-        }
-
-        if (config.scale != null) {
-            scale.set(config.scale[0] ?? 1, config.scale[1] ?? 1);
-            updateHitbox();
-        }
-
-        if (type == PLAYER && config.playerFlip) {
-            // TODO: flipped offsets
-            swapAnimations(singAnimations[0], singAnimations[3]);
-            swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
-            flipX = !flipX;
+        switch (animState) {
+            case SINGING | SPECIAL:
+                if (animDuration != -1 && (Conductor.self.time - animTime) >= animDuration)
+                    stopAnim();
+            
+            case _:
         }
     }
 
-    public inline function sing(direction:Int, suffix:String = "", forced:Bool = true):Void
-        playAnimation(singAnimations[direction] + (suffix ?? ""), forced);
+    /**
+     * Plays a sing animation.
+     * @param direction Direction in which to play the animation.
+     * @param suffix Optional suffix to append to the animation's name.
+     */
+    public function playSingAnim(direction:Int, suffix:String = ""):Void {
+        playAnimation(singAnimations[direction] + (suffix ?? ""), true);
+        animTime = Conductor.self.time;
+        animState = SINGING;
 
-    function swapAnimations(firstAnimation:String, secondAnimation:String):Void {
-        if (!animation.exists(firstAnimation) || !animation.exists(secondAnimation))
-            return;
-
-        @:privateAccess {
-            var secondAnim = animation._animations.get(secondAnimation);
-            animation._animations.set(secondAnimation, animation._animations.get(firstAnimation));
-            animation._animations.set(firstAnimation, secondAnim);
-        }
-
-        if (offsets.exists(firstAnimation) && offsets.exists(secondAnimation)) {
-            var secondOffsets = offsets.get(secondAnimation);
-            offsets.addPoint(secondAnimation, offsets.get(firstAnimation));
-            offsets.addPoint(firstAnimation, secondOffsets);
-        }
+        // since hold notes have longer durations, we have to make sure they aren't overwritten (in case of double notes and such)
+        animDuration = Math.max(animDuration, Conductor.self.stepCrochet * singDuration);
     }
 
-    override function dance(beat:Int, forced:Bool = false):Void {
-        if (danceSteps.contains(animation.curAnim.name) || type == GAMEOVER)
+    /**
+     * Plays a miss animation.
+     * @param direction Direction in which to play the animation.
+     */
+    public function playMissAnim(direction:Int):Void {
+        playAnimation(missAnimations[direction], true);
+        animDuration = Conductor.self.crochet;
+        animTime = Conductor.self.time;
+        animState = SPECIAL;
+    }
+
+    /**
+     * Plays a special animation.
+     * @param animation Animation to play.
+     * @param duration Time in milliseconds to wait before the animation stops. Ignored if equal to `-1`.
+     */
+    public function playSpecialAnim(animation:String, duration:Float = -1):Void {
+        playAnimation(animation, true);
+        animTime = Conductor.self.time;
+        animDuration = duration;
+        animState = SPECIAL;
+    }
+
+    /**
+     * Plays an animation.
+     * @param animation Animation to play.
+     * @param type Animation type.
+     * @param startTime Current position in the song.
+     * @param duration Duration of the animation. Ignored if equal to `-1`.
+     */
+    public function playAnim(animation:String, type:AnimationState = NONE, startTime:Float = -1, duration:Float = -1):Void {
+        playAnimation(animation, true);
+        animDuration = duration;
+        animTime = startTime;
+        animState = type;
+    }
+
+    /**
+     * Stops the current singing or special animation and makes this character dance.
+     */
+    public function stopAnim():Void {
+        forceDance(Conductor.self.beat, true);
+        animDuration = animTime = -1;
+    }
+
+    /**
+     * Forces this character to dance.
+     * @param beat Current beat in the song.
+     * @param forced Whether to force the animation to be played.
+     */
+    public function forceDance(beat:Float, forced:Bool = false):Void {
+        animState = DANCING;
+        dance(beat, forced);
+    }
+
+    /**
+     * Makes this character dance.
+     * @param beat Current beat in the song.
+     * @param forced Whether to force the animation to be played.
+     */
+    override function dance(beat:Float, forced:Bool = false):Void {
+        if (animState == DANCING)
             super.dance(beat, forced);
     }
 
-    override function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
-        super.playAnimation(name, force, reversed, frame);
-        holdTime = 0;
-    }
-
+    /**
+     * Sets this character's position and account for global offsets.
+     * @param x `x` position.
+     * @param y `y` position.
+     */
     override function setPosition(x:Float = 0, y:Float = 0):Void {
-        super.setPosition(x - globalOffsets.x, y - globalOffsets.y);   
+        super.setPosition(x - globalOffsets.x, y - globalOffsets.y);
     }
 
-    public function getCamDisplace():FlxPoint {
+    /**
+     * Returns the camera position to focus on this character.
+     * @return `FlxPoint`
+     */
+    public function getCameraDisplace():FlxPoint {
         return getMidpoint().subtractPoint(cameraOffsets);
     }
 
-    inline function destroyScript():Void {
+    /**
+     * Internal method which checks for a character script.
+     */
+    function loadScript():Void {
+        var path:String = Assets.script('data/characters/${character}');
+        if (!FileTools.exists(path)) return;
+
+        script = PlayState.self.scripts.load(path);
+        if (script == null) return;
+
+        script.set("this", this);
+        script.call("onCharacterCreation");
+    }
+
+    /**
+     * Internal method which destroys the character script if existing.
+     */
+    function destroyScript():Void {
         script?.destroy();
         script = null;
     }
 
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
         destroyScript();
 
@@ -169,63 +248,92 @@ class Character extends DancingSprite {
         healthIcon = null;
         noteSkin = null;
 
-        singAnimations = null;
         character = null;
-
-        extra = null;
-
         super.destroy();
     }
 
     function set_character(v:String):String {
+        character = v;
+
         if (v != null) {
-            switch (v) {
-                // case "name" to hardcode your characters
-                default:
-                    var filePath:String = Assets.yaml('data/characters/${v}');
+            destroyScript();
 
-                    if (FileTools.exists(filePath))
-                        setup(Tools.parseYAML(FileTools.getContent(filePath)));
-                    else {
-                        trace('Could not find character "${v}"!');
-                        loadDefault();
-                    }
-
-                    destroyScript();
-
-                    if (PlayState.current != null && type != DEBUG) {
-                        var scriptPath:String = Assets.script('data/characters/${v}');
-                        
-                        if (FileTools.exists(scriptPath)) {
-                            script = Script.load(scriptPath);
-                            script.set("this", this);
-
-                            PlayState.current.scripts.add(script);
-                            script.call("onCharacterCreation");
-                        }
-                    }
+            var yamlPath:String = Assets.yaml('data/characters/${v}');
+            if (!FileTools.exists(yamlPath)) {
+                // TODO: have an hardcoded fallback character rather than looking for boyfriend's file
+                yamlPath = Assets.yaml("data/characters/boyfriend");
+                trace('Could not find character "${v}"!');
             }
 
-            animation.finish();
-            currentDance = 0;
+            var data:CharacterData = Tools.parseYAML(FileTools.getContent(yamlPath));
+            if (data == null) {
+                trace('Error loading character "${v}"!');
+                return v;
+            }
+
+            frames = Assets.getFrames(data.image, data.atlasType, data.library);
+            Tools.addYamlAnimations(this, data.animations);
+    
+            singDuration = data.singDuration ?? 4;
+            danceSteps = data.danceSteps ?? ["idle"];
+            danceInterval = data.danceBeat ?? 2;
+    
+            if (data.cameraOffsets != null)
+                cameraOffsets.set(data.cameraOffsets[0] ?? 0, data.cameraOffsets[1] ?? 0);
+    
+            if (data.globalOffsets != null)
+                globalOffsets.set(data.globalOffsets[0] ?? 0, data.globalOffsets[1] ?? 0);
+
+            healthBarColor = (data.healthBarColor == null ? null : Tools.getColor(data.healthBarColor));
+            healthIcon = data.icon ?? HealthIcon.DEFAULT_ICON;
+    
+            gameOverData = data.gameOverData;
+            gameOverChar = data.gameOverChar;
+            noteSkin = data.noteSkin;
+    
+            if (data.antialiasing != null)
+                antialiasing = data.antialiasing;
+    
+            if (data.flip != null) {
+                flipX = data.flip[0] ?? false;
+                flipY = data.flip[1] ?? false;
+            }
+
+            // TODO: maybe implement static animations?
+            // playAnimation(animation.exists("static") ? "static" : danceSteps[0], true);
+
+            resetDance();
+            animState = DANCING;
+            animation.stop();
+    
+            if (data.scale != null) {
+                scale.set(data.scale[0] ?? 1, data.scale[1] ?? 1);
+                updateHitbox();
+            }
+    
+            // TODO: reimplement this back?
+            /*
+            if (type == PLAYER && data.playerFlip) {
+                swapAnimations(singAnimations[0], singAnimations[3]);
+                swapAnimations(singAnimations[0] + "miss", singAnimations[3] + "miss");
+                flipX = !flipX;
+            }
+            */
+
+            loadScript();
         }
 
-        return character = v;
-    }
-
-    inline function loadDefault():Void {
-        var file:String = Assets.yaml("data/characters/boyfriend");
-        var content:String = FileTools.getContent(file);
-        setup(Tools.parseYAML(content));
-
-        healthIcon = HealthIcon.DEFAULT_ICON;
-        healthBarColor = FlxColor.GRAY;
+        return v;
     }
 }
 
-enum abstract CharacterType(Int) from Int to Int {
-    var DEFAULT;
-    var PLAYER;
-    var GAMEOVER;
-    var DEBUG;
+/**
+ * Represents a character's animation state.
+ */
+enum abstract AnimationState(Int) from Int to Int {
+    var NONE = -1;
+    var SINGING;
+    var HOLDING;
+    var DANCING;
+    var SPECIAL;
 }

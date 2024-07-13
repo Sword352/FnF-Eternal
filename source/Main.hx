@@ -90,7 +90,7 @@ class InitState extends FlxState {
         // Load save data
         OptionsManager.load();
         SongProgress.load();
-        HighScore.load();
+        Scoring.self.load();
 
         /*
         // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen

@@ -36,22 +36,24 @@ class GameOverScreen extends MusicBeatSubState {
         initStateScripts();
         scripts.call("onCreate");
 
-        character = new Character(position.x, position.y, characterStr, GAMEOVER);
-        data = formatData(character.gameOverData ?? PlayState.song.gameplayInfo.gameOverData);
+        character = new Character(0, 0, characterStr);
+        character.setPosition(position.x, position.y);
         add(character);
+
+        data = character.gameOverData ?? PlayState.song.gameplayInfo.gameOverData ?? {};
 
         cameraObject = new FlxObject(0, 0, 1, 1);
         cameraObject.visible = false;
         add(cameraObject);
 
-        var position:FlxPoint = character.getCamDisplace();
+        var position:FlxPoint = character.getCameraDisplace();
         cameraObject.setPosition(position.x, position.y);
         position.put();
 
-        FlxG.sound.play(Assets.sound(data.deathSound));
+        FlxG.sound.play(Assets.sound(data.deathSound ?? "gameplay/fnf_loss_sfx"));
         character.playAnimation("firstDeath");
 
-        conductor.bpm = data.bpm;
+        conductor.bpm = data.bpm ?? 100;
         conductor.enableInterpolation = false;
         conductor.music = FlxG.sound.music;
         conductor.resetTime();
@@ -65,10 +67,10 @@ class GameOverScreen extends MusicBeatSubState {
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
             if (character.animation.curAnim.curFrame >= 12 && camera.target == null)
-                camera.follow(cameraObject, LOCKON, data.cameraSpeed * 0.01);
+                camera.follow(cameraObject, LOCKON, 0.06);
 
             if (character.animation.curAnim.finished) {
-                FlxG.sound.playMusic(Assets.music(data.music));
+                FlxG.sound.playMusic(Assets.music(data.music ?? "gameover/gameOver"));
                 conductor.active = true;
                 started = true;
             }
@@ -109,12 +111,10 @@ class GameOverScreen extends MusicBeatSubState {
         conductor.music = null;
         Tools.stopMusic();
 
+        FlxG.sound.play(Assets.sound(data.confirmSound ?? "gameplay/gameOverEnd"));
         character?.playAnimation("deathConfirm", true);
-        FlxG.sound.play(Assets.sound(data.confirmSound));
 
-        new FlxTimer().start(0.7, (_) -> {
-            camera.fade(Tools.getColor(data.fadeColor), data.fadeDuration, false, FlxG.resetState);
-        });
+        FlxTimer.wait(0.7, () -> camera.fade(FlxColor.BLACK, 2, false, FlxG.resetState));
     }
 
     override function destroy():Void {
@@ -123,30 +123,5 @@ class GameOverScreen extends MusicBeatSubState {
         data = null;
 
         super.destroy();
-    }
-
-    public static inline function formatData(data:GameOverData):GameOverData {
-        if (data == null) {
-            return {
-                music: "gameover/gameOver",
-                confirmSound: "gameplay/gameOverEnd",
-                deathSound: "gameplay/fnf_loss_sfx",
-                fadeColor: "black",
-                fadeDuration: 2,
-                cameraSpeed: 6,
-                bpm: 100
-            };
-        }
-
-        if (data.music == null) data.music = "gameover/gameOver";
-        if (data.confirmSound == null) data.confirmSound = "gameplay/gameOverEnd";
-        if (data.deathSound == null) data.deathSound = "gameplay/fnf_loss_sfx";
-        if (data.bpm == null) data.bpm = 100;
-
-        if (data.fadeDuration == null) data.fadeDuration = 2;
-        if (data.fadeColor == null) data.fadeColor = "black";
-        if (data.cameraSpeed == null) data.cameraSpeed = 6;
-
-        return data;
     }
 }

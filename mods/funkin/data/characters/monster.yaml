@@ -2,10 +2,10 @@ image: characters/Monster_Assets
 
 animations:
   - { name: idle,       prefix: monster idle,       fps: 24, loop: false }
-  - { name: singLEFT,   prefix: Monster Right note, fps: 24, loop: false, offsets: [-51, 30]  }
-  - { name: singDOWN,   prefix: monster down,       fps: 24, loop: false, offsets: [-50, -80] }
-  - { name: singUP,     prefix: monster up note,    fps: 24, loop: false, offsets: [-20, 94]  }
-  - { name: singRIGHT,  prefix: Monster left note,  fps: 24, loop: false, offsets: [-30, 20]  }
+  - { name: singLeft,   prefix: Monster Right note, fps: 24, loop: false, offsets: [-51, 30]  }
+  - { name: singDown,   prefix: monster down,       fps: 24, loop: false, offsets: [-50, -80] }
+  - { name: singUp,     prefix: monster up note,    fps: 24, loop: false, offsets: [-20, 94]  }
+  - { name: singRight,  prefix: Monster left note,  fps: 24, loop: false, offsets: [-30, 20]  }
 
 cameraOffsets: [-200, 125]
 globalOffsets: [25, 125]

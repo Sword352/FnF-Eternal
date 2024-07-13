@@ -22,9 +22,9 @@ class NoteHoldEvent extends ScriptEvent {
     @:eventConstructor public var cpu(default, null):Bool;
 
     /**
-     * Health gain.
+     * Whether to make the characters sing.
      */
-    @:eventConstructor public var health:Float = 0.023;
+    @:eventConstructor public var characterSing:Bool = false;
 
     /**
      * Whether to unmute the player vocals.
@@ -35,11 +35,6 @@ class NoteHoldEvent extends ScriptEvent {
      * Whether a hold note cover should be spawned.
      */
     @:eventConstructor public var spawnCover:Bool = true;
-
-    /**
-     * Whether to make the characters sing.
-     */
-    @:eventValue public var characterSing:Bool = true;
 
     /**
      * Whether to play the confirm animation on the target receptor.

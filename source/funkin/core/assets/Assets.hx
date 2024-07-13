@@ -224,6 +224,11 @@ class Assets {
 
     public static function clearSounds():Void {
         for (key in loadedSounds.keys()) {
+            // TODO: implement persistent assets. this should be good for now (fixes an issue where the music stops when tabbing out)
+            @:privateAccess
+            if (FlxG.sound.music?.playing && FlxG.sound.music?._sound == loadedSounds.get(key))
+                continue;
+
             loadedSounds.get(key).close();
             OpenFLAssets.cache.removeSound(key);
             loadedSounds.remove(key);

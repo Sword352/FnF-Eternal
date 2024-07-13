@@ -3,59 +3,95 @@ package funkin.gameplay.notes;
 import funkin.data.NoteSkin;
 import funkin.objects.OffsetSprite;
 
+/**
+ * Receptor object.
+ */
 class Receptor extends OffsetSprite {
-    public static final mainAnimations:Array<String> = ["static", "press", "confirm"];
-
+    /**
+     * Direction for this receptor.
+     */
     public var direction:Int = 0;
-    public var parentStrumline:StrumLine;
 
+    /**
+     * Parent strumline (optional).
+     */
+    public var strumLine:StrumLine;
+
+    /**
+     * Noteskin for this receptor.
+     */
     public var skin(default, set):String;
-    public var centeredOffsets:Bool = true;
 
-    public var animTimer:Float = -1;
+    /**
+     * Current animation hold time.
+     */
+    public var holdTime:Float = -1;
 
+    /**
+     * Creates a new `Receptor`.
+     * @param direction Direction for this receptor.
+     * @param skin Noteskin for this receptor.
+     */
     public function new(direction:Int = 0, skin:String = "default"):Void {
         super();
 
         this.direction = direction;
         this.skin = skin;
 
-        animation.finishCallback = (name) -> {
-            if (parentStrumline != null && name.startsWith("confirm"))
-                animTimer = Conductor.self.time;
-        };
+        animation.finishCallback = onAnimationFinished;
     }
 
+    /**
+     * Update behaviour.
+     */
     override function update(elapsed:Float):Void {
-        if (animTimer != -1 && (Conductor.self.time - animTimer) >= 100) {
-            var anim:String = "static";
-
-            if (parentStrumline != null && !parentStrumline.cpu && parentStrumline.heldKeys[direction])
-                anim = "press";
-
-            playAnimation(anim, true);
+        if (holdTime >= 0) {
+            holdTime -= elapsed;
+            if (holdTime < 0)
+                finishHolding();
         }
 
         super.update(elapsed);
     }
 
-    override public function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame = 0):Void {
-        animTimer = -1;
-
-        if (mainAnimations.contains(name))
-            name += ' ${Note.directions[direction]}';
-
-        super.playAnimation(name, force, reversed, frame);
-
-        if (centeredOffsets) {
-            centerOrigin();
-            centerOffsets();
-        }
+    /**
+     * Plays an animation.
+     * @param name Animation name.
+     * @param force Whether to force the animation to be played.
+     * @param reversed Whether to play the animation backward.
+     * @param frame Start frame.
+     */
+    override function playAnimation(name:String, force:Bool = false, reversed:Bool = false, frame:Int = 0):Void {
+        super.playAnimation(name + " " + Note.directions[direction], force, reversed, frame);
+        centerOffsets();
+        centerOrigin();
+        holdTime = -1;
     }
 
+    /**
+     * Method called when an animation finishes.
+     */
+    function onAnimationFinished(name:String):Void {
+        if (strumLine == null || !name.startsWith("confirm"))
+            return;
+
+        holdTime = (strumLine.cpu ? 0.05 : 0.125);
+    }
+
+    /**
+     * Method called once this receptor is done holding.
+     */
+    function finishHolding():Void {
+        playAnimation(strumLine.heldKeys[direction] ? "press" : "static", true);
+        holdTime = -1;
+    }
+
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
         skin = null;
-        parentStrumline = null;
+        strumLine = null;
         super.destroy();
     }
 
@@ -68,16 +104,13 @@ class Receptor extends OffsetSprite {
                     frames = Assets.getSparrowAtlas("notes/receptors");
 
                     var dir:String = Note.directions[direction];
-                    for (anim in mainAnimations) {
-                        animation.addByPrefix('${anim} ${dir}', '${dir} ${anim}', 24, false);
-                    }
+                    animation.addByPrefix("static " + dir, '${dir} static', 24, false);
+                    animation.addByPrefix("confirm " + dir, '${dir} confirm', 24, false);
+                    animation.addByPrefix("press " + dir, '${dir} press', 24, false);
 
                     playAnimation("static", true);
-
                     scale.set(0.7, 0.7);
                     updateHitbox();
-
-                    centeredOffsets = true;
                     centerOffsets();
 
                     antialiasing = FlxSprite.defaultAntialiasing;
@@ -92,7 +125,6 @@ class Receptor extends OffsetSprite {
                     var dir:String = Note.directions[direction];
 
                     NoteSkin.applyGenericSkin(this, skinData, "static " + dir, dir);
-                    centeredOffsets = skinData.centeredOffsets ?? false;
             }
         }
 

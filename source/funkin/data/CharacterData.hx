@@ -11,9 +11,7 @@ typedef CharacterData = {
     var ?flip:Array<Bool>;
     var ?scale:Array<Float>;
 
-    var ?singAnimations:Array<String>;
     var ?singDuration:Float;
-
     var ?danceSteps:Array<String>;
     var ?danceBeat:Float;
 
@@ -26,7 +24,4 @@ typedef CharacterData = {
 
     var ?gameOverChar:String;
     var ?gameOverData:GameOverData;
-
-    var ?playerFlip:Bool;
-    var ?extra:Dynamic;
 }

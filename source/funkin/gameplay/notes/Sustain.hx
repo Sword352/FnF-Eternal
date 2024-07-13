@@ -2,20 +2,15 @@ package funkin.gameplay.notes;
 
 import flixel.FlxCamera;
 import flixel.math.FlxRect;
-
 import funkin.objects.TiledSprite;
 import funkin.objects.OffsetSprite;
 
 class Sustain extends TiledSprite {
     public var parent(default, set):Note;
-    public var tail:Tail;
+    public var tail:Tail = new Tail();
 
     public function new(parent:Note):Void {
         super(null, 0, 0, false, true);
-
-        tail = new Tail();
-        alpha = 0.6;
-
         this.parent = parent;
     }
 
@@ -56,7 +51,7 @@ class Sustain extends TiledSprite {
         super.destroy();
     }
 
-    inline function updateSustain():Void {
+    function updateSustain():Void {
         // absify the height so small sustains won't have negative heights.
         var finalHeight:Float = Math.abs((parent.length * parent.scrollSpeed) - tail.height);
 
@@ -78,7 +73,7 @@ class Sustain extends TiledSprite {
         flipY = flip;
     }
 
-    public inline function reloadGraphic():Void {
+    public function reloadGraphic():Void {
         var dir:String = Note.directions[parent.direction];
 
         frames = parent.frames;
@@ -95,6 +90,7 @@ class Sustain extends TiledSprite {
         updateHitbox();
 
         antialiasing = parent.antialiasing;
+        alpha = parent.sustainAlpha;
         flipX = parent.flipX;
     }
 

@@ -1,7 +1,6 @@
 spectatorPos: [250, 100]
 opponentPos: [175, 525]
 playerPos: [700, 450]
-ratingPos: [500, 500]
 
 cameraZoom: 0.9
 

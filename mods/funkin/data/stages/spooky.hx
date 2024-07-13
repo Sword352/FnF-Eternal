@@ -1,5 +1,6 @@
-var lastBeat:Int = 0;
-var awaitBeat:Int = 8;
+import funkin.gameplay.components.Character.AnimationState;
+
+var nextBeat:Int = 8;
 var thunder:FlxSound;
 
 function onCreatePost():Void {
@@ -9,22 +10,18 @@ function onCreatePost():Void {
 }
 
 function onBeatHit(event):Void {
-    if (!FlxG.random.bool(10) || event.beat <= (lastBeat + awaitBeat)) return;
+    if (event.beat <= nextBeat || !FlxG.random.bool(10)) return;
 
     background.animation.play("lighting", true);
 
     thunder = FlxG.sound.play(Assets.sound("thunder_" + FlxG.random.int(1, 2)));
     thunder.onComplete = () -> thunder = null;
 
-    for (character in [player, spectator]) {
-        if (character.holdTime <= 0) {
-            character.playAnimation("scared", true);
-            character.animEndTime = Conductor.self.crochet * 0.001;
-        }
-    }
+    for (character in [player, spectator])
+        if (character.animState != AnimationState.SINGING)
+            character.playSpecialAnim("scared", Conductor.self.crochet);
 
-    lastBeat = event.beat;
-    awaitBeat = FlxG.random.int(8, 24);
+    nextBeat = event.beat + FlxG.random.int(8, 24);
 }
 
 function onSubStateOpen(_):Void {

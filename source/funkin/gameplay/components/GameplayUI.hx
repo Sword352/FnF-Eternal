@@ -1,133 +1,165 @@
 package funkin.gameplay.components;
 
 import flixel.text.FlxText;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxStringUtil;
-import flixel.group.FlxSpriteGroup;
-
-import funkin.ui.HealthBar;
 import funkin.ui.HealthIcon;
+import funkin.ui.HealthBar;
+import flixel.group.FlxSpriteGroup;
+import funkin.gameplay.components.Rating.Rank;
 
+/**
+ * Sprite group containing each UI elements present in gameplay.
+ */
 class GameplayUI extends FlxSpriteGroup {
-    public var smoothHealth:Bool = Options.smoothHealth;
-    public var scoreDivider:String = "   ";
-    public var healthDisplay:Float = 1;
-    public var iconSpacing:Float = 20;
+    /**
+     * Displayed score text.
+     */
+    public var score:FlxText;
 
-    public var scoreText:FlxText;
-    public var timeDisplay:FlxText;
+    /**
+     * Displayed misses text.
+     */
+    public var misses:FlxText;
 
+    /**
+     * Displayed accuracy text.
+     */
+    public var accuracy:FlxText;
+
+    /**
+     * Health bar element.
+     */
     public var healthBar:HealthBar;
-    public var iconP1:HealthIcon;
-    public var iconP2:HealthIcon;
 
-    var game(get, never):PlayState;
-    inline function get_game():PlayState
-        return PlayState.current;
+    /**
+     * Player icon.
+     */
+    public var playerIcon:HealthIcon;
 
-    var visualHealth:Float = 1;
+    /**
+     * Opponent icon.
+     */
+    public var opponentIcon:HealthIcon;
 
+    /**
+     * Smoothed health value.
+     */
+    var displayedHealth:Float = 1;
+
+    /**
+     * Creates a new `GameplayUI`.
+     */
     public function new():Void {
         super();
 
-        healthBar = new HealthBar(game.player?.healthBarColor ?? 0xFF66FF33, game.opponent?.healthBarColor ?? 0xFFFF0000);
+        healthBar = new HealthBar(PlayState.self.player?.healthBarColor ?? 0xFF66FF33, PlayState.self.opponent?.healthBarColor ?? 0xFFFF0000);
+        healthBar.y = FlxG.height * (Options.downscroll ? 0.1 : 0.86);
         add(healthBar);
 
-        iconP1 = new HealthIcon(0, 0, game.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
-        iconP1.state = NEUTRAL;
-        iconP1.flipX = true;
-        iconP1.health = 50;
-        add(iconP1);
+        playerIcon = new HealthIcon(0, 0, PlayState.self.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        playerIcon.state = NEUTRAL;
+        playerIcon.flipX = true;
+        playerIcon.health = 50;
+        add(playerIcon);
 
-        iconP2 = new HealthIcon(0, 0, game.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
-        iconP2.state = NEUTRAL;
-        iconP2.health = 50;
-        add(iconP2);
+        opponentIcon = new HealthIcon(0, 0, PlayState.self.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        opponentIcon.state = NEUTRAL;
+        opponentIcon.health = 50;
+        add(opponentIcon);
 
-        scoreText = new FlxText(0, 0, FlxG.width);
-        scoreText.setFormat(Assets.font("vcr"), 19, FlxColor.WHITE, CENTER);
-        scoreText.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
-        add(scoreText);
+        // TODO: find better text rendering tools
+        // FlxBitmapText doesn't run well with outlines,
+        // so we're using FlxTexts for now
+        score = new FlxText(healthBar.x + 50, healthBar.y + healthBar.height + 25, healthBar.width / 3);
+        score.setFormat(Assets.font("vcr"), 19);
+        score.fieldHeight = 30;
+        add(score);
 
-        scoreText.text = 'Score: ?${scoreDivider}Misses: 0${scoreDivider}Accuracy: N/A';
+        accuracy = new FlxText(healthBar.x + healthBar.width - 200, score.y, 150);
+        accuracy.setFormat(score.font, 19, RIGHT);
+        accuracy.fieldHeight = 30;
+        add(accuracy);
 
-        if (Options.timeMark != NONE) {
-            timeDisplay = new FlxText(0, 0, FlxG.width);
-            timeDisplay.setFormat(scoreText.font, 22, FlxColor.WHITE, CENTER);
-            timeDisplay.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.6);
-            add(timeDisplay);
-        }
+        misses = new FlxText(healthBar.x + (healthBar.width - score.fieldWidth) / 2, score.y, score.fieldWidth);
+        misses.setFormat(score.font, 19, CENTER);
+        misses.fieldHeight = 30;
+        add(misses);
 
-        repositionUI(Options.downscroll);
+        score.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
+        accuracy.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
+        misses.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
+        //
+
+        updateScore();
+        updateAccuracy();
+        updateMisses();
     }
 
+    /**
+     * Update behaviour.
+     */
     override function update(elapsed:Float):Void {
-        // update health bar
-        if (smoothHealth)
-            visualHealth = Tools.lerp(visualHealth, healthDisplay, 12);
-        else
-            visualHealth = healthDisplay;
+        displayedHealth = Tools.lerp(displayedHealth, PlayState.self.stats.health, 12);
 
-        healthBar.pt = (1 - (visualHealth * 0.5));
-        iconP1.health = (healthDisplay * 50);
-        iconP2.health = 100 - iconP1.health;
+        healthBar.percent = 1 - displayedHealth / 2;
+        opponentIcon.health = 100 - displayedHealth * 50;
+        playerIcon.health = displayedHealth * 50;
 
         super.update(elapsed);
 
-        var healthBarPos:Float = healthBar.x + healthBar.oppSide.clipRect.width;
-        iconP2.x = healthBarPos - iconP2.width + iconSpacing;
-        iconP1.x = healthBarPos - iconSpacing;
+        playerIcon.x = healthBar.x + healthBar.width * healthBar.percent - 20;
+        playerIcon.y = healthBar.y - (playerIcon.height / 2);
 
-        iconP1.y = healthBar.y - (iconP1.height / 2);
-        iconP2.y = healthBar.y - (iconP2.height / 2);
+        opponentIcon.x = healthBar.x + healthBar.width * healthBar.percent - opponentIcon.width + 20;
+        opponentIcon.y = healthBar.y - (opponentIcon.height / 2);
+    }
 
-        // update time display
-        if (timeDisplay?.alpha > 0 && game.music.playing) {
-            var length:Float = game.music.instrumental.length;
-            var time:Float = game.music.instrumental.time;
+    /**
+     * Updates the score text.
+     */
+    public function updateScore():Void {
+        score.text = "Score: " + Math.fround(PlayState.self.score);
+        score.color = (PlayState.self.score < 0 ? FlxColor.RED : FlxColor.WHITE);
+    }
 
-            var base:String = switch (Options.timeMark) {
-                case FULL: FlxStringUtil.formatTime(time * 0.001) + " / " + FlxStringUtil.formatTime(length * 0.001);
-                case ELAPSED_TIME: FlxStringUtil.formatTime(time * 0.001);
-                default: FlxStringUtil.formatTime((length - time) * 0.001); // = LEFT_TIME
-            }
+    /**
+     * Updates the misses text.
+     */
+    public function updateMisses():Void {
+        misses.text = "Misses: " + PlayState.self.misses;
+    }
 
-            timeDisplay.text = "- " + base + " -";
+    /**
+     * Updates the accuracy text.
+     */
+    public function updateAccuracy():Void {
+        accuracy.clearFormats();
+
+        if (PlayState.self.botplay) {
+            accuracy.text = "Botplay";
+            return;
         }
-    }
-
-    public function updateScoreText():Void {
-        if (!game.playerStrumline.cpu) {
-            var rank:String = game.rank;
-            var text:String = 'Score: ${game.score}' + scoreDivider + 'Misses: ${game.misses}' + scoreDivider + 'Accuracy: ${game.accuracyDisplay}%';
-            if (rank?.length > 0) text += scoreDivider + rank;
-            scoreText.text = text;
+        
+        if (PlayState.self.accuracyNotes == 0) {
+            accuracy.text = "N/A";
+            return;
         }
-        else scoreText.text = "[ BOTPLAY ]";
+        
+        var text:String = Std.string(PlayState.self.stats.accuracy) + "%";
+        var rank:Rank = PlayState.self.stats.getRank();
+
+        if (rank != null) {
+            text += " [" + rank.name + "]";
+            accuracy.addFormat(rank.format, text.indexOf("[") + 1, text.indexOf("]"));
+        }
+        
+        accuracy.text = text;
     }
 
-    public function repositionUI(downscroll:Bool = false):Void {
-        healthBar.y = FlxG.height * ((downscroll) ? 0.1 : 0.875);
-        scoreText.y = healthBar.y + 50;
-
-        if (timeDisplay != null)
-            timeDisplay.y = (downscroll ? FlxG.height * 0.95 : 25);
-    }
-
-    public function onSongStart():Void {
-        if (timeDisplay == null) return;
-
-        timeDisplay.alpha = 0;
-        FlxTween.tween(timeDisplay, {alpha: 1}, 0.35);
-    }
-
-    public function beatHit():Void {
-        iconP1.bop();
-        iconP2.bop();
-    }
-
-    override function destroy():Void {
-        scoreDivider = null;
-        super.destroy();
+    /**
+     * Makes the icons bops.
+     */
+    public function iconBops():Void {
+        playerIcon.bop();
+        opponentIcon.bop();
     }
 }

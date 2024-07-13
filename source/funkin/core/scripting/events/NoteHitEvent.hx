@@ -43,6 +43,16 @@ class NoteHitEvent extends ScriptEvent {
     @:eventConstructor public var accuracy:Float = 0;
 
     /**
+     * Score the player gains each second by holding this note (if it's a hold note).
+     */
+    @:eventConstructor public var holdScore:Float = 0;
+
+    /**
+     * Health the player gains each second by holding this note (if it's a hold note).
+     */
+    @:eventConstructor public var holdHealth:Float = 0;
+
+    /**
      * Whether to allow the combo to be displayed.
      */
     @:eventConstructor public var displayCombo:Bool = true;
@@ -73,6 +83,11 @@ class NoteHitEvent extends ScriptEvent {
     @:eventConstructor public var increaseCombo:Bool = true;
 
     /**
+     * Whether to break the combo.
+     */
+    @:eventConstructor public var breakCombo:Bool = false;
+
+    /**
      * Whether to allow hit gain.
      */
     @:eventConstructor public var increaseHits:Bool = true;
@@ -86,11 +101,6 @@ class NoteHitEvent extends ScriptEvent {
      * Whether to resize the hold length if this is a hold note.
      */
     @:eventConstructor public var resizeLength:Bool = true;
-
-    /**
-     * Whether to update the score text.
-     */
-    @:eventConstructor public var updateScoreText:Bool = true;
 
     /**
      * Whether to play the confirm animation on the target receptor.

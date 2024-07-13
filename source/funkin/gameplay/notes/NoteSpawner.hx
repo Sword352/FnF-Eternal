@@ -49,9 +49,13 @@ class NoteSpawner extends FlxBasic {
         PlayState.song.notes.sort((a, b) -> Std.int(a.time - b.time));
 
         // skip notes with a time value lower than the start time
-        if (startTime != 0)
-            while (PlayState.song.notes[currentNote].time < startTime)
-                currentNote++;
+        if (startTime != 0) {
+            while (PlayState.song.notes[currentNote].time < startTime) {
+                // avoids null object reference when skipping every notes
+                if (++currentNote >= PlayState.song.notes.length)
+                    break;
+            }
+        }
 
         // setup the pools
         notes = new FlxTypedGroup<Note>();
@@ -90,9 +94,9 @@ class NoteSpawner extends FlxBasic {
 
             var event:NoteIncomingEvent = null;
 
-            if (PlayState.current != null) {
+            if (PlayState.self != null) {
                 event = Events.get(NoteIncomingEvent).setup(note, note.time, note.direction, note.strumline, note.length, note.type, strumLine, strumLine.skin);
-                PlayState.current.scripts.dispatchEvent("onNoteIncoming", event);
+                PlayState.self.scripts.dispatchEvent("onNoteIncoming", event);
 
                 if (event.cancelled) {
                     currentNote++;

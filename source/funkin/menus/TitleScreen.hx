@@ -2,7 +2,7 @@ package funkin.menus;
 
 import funkin.ui.Alphabet;
 import funkin.objects.OffsetSprite;
-import funkin.objects.DancingSprite;
+import funkin.objects.Bopper;
 
 import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -141,8 +141,8 @@ class TitleScreen extends MusicBeatState {
                 continue;
 
             for (spr in group)
-                if (spr is DancingSprite)
-                    cast(spr, DancingSprite).dance(beat, true);
+                if (spr is Bopper)
+                    (cast spr:Bopper).dance(beat, true);
         }
 
         super.beatHit(beat);
@@ -319,9 +319,9 @@ class TitleScreen extends MusicBeatState {
             var sprite:OffsetSprite = null;
 
             if (data.danceSteps != null && data.danceSteps.length > 0) {
-                var dancingSpr:DancingSprite = new DancingSprite();
+                var dancingSpr:Bopper = new Bopper();
                 dancingSpr.danceSteps = data.danceSteps;
-                dancingSpr.beat = data.danceBeat ?? 1;
+                dancingSpr.danceInterval = data.danceBeat ?? 1;
                 sprite = dancingSpr;
             } else sprite = new OffsetSprite();
 
@@ -382,28 +382,26 @@ class TitleScreen extends MusicBeatState {
     }
 
     function addDefaultSprites():Void {
-        var logo:DancingSprite = new DancingSprite(-150, -100);
+        var logo:Bopper = new Bopper(-150, -100);
         logo.frames = Assets.getSparrowAtlas("menus/title/logoBumpin");
         logo.animation.addByPrefix("bump", "logo bumpin", 24, false);
         logo.danceSteps.push("bump");
 
-        logo.forceDance();
+        logo.resetDance();
         logo.animation.finish();
         logo.updateHitbox();
 
-        postRenderSprites.add(logo);
-
-        var girlfriend:DancingSprite = new DancingSprite(FlxG.width * 0.4, FlxG.height * 0.07);
+        var girlfriend:Bopper = new Bopper(FlxG.width * 0.4, FlxG.height * 0.07);
         girlfriend.frames = Assets.getSparrowAtlas("menus/title/gfDanceTitle");
         girlfriend.animation.addByIndices("left", "gfDance", [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
         girlfriend.animation.addByIndices("right", "gfDance", [for (i in 15...30) i], "", 24, false);
         girlfriend.danceSteps = ["left", "right"];
 
-        girlfriend.forceDance();
+        girlfriend.resetDance();
         girlfriend.animation.finish();
-        girlfriend.currentDance = 0;
         girlfriend.updateHitbox();
 
+        postRenderSprites.add(logo);
         postRenderSprites.add(girlfriend);
     }
 

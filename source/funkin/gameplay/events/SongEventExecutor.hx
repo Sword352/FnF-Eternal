@@ -88,13 +88,11 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        var scriptEvent:SongEventActionEvent = PlayState.current.scripts.dispatchEvent("onEventExecution", Events.get(SongEventActionEvent).setup(event, executor));
+        var scriptEvent:SongEventActionEvent = PlayState.self.scripts.dispatchEvent("onEventExecution", Events.get(SongEventActionEvent).setup(event, executor));
         if (scriptEvent.cancelled) return;
 
         executor.currentEvent = event;
         executor.execute(event);
-
-        PlayState.current.stage.onEventExecution(event);
     }
 
     /**
@@ -105,13 +103,11 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        var scriptEvent:SongEventActionEvent = PlayState.current.scripts.dispatchEvent("onEventPreload", Events.get(SongEventActionEvent).setup(event, executor));
+        var scriptEvent:SongEventActionEvent = PlayState.self.scripts.dispatchEvent("onEventPreload", Events.get(SongEventActionEvent).setup(event, executor));
         if (scriptEvent.cancelled) return;
         
         executor.currentEvent = event;
         executor.preload(event);
-
-        PlayState.current.stage.onEventPreload(event);
     }
 
     /**

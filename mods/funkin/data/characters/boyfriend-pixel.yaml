@@ -1,13 +1,11 @@
 image: "characters/bfPixel"
 
 animations:
-  - { name: "idle",          prefix: "BF IDLE instance",        fps: 24, loop: false }
-  - { name: "singLEFT",      prefix: "BF RIGHT NOTE instance",  fps: 24, loop: false }
-  - { name: "singDOWN",      prefix: "BF DOWN NOTE instance",   fps: 24, loop: false }
-  - { name: "singUP",        prefix: "BF UP NOTE instance",     fps: 24, loop: false }
-  - { name: "singRIGHT",     prefix: "BF LEFT NOTE instance",   fps: 24, loop: false }
-
-playerFlip: true
+  - { name: "idle",      prefix: "BF IDLE instance",       fps: 24, loop: false }
+  - { name: "singLeft",  prefix: "BF RIGHT NOTE instance", fps: 24, loop: false }
+  - { name: "singDown",  prefix: "BF DOWN NOTE instance",  fps: 24, loop: false }
+  - { name: "singUp",    prefix: "BF UP NOTE instance",    fps: 24, loop: false }
+  - { name: "singRight", prefix: "BF LEFT NOTE instance",  fps: 24, loop: false }
 
 scale: [6, 6]
 flip: [true, false]

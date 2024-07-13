@@ -12,8 +12,7 @@ typedef StageData = {
     var ?playerPos:Array<Float>;
     var ?spectatorPos:Array<Float>;
     var ?opponentPos:Array<Float>;
-    var ?ratingPos:Array<Float>;
-
+    
     var ?playerCam:Array<Float>;
     var ?spectatorCam:Array<Float>;
     var ?opponentCam:Array<Float>;

@@ -3,15 +3,15 @@ image: characters/BOYFRIEND
 animations:
   - { name: idle, prefix: BF idle dance }
 
-  - { name: singLEFT,      prefix: BF NOTE LEFT0,      offsets: [12, -6] }
-  - { name: singDOWN,      prefix: BF NOTE DOWN0,      offsets: [-10, -50] }
-  - { name: singUP,        prefix: BF NOTE UP0,        offsets: [-29, 27] }
-  - { name: singRIGHT,     prefix: BF NOTE RIGHT0,     offsets: [-38, -7] }
+  - { name: singLeft,  prefix: BF NOTE LEFT0,      offsets: [12, -6] }
+  - { name: singDown,  prefix: BF NOTE DOWN0,      offsets: [-10, -50] }
+  - { name: singUp,    prefix: BF NOTE UP0,        offsets: [-29, 27] }
+  - { name: singRight, prefix: BF NOTE RIGHT0,     offsets: [-38, -7] }
 
-  - { name: singLEFTmiss,  prefix: BF NOTE LEFT MISS,  offsets: [12, 24] }
-  - { name: singDOWNmiss,  prefix: BF NOTE DOWN MISS,  offsets: [-11, -19] }
-  - { name: singUPmiss,    prefix: BF NOTE UP MISS,    offsets: [-29, 27] }
-  - { name: singRIGHTmiss, prefix: BF NOTE RIGHT MISS, offsets: [-30, 21] }
+  - { name: missLeft,  prefix: BF NOTE LEFT MISS,  offsets: [12, 24] }
+  - { name: missDown,  prefix: BF NOTE DOWN MISS,  offsets: [-11, -19] }
+  - { name: missUp,    prefix: BF NOTE UP MISS,    offsets: [-29, 27] }
+  - { name: missRight, prefix: BF NOTE RIGHT MISS, offsets: [-30, 21] }
 
   - { name: preAttack, prefix: bf pre attack }
   - { name: attack,    prefix: boyfriend attack }

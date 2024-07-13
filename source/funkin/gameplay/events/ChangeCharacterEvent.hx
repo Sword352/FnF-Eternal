@@ -39,7 +39,7 @@ class ChangeCharacterEvent extends SongEvent {
         if (_characters[target].exists(to))
             return;
 
-        var character:Character = new Character(0, 0, to, (target == "Player" ? PLAYER : DEFAULT));
+        var character:Character = new Character(0, 0, to);
         _characters[target].set(to, character);
 
         // preload the health icon
@@ -75,9 +75,11 @@ class ChangeCharacterEvent extends SongEvent {
             if (game.cameraFocus == targetCharacter)
                 game.cameraFocus = intended;
 
-            // play the corresponding sing animation if required.
-            if (intended.singAnimations.contains(targetCharacter.animation.name))
-                intended.playAnimation(targetCharacter.animation.name, true);
+            // play the corresponding animation.
+            if (targetCharacter.animState != DANCING)
+                intended.playAnim(targetCharacter.animation.name, targetCharacter.animState, targetCharacter.animTime, targetCharacter.animDuration);
+            else
+                intended.forceDance(game.conductor.beat, true);
         }
 
         intended.alpha = 1;
@@ -85,11 +87,11 @@ class ChangeCharacterEvent extends SongEvent {
         switch (target) {
             case "Player":
                 game.hud.healthBar.playerColor = intended.healthBarColor;
-                game.hud.iconP1.character = intended.healthIcon;
+                game.hud.playerIcon.character = intended.healthIcon;
                 game.player = intended;
             case "Opponent":
-                game.hud.healthBar.oppColor = intended.healthBarColor;
-                game.hud.iconP2.character = intended.healthIcon;
+                game.hud.healthBar.opponentColor = intended.healthBarColor;
+                game.hud.opponentIcon.character = intended.healthIcon;
                 game.opponent = intended;
             case "Spectator":
                 game.spectator = intended;

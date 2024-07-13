@@ -110,7 +110,7 @@ class PauseScreen extends MusicBeatSubState {
                 if (!Assets.clearAssets) FlxG.resetState();
                 else {
                     Transition.noPersistentUpdate = true;
-                    FlxG.switchState(LoadingScreen.new.bind(PlayState.current.startTime));
+                    FlxG.switchState(LoadingScreen.new.bind(PlayState.self.startTime));
                 }
             case "go to options":
                 Transition.openOnSubState = Transition.noPersistentUpdate = true;

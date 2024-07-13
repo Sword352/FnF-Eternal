@@ -3,7 +3,7 @@ package funkin.gameplay.events;
 import funkin.data.ChartFormat.ChartEvent;
 
 /**
- * Base song event class. Extend this to code your song events.
+ * Base song event class.
  */
 class SongEvent {
     /**
@@ -16,22 +16,22 @@ class SongEvent {
      */
     var game(get, never):PlayState;
     inline function get_game():PlayState
-        return PlayState.current;
+        return PlayState.self;
 
     public function new():Void {}
 
     /**
-     * Method ran when an event is being executed. Use this for your event's logic.
+     * Method ran when an event is being executed.
      */
     public function execute(event:ChartEvent):Void {}
     
     /**
-     * Method ran when an event is being preloaded. Use this to preload anything required for your event.
+     * Method ran when an event is being preloaded.
      */
     public function preload(event:ChartEvent):Void {}
     
     /**
-     * Destroys this event. Use this to destroy anything if required.
+     * Destroys this event.
      */
     public function destroy():Void {
         currentEvent = null;

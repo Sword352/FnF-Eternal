@@ -1,78 +1,159 @@
 package funkin.gameplay.components;
 
-class Rating {
+import flixel.text.FlxText;
+
+/**
+ * Object which allows for the creation of ratings.
+ */
+@:structInit
+class Rating implements IFlxDestroyable {
+    /**
+     * Name for this rating.
+     */
     public var name:String;
-    public var rank:String;
-    public var image:String;
 
-    public var scoreIncrement:Float = 0;
-    public var healthIncrement:Float = 0.023;
-    public var accuracyMod:Float = 0;
-    public var hitWindow:Float = 0;
+    /**
+     * Score amount the player gains from hitting this rating.
+     */
+    @:optional public var score:Float = 350;
 
-    public var hits:Int = 0;
-    public var missThreshold:Int = 0;
+    /**
+     * Health amount the player gains from hitting this rating.
+     */
+    @:optional public var health:Float = 0.023;
 
-    public var displaySplash:Bool;
-    public var displayCombo:Bool;
+    /**
+     * Accuracy this rating gives, ranging from 0 to 1.
+     */
+    @:optional public var accuracyMod:Float = 1;
 
-    public function new(name:String = "sick"):Void {
+    /**
+     * Hit window not to exceed in order to obtain this rating.
+     */
+    @:optional public var hitWindow:Float = 45;
+
+    /**
+     * Rank the game chooses if you don't exceed this rating's `missThreshold`.
+     */
+    @:optional public var rank:Rank = null;
+
+    /**
+     * Miss amount not to exceed in order to get this rating's `rank`.
+     */
+    @:optional public var missThreshold:Int = 1;
+
+    /**
+     * Whether to invalidate ranks if this rating gets 1 hit or more.
+     */
+    @:optional public var invalidateRank:Bool = false;
+
+    /**
+     * Total hits this rating got, used to determinate the rank.
+     */
+    @:optional public var hits:Int = 0;
+
+    /**
+     * Whether this rating pops a splash.
+     */
+    @:optional public var displaySplash:Bool = true;
+
+    /**
+     * Whether this rating breaks the combo.
+     */
+    @:optional public var breakCombo:Bool = false;
+
+    /**
+     * Returns a string representation of this rating.
+     */
+    public function toString():String {
+        return this.name;
+    }
+
+    /**
+     * Clean up memory.
+     */
+    public function destroy():Void {
+        rank = FlxDestroyUtil.destroy(rank);
+        name = null;
+    }
+
+    /**
+     * Returns the default rating list as an `Array`.
+     */
+    public static function getDefault():Array<Rating> {
+        return [
+            {name: "sick",  rank: new Rank("SFC", FlxColor.CYAN)},
+            {name: "good",  rank: new Rank("GFC", FlxColor.LIME), score: 175, accuracyMod: 0.7, hitWindow: 90, displaySplash: false},
+            {name: "bad",   score: 50,  health: 0.01,   accuracyMod: 0.3, hitWindow: 140, invalidateRank: true, displaySplash: false},
+            {name: "awful", score: -25, health: -0.015, accuracyMod: 0,   hitWindow: 160, invalidateRank: true, displaySplash: false, breakCombo: true}
+        ];
+    }
+}
+
+/**
+ * Object which allows for the creation of ranks.
+ */
+@:structInit
+class Rank implements IFlxDestroyable {
+    /**
+     * Name for this rank.
+     */
+    public var name:String;
+
+    /**
+     * Color for this rank.
+     */
+    public var color(default, set):FlxColor;
+
+    /**
+     * Text format for this rank.
+     */
+    public var format(get, never):FlxTextFormat;
+
+    /**
+     * Actual format.
+     */
+    var _format:FlxTextFormat;
+
+    function set_color(v:FlxColor):FlxColor {
+        // no need to regenerate a text format
+        if (_format != null) {
+            @:privateAccess
+            _format.format.color = v;
+        }
+
+        return color = v;
+    }
+
+    function get_format():FlxTextFormat {        
+        if (_format == null)
+            _format = new FlxTextFormat(color);
+
+        return _format;
+    }
+
+    /**
+     * Creates a new `Rank` instance.
+     * @param name Name for this rank.
+     * @param color Color for this rank.
+     */
+    public function new(name:String, color:FlxColor):Void {
         this.name = name;
-        reset();            
+        this.color = color;
     }
 
-    public function reset():Void {
-        scoreIncrement = 350;
-        accuracyMod = 1;
-        hitWindow = 45;
-
-        image = "sick";
-        rank = "SFC";
-
-        displaySplash = true;
-        displayCombo = true;
-
-        missThreshold = 1;
-        hits = 0;
+    /**
+     * Returns a string representation of this rank.
+     */
+    public function toString():String {
+        return this.name;
     }
 
-    public inline function destroy():Void {
-        name = rank = image = null;
-    }
-
-    public static function getDefaultList():Array<Rating> {
-        var list:Array<Rating> = [new Rating()];
-
-        var good:Rating = new Rating("good");
-        good.displaySplash = false;
-        good.scoreIncrement = 200;
-        good.missThreshold = 1;
-        good.accuracyMod = 0.7;
-        good.hitWindow = 90;
-        good.image = "good";
-        good.rank = "GFC";
-        list.push(good);
-
-        var bad:Rating = new Rating("bad");
-        bad.healthIncrement /= 2;
-        bad.displaySplash = false;
-        bad.scoreIncrement = 100;
-        bad.missThreshold = 1;
-        bad.accuracyMod = 0.3;
-        bad.hitWindow = 125;
-        bad.image = "bad";
-        list.push(bad);
-
-        var shit:Rating = new Rating("shit");
-        shit.healthIncrement = -shit.healthIncrement / 2;
-        shit.displaySplash = false;
-        shit.scoreIncrement = 50;
-        shit.missThreshold = 1;
-        shit.accuracyMod = 0;
-        shit.hitWindow = 140;
-        shit.image = "shit";
-        list.push(shit);
-
-        return list;
+    /**
+     * Clean up memory.
+     */
+    public function destroy():Void {
+        name = null;
+        _format = null;
     }
 }

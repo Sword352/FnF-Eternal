@@ -38,7 +38,7 @@ class Tools {
     static inline function get_gameVersion():String
         return openfl.Lib.application.meta["version"];
 
-    public static inline function camelCase(string:String):String {
+    public static function camelCase(string:String):String {
         var output:String = string.toLowerCase();
         if (!output.contains(" ")) return output;
 
@@ -50,11 +50,12 @@ class Tools {
         return parts.join("");
     }
 
-    public static inline function capitalize(value:String, lower:Bool = true):String
+    public static function capitalize(value:String, lower:Bool = true):String {
         return value.split(" ").map((f) -> {
             var fragment:String = f.substring(1, f.length);
             return f.charAt(0).toUpperCase() + ((lower) ? fragment.toLowerCase() : fragment);
         }).join(" ");
+    }
 
     public static inline function parseYAML(content:String):Dynamic
         return Yaml.parse(content, Parser.options().useObjects());
@@ -63,7 +64,7 @@ class Tools {
         return @:privateAccess openfl.ui.Keyboard.__convertKeyCode(key);
 
     // used to avoid a flixel warning
-    public static inline function changeFramerateCap(newFramerate:Int):Void {
+    public static function changeFramerateCap(newFramerate:Int):Void {
         if (newFramerate > FlxG.updateFramerate) {
             FlxG.updateFramerate = newFramerate;
             FlxG.drawFramerate = newFramerate;
@@ -73,28 +74,32 @@ class Tools {
         }
     }
 
-    public static inline function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
-        if (object == null || base == null) return object;
+    public static function centerToObject(object:FlxObject, base:FlxObject, axes:FlxAxes = XY):FlxObject {
+        if (object == null || base == null)
+            return object;
 
-        if (axes.x) object.x = base.x + ((base.width - object.width) * 0.5);
-        if (axes.y) object.y = base.y + ((base.height - object.height) * 0.5);
+        if (axes.x)
+            object.x = base.x + (base.width - object.width) / 2;
+
+        if (axes.y)
+            object.y = base.y + (base.height - object.height) / 2;
+
         return object;
     }
 
-    public static inline function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE, unique:Bool = true,
-            ?key:String):FlxSprite {
+    public static function makeRect(sprite:FlxSprite, width:Float = 100, height:Float = 100, col:FlxColor = FlxColor.WHITE, unique:Bool = true, ?key:String):FlxSprite {
         sprite.makeGraphic(1, 1, col, unique, key);
         sprite.scale.set(width, height);
         sprite.updateHitbox();
         return sprite;
     }
 
-    public static inline function resizeText(text:FlxText, min:Float = 0):Void {
+    public static function resizeText(text:FlxText, min:Float = 0):Void {
         while (text.height >= (FlxG.height - min) || text.width >= (FlxG.width - min))
             text.size--;
     }
 
-    public static inline function stopMusic():Void {
+    public static function stopMusic():Void {
         if (FlxG.sound.music != null && FlxG.sound.music.playing)
             FlxG.sound.music.stop();
     }
@@ -149,25 +154,20 @@ class Tools {
 
         if (value is String) {
             var possibleColor:Null<FlxColor> = FlxColor.fromString(value);
-            if (possibleColor != null)
-                return possibleColor;
-            return Std.parseInt(value);
+            return possibleColor ?? Std.parseInt(value);
         }
 
         if (value is Array) {
-            var arr:Array<Float> = cast value;
-            while (arr.length < 3)
-                arr.push(0);
-            return FlxColor.fromRGB(Std.int(arr[0]), Std.int(arr[1]), Std.int(arr[2]));
+            var arr:Array<Int> = cast value;
+            return FlxColor.fromRGB(arr[0] ?? 0, arr[1] ?? 0, arr[2] ?? 0);
         }
 
         return FlxColor.WHITE;
     }
 
-    public static inline function addYamlAnimations(sprite:FlxSprite, animations:Array<YAMLAnimation>):Void {
-        if (sprite == null || animations == null || animations.length == 0) return;
-
-        var offsetSprite:Bool = (sprite is OffsetSprite);
+    public static function addYamlAnimations(sprite:FlxSprite, animations:Array<YAMLAnimation>):Void {
+        if (sprite == null || animations == null || animations.length == 0)
+            return;
 
         for (animation in animations) {
             var speed:Float = animation.speed ?? 1;
@@ -185,7 +185,7 @@ class Tools {
                 sprite.animation.getByName(animation.name).timeScale = speed;
 
                 if (animation.offsets != null) {
-                    if (offsetSprite)
+                    if (Std.isOfType(sprite, OffsetSprite))
                         (cast sprite:OffsetSprite).offsets.add(animation.name, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0);
                     else
                         sprite.frames.addFramesOffsetByPrefix(animation.prefix, animation.offsets[0] ?? 0, animation.offsets[1] ?? 0, false);

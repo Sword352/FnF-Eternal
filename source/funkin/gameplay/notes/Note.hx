@@ -11,8 +11,8 @@ class Note extends OffsetSprite {
     public static final defaultTypes:Array<String> = ["Alt Animation", "No Animation"];
     public static final directions:Array<String> = ["left", "down", "up", "right"];
 
-    public static var safeZoneOffset(get, never):Float;
-    static function get_safeZoneOffset():Float
+    public static var hitRegion(get, never):Float;
+    static function get_hitRegion():Float
         return 166.66 * Conductor.self.playbackRate;
 
     public var beenHit:Bool = false;
@@ -37,6 +37,9 @@ class Note extends OffsetSprite {
     public var perfectHold:Bool = true;
     public var unheldTime:Float;
 
+    public var holdScore:Float = 0;
+    public var holdHealth:Float = 0; 
+
     public var type(default, set):String;
     public var skin(default, set):String;
 
@@ -48,8 +51,7 @@ class Note extends OffsetSprite {
     public var earlyHitMult:Float = 1;
     public var lateHitMult:Float = 1;
 
-    public var alphaMult:Float = 1;
-    public var sustainAlpha:Float = 0.6;
+    public var sustainAlpha:Float = 1;
 
     public var overrideSustain:Bool = false;
     public var quantizeSustain:Bool = false;
@@ -103,7 +105,8 @@ class Note extends OffsetSprite {
         unheldTime = 0;
         holdCover = null;
 
-        alphaMult = 1;
+        holdScore = 0;
+        holdHealth = 0;
         alpha = 1;
 
         playAnimation(directions[direction], true);
@@ -115,10 +118,6 @@ class Note extends OffsetSprite {
     public function follow(receptor:FlxSprite):Void {
         x = receptor.x;
         y = receptor.y + distance;
-        alpha = receptor.alpha * alphaMult;
-
-        if (holdable)
-            sustain.alpha = sustainAlpha * alpha * (invalidatedHold ? 0.5 : 1);
     }
 
     public function clipSustain(receptor:FlxSprite):Void {
@@ -242,7 +241,7 @@ class Note extends OffsetSprite {
                     flipX = flipY = false;
 
                     quantizeSustain = false;
-                    sustainAlpha = 0.6;
+                    sustainAlpha = 1;
                 default:
                     // softcoded noteskin
                     var config:NoteSkinConfig = NoteSkin.get(v);
@@ -253,7 +252,7 @@ class Note extends OffsetSprite {
                     NoteSkin.applyGenericSkin(this, config.note, dir, dir);
 
                     quantizeSustain = config.note.tiledSustain ?? false;
-                    sustainAlpha = config.note.sustainAlpha ?? 0.6;
+                    sustainAlpha = config.note.sustainAlpha ?? 1;
             }
         }
 
@@ -273,12 +272,12 @@ class Note extends OffsetSprite {
         return length != 0;
 
     function get_distance():Float {
-        var timing:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
-        return (downscroll ? -1 : 1) * ((time - timing) * scrollSpeed);
+        var timestamp:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
+        return (time - timestamp) * scrollSpeed * (downscroll ? -1 : 1);
     }
 
     function get_late():Bool {
-        return this.late || (Conductor.self.time - time) > (safeZoneOffset * lateHitMult);
+        return this.late || Conductor.self.time > time + hitRegion * lateHitMult;
     }
 
     function get_canBeHit():Bool {
@@ -287,7 +286,7 @@ class Note extends OffsetSprite {
 
         if (parentStrumline != null)
             return (parentStrumline.cpu && time <= Conductor.self.time)
-                || (!parentStrumline.cpu && Conductor.self.time >= time - (safeZoneOffset * earlyHitMult) && Conductor.self.time <= time + (safeZoneOffset * lateHitMult));
+                || (!parentStrumline.cpu && Conductor.self.time >= time - (hitRegion * earlyHitMult) && Conductor.self.time <= time + (hitRegion * lateHitMult));
         
         return this.canBeHit;
     }

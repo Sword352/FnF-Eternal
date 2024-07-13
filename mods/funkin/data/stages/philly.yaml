@@ -1,7 +1,6 @@
 spectatorPos: [450, 130]
 opponentPos: [165, 400]
 playerPos: [815, 450]
-ratingPos: [650, 450]
 
 sprites:
   - image: stages/philly/sky

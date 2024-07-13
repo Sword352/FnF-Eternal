@@ -35,12 +35,23 @@
   - Perhaps implement more modding tools?
   - Implement zip mod support
 
-- Perhaps rework the `Controls` class?
-- Tweak the gameplay aspect
+- Continue tweaking up gameplay
+  - Find a better alternative to `FlxTiledSprite` for sustains
+  - Implement a special effect to missed notes rather than reducing their opacity
+  - Make it so restarting the song/leaving gameover still uses the same PlayState instance
+  - Re-use the player character for the gameover screen when possible
+  - Make icon bops/measure zooms not happen at the end of the song
+  - Make it so toggling on botplay reset the held keys and receptor animations
+  - Improve the ui style system so that individual assets can be changed
+  - Remove the use of static variables
+  - Continue the code cleanup
 
 - Make `Conductor` beats consistent
-  - Implement a stronger, more synced beat system
-  - Make it framerate independant
+  - Implement a stronger and framerate independant beat system
+  - Implement timing points (or "bpm change map")
+  - Make the playback more synced
+
+- Rework the keybind system (and `Controls` class)
 
 - Rework a bit the chart format
 - Add support for VSlice charts

@@ -32,12 +32,12 @@ class FPSOverlay extends Sprite {
         addChild(background);
 
         text = new TextField();
-        text.defaultTextFormat = new TextFormat("Monsterrat", 15, FlxColor.WHITE);
+        text.defaultTextFormat = new TextFormat("Monsterrat", 13, FlxColor.WHITE);
         text.selectable = false;
         addChild(text);
 
-        text.y = 2.5;
-        text.x = 5;
+        text.x = 7;
+        text.y = 2;
 
         showBg = Options.showFpsBg;
         showFps = Options.showFramerate;
@@ -59,11 +59,11 @@ class FPSOverlay extends Sprite {
         if (timeout < 1000) return;
 
         var display:String = getText();
-        if (text.text != display) {
-            text.text = display;
+        if (text.htmlText != display) {
+            text.htmlText = display;
             
             var textWidth:Float = text.textWidth;
-            if (background.visible) background.width = textWidth + 10;
+            if (background.visible) background.width = text.x + textWidth + 5;
             text.width = textWidth;
         }
 
@@ -79,16 +79,16 @@ class FPSOverlay extends Sprite {
         timeout = 1000;
     }
 
-    inline function updateRelativePosition():Void {
-        if (relativeX != -1) x = relativeX * FlxG.scaleMode.scale.x;
-        if (relativeY != -1) y = relativeY * FlxG.scaleMode.scale.y;
-    }
-
     inline function updateVisibility():Void {
         visible = #if FLX_DEBUG !FlxG.game.debugger.visible && #end (showFps || showMem);
     }
 
-    inline function updateFPS():Void {
+    function updateRelativePosition():Void {
+        if (relativeX != -1) x = relativeX * FlxG.scaleMode.scale.x;
+        if (relativeY != -1) y = relativeY * FlxG.scaleMode.scale.y;
+    }
+
+    function updateFPS():Void {
         var deltaTime:Int = FlxG.game.ticks - ticks;
         ticks = FlxG.game.ticks;
 
@@ -99,16 +99,25 @@ class FPSOverlay extends Sprite {
         }
     }
 
-    inline function getText():String {
-        return ((showFps) ? ('${getFramerate()} FPS' + ((showMem) ? ' | ' : "")) : "")
-            + ((showMem) ? (getMemory() + " RAM") : "");
+    function getText():String {
+        var output:String = "";
+
+        if (showFps) {
+            output += '<font size="15">' + getFramerate() + "</font> FPS";
+            if (showMem) output += '<font size="15"> | </font>';
+        }
+
+        if (showMem)
+            output += '<font size="15">' + getMemory() + "</font> RAM";
+
+        return output;
     }
 
     inline function getFramerate():Int {
         return Math.floor(Math.min(FlxG.drawFramerate, fps));
     }
 
-    inline function getMemory():String {
+    function getMemory():String {
         var memory:Float = Memory.getProcessUsage();
         var iterations:Int = 0;
 
@@ -137,7 +146,10 @@ class FPSOverlay extends Sprite {
 
     function set_showBg(v:Bool):Bool {
         background.visible = v;
-        if (v && (showFps || showMem)) background.width = text.textWidth + 10;
+
+        if (v && (showFps || showMem))
+            background.width = text.x + text.textWidth + 5;
+        
         return showBg = v;
     }
 

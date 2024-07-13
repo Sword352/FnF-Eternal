@@ -4,8 +4,8 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.group.FlxSpriteGroup;
 
+import funkin.objects.Bopper;
 import funkin.objects.OffsetSprite;
-import funkin.objects.DancingSprite;
 import funkin.menus.ResetScoreScreen;
 import funkin.save.SongProgress;
 
@@ -286,11 +286,11 @@ class StoryMenu extends MusicBeatState {
         FlxTween.tween(difficultySprite, {y: rightArrow.y + 15, alpha: 1}, 0.07);
     }
 
-    inline function updateScore():Void {
+    function updateScore():Void {
         intendedScore = 0;
 
         for (song in weeks[currentSelection].songs)
-            intendedScore += Math.floor(HighScore.get('${song.folder}-${difficulties[currentDifficulty]}_story').score);
+            intendedScore += Scoring.self.getSession('${song.folder}-${difficulties[currentDifficulty]}_story').score;
     }
 
     function accept():Void {
@@ -417,7 +417,7 @@ class WeekSprite extends FlxSpriteGroup {
     }
 }
 
-class StoryMenuCharacter extends DancingSprite {
+class StoryMenuCharacter extends Bopper {
     var character:String;
 
     public function setup(character:String, data:StoryCharacterData):Void {
@@ -428,7 +428,7 @@ class StoryMenuCharacter extends DancingSprite {
         Tools.addYamlAnimations(this, data.animations);
 
         danceSteps = data.danceSteps ?? ["idle"];
-        beat = data.danceBeat ?? 1;
+        danceInterval = data.danceBeat ?? 1;
         flipX = data.flipX ?? false;
 
         scale.set(data.scale ?? 1, data.scale ?? 1);
@@ -437,10 +437,8 @@ class StoryMenuCharacter extends DancingSprite {
         if (data.globalOffsets != null)
             offset.add(data.globalOffsets[0] ?? 0, data.globalOffsets[1] ?? 0);
 
-        forceDance(true);
+        resetDance();
         animation.finish();
-
-        currentDance = 0;
     }
 
     override function destroy():Void {

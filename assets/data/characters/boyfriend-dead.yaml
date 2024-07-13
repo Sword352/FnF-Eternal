@@ -7,3 +7,5 @@ animations:
 
 danceBeat: 1
 danceSteps: [deathLoop]
+
+globalOffsets: [37]

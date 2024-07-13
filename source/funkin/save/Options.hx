@@ -26,17 +26,10 @@ class Options {
 
     public static var centeredStrumline:Bool = false;
     public static var holdBehindStrums:Bool = false;
-    public static var noHoldStutter:Bool = false;
 
     public static var simplifyComboNum:Bool = false;
-    public static var uiJudgements:Bool = false;
     public static var noComboStack:Bool = false;
     public static var noNoteSplash:Bool = false;
-
-    public static var smoothHealth:Bool = true;
-    public static var hideUi:Bool = false;
-
-    public static var timeMark:TimeMarkType = NONE;
 
     // DEBUG SETTINGS
     public static var editorAccess:Bool = false;
@@ -125,11 +118,4 @@ class OptionsManager {
     inline static function validKey(key:String):Bool {
         return !Reflect.isFunction(Reflect.field(Options, key));
     }
-}
-
-enum abstract TimeMarkType(String) from String to String {
-    var FULL = "full";
-    var LEFT_TIME = "left time";
-    var ELAPSED_TIME = "elapsed time";
-    var NONE = "none";
 }

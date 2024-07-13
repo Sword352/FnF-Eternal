@@ -36,6 +36,7 @@ class LoadingScreen extends FlxState {
 
     var tasks:Array<Void->Void>;
     var characters:Map<String, CharacterData> = [];
+    var stage:StageData = null;
 
     var switching:Bool = false;
     var ranTask:Int = 0;
@@ -67,7 +68,7 @@ class LoadingScreen extends FlxState {
         runTasks();
     }
 
-    inline function addVisuals():Void {
+    function addVisuals():Void {
         var graphic = Assets.createGraphic("images/menus/loading_circle");
         graphic.persist = false;
 
@@ -77,7 +78,7 @@ class LoadingScreen extends FlxState {
         add(circle);
     }
 
-    inline function runTasks():Void {
+    function runTasks():Void {
         #if sys
         // threads = new FixedThreadPool(tasks.length);
         mutex = new Mutex();
@@ -105,8 +106,8 @@ class LoadingScreen extends FlxState {
         #end
     }
 
-    inline function prepareTasks():Void {
-        tasks = [loadStage, loadCommon, loadNoteAssets];
+    function prepareTasks():Void {
+        tasks = [loadCommon, loadNoteAssets];
 
         for (char in [song.gameplayInfo.player, song.gameplayInfo.opponent, song.gameplayInfo.spectator]) {
             if (char == null || characters.exists(char)) continue;
@@ -127,6 +128,16 @@ class LoadingScreen extends FlxState {
                 if (config.icon != null && (song.gameplayInfo.opponent == char || song.gameplayInfo.player == char))
                     Assets.image('icons/${config.icon}');
             });
+        }
+        
+        var stageName:String = song.gameplayInfo.stage;
+        if (stageName?.length > 0) {
+            var stagePath:String = Assets.yaml('data/stages/${stageName}');
+
+            if (FileTools.exists(stagePath)) {
+                stage = Tools.parseYAML(FileTools.getContent(stagePath));
+                if (stage.sprites != null) tasks.push(loadStage);
+            }
         }
 
         /*
@@ -169,24 +180,13 @@ class LoadingScreen extends FlxState {
         switching = true;
     }
 
-    inline function loadStage():Void {
-        var stage:String = song.gameplayInfo.stage;
-
-        // no stage
-        if (stage.length == 0) return;
-
-        var path:String = Assets.yaml('data/stages/${stage}');
-        if (!FileTools.exists(path) || FileTools.isDirectory(path)) return;
-
-        var config:StageData = Tools.parseYAML(FileTools.getContent(path));
-        if (config == null || config.sprites == null) return;
-
-        for (sprite in config.sprites)
+    function loadStage():Void {
+        for (sprite in stage.sprites)
             if (sprite.type != "rect")
                 Assets.image(sprite.image, sprite.library);
     }
 
-    inline function loadNoteAssets():Void {
+    function loadNoteAssets():Void {
         var noteSkins:Array<String> = ["default", "default"];
         var preloaded:Array<String> = [];
 
@@ -240,10 +240,17 @@ class LoadingScreen extends FlxState {
         }
     }
 
-    inline function loadCommon():Void {
-        Assets.music("breakfast");
+    function loadCommon():Void {
+        var uiStyle:String = stage?.uiStyle ?? "";
+        
+        Assets.image('ui/gameplay/combo-numbers' + uiStyle);
+        Assets.image('ui/gameplay/ratings' + uiStyle);
+
         Assets.image("ui/alphabet");
-        for (i in 1...4) Assets.sound('gameplay/missnote${i}');
+        Assets.music("breakfast");
+
+        for (i in 1...4)
+            Assets.sound('gameplay/missnote${i}');
     }
 
     override function destroy():Void {
@@ -253,7 +260,9 @@ class LoadingScreen extends FlxState {
         #end
 
         characters = null;
+        stage = null;
         tasks = null;
+
         super.destroy();
     }
 }

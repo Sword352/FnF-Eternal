@@ -27,6 +27,16 @@ class NoteMissEvent extends ScriptEvent {
     @:eventValue public var healthLoss:Float = 0.0475;
 
     /**
+     * Score the player gains each second by holding this note (if it's a hold note).
+     */
+    @:eventValue public var holdScore:Float = 0;
+
+    /**
+     * Health the player gains each second by holding this note (if it's a hold note).
+     */
+    @:eventValue public var holdHealth:Float = 0.1;
+
+    /**
      * Whether to increase the total amount of misses.
      */
     @:eventValue public var increaseMisses:Bool = true;

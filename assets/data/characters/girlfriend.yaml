@@ -7,10 +7,10 @@ animations:
 - { name: "hairFall",   prefix: "GF Dancing Beat Hair Landing", indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], fps: 24, loop: false, offsets: [0, -9] }
 - { name: "hairBlow",   prefix: "GF Dancing Beat Hair blowing", indices: [0, 1, 2, 3], fps: 24, loop: true, offsets: [45, -8] }
 
-- { name: "singLEFT",   prefix: "GF left note",  fps: 24, loop: false, offsets: [0, -19]  }
-- { name: "singDOWN",   prefix: "GF Down Note",  fps: 24, loop: false, offsets: [0, -20]  }
-- { name: "singUP",     prefix: "GF Up Note",    fps: 24, loop: false, offsets: [0, 4]    }
-- { name: "singRIGHT",  prefix: "GF Right Note", fps: 24, loop: false, offsets: [0, -20]  }
+- { name: "singLeft",   prefix: "GF left note",  fps: 24, loop: false, offsets: [0, -19]  }
+- { name: "singDown",   prefix: "GF Down Note",  fps: 24, loop: false, offsets: [0, -20]  }
+- { name: "singUp",     prefix: "GF Up Note",    fps: 24, loop: false, offsets: [0, 4]    }
+- { name: "singRight",  prefix: "GF Right Note", fps: 24, loop: false, offsets: [0, -20]  }
 
 - { name: "sad",        prefix: "gf sad",   fps: 24, loop: false, offsets: [-2, -21] }
 - { name: "scared",     prefix: "GF FEAR",  fps: 24, loop: true, offsets: [-2, -17]  }
@@ -19,5 +19,5 @@ animations:
 danceSteps: ["danceLeft", "danceRight"]
 danceBeat: 1
 
-icon: "gf"
 healthBarColor: [165, 0, 77]
+icon: "gf"

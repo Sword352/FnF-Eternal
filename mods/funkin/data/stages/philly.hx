@@ -54,7 +54,7 @@ function onBeatHit(event):Void {
         startTrain();
     }
     else if (spectator?.animation.name == "hairFall" && spectator?.animation.finished)
-        spectator.forceDance(true);
+        spectator.forceDance(event.beat, true);
 }
 
 function onMeasureHit():Void {
@@ -86,7 +86,7 @@ function startTrain():Void {
 
 function updateTrain():Void {
     if (trainSound.time >= 4700 && !trainMoving) {
-        spectator?.playAnimation("hairBlow", true);
+        spectator?.playSpecialAnim("hairBlow");
         trainMoving = true;
     }
 
@@ -105,7 +105,7 @@ function updateTrain():Void {
 }
 
 function resetTrain():Void {
-    spectator?.playAnimation("hairFall", true);
+    spectator?.playSpecialAnim("hairFall");
     trainEnabled = trainMoving = false;
 
     train.x = 2000;

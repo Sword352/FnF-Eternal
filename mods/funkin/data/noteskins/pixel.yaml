@@ -1,6 +1,5 @@
 receptor: {
     image: "noteskins/arrows-pixels",
-    centeredOffsets: true,
     frameRect: [17, 17],
 
     animations: [
@@ -26,7 +25,6 @@ receptor: {
 
 note: {
     image: "noteskins/arrows-pixels",
-    centeredOffsets: true,
     frameRect: [17, 17],
 
     animations: [

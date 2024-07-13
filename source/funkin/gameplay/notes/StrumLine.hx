@@ -1,6 +1,5 @@
 package funkin.gameplay.notes;
 
-import flixel.tweens.*;
 import flixel.util.FlxSignal;
 import flixel.group.FlxSpriteGroup;
 import funkin.gameplay.notes.Sustain;
@@ -182,7 +181,7 @@ class StrumLine extends FlxSpriteGroup {
         for (i in 0...4) {
             var receptor:Receptor = new Receptor(i, skin);
             receptor.x = receptorSpacing * (i - 2);
-            receptor.parentStrumline = this;
+            receptor.strumLine = this;
             receptors.add(receptor);
         }
     }
@@ -260,7 +259,7 @@ class StrumLine extends FlxSpriteGroup {
         }
 
         playConfirm(note.direction);
-        singCharacters(note);
+        charactersSing(note);
     }
 
     function noteBehaviour(note:Note):Void {
@@ -270,14 +269,12 @@ class StrumLine extends FlxSpriteGroup {
         if (!cpu && !note.beenHit && !note.missed && note.late)
             lateNoteBehaviour(note);
 
-        if (note.lateKill && Conductor.self.time > note.time + note.length + (400 / note.getScrollSpeed()))
+        if (note.lateKill && note.late && Conductor.self.time > note.time + note.length + (400 / note.getScrollSpeed()))
             queueNoteRemove(note);
 
         if (note.holdable && !note.finishedHold && (note.beenHit || note.missed)) {
-            if (canHold(note)) {
-                if (lastStep != Conductor.self.step || !note.beenHit)
-                    heldSustainBehaviour(note);
-            }
+            if (canHold(note))
+                holdNoteBehaviour(note);
             else if (!note.missed)
                 unheldSustainBehaviour(note);
 
@@ -298,22 +295,35 @@ class StrumLine extends FlxSpriteGroup {
             note.clipSustain(getReceptor(note.direction));
     }
 
+    function holdNoteBehaviour(note:Note):Void {
+        if (lastStep != Conductor.self.step || !note.beenHit)
+            heldSustainBehaviour(note);
+
+        if (PlayState.self != null && this == PlayState.self.playerStrumline) {
+            PlayState.self.stats.health += note.holdHealth * FlxG.elapsed;
+
+            if (!cpu)
+                PlayState.self.score += note.holdScore * FlxG.elapsed;
+        }
+    }
+
     function canHold(note:Note):Bool {
         // also returns true if the sustain has been held but was released a little bit earlier, to make inputs feel better and easier
         return !note.invalidatedHold && (cpu || heldKeys[note.direction] || (note.beenHit && Conductor.self.time >= note.time + note.length - releaseImmunityTime));
     }
 
     function noteHitBehaviour(note:Note):Void {
-        if (PlayState.current != null)
+        if (PlayState.self != null) {
             game_noteHitBehaviour(note);
-        else {
-            onNoteHit.dispatch(note);
-            hitNote(note);
+            return;
         }
+
+        onNoteHit.dispatch(note);
+        hitNote(note);
     }
 
     function lateNoteBehaviour(note:Note):Void {
-        if (PlayState.current != null) {
+        if (PlayState.self != null) {
             game_lateNoteBehaviour(note);
             return;
         }
@@ -323,7 +333,7 @@ class StrumLine extends FlxSpriteGroup {
             note.visible = false;
             // resizeLength(note);
         } else {
-            note.alphaMult = 0.3;
+            note.alpha = 0.3;
         }
     
         note.missed = true;
@@ -331,7 +341,7 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     function heldSustainBehaviour(note:Note):Void {
-        if (PlayState.current != null) {
+        if (PlayState.self != null) {
             game_heldSustainBehaviour(note);
             return;
         }
@@ -339,18 +349,19 @@ class StrumLine extends FlxSpriteGroup {
         if (note.holdCover == null && !Options.holdBehindStrums && !Options.noNoteSplash && !splashDisabled)
             spawnCover(note);
 
+        if (note.missed)
+            charactersSing(note);
+
         note.beenHit = true;
         note.missed = false;
         note.unheldTime = 0;
 
         playConfirm(note.direction);
-        singCharacters(note);
-
         onHold.dispatch(note);
     }
 
     function unheldSustainBehaviour(note:Note):Void {
-        if (PlayState.current != null) {
+        if (PlayState.self != null) {
             game_unheldSustainBehaviour(note);
             return;
         }
@@ -368,10 +379,13 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     function invalidateHoldNote(note:Note):Void {
-        if (PlayState.current != null)
+        if (PlayState.self != null) {
             game_invalidateHoldNote(note);
-        else
-            onHoldInvalidation.dispatch(note);
+            return;
+        }
+
+        note.sustain.alpha *= 0.5;
+        onHoldInvalidation.dispatch(note);
     }
 
     function finishHoldNote(note:Note):Void {
@@ -384,20 +398,19 @@ class StrumLine extends FlxSpriteGroup {
     /**
      * Method called when a key is pressed.
      */
-    inline function onKeyDown(rawKey:Int, _):Void {
+    function onKeyDown(rawKey:Int, _):Void {
         var key:Int = Tools.convertLimeKey(rawKey);
         var dir:Int = getDirFromKey(key);
 
         if (dir == -1 || heldKeys[dir] || inactiveInputs) return;
 
         // TODO: fix weird heldKeys handling (some keys may be ignored if the direction gets changed from a script)
-        if (PlayState.current != null) {
-            var event:NoteKeyActionEvent = PlayState.current.scripts.dispatchEvent("onKeyPress", Events.get(NoteKeyActionEvent).setup(key, dir));
+        if (PlayState.self != null) {
+            var event:NoteKeyActionEvent = PlayState.self.scripts.dispatchEvent("onKeyPress", Events.get(NoteKeyActionEvent).setup(key, dir));
             if (event.cancelled || heldKeys[event.direction]) return;
             dir = event.direction;
         }
 
-        for (character in characters) character.holding = true;
         heldKeys[dir] = true;
 
         var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == dir && note.canBeHit);
@@ -412,14 +425,14 @@ class StrumLine extends FlxSpriteGroup {
     /**
      * Method called when a key is released.
      */
-    inline function onKeyUp(rawKey:Int, _):Void {
+    function onKeyUp(rawKey:Int, _):Void {
         var key:Int = Tools.convertLimeKey(rawKey);
         var dir:Int = getDirFromKey(key);
 
         if (dir == -1) return;
 
-        if (PlayState.current != null) {
-            var event:NoteKeyActionEvent = PlayState.current.scripts.dispatchEvent("onKeyRelease", Events.get(NoteKeyActionEvent).setup(key, dir));
+        if (PlayState.self != null) {
+            var event:NoteKeyActionEvent = PlayState.self.scripts.dispatchEvent("onKeyRelease", Events.get(NoteKeyActionEvent).setup(key, dir));
             if (event.cancelled) return;
             dir = event.direction;
         }
@@ -427,45 +440,53 @@ class StrumLine extends FlxSpriteGroup {
         heldKeys[dir] = false;
         playStatic(dir);
 
-        for (character in characters)
-            character.holding = heldKeys.contains(true);
+        if (!heldKeys.contains(true)) {
+            for (character in characters)
+                if (character.animState == HOLDING)
+                    character.animState = SINGING;
+        }
     }
 
-    inline function ghostPress(direction:Int):Void {
-        if (PlayState.current != null)
+    function ghostPress(direction:Int):Void {
+        if (PlayState.self != null) {
             game_ghostPress(direction);
-        else {
-            if (!ghostTapping) onGhostMiss.dispatch(direction);
-            playPress(direction);
+            return;
         }
+
+        if (!ghostTapping && notes.length > 0)
+            onGhostMiss.dispatch(direction);
+
+        playPress(direction);
     }
 
     // PLAYSTATE SPECIFIC BEHAVIOURS
     function game_noteHitBehaviour(note:Note):Void {
-        var rating:Rating = note.findRating(PlayState.current.ratings);
+        var rating:Rating = PlayState.self.stats.evaluateNote(note);
 
         // TODO: maybe don't reference the strumlines?
         var event:NoteHitEvent = Events.get(NoteHitEvent).setup(
             note,
-            this == PlayState.current.opponentStrumline,
+            this == PlayState.self.opponentStrumline,
             cpu,
             rating,
-            (!cpu ? rating.scoreIncrement : 0),
-            (this != PlayState.current.opponentStrumline ? rating.healthIncrement : 0),
+            (!cpu && !note.holdable ? rating.score : 0),
+            (this != PlayState.self.opponentStrumline ? rating.health : 0),
             (!cpu ? rating.accuracyMod : 0),
-            (!cpu && rating.displayCombo && PlayState.current.combo >= 10),
+            (!cpu ? Math.max(rating.score, 0) : 0),
+            (this == PlayState.self.playerStrumline ? Math.max(rating.health * 10, 0) : 0),
+            (!cpu && !rating.breakCombo && PlayState.self.stats.combo >= 10),
             (!cpu && rating.displaySplash && !Options.noNoteSplash),
             (!Options.holdBehindStrums && !Options.noNoteSplash),
             !cpu,
             !cpu,
             !cpu,
+            (!cpu && rating.breakCombo),
             !cpu,
-            this == PlayState.current.playerStrumline || PlayState.current.music.voices.length == 1,
-            !cpu,
+            this == PlayState.self.playerStrumline || PlayState.self.music.voices.length == 1,
             !cpu
         );
 
-        PlayState.current.onNoteHit(event);
+        PlayState.self.onNoteHit(event);
 
         if (event.cancelled) {
             // TODO: smarter way to do this
@@ -474,6 +495,8 @@ class StrumLine extends FlxSpriteGroup {
         }
 
         note.beenHit = true;
+        note.holdScore = event.holdScore;
+        note.holdHealth = event.holdHealth;
 
         if (!note.holdable) {
             if (event.removeNote)
@@ -489,14 +512,14 @@ class StrumLine extends FlxSpriteGroup {
             playConfirm(note.direction);
 
         if (event.characterSing)
-            singCharacters(note);
+            charactersSing(note);
 
         onNoteHit.dispatch(note);
     }
 
     function game_lateNoteBehaviour(note:Note):Void {
         var event:NoteMissEvent = Events.get(NoteMissEvent).setup(note);
-        PlayState.current.onMiss(event);
+        PlayState.self.onMiss(event);
 
         if (event.cancelled)
             return;
@@ -505,8 +528,11 @@ class StrumLine extends FlxSpriteGroup {
             note.perfectHold = !event.breakPerfectHold;
             note.visible = event.noteVisible;
         } else {
-            note.alphaMult = event.noteAlpha;
+            note.alpha = event.noteAlpha;
         }
+
+        note.holdScore = event.holdScore;
+        note.holdHealth = event.holdHealth;
 
         note.missed = true;
         onMiss.dispatch(note);
@@ -515,17 +541,20 @@ class StrumLine extends FlxSpriteGroup {
     function game_heldSustainBehaviour(note:Note):Void {
         var event:NoteHoldEvent = Events.get(NoteHoldEvent).setup(
             note,
-            this == PlayState.current.opponentStrumline,
+            this == PlayState.self.opponentStrumline,
             cpu,
-            (this != PlayState.current.opponentStrumline ? 0.023 : 0),
-            this == PlayState.current.playerStrumline || PlayState.current.music.voices.length == 1,
+            note.missed,
+            this == PlayState.self.playerStrumline || PlayState.self.music.voices.length == 1,
             (note.holdCover == null && !Options.holdBehindStrums && !Options.noNoteSplash && !splashDisabled)
         );
 
-        PlayState.current.onNoteHold(event);
+        PlayState.self.onNoteHold(event);
 
         if (event.cancelled)
             return;
+
+        if (note.missed)
+            charactersSing(note);
 
         note.beenHit = true;
         note.missed = false;
@@ -537,15 +566,12 @@ class StrumLine extends FlxSpriteGroup {
         if (event.playConfirm)
             playConfirm(note.direction);
 
-        if (event.characterSing)
-            singCharacters(note);
-
         onHold.dispatch(note);
     }
 
     function game_unheldSustainBehaviour(note:Note):Void {
         var event:NoteMissEvent = Events.get(NoteMissEvent).setup(note, true);
-        PlayState.current.onMiss(event);
+        PlayState.self.onMiss(event);
 
         if (event.cancelled)
             return;
@@ -555,6 +581,9 @@ class StrumLine extends FlxSpriteGroup {
             note.holdCover = null;
         }
 
+        note.holdScore = event.holdScore;
+        note.holdHealth = event.holdHealth;
+
         note.beenHit = false;
         note.perfectHold = !event.breakPerfectHold;
         note.missed = true;
@@ -563,23 +592,24 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     function game_invalidateHoldNote(note:Note):Void {
-        var remainingLength:Float = note.length - (PlayState.current.conductor.time - note.time);
-        var fraction:Float = (remainingLength / (PlayState.current.conductor.stepCrochet * 2)) + 1;
+        var remainingLength:Float = note.length - (PlayState.self.conductor.time - note.time);
+        var fraction:Float = (remainingLength / (PlayState.self.conductor.stepCrochet * 2)) + 1;
 
         var event:NoteHoldInvalidationEvent = Events.get(NoteHoldInvalidationEvent).setup(note, fraction);
-        PlayState.current.onNoteHoldInvalidation(event);
+        PlayState.self.onNoteHoldInvalidation(event);
 
         if (event.cancelled) {
             note.unheldTime = 0;
             return;
         }
 
+        note.sustain.alpha *= 0.5;
         onHoldInvalidation.dispatch(note);
     }
 
     function game_ghostPress(direction:Int):Void {
-        var event:GhostPressEvent = Events.get(GhostPressEvent).setup(direction, ghostTapping);
-        PlayState.current.onGhostPress(event);
+        var event:GhostPressEvent = Events.get(GhostPressEvent).setup(direction, ghostTapping || notes.length == 0);
+        PlayState.self.onGhostPress(event);
 
         if (event.cancelled)
             return;
@@ -603,7 +633,7 @@ class StrumLine extends FlxSpriteGroup {
      * Resizes the hold length of the passed note if the player has hit the note earlier or later.
      * The note gets removed if the new length is 0.
      */
-    inline function resizeLength(note:Note):Void {
+    function resizeLength(note:Note):Void {
         note.length += (note.time - Conductor.self.time);
         note.time = Conductor.self.time;
 
@@ -612,33 +642,20 @@ class StrumLine extends FlxSpriteGroup {
     }
 
     /**
-     * Makes this strumline's `characters` sing.
+     * Makes this strumline's `characters` sings.
      * @param note Parent note.
      */
-    public function singCharacters(note:Note):Void {
+    public function charactersSing(note:Note):Void {
         if (note.noSingAnim) return;
 
         for (character in characters) {
-            if (!note.holdable || !Options.noHoldStutter || character.animation.name != character.singAnimations[note.direction])
-                character.sing(note.direction, note.animSuffix);
-            else
-                character.holdTime = 0;
+            character.playSingAnim(note.direction, note.animSuffix);
 
-            character.currentDance = 0;
-        }
-    }
+            if (!cpu)
+                character.animState = HOLDING;
 
-    /**
-     * Runs the start tween on all receptors of this strumline.
-     */
-    public function runStartTweens():Void {
-        for (receptor in receptors) {
-            receptor.alpha = 0;
-            receptor.y -= 10;
-            FlxTween.tween(receptor, {y: receptor.y + 10, alpha: 1}, 1, {
-                startDelay: 0.5 + (0.2 * receptor.direction),
-                ease: FlxEase.circOut
-            });
+            if (note.holdable)
+                character.animDuration = note.length - Math.max(Conductor.self.time - note.time, 0) + Conductor.self.stepCrochet * 3;
         }
     }
 
@@ -719,7 +736,7 @@ class StrumLine extends FlxSpriteGroup {
         return receptors.members[direction];
     }
 
-    inline function enableInputs():Void {
+    function enableInputs():Void {
         // inputs are already enabled, don't add them again
         if (keys != null) return;
 
@@ -735,7 +752,7 @@ class StrumLine extends FlxSpriteGroup {
         ];
     }
 
-    inline function disableInputs():Void {
+    function disableInputs():Void {
         // inputs are already disabled, don't remove them again
         if (keys == null) return;
 

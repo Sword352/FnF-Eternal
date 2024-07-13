@@ -7,13 +7,8 @@ function onBeatHit(event) {
         return;
     }
 
-    player.holding = false;
-    player.holdTime = 0;
-
-    for (character in [player, spectator]) {
-        character.playAnimation("hey", true);
-        character.animEndTime = Conductor.self.crochet * 0.001;
-    }
+    for (character in [player, spectator])
+        character.playSpecialAnim("hey", Conductor.self.crochet);
 
     camGame.zoom += 0.12;
 }
