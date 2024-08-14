@@ -53,9 +53,6 @@ class Note extends OffsetSprite {
 
     public var sustainAlpha:Float = 1;
 
-    public var overrideSustain:Bool = false;
-    public var quantizeSustain:Bool = false;
-
     public var downscroll(get, default):Bool = Options.downscroll;
     public var scrollSpeed(get, default):Float = 1;
     public var distance(get, default):Float = 0;
@@ -122,24 +119,14 @@ class Note extends OffsetSprite {
 
     public function clipSustain(receptor:FlxSprite):Void {
         var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
-        var tail:FlxSprite = sustain.tail;
 
-        var tailRect:FlxRect = (tail.clipRect ?? FlxRect.get(0, 0, tail.frameWidth));
-        var sustainRect:FlxRect = (sustain.clipRect ?? FlxRect.get());
+        if (sustain.clipRegion == null)
+            sustain.clipRegion = FlxRect.get(0, 0, sustain.width, sustain.height);
 
-        if (downscroll) {
-            sustainRect.height = sustain.height - Math.max(sustain.y + sustain.height - receptorCenter, 0);
-            tailRect.height = (receptorCenter - tail.y) / tail.scale.y;
-            tailRect.y = tail.frameHeight - tailRect.height;
-        } else {
-            sustainRect.y = Math.max(receptorCenter - sustain.y, 0);
-            sustainRect.height = sustain.height - sustainRect.y;
-            tailRect.y = (receptorCenter - tail.y) / tail.scale.y;
-            tailRect.height = tail.frameHeight - tailRect.y;
-        }
+        sustain.clipRegion.y = receptorCenter - sustain.y;
 
-        sustain.clipRect = sustainRect;
-        tail.clipRect = tailRect;
+        if (downscroll)
+            sustain.clipRegion.y = sustain.height - sustain.clipRegion.y;
     }
 
     public inline function findRating(ratings:Array<Rating>):Rating {
@@ -159,7 +146,6 @@ class Note extends OffsetSprite {
         lateHitMult = 1;
         noSingAnim = false;
         noMissAnim = false;
-        overrideSustain = false;
         lateKill = true;
     }
 
@@ -239,8 +225,6 @@ class Note extends OffsetSprite {
                     // make sure to reset some props for noteskin swapping.
                     antialiasing = FlxSprite.defaultAntialiasing;
                     flipX = flipY = false;
-
-                    quantizeSustain = false;
                     sustainAlpha = 1;
                 default:
                     // softcoded noteskin
@@ -250,8 +234,6 @@ class Note extends OffsetSprite {
 
                     var dir:String = directions[direction];
                     NoteSkin.applyGenericSkin(this, config.note, dir, dir);
-
-                    quantizeSustain = config.note.tiledSustain ?? false;
                     sustainAlpha = config.note.sustainAlpha ?? 1;
             }
         }

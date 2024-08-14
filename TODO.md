@@ -36,8 +36,6 @@
   - Implement zip mod support
 
 - Continue tweaking up gameplay
-  - Find a better alternative to `FlxTiledSprite` for sustains
-  - Implement a special effect to missed notes rather than reducing their opacity
   - Make it so restarting the song/leaving gameover still uses the same PlayState instance
   - Re-use the player character for the gameover screen when possible
   - Make icon bops/measure zooms not happen at the end of the song
@@ -62,6 +60,7 @@
 - Implement texture atlas support
 - Implement multi-atlas features
 - Implement automatic atlas type finding everywhere
+- Implement VRAM textures
 - Implement tools for shaders
 
 - `HealthIcon` changes

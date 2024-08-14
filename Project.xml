@@ -70,7 +70,7 @@
 	<haxelib name="flixel-text-input" />
 
 	<!-- Debugging library -->
-	<haxelib name="hxcpp-debug-server" if="cpp debug" />
+	<haxelib name="hxcpp-debug-server" if="cpp debug" unless="hxtelemetry" />
 
 	<!-- [[ Defines ]] -->
 

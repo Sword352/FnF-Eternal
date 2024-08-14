@@ -101,7 +101,6 @@ typedef NoteSkinConfig = {
 }
 
 typedef NoteConfig = GenericSkin & {
-    var ?tiledSustain:Bool;
     var ?sustainAlpha:Float;   
 }
 
