@@ -225,13 +225,20 @@ class Assets {
     public static function clearSounds():Void {
         for (key in loadedSounds.keys()) {
             // TODO: implement persistent assets. this should be good for now (fixes an issue where the music stops when tabbing out)
-            @:privateAccess
-            if (FlxG.sound.music?.playing && FlxG.sound.music?._sound == loadedSounds.get(key))
+            var sound:Sound = loadedSounds.get(key);
+
+            if (@:privateAccess FlxG.sound.music?._sound == sound)
                 continue;
 
-            loadedSounds.get(key).close();
             OpenFLAssets.cache.removeSound(key);
             loadedSounds.remove(key);
+
+            // latest version of openfl kind of broke sound clearing, this is a temporary bandaid
+            // TODO: investigate this more
+            try {
+                sound.close();
+            }
+            catch (e) {}
         }
     }
 
@@ -285,7 +292,7 @@ enum abstract AssetType(String) from String to String {
     public function getExtensions():Array<String> {
         return switch (this:AssetType) {
             case IMAGE: [".png"];
-            case SOUND: [".ogg", ".wav", #if web "mp3" #end];
+            case SOUND: [".ogg", #if web "mp3" #end];
             case FONT:  [".ttf", ".otf"];
 
             case XML:   [".xml"];

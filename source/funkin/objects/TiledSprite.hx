@@ -26,7 +26,7 @@ using flixel.util.FlxColorTransformUtil;
  * A sprite object able to repeat a frame vertically.
  * NOTE: this has been specifically designed for sustain notes.
  */
-class TiledSprite extends FlxSprite {
+class TiledSprite extends OffsetSprite {
 	/**
 	 * How many times the frame should repeat.
 	 * NOTE: relies on this sprite's `height`!

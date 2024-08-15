@@ -121,8 +121,8 @@ class FPSOverlay extends Sprite {
         var memory:Float = Memory.getProcessUsage();
         var iterations:Int = 0;
 
-        while (memory >= 1024) {
-            memory /= 1024;
+        while (memory >= 1000) {
+            memory /= 1000;
             iterations++;
         }
 
