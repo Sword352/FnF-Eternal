@@ -124,7 +124,7 @@ class Receptor extends OffsetSprite {
                     var skinData:ReceptorConfig = config.receptor;
                     var dir:String = Note.directions[direction];
 
-                    NoteSkin.applyGenericSkin(this, skinData, "static " + dir, dir);
+                    NoteSkin.applyGenericSkin(this, skinData, "static", dir);
             }
         }
 
