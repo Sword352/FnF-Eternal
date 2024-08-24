@@ -1,33 +1,72 @@
 package funkin.ui;
 
+import openfl.ui.Keyboard;
 import openfl.display.Sprite;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
+import openfl.events.KeyboardEvent;
 import external.Memory;
 
+/**
+ * An OpenFL sprite which displays the framerate overlay on top of the game.
+ */
 class FPSOverlay extends Sprite {
-    static final memoryUnits:Array<String> = ["bytes", "kb", "mb", "gb"];
+    /**
+     * Determines whether the overlay is placed at the top left or bottom left corner of the screen.
+     */
+    public var position(default, set):FPSPos;
 
-    public var showFps(default, set):Bool;
-    public var showMem(default, set):Bool;
-    public var showBg(default, set):Bool;
+    /**
+     * Defines the visibility of the overlay.
+     */
+    public var visibility(default, set):Int;
 
-    public var relativeX(default, set):Float = -1;
-    public var relativeY(default, set):Float = -1;
+    /**
+     * Determines Whether the memory usage of the program should also be displayed.
+     */
+    public var displayMemory(default, set):Bool;
 
+    /**
+     * Defines the refresh rate of the overlay in milliseconds.
+     */
+    public var pollingRate:Float = 1000;
+
+    /**
+     * Overlay background.
+     */
     public var background:Sprite;
+
+    /**
+     * Text displaying the current framerate.
+     */
     public var text:TextField;
 
-    var timeout:Float = 0;
-    var ticks:Int = 0;
-    var fps:Float = 0;
+    /**
+     * Tracks the elapsed time since the last update.
+     * The overlay updates if this value exceeds `pollingRate`.
+     */
+    var _delay:Float = 0;
 
+    /**
+     * Stores how much time has been elapsed since the launch of the game.
+     * Used to calculate the current framerate.
+     */
+    var _ticks:Int = 0;
+
+    /**
+     * Current framerate.
+     */
+    var _fps:Float = 0;
+
+    /**
+     * Creates a new `FPSOverlay`.
+     */
     public function new():Void {
         super();
 
         background = new Sprite();
         background.graphics.beginFill(0, 0.3);
-        background.graphics.drawRect(0, 0, 1, 25);
+        background.graphics.drawRect(0, 0, 1, 1);
         background.graphics.endFill();
         addChild(background);
 
@@ -36,88 +75,126 @@ class FPSOverlay extends Sprite {
         text.selectable = false;
         addChild(text);
 
-        text.x = 7;
-        text.y = 2;
+        text.x = text.y = 10;
+        background.x = 6;
+        background.y = 9;
 
-        showBg = Options.showFpsBg;
-        showFps = Options.showFramerate;
-        showMem = Options.showMemory;
+        visibility = FlxG.save.data.fpsVisibility ?? 1;
+        displayMemory = FlxG.save.data.displayMemory ?? false;
+        updateText("?");
 
-        FlxG.signals.gameResized.add((_, _) -> updateRelativePosition());
+        FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+        FlxG.signals.gameResized.add((_, _) -> resizeOverlay());
 
         #if FLX_DEBUG
         FlxG.debugger.visibilityChanged.add(updateVisibility);
         #end
     }
 
+    /**
+     * Update behaviour.
+     */
     override function __enterFrame(delta:Int):Void {
-        if (!visible) return;
+        if (!visible)
+            return;
 
-        timeout += delta;
-        updateFPS();
+        _delay += delta;
+        updateFramerate();
 
-        if (timeout < 1000) return;
+        if (_delay < pollingRate)
+            return;
 
         var display:String = getText();
-        if (text.htmlText != display) {
-            text.htmlText = display;
-            
-            var textWidth:Float = text.textWidth;
-            if (background.visible) background.width = text.x + textWidth + 5;
-            text.width = textWidth;
-        }
+        if (text.htmlText != display)
+            updateText(display);
 
-        timeout = 0;
+        _delay = 0;
     }
 
-    public function resetPosition():Void {
-        relativeX = relativeY = -1;
-        x = y = 0;
-    }
-
+    /**
+     * Forces the overlay to update.
+     */
     public inline function forceRefresh():Void {
-        timeout = 1000;
+        _delay = pollingRate;
     }
 
+    /**
+     * Updates the displayed text.
+     * @param display String to display.
+     */
+    function updateText(display:String):Void {
+        text.htmlText = display;
+
+        // fix text cutting off
+        text.width = text.textWidth;
+
+        // and resize background
+        background.width = text.width + 8;
+    }
+
+    #if FLX_DEBUG
+    /**
+     * Synchronizes the overlay's visibility with the debugger's.
+     * The overlay becomes hidden if the debugger is visible.
+     */
     inline function updateVisibility():Void {
-        visible = #if FLX_DEBUG !FlxG.game.debugger.visible && #end (showFps || showMem);
+        visible = !FlxG.game.debugger.visible && visibility > 0;
+    }
+    #end
+
+    /**
+     * Resizes the overlay to match the game's size and position.
+     */
+    function resizeOverlay():Void {
+        scaleX = FlxG.scaleMode.scale.x;
+        scaleY = FlxG.scaleMode.scale.y;
+
+        if (position == BOTTOM)
+            updateBottomPos();
     }
 
-    function updateRelativePosition():Void {
-        if (relativeX != -1) x = relativeX * FlxG.scaleMode.scale.x;
-        if (relativeY != -1) y = relativeY * FlxG.scaleMode.scale.y;
+    /**
+     * Updates the vertical position of the overlay to align with the bottom left corner of the game screen.
+     */
+    inline function updateBottomPos():Void {
+        y = FlxG.scaleMode.offset.y + FlxG.scaleMode.gameSize.y - ((background.height + 20) * scaleY);
     }
 
-    function updateFPS():Void {
-        var deltaTime:Int = FlxG.game.ticks - ticks;
-        ticks = FlxG.game.ticks;
+    /**
+     * Computes the current framerate.
+     */
+    function updateFramerate():Void {
+        var deltaTime:Int = FlxG.game.ticks - _ticks;
+        _ticks = FlxG.game.ticks;
 
-        // the dt can somewhat be 0 from time to times on some targets (notably hl)
+        // the delta time can somewhat be 0 from time to times on some targets (notably hashlink)
         if (deltaTime > 0) {
-            // use exponential smoothing to avoid flickering values.
-            fps = (fps * 0.8) + (Math.floor(1000 / deltaTime) * 0.2);
+            // use exponential smoothing to avoid "flickering" values
+            _fps = (_fps * 0.8) + (Math.floor(1000 / deltaTime) * 0.2);
         }
     }
 
+    /**
+     * Returns the text to be displayed.
+     * @return String
+     */
     function getText():String {
-        var output:String = "";
+        // need to bound the framerate due to an issue with openfl's main loop, which is going to be fixed soon
+        var output:String = '<font size="17">' + Math.floor(Math.min(FlxG.drawFramerate, _fps)) + "</font> FPS";
 
-        if (showFps) {
-            output += '<font size="15">' + getFramerate() + "</font> FPS";
-            if (showMem) output += '<font size="15"> | </font>';
-        }
+        if (displayMemory)
+            output += "\n" + getMemory();
 
-        if (showMem)
-            output += '<font size="15">' + getMemory() + "</font> RAM";
-
-        return output;
+        return  output;
     }
 
-    inline function getFramerate():Int {
-        return Math.floor(Math.min(FlxG.drawFramerate, fps));
-    }
-
+    /**
+     * Method which outputs a formatted string displaying the current memory usage.
+     * @return String
+     */
     function getMemory():String {
+        static var memoryUnits:Array<String> = ["Bytes", "kB", "MB", "GB"];
+        
         var memory:Float = Memory.getProcessUsage();
         var iterations:Int = 0;
 
@@ -126,42 +203,72 @@ class FPSOverlay extends Sprite {
             iterations++;
         }
 
-        // 100 = 2 unit precision
-        return Std.string(Math.fround(memory * 100) / 100) + memoryUnits[iterations];
+        // use 100 for a decimal precision of 2
+        return Std.string(Math.fround(memory * 100) / 100) + " " + memoryUnits[iterations];
     }
 
-    function set_showFps(v:Bool):Bool {
-        showFps = v;
-        updateVisibility();
-        forceRefresh();
-        return v;
+    /**
+     * Method called whenever a key has been released.
+     */
+    function onKeyRelease(event:KeyboardEvent):Void {
+        switch (event.keyCode) {
+            #if FLX_DEBUG
+            case Keyboard.F3:
+            #else
+            case Keyboard.F2:
+            #end
+                visibility = (visibility + 1) % 3;
+                forceRefresh();
+
+                FlxG.save.data.fpsVisibility = visibility;
+                FlxG.save.flush();
+            
+            #if FLX_DEBUG
+            case Keyboard.F4:
+            #else
+            case Keyboard.F3:
+            #end
+                displayMemory = !displayMemory;
+                forceRefresh();
+
+                if (position == BOTTOM)
+                    updateBottomPos();
+
+                FlxG.save.data.displayMemory = displayMemory;
+                FlxG.save.flush();       
+        }
     }
 
-    function set_showMem(v:Bool):Bool {
-        showMem = v;
-        updateVisibility();
-        forceRefresh();
-        return v;
+    function set_position(v:FPSPos):FPSPos {
+        switch (v) {
+            case TOP:
+                y = 0;
+            case BOTTOM:
+                updateBottomPos();
+        }
+
+        return position = v;
     }
 
-    function set_showBg(v:Bool):Bool {
-        background.visible = v;
+    function set_visibility(v:Int):Int {
+        switch (v) {
+            case 0:
+                visible = false;
+            case 1 | 2:
+                visible = true;
+                background.visible = (v == 2);
+        }
 
-        if (v && (showFps || showMem))
-            background.width = text.x + text.textWidth + 5;
-        
-        return showBg = v;
+        return visibility = v;
     }
 
-    function set_relativeX(v:Float):Float {
-        relativeX = v;
-        updateRelativePosition();
-        return v;
+    function set_displayMemory(v:Bool):Bool {
+        background.height = (v ? 43 : 24);
+        return displayMemory = v;
     }
+}
 
-    function set_relativeY(v:Float):Float {
-        relativeY = v;
-        updateRelativePosition();
-        return v;
-    }
+enum abstract FPSPos(Int) from Int to Int {
+    var TOP = 0;
+    var BOTTOM = 1;
 }

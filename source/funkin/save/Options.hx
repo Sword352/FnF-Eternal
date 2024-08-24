@@ -4,10 +4,6 @@ class Options {
     // GENERAL SETTINGS
     public static var framerate(default, set):Int = 60;
 
-    public static var showFramerate(default, set):Bool = true;
-    public static var showMemory(default, set):Bool = false;
-    public static var showFpsBg(default, set):Bool = true;
-
     public static var noAntialiasing(default, set):Bool = false;
     public static var silentSoundtray(default, set):Bool = false;
     public static var autoPause(default, set):Bool = true;
@@ -43,27 +39,6 @@ class Options {
     static function set_framerate(v:Int):Int {
         Tools.changeFramerateCap(v);
         return framerate = v;
-    }
-
-    static function set_showFramerate(v:Bool):Bool {
-        if (Main.fpsOverlay != null)
-            Main.fpsOverlay.showFps = v;
-
-        return showFramerate = v;
-    }
-
-    static function set_showMemory(v:Bool):Bool {
-        if (Main.fpsOverlay != null)
-            Main.fpsOverlay.showMem = v;
-
-        return showMemory = v;
-    }
-
-    static function set_showFpsBg(v:Bool):Bool {
-        if (Main.fpsOverlay != null)
-            Main.fpsOverlay.showBg = v;
-
-        return showFpsBg = v;
     }
 
     static function set_noAntialiasing(v:Bool):Bool {

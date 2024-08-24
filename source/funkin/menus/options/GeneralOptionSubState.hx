@@ -20,18 +20,6 @@ class GeneralOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, increasing/decreasing the volume won't play a sound.";
         addOption(option);
 
-        var option = new BoolOptionItem("Show Framerate");
-        option.description = "If enabled, show the framerate in the framerate overlay.";
-        addOption(option);
-
-        var option = new BoolOptionItem("Show Memory");
-        option.description = "If enabled, show the memory usage in the framerate overlay.";
-        addOption(option);
-
-        var option = new BoolOptionItem("Show Overlay Background", "showFpsBg");
-        option.description = "If enabled, show an opaque background behind the framerate overlay.";
-        addOption(option);
-
         var option = new BoolOptionItem("Auto Pause");
         option.description = "Whether to pause the game when the window is unfocused.";
         addOption(option);

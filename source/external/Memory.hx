@@ -11,8 +11,7 @@ package external;
 class Memory {
     /**
      * Returns the amount of memory currently used by the program, in bytes.
-     * On Windows, this returns the process memory usage.
-     * On any other targets/platforms, this returns the amount of memory the garbage collector is allowed to use.
+     * On Windows, this returns the process memory usage. Otherwise this returns the amount of memory the garbage collector is allowed to use.
      */
     #if (cpp && windows)
     @:functionCode('

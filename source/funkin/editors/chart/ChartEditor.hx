@@ -31,7 +31,7 @@ import haxe.ui.components.VerticalScroll;
 import flixel.util.FlxStringUtil;
 import haxe.Json;
 
-class ChartEditor extends MusicBeatState #if CRASH_HANDLER implements funkin.core.crash.CrashHandler.ICrashListener #end {
+class ChartEditor extends MusicBeatState {
     public static final hoverColor:FlxColor = 0x9B9BFA;
     public static final lateAlpha:Float = 0.6;
     public static final separatorWidth:Int = 4;
@@ -1091,7 +1091,7 @@ class ChartEditor extends MusicBeatState #if CRASH_HANDLER implements funkin.cor
             conductor.resetPrevTime();
         }
 
-        Main.fpsOverlay.relativeY = FlxG.height - 25;
+        Main.fpsOverlay.position = BOTTOM;
         add(ui = new ChartUI());
     }
 
@@ -1168,10 +1168,6 @@ class ChartEditor extends MusicBeatState #if CRASH_HANDLER implements funkin.cor
         }, "chart_autosave");
     }
 
-    public function onCrash():Void {
-        autoSave();
-    }
-
     inline function spawnEvents(eventArray:Array<ChartEvent>):Void {
         if (eventArray.length == 0) return;
 
@@ -1211,7 +1207,7 @@ class ChartEditor extends MusicBeatState #if CRASH_HANDLER implements funkin.cor
 
         FlxG.save.flush();
         FlxG.stage.window.onClose.remove(autoSave);
-        Main.fpsOverlay.resetPosition();
+        Main.fpsOverlay.position = TOP;
 
         super.destroy();
     }
