@@ -22,7 +22,7 @@ class FPSOverlay extends Sprite {
     public var visibility(default, set):Int;
 
     /**
-     * Determines Whether the memory usage of the program should also be displayed.
+     * Determines whether the memory usage of the program should also be displayed.
      */
     public var displayMemory(default, set):Bool;
 
