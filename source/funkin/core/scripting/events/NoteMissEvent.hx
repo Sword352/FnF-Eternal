@@ -27,11 +27,6 @@ class NoteMissEvent extends ScriptEvent {
     @:eventValue public var healthLoss:Float = 0.0475;
 
     /**
-     * Score the player gains each second by holding this note (if it's a hold note).
-     */
-    @:eventValue public var holdScore:Float = 0;
-
-    /**
      * Health the player gains each second by holding this note (if it's a hold note).
      */
     @:eventValue public var holdHealth:Float = 0.1;
@@ -80,16 +75,6 @@ class NoteMissEvent extends ScriptEvent {
      * Volume of the players vocal.
      */
     @:eventValue public var playerVolume:Float = 0;
-
-    /**
-     * If true, the note won't be considered as entirely held.
-     */
-    @:eventValue public var breakPerfectHold:Bool = true;
-
-    /**
-     * Whether to kill the hold note cover if available.
-     */
-    @:eventValue public var killCover:Bool = true;
 
     /**
      * Visibility of the note after it has been missed. Only counts if this is a hold note.

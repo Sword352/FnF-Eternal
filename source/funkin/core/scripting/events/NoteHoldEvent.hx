@@ -32,11 +32,6 @@ class NoteHoldEvent extends ScriptEvent {
     @:eventConstructor public var unmutePlayer:Bool = true;
 
     /**
-     * Whether a hold note cover should be spawned.
-     */
-    @:eventConstructor public var spawnCover:Bool = true;
-
-    /**
      * Whether to play the confirm animation on the target receptor.
      */
     @:eventValue public var playConfirm:Bool = true;

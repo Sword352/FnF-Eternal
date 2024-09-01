@@ -31,9 +31,9 @@ class BaseOptionSubState extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         superUpdate(elapsed);
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function superUpdate(elapsed:Float):Void {

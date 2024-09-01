@@ -2,7 +2,7 @@
 <module id="eternal">
     <resources>
         <resource path="/external/haxeui" prefix="root" />
-        <resource path="assets/images/ui/debug" prefix="images" />
+        <resource path="assets/images/ui" prefix="images" />
     </resources>
 
     <themes>

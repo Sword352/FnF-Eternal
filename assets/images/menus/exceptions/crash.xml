@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="boyfriend.png">
-	<!-- Created with Adobe Animate version 21.0.7.42652 -->
-	<!-- http://www.adobe.com/products/animate.html -->
-	<SubTexture name="rescaled0000" x="2" y="2" width="431" height="493" frameX="0" frameY="0" frameWidth="432" frameHeight="493"/>
-	<SubTexture name="rescaled0001" x="2" y="2" width="431" height="493" frameX="0" frameY="0" frameWidth="432" frameHeight="493"/>
-	<SubTexture name="rescaled0002" x="439" y="2" width="432" height="493"/>
-	<SubTexture name="rescaled0003" x="439" y="2" width="432" height="493"/>
-</TextureAtlas>

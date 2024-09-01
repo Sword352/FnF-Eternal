@@ -15,17 +15,17 @@ class Memory {
      */
     #if (cpp && windows)
     @:functionCode('
-        PROCESS_MEMORY_COUNTERS pmc;
-        if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+        PROCESS_MEMORY_COUNTERS_EX pmc;
+        if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
             return pmc.WorkingSetSize;
     ')
     #end
     public static function getProcessUsage():Float {
-        #if (windows && cpp)
-        return 0;
-        #elseif hl
+        #if hl
+        // hashlink specific
         return hl.Gc.stats().currentMemory;
         #else
+        // other targets, also serves as a fallback for windows
         return openfl.system.System.totalMemory;
         #end
     }

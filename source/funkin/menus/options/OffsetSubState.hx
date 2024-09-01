@@ -51,7 +51,7 @@ class OffsetSubState extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (music.playing) {
@@ -73,7 +73,7 @@ class OffsetSubState extends MusicBeatSubState {
             close();
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {

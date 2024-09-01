@@ -60,7 +60,6 @@ class ChartPlayState extends MusicBeatSubState {
         conductor.active = true;
         conductor.music = null;
 
-        conductor.onStep.remove(parent.stepHit);
         conductor.onMeasure.remove(parent.measureHit);
         conductor.onBeat.remove(parent.beatHit);
 
@@ -78,17 +77,17 @@ class ChartPlayState extends MusicBeatSubState {
         comboPopup.cameras = cameras; // TODO: remove this when sprite group cameras are fixed
         add(comboPopup);
 
-        Assets.image('ui/gameplay/combo-numbers');
-        Assets.image('ui/gameplay/ratings');
+        Assets.image('game/combo-numbers');
+        Assets.image('game/ratings');
 
         var noteSkinExists:Bool = parent.chart.gameplayInfo.noteSkins != null;
         var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
         var oppNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, oppNoteSkin);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, OPPONENT, oppNoteSkin);
         opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed / parent.music.pitch;
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, plrNoteSkin);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, PLAYER, plrNoteSkin);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
 
         if (playAsOpponent) {
@@ -125,7 +124,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         conductor.time = startTime - (850 * parent.music.pitch);
         conductor.playbackRate = parent.music.pitch;
-        parent.music.onSongEnd.add(close);
+        parent.music.onComplete.add(close);
 
         camera.alpha = 0;
         FlxTween.tween(camera, {alpha: 1}, 0.6, {ease: FlxEase.circOut});
@@ -152,9 +151,6 @@ class ChartPlayState extends MusicBeatSubState {
         super.update(elapsed);
         updateUI();
     }
-
-    override function stepHit(step:Int):Void
-        parent.music.resync();
 
     override function beatHit(beat:Int):Void {
         if (parent.music.playing)
@@ -299,14 +295,13 @@ class ChartPlayState extends MusicBeatSubState {
 
         FlxG.mouse.visible = true;
 
-        parent.music.onSongEnd.remove(close);
+        parent.music.onComplete.remove(close);
         parent.music.pause();
 
         conductor.music = parent.music.instrumental;
         conductor.enableInterpolation = false;
         conductor.playbackRate = 1;
 
-        conductor.onStep.add(parent.stepHit);
         conductor.onMeasure.add(parent.measureHit);
         conductor.onBeat.add(parent.beatHit);
 

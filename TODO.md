@@ -50,6 +50,7 @@
   - Make the playback more synced
 
 - Rework the keybind system (and `Controls` class)
+- Implement a more robust Discord API
 
 - Rework a bit the chart format
 - Add support for VSlice charts

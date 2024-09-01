@@ -101,7 +101,7 @@ class Receptor extends OffsetSprite {
                 // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("notes/receptors");
+                    frames = Assets.getSparrowAtlas("game/notes");
 
                     var dir:String = Note.directions[direction];
                     animation.addByPrefix("static " + dir, '${dir} static', 24, false);

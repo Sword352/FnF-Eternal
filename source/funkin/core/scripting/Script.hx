@@ -2,6 +2,7 @@ package funkin.core.scripting;
 
 import haxe.PosInfos;
 import haxe.Exception;
+import haxe.Constraints.Function;
 
 /**
  * Base script class.
@@ -160,14 +161,97 @@ class Script implements IFlxDestroyable {
     }
 
     /**
-     * Calls a method from this script if it exists, and returns it's output.
-     * @param method Method to call
-     * @param arguments Optional arguments to pass
+     * Calls a method from this script and returns it's output.
+     * @param method Method to call.
+     * @return Dynamic
      */
-    public function call(method:String, ?arguments:Array<Dynamic>):Dynamic {
-        var func:Dynamic = get(method);
+    public inline extern overload function call(method:String):Dynamic {
+        var func:Function = get(method);
+
+        if (func == null)
+            return null;
+
+        try
+            return func()
+        catch (e:Exception) {
+            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
+            return null;
+        }
+    }
+
+    /**
+     * Calls a method from this script and returns it's output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     * @return Dynamic
+     */
+    public inline extern overload function call(method:String, v1:Dynamic):Dynamic {
+        var func:Function = get(method);
+
+        if (func == null)
+            return null;
+
+        try
+            return func(v1)
+        catch (e:Exception) {
+            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
+            return null;
+        }
+    }
+
+    /**
+     * Calls a method from this script and returns it's output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     * @param v2 Optional argument.
+     * @return Dynamic
+     */
+    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic):Dynamic {
+        var func:Function = get(method);
+
+        if (func == null)
+            return null;
+
+        try
+            return func(v1, v2)
+        catch (e:Exception) {
+            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
+            return null;
+        }
+    }
+
+    /**
+     * Calls a method from this script and returns it's output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     * @param v2 Optional argument.
+     * @param v3 Optional argument.
+     * @return Dynamic
+     */
+    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic, v3:Dynamic):Dynamic {
+        var func:Function = get(method);
+
+        if (func == null)
+            return null;
+
+        try
+            return func(v1, v2, v3)
+        catch (e:Exception) {
+            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
+            return null;
+        }
+    }
+
+    /**
+     * Calls a method from this script with an undefined amount of arguments and returns it's output.
+     * @param method Method to call.
+     * @param arguments Optional arguments.
+     * @return Dynamic
+     */
+    public function callDyn(method:String, ?arguments:Array<Dynamic>):Dynamic {
+        var func:Function = get(method);
         
-        if (func == null || !Reflect.isFunction(func))
+        if (func == null)
             return null;
 
         try

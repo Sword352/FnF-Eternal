@@ -113,18 +113,96 @@ class ScriptContainer implements IFlxDestroyable {
     }
 
     /**
-     * Call a method on all scripts of this container and returns the output.
+     * Calls a method on every scripts and returns the output.
      * @param method Method to call.
-     * @param arguments Optional arguments to pass.
      */
-    public function call(method:String, ?arguments:Array<Dynamic>):Dynamic {
+    public inline extern overload function call(method:String):Dynamic {
         if (_scripts == null || _scripts.length == 0)
             return null;
 
         var output:Dynamic = null;
 
         for (i in _scripts) {
-            var call:Dynamic = i.call(method, arguments);
+            var call:Dynamic = i.call(method);
+            if (call != null) output = call;
+        }
+
+        return output;
+    }
+
+    /**
+     * Calls a method on every scripts and returns the output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     */
+    public inline extern overload function call(method:String, v1:Dynamic):Dynamic {
+        if (_scripts == null || _scripts.length == 0)
+            return null;
+
+        var output:Dynamic = null;
+
+        for (i in _scripts) {
+            var call:Dynamic = i.call(method, v1);
+            if (call != null) output = call;
+        }
+
+        return output;
+    }
+
+    /**
+     * Calls a method on every scripts and returns the output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     * @param v2 Optional argument.
+     */
+    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic):Dynamic {
+        if (_scripts == null || _scripts.length == 0)
+            return null;
+
+        var output:Dynamic = null;
+
+        for (i in _scripts) {
+            var call:Dynamic = i.call(method, v1, v2);
+            if (call != null) output = call;
+        }
+
+        return output;
+    }
+
+    /**
+     * Calls a method on every scripts and returns the output.
+     * @param method Method to call.
+     * @param v1 Optional argument.
+     * @param v2 Optional argument.
+     * @param v3 Optional argument.
+     */
+    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic, v3:Dynamic):Dynamic {
+        if (_scripts == null || _scripts.length == 0)
+            return null;
+
+        var output:Dynamic = null;
+
+        for (i in _scripts) {
+            var call:Dynamic = i.call(method, v1, v2, v3);
+            if (call != null) output = call;
+        }
+
+        return output;
+    }
+
+    /**
+     * Calls a method on every scripts with an undefined amount of arguments and returns the output.
+     * @param method Method to call.
+     * @param arguments Optional arguments.
+     */
+    public function callDyn(method:String, ?arguments:Array<Dynamic>):Dynamic {
+        if (_scripts == null || _scripts.length == 0)
+            return null;
+
+        var output:Dynamic = null;
+
+        for (i in _scripts) {
+            var call:Dynamic = i.callDyn(method, arguments);
             if (call != null) output = call;
         }
 
@@ -139,7 +217,7 @@ class ScriptContainer implements IFlxDestroyable {
      */
     public function dispatchEvent<T:ScriptEvent>(method:String, event:T, put:Bool = true):T {
         for (script in _scripts) {
-            script.call(method, [event]);
+            script.call(method, event);
 
             if (!event.propagate)
                 break;

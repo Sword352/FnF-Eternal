@@ -18,10 +18,8 @@ class Options {
 
     // GAMEPLAY SETTINGS
     public static var downscroll:Bool = false;
-    public static var ghostTapping:Bool = false;
-
     public static var centeredStrumline:Bool = false;
-    public static var holdBehindStrums:Bool = false;
+    public static var ghostTapping:Bool = false;
 
     public static var simplifyComboNum:Bool = false;
     public static var noComboStack:Bool = false;

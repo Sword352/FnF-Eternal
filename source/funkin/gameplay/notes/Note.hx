@@ -25,7 +25,6 @@ class Note extends OffsetSprite {
     public var direction:Int = 0;
 
     public var parentStrumline:StrumLine;
-    public var holdCover:HoldCover;
     public var strumline:Int = 0;
 
     public var length(default, set):Float = 0;
@@ -34,11 +33,8 @@ class Note extends OffsetSprite {
     public var holdable(get, never):Bool;
     public var invalidatedHold(get, never):Bool;
     public var finishedHold:Bool = false;
-    public var perfectHold:Bool = true;
-    public var unheldTime:Float;
-
-    public var holdScore:Float = 0;
     public var holdHealth:Float = 0; 
+    public var unheldTime:Float;
 
     public var type(default, set):String;
     public var skin(default, set):String;
@@ -97,12 +93,8 @@ class Note extends OffsetSprite {
         missed = false;
         visible = true;
 
-        perfectHold = true;
         finishedHold = false;
         unheldTime = 0;
-        holdCover = null;
-
-        holdScore = 0;
         holdHealth = 0;
         alpha = 1;
 
@@ -168,7 +160,6 @@ class Note extends OffsetSprite {
 
     override function destroy():Void {
         sustain = null;
-        holdCover = null;
         parentStrumline = null;
         skin = null;
         type = null;
@@ -209,7 +200,7 @@ class Note extends OffsetSprite {
                 // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("notes/notes");
+                    frames = Assets.getSparrowAtlas("game/notes");
 
                     for (dir in directions) {
                         animation.addByPrefix(dir, '${dir}0', 0);

@@ -73,11 +73,13 @@ class FPSOverlay extends Sprite {
         text = new TextField();
         text.defaultTextFormat = new TextFormat("Monsterrat", 13, FlxColor.WHITE);
         text.selectable = false;
+        text.autoSize = LEFT;
         addChild(text);
 
-        text.x = text.y = 10;
-        background.x = 6;
-        background.y = 9;
+        text.x = 6;
+        text.y = 9;
+        background.x = 5;
+        background.y = 8;
 
         visibility = FlxG.save.data.fpsVisibility ?? 1;
         displayMemory = FlxG.save.data.displayMemory ?? false;
@@ -129,7 +131,7 @@ class FPSOverlay extends Sprite {
         text.width = text.textWidth;
 
         // and resize background
-        background.width = text.width + 8;
+        background.width = text.width + 5;
     }
 
     #if FLX_DEBUG

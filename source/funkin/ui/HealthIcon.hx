@@ -18,7 +18,7 @@ class HealthIcon extends OffsetSprite {
     public var healthAnim:Bool = true;
 
     public var bopSize:Float = 25;
-    public var bopDuration:Float = 2;
+    public var bopDuration:Float = 1.5;
     public var bopStep:Int = -1;
     
     var _character:String;

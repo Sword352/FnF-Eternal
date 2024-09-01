@@ -53,7 +53,7 @@ class ResetScoreScreen extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (FlxG.keys.justPressed.ENTER) {
@@ -68,7 +68,7 @@ class ResetScoreScreen extends MusicBeatSubState {
         text.angle = 5 * FlxMath.fastSin(rotateSine);
         text.y -= FlxMath.fastCos(rotateSine * 1.5);
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function resetScore():Void {

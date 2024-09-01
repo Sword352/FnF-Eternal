@@ -194,10 +194,10 @@ class TiledSprite extends OffsetSprite {
 		if (clipRegion != null)
 		    applyClipRegion(frameToDraw, tile);
 		    
-		translateWithTrig(offsetX, offsetY);
+		matrixTranslate(offsetX, offsetY);
 		item.addQuad(frameToDraw, mat, colorTransform);
 
-		translateWithTrig(-offsetX, -offsetY + frameToDraw.frame.height * Math.abs(scale.y));
+		matrixTranslate(-offsetX, -offsetY + frameToDraw.frame.height * Math.abs(scale.y));
 		rectCopy(frameToDraw.frame, _frameRect);
 	}
 	
@@ -225,13 +225,16 @@ class TiledSprite extends OffsetSprite {
             frame.frame.height -= heightReduce;
             frame.frame.y += heightReduce;
         }
-        else {
-            frame.frame.width -= heightReduce * FlxMath.signOf(frame.angle);
-            frame.frame.x += heightReduce * FlxMath.signOf(frame.angle);
+        else if (frame.angle == FlxFrameAngle.ANGLE_90) {
+            frame.frame.width -= heightReduce;
+            frame.frame.x += heightReduce;
         }
+		else {
+			frame.frame.width -= heightReduce;
+		}
 
 		if (flipY)
-		    translateWithTrig(0, -heightReduce * Math.abs(scale.y));
+		    matrixTranslate(0, -heightReduce * Math.abs(scale.y));
 	}
 
 	///////////////
@@ -281,7 +284,7 @@ class TiledSprite extends OffsetSprite {
 
 		// the tile is not on screen but the others may, returns 1 to continue the loop
 		if (!onScreen) {
-			translateWithTrig(0, tileSize);
+			matrixTranslate(0, tileSize);
 			return 1;
 		}
 
@@ -297,7 +300,7 @@ class TiledSprite extends OffsetSprite {
 		var output:Bool = (_matrix.ty > -tileSize && _matrix.ty < FlxG.height + (flipY ? tileSize : 0));
 
 		if (!output)
-			translateWithTrig(0, tileSize);
+			matrixTranslate(0, tileSize);
 
 		return output;
 	}
@@ -348,7 +351,7 @@ class TiledSprite extends OffsetSprite {
 	 * @param x Horizontal position.
 	 * @param y Vertical position.
 	 */
-	function translateWithTrig(x:Float, y:Float):Void {
+	function matrixTranslate(x:Float, y:Float):Void {
 	    var translateX:Float = (x * _cosAngle) - (y * _sinAngle);
 	    var translateY:Float = (y * _cosAngle) + (x * _sinAngle);
 	    
@@ -442,12 +445,12 @@ class TiledSprite extends OffsetSprite {
 
 	    if (_tailFrame == null)
 	        return Math.max(0, height / tileHeight);
-
+        
 		var tailHeight:Float = tailHeight();
-	   
+        
 	    if (height < tailHeight)
 	        return Math.max(0, height / tailHeight);
-	       
+        
 	    // increase by 1 to account for the tail
 	    return Math.max(0, 1 + (height - tailHeight) / tileHeight);
 	}

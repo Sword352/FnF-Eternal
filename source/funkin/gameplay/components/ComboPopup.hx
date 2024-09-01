@@ -155,7 +155,7 @@ class RatingSprite extends BasicSprite {
      * Internal method which loads animations for this sprite.
      */
     function loadAnimations(division:Int, style:String):Void {
-        var graphic = Assets.image("ui/gameplay/ratings" + style);
+        var graphic = Assets.image("game/ratings" + style);
         loadGraphic(graphic, true, graphic.width, Math.floor(graphic.height / division));
 
         animation.add("sick", [0], 0);
@@ -217,7 +217,7 @@ class ComboNumber extends BasicSprite {
      * Internal method which loads animations for this sprite.
      */
     function loadAnimations(style:String):Void {
-        var graphic = Assets.image("ui/gameplay/combo-numbers" + style);
+        var graphic = Assets.image("game/combo-numbers" + style);
         loadGraphic(graphic, true, Math.floor(graphic.width / 5), Math.floor(graphic.height / 2));
 
         for (i in 0...10)

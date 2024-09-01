@@ -24,7 +24,11 @@ class Sustain extends TiledSprite {
         this.x = parent.x + (parent.width - width) * 0.5;
         this.y = parent.y + parent.height * 0.5;
 
-        height = parent.length * parent.scrollSpeed;
+        // we're making the sustain a bit longer here so it ends properly when it's about to be behind the receptor.
+        // TODO: this causes visual innacuracies, maybe find a better solution?
+        var receptor:Receptor = parent.parentStrumline.getReceptor(parent.direction);
+        height = (parent.length * parent.scrollSpeed) + (receptor.height * 0.5);
+
         if (parent.downscroll)
             this.y -= height;
 

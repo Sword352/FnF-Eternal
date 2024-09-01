@@ -25,16 +25,6 @@ class GhostPressEvent extends ScriptEvent {
     @:eventValue public var healthLoss:Float = 0.0475;
 
     /**
-     * Whether to increase the total amount of misses.
-     */
-    @:eventValue public var increaseMisses:Bool = true;
-
-    /**
-     * Whether to decrease the gameplay accuracy.
-     */
-    @:eventValue public var decreaseAccuracy:Bool = true;
-
-    /**
      * Whether to break the player's combo.
      */
     @:eventValue public var breakCombo:Bool = true;

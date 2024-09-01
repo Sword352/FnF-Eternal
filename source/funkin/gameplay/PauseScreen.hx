@@ -72,7 +72,7 @@ class PauseScreen extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (music.volume < 0.5)
@@ -84,7 +84,7 @@ class PauseScreen extends MusicBeatSubState {
         if (controls.justPressed("accept"))
             accept(currentList[currentSelection]);
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {

@@ -118,7 +118,7 @@ class TitleScreen extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (stepSequences != null)
@@ -132,7 +132,7 @@ class TitleScreen extends MusicBeatState {
         if (allowInputs && controls.justPressed("accept"))
             accept();
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
@@ -196,7 +196,7 @@ class TitleScreen extends MusicBeatState {
             case "skip intro":
                 skipIntro();
             case "call function":
-                scripts.call(seq.arguments[0], seq.arguments[1]);
+                scripts.callDyn(seq.arguments[0], seq.arguments[1]);
         }
     }
 

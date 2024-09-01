@@ -11,7 +11,7 @@ import funkin.ui.SoundTray;
 import funkin.ui.FPSOverlay;
 
 #if CRASH_HANDLER
-import funkin.core.crash.CrashHandler;
+import funkin.core.CrashHandler;
 #end
 
 import openfl.ui.Keyboard;
@@ -25,6 +25,11 @@ class Main extends Sprite {
     public static var fpsOverlay:FPSOverlay;
 
     public function new():Void {
+        #if CRASH_HANDLER
+        // Initialize the crash handler before anything else
+        CrashHandler.init();
+        #end
+        
         super();
 
         // Bind the save file before the game launches so it's tied to the correct save file
@@ -49,10 +54,6 @@ class GameInstance extends FlxGame {
 class InitState extends FlxState {
     override function create():Void {
         // Init some backend stuff
-        #if CRASH_HANDLER
-        CrashHandler.init();
-        #end
-
         #if DISCORD_RPC
         DiscordPresence.init();
         #end

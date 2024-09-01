@@ -6,7 +6,7 @@
 }
 
 .checkbox-value:selected {
-    icon: "assets/images/ui/debug/check.png";
+    icon: "assets/images/ui/check.png";
 }
 
 .checkbox .image {
@@ -20,7 +20,7 @@
 }
 
 .slider .button {
-    icon: "assets/images/ui/debug/thumb_normal.png";
+    icon: "assets/images/ui/thumb_normal.png";
     background-color: none;
     width: 35px;
     height: 35px;
@@ -28,21 +28,21 @@
 }
 
 .slider .button:hover {
-    icon: "assets/images/ui/debug/thumb_hovered.png";
+    icon: "assets/images/ui/thumb_hovered.png";
 }
 
 .notification.success #notificationIcon {
-    resource: "assets/images/ui/debug/notification_success.png";
+    resource: "assets/images/ui/notification_success.png";
 }
 
 .notification.warning #notificationIcon {
-    resource: "assets/images/ui/debug/notification_warning.png";
+    resource: "assets/images/ui/notification_warning.png";
 }
 
 .notification.info #notificationIcon {
-    resource: "assets/images/ui/debug/notification_info.png";
+    resource: "assets/images/ui/notification_info.png";
 }
 
 .notification.error #notificationIcon {
-    resource: "assets/images/ui/debug/notification_error.png";
+    resource: "assets/images/ui/notification_error.png";
 }

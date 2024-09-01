@@ -33,15 +33,15 @@ class MusicBeatState extends ScriptableState {
     }
 
     public function stepHit(step:Int):Void {
-        scripts.call("onStepHit", [step]);
+        scripts.call("onStepHit", step);
     }
 
     public function beatHit(beat:Int):Void {
-        scripts.call("onBeatHit", [beat]);
+        scripts.call("onBeatHit", beat);
     }
 
     public function measureHit(measure:Int):Void {
-        scripts.call("onMeasureHit", [measure]);
+        scripts.call("onMeasureHit", measure);
     }
 
     function set_conductor(v:Conductor):Conductor {
@@ -50,9 +50,11 @@ class MusicBeatState extends ScriptableState {
             conductor.onMeasure.remove(measureHit);
             conductor.onBeat.remove(beatHit);
 
+            /*
             #if FLX_DEBUG
             unregisterFromDebugger(conductor);
             #end
+            */
         }
 
         if (v != null) {
@@ -60,14 +62,18 @@ class MusicBeatState extends ScriptableState {
             v.onMeasure.add(measureHit);
             v.onBeat.add(beatHit);
 
+            /*
             #if FLX_DEBUG
             registerToDebugger(v);
             #end
+            */
         }
 
         return conductor = v;
     }
 
+    // these negatively affects performance and memory usage a lot...
+    /*
     #if FLX_DEBUG
     inline function registerToDebugger(conductor:Conductor):Void {
         FlxG.watch.add(conductor, "time", "C. Time");
@@ -87,6 +93,8 @@ class MusicBeatState extends ScriptableState {
         FlxG.watch.remove(conductor, "measure");
     }
     #end
+    */
+    //
 }
 
 class MusicBeatSubState extends ScriptableSubState {
@@ -99,15 +107,15 @@ class MusicBeatSubState extends ScriptableSubState {
     }
 
     public function stepHit(step:Int):Void {
-        scripts.call("onStepHit", [step]);
+        scripts.call("onStepHit", step);
     }
 
     public function beatHit(beat:Int):Void {
-        scripts.call("onBeatHit", [beat]);
+        scripts.call("onBeatHit", beat);
     }
 
     public function measureHit(measure:Int):Void {
-        scripts.call("onMeasureHit", [measure]);
+        scripts.call("onMeasureHit", measure);
     }
 
     override public function destroy():Void {

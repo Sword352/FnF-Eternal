@@ -16,10 +16,6 @@ class GameplayOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, pressing the keys with no notes on screen won't count as a miss.";
         addOption(option);
 
-        var option = new BoolOptionItem("Hold Notes Behind Receptors", "holdBehindStrums");
-        option.description = "If enabled, hold notes goes behind receptors.";
-        addOption(option);
-
         var option = new BoolOptionItem("Disable Combo Stacking", "noComboStack");
         option.description = "If enabled, combo and ratings won't stack. Improves performance and save memory.";
         addOption(option);

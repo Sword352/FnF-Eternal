@@ -214,13 +214,13 @@ class ModItem extends Group<FlxSprite> {
         add(icon);
 
         warningIcon = new FlxSprite(5, 5);
-        warningIcon.loadGraphic(Assets.image("ui/debug/notification_warning"));
+        warningIcon.loadGraphic(Assets.image("ui/notification_warning"));
         warningIcon.setGraphicSize(30);
         warningIcon.updateHitbox();
         add(warningIcon);
 
         infoIcon = new FlxSprite(background.width - 5, 5);
-        infoIcon.loadGraphic(Assets.image("ui/debug/notification_info"));
+        infoIcon.loadGraphic(Assets.image("ui/notification_info"));
         infoIcon.setGraphicSize(25);
         infoIcon.updateHitbox();
         infoIcon.x -= infoIcon.width;

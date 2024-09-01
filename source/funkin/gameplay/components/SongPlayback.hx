@@ -1,121 +1,198 @@
 package funkin.gameplay.components;
 
-import flixel.FlxBasic;
-import flixel.util.FlxSignal;
 import flixel.sound.FlxSound;
+import flixel.group.FlxGroup;
+import flixel.util.FlxSignal;
+import funkin.data.ChartFormat.Chart;
 
-class SongPlayback extends FlxBasic {
-    public var song:String;
-
+/**
+ * Collection of `FlxSound`s with utilities for song playback.
+ */
+class SongPlayback extends FlxTypedGroup<FlxSound> {
+    /**
+     * Main audio which plays most of the instruments of the song.
+     */
     public var instrumental:FlxSound;
-    public var musics:Array<FlxSound> = [];
-    public var voices:Array<FlxSound> = [];
-    public var mainVoice:FlxSound;
 
+    /**
+     * Array containing every voice audios this song has.
+     */
+    public var voices(default, set):Array<FlxSound>;
+
+    /**
+     * Represents the player voice audio.
+     */
+    public var playerVoice(get, never):FlxSound;
+
+    /**
+     * Determines the volume for the player audio.
+     */
+    public var playerVolume(get, set):Float;
+
+    /**
+     * Determines the current position in the song in milliseconds.
+     */
     public var time(get, set):Float;
+
+    /**
+     * Determines the playback rate for the song.
+     */
     public var pitch(get, set):Float;
+
+    /**
+     * Determines whether the song audio is currently playing.
+     */
     public var playing(get, never):Bool;
 
-    public var playerVolume(default, set):Float = 1;
-    public var onSongEnd:FlxSignal = new FlxSignal();
+    /**
+     * Signal dispatched whenever the song ends.
+     */
+    public var onComplete:FlxSignal = new FlxSignal();
 
-    public function new(song:String):Void {
+    /**
+     * Creates a new `SongPlayback`.
+     * @param song Parent chart.
+     */
+    public function new(?song:Chart):Void {
         super();
-        this.song = song;
-        active = visible = false;
+        visible = false;
+        active = false;
+
+        if (song != null)
+            loadSong(song);
     }
 
-    public function setupInstrumental(file:String):Void {
-        instrumental = FlxG.sound.load(Assets.songMusic(song, file));
-        instrumental.onComplete = onSongEnd.dispatch;
-        musics.push(instrumental);
+    /**
+     * Loads a song's audio files.
+     * @param song Song chart.
+     */
+    public function loadSong(song:Chart):Void {
+        instrumental = FlxG.sound.load(Assets.songMusic(song.meta.folder, song.gameplayInfo.instrumental));
+        instrumental.onComplete = onComplete.dispatch;
+        add(instrumental);
+
+        if (song.gameplayInfo.voices != null) {
+            if (voices == null)
+                voices = [];
+
+            for (audio in song.gameplayInfo.voices) {
+                var voiceSound:FlxSound = FlxG.sound.load(Assets.songMusic(song.meta.folder, audio));
+                voices.push(add(voiceSound));
+            }
+        }
     }
 
-    public function createVoice(file:String):Void {
-        var voice:FlxSound = FlxG.sound.load(Assets.songMusic(song, file));
-        if (voices.length == 0) mainVoice = voice;
-
-        musics.push(voice);
-        voices.push(voice);
-    }
-
-    public function play(startTime:Float = 0):Void {
-        for (music in musics)
-            music.play(false, startTime);
-    }
-
-    public function pause():Void {
-        for (music in musics)
-            music.pause();
-    }
-
-    public function resume():Void {
-        for (music in musics)
-            music.resume();
-    }
-
-    public function stop():Void {
-        for (music in musics)
-            music.stop();
-    }
-
-    public function resync():Void {
-        for (voice in voices)
-            if (voice.playing && Math.abs(voice.time - instrumental.time) > 5)
-                voice.time = instrumental.time;
-    }
-
-    public function destroyMusic():Void {
-        for (music in musics) {
-            FlxG.sound.list.remove(music, true);
-            music.destroy();
+    /**
+     * Destroys every contained audio.
+     */
+    public function unload():Void {
+        for (audio in members) {
+            FlxG.sound.list.remove(audio, true);
+            this.remove(audio);
+            audio.destroy();
         }
 
         instrumental = null;
-        mainVoice = null;
+        voices = null;
     }
 
+    /**
+     * Update behaviour.
+     */
+    override function update(elapsed:Float):Void {
+        if (!instrumental.playing)
+            return;
+
+        // makes sure voices doesn't go offsync with the instrumental
+        for (audio in voices)
+            if (audio.playing && Math.abs(audio.time - instrumental.time) > 5)
+                audio.time = instrumental.time;
+    }
+
+    /**
+     * Starts playing the song.
+     * @param startTime Time where to start.
+     */
+    public function play(startTime:Float = 0):Void {
+        for (audio in members)
+            audio.play(false, startTime);
+    }
+
+    /**
+     * Pauses the song.
+     */
+    public function pause():Void {
+        for (audio in members)
+            audio.pause();
+    }
+
+    /**
+     * Resumes the song.
+     */
+    public function resume():Void {
+        for (audio in members)
+            audio.resume();
+    }
+
+    /**
+     * Stops the song.
+     */
+    public function stop():Void {
+        for (audio in members)
+            audio.stop();
+    }
+
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
-        onSongEnd = cast FlxDestroyUtil.destroy(onSongEnd);
-
-        destroyMusic();
-        musics = null;
-        voices = null;
-        song = null;
-
+        onComplete = cast FlxDestroyUtil.destroy(onComplete);
+        this.unload();
         super.destroy();
     }
 
+    // Properties
+
+    function get_playerVoice():FlxSound
+        return (voices == null ? null : voices[0]);
+
+    function get_playerVolume():Float
+        return playerVoice?.volume;
+
+    function get_time():Float
+        return instrumental?.time;
+
+    function get_pitch():Float
+        return instrumental?.pitch;
+
+    function get_playing():Bool
+        return instrumental?.playing;
+
+    function set_voices(v:Array<FlxSound>):Array<FlxSound> {
+        this.active = (v?.length > 0);
+        return voices = v;
+    }
+
     function set_playerVolume(v:Float):Float {
-        if (mainVoice != null)
-            mainVoice.volume = v;
-        return playerVolume = v;
+        var voice:FlxSound = playerVoice;
+
+        if (voice != null)
+            voice.volume = v;
+
+        return v;
     }
 
     function set_time(v:Float):Float {
-        if (musics != null) {
-            for (music in musics)
-                music.time = v;
-        }
+        for (member in members)
+            member.time = v;
 
         return v;
     }
 
     function set_pitch(v:Float):Float {
-        if (musics != null) {
-            for (music in musics)
-                music.pitch = v;
-        }
+        for (member in members)
+            member.pitch = v;
 
         return v;
     }
-
-    function get_time():Float
-        return instrumental?.time ?? 0;
-
-    function get_pitch():Float
-        return instrumental?.pitch ?? 1;
-
-    function get_playing():Bool
-        return instrumental?.playing ?? false;
 }

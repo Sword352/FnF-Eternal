@@ -1,7 +1,6 @@
 package funkin.gameplay;
 
 import flixel.*;
-import flixel.util.*;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
 
@@ -118,24 +117,15 @@ class PlayState extends MusicBeatState {
         super.create();
         scripts.call("onCreate");
 
-        var noteSkinExists:Bool = song.gameplayInfo.noteSkins != null;
-        var plrNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[1] : "default") ?? "default";
-        var oppNoteSkin:String = (noteSkinExists ? song.gameplayInfo.noteSkins[0] : "default") ?? "default";
+        var oppNoteSkin:String = song.getNoteskin(OPPONENT);
+        var plrNoteSkin:String = song.getNoteskin(PLAYER);
 
-        music = new SongPlayback(song.meta.folder);
-        music.setupInstrumental(song.gameplayInfo.instrumental);
-        music.onSongEnd.add(endSong);
+        music = new SongPlayback(song);
+        music.onComplete.add(endSong);
         add(music);
 
-        if (song.gameplayInfo.voices?.length > 0)
-            for (voiceFile in song.gameplayInfo.voices)
-                music.createVoice(voiceFile);
-
-        conductor.beatsPerMeasure = (song.gameplayInfo.beatsPerMeasure ?? 4);
+        song.prepareConductor(conductor);
         camBumpInterval = conductor.beatsPerMeasure;
-
-        conductor.stepsPerBeat = (song.gameplayInfo.stepsPerBeat ?? 4);
-        conductor.bpm = song.gameplayInfo.bpm;
 
         if (song.gameplayInfo.stage?.length > 0) {
             stage = new Stage(song.gameplayInfo.stage);
@@ -173,14 +163,18 @@ class PlayState extends MusicBeatState {
         comboPopup.camera = camHUD;
         add(comboPopup);
 
+        hud = new GameplayUI();
+        hud.camera = camHUD;
+        add(hud);
+
         strumLines = new FlxTypedGroup<StrumLine>();
         strumLines.camera = camHUD;
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, oppNoteSkin);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, OPPONENT, oppNoteSkin);
         opponentStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         strumLines.add(opponentStrumline);
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, plrNoteSkin);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, PLAYER, plrNoteSkin);
         playerStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
         strumLines.add(playerStrumline);
 
@@ -204,10 +198,6 @@ class PlayState extends MusicBeatState {
         // important to add strumlines *after* the note spawner!
         add(strumLines);
 
-        hud = new GameplayUI();
-        hud.camera = camHUD;
-        add(hud);
-
         // look for notetype scripts
         var types:Array<String> = [];
 
@@ -224,7 +214,8 @@ class PlayState extends MusicBeatState {
         }
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = 'Playing ${song.meta.name} (${Tools.capitalize(gameMode)})';
+        DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.toString()})';
+        DiscordPresence.presence.state = "";
         #end
 
         conductor.enableInterpolation = true;
@@ -244,7 +235,7 @@ class PlayState extends MusicBeatState {
     }
 
     function startCountdown():Void {
-        var event:CountdownEvent = scripts.dispatchEvent("onCountdownStart", Events.get(CountdownEvent).setup(START, -1, "ui/gameplay/countdown" + (stage?.uiStyle ?? "")));
+        var event:CountdownEvent = scripts.dispatchEvent("onCountdownStart", Events.get(CountdownEvent).setup(START, -1, "game/countdown" + (stage?.uiStyle ?? "")));
         if (event.cancelled) return;
 
         countdown = new Countdown();
@@ -259,7 +250,7 @@ class PlayState extends MusicBeatState {
     }
 
     override public function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (stats.health <= 0 && subState == null)
@@ -268,11 +259,6 @@ class PlayState extends MusicBeatState {
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, bumpSpeed);
         camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, bumpSpeed);
         updateCamLerp();
-
-        #if DISCORD_RPC
-        if (music.playing && conductor.time >= 0 && conductor.time <= music.instrumental.length)
-            DiscordPresence.presence.state = FlxStringUtil.formatTime((music.instrumental.length * 0.001) - (conductor.time * 0.001));
-        #end
 
         if (subState == null && controls.justPressed("accept"))
             pause();
@@ -290,13 +276,8 @@ class PlayState extends MusicBeatState {
             if (controls.justPressed("autoplay"))
                 botplay = !botplay;
         }
-
-        scripts.call("onUpdatePost", [elapsed]);
-    }
-
-    override function stepHit(step:Int):Void {
-        super.stepHit(step);
-        music.resync();
+        
+        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
@@ -365,6 +346,10 @@ class PlayState extends MusicBeatState {
     public function startSong(time:Float = 0):Void {
         if (scripts.quickEvent("onSongStart").cancelled)
             return;
+
+        #if DISCORD_RPC
+        DiscordPresence.presence.state = "";
+        #end
 
         conductor.music = music.instrumental;
         music.play(time);
@@ -459,12 +444,17 @@ class PlayState extends MusicBeatState {
         score -= event.scoreLoss * Math.floor(event.fraction);
         stats.health -= event.healthLoss * Math.floor(event.fraction);
 
-        if (event.decreaseAccuracy) accuracyNotes += Math.floor(event.fraction);
-        if (event.increaseMisses) misses++;
-        if (event.breakCombo) stats.combo = 0;
+        if (event.decreaseAccuracy)
+            accuracyNotes += Math.floor(event.fraction);
 
-        if (event.characterMiss) characterMisses(event.note, -1, event.spectatorSad);
-        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
+        if (event.breakCombo)
+            stats.combo = 0;
+
+        if (event.characterMiss)
+            characterMisses(event.note, -1, event.spectatorSad);
+        
+        if (event.playSound)
+            playMissSound(event.soundVolume, event.soundVolDiff);
 
         music.playerVolume = event.playerVolume;
     }
@@ -494,8 +484,6 @@ class PlayState extends MusicBeatState {
         stats.health -= event.healthLoss;
 
         if (event.breakCombo) stats.combo = 0;
-        if (event.increaseMisses) misses++;
-        if (event.decreaseAccuracy) accuracyNotes++;
 
         if (event.characterMiss) characterMisses(null, event.direction, event.spectatorSad);
         if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
@@ -539,6 +527,10 @@ class PlayState extends MusicBeatState {
         Tools.resumeEveryTimer();
         music?.resume();
 
+        #if DISCORD_RPC
+        DiscordPresence.presence.state = "";
+        #end
+
         playerStrumline.inactiveInputs = false;
         super.onSubStateClose(subState);
     }
@@ -549,9 +541,20 @@ class PlayState extends MusicBeatState {
         if (subState == null) {
             if (!FlxG.autoPause)
                 pause();
+            else {
+                #if DISCORD_RPC
+                DiscordPresence.presence.state = "Paused";
+                #end
+            }
+        }
+    }
 
+    override function onFocus():Void {
+        super.onFocus();
+
+        if (subState == null) {
             #if DISCORD_RPC
-            DiscordPresence.presence.state = "Paused";
+            DiscordPresence.presence.state = "";
             #end
         }
     }
@@ -634,12 +637,23 @@ class PlayState extends MusicBeatState {
     }
 
     function get_botplay():Bool {
-        return playerStrumline.cpu;
+        return playerStrumline?.cpu;
     }
 }
 
-enum abstract GameMode(String) from String to String {
-    var STORY = "story";
-    var FREEPLAY = "freeplay";
-    var DEBUG = "debug";
+/**
+ * Defines the current game mode.
+ */
+enum abstract GameMode(Int) from Int to Int {
+    var STORY;
+    var FREEPLAY;
+    var DEBUG;
+
+    public function toString():String {
+        return switch (this:GameMode) {
+            case STORY: "Story";
+            case FREEPLAY: "Freeplay";
+            case DEBUG: "Debug";
+        }
+    }
 }

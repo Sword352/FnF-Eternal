@@ -137,21 +137,6 @@ class ScriptEventMacro {
 
         return fields;
     }
-
-    /**
-     * Adds completion for the available metadatas.
-     */
-    public static function addCompletion():Void {
-        Compiler.registerCustomMetadata({
-            metadata: ":eventValue",
-            doc: "If defined, the field's value gets reset whenever `reset` is called."
-        });
-
-        Compiler.registerCustomMetadata({
-            metadata: ":eventConstructor",
-            doc: "If defined, this field is going to be an argument for the `setup` method."
-        });
-    }
     #end
 }
 

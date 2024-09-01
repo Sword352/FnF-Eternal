@@ -53,7 +53,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         superUpdate(elapsed);
 
         boyfriend.scale.set(Tools.lerp(boyfriend.scale.x, 0.25, 12), Tools.lerp(boyfriend.scale.y, 0.25, 12));
@@ -68,7 +68,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
             boyfriend.scale.set(FlxG.random.float(0.3, 0.5), FlxG.random.float(0.3, 0.5));
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function onChangeAntialiasing(i:Bool):Void

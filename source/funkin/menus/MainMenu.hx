@@ -112,7 +112,7 @@ class MainMenu extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
@@ -128,7 +128,7 @@ class MainMenu extends MusicBeatState {
                 openSubState(new funkin.core.modding.ModsOverlay());
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {

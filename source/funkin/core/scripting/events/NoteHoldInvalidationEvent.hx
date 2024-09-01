@@ -32,11 +32,6 @@ class NoteHoldInvalidationEvent extends ScriptEvent {
     @:eventValue public var decreaseAccuracy:Bool = true;
 
     /**
-     * Whether to increase the total amount of misses.
-     */
-    @:eventValue public var increaseMisses:Bool = true;
-
-    /**
      * Whether to break the combo.
      */
     @:eventValue public var breakCombo:Bool = true;

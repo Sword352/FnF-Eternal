@@ -43,11 +43,6 @@ class NoteHitEvent extends ScriptEvent {
     @:eventConstructor public var accuracy:Float = 0;
 
     /**
-     * Score the player gains each second by holding this note (if it's a hold note).
-     */
-    @:eventConstructor public var holdScore:Float = 0;
-
-    /**
      * Health the player gains each second by holding this note (if it's a hold note).
      */
     @:eventConstructor public var holdHealth:Float = 0;
@@ -61,11 +56,6 @@ class NoteHitEvent extends ScriptEvent {
      * Whether to pop a splash.
      */
     @:eventConstructor public var displaySplash:Bool = true;
-
-    /**
-     * Whether to spawn a hold cover if this is a hold note.
-     */
-    @:eventConstructor public var spawnCover:Bool = true;
 
     /**
      * Whether to make a rating popup.

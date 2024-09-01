@@ -36,11 +36,6 @@ class StrumLine extends FlxSpriteGroup {
     public var splashes:FlxTypedSpriteGroup<Splash>;
 
     /**
-     * Hold cover group of this strumline.
-     */
-    public var holdCovers:FlxTypedSpriteGroup<HoldCover>;
-
-    /**
      * Spacing between each receptors of this strumline.
      */
     public var receptorSpacing(default, set):Float = 112;
@@ -74,6 +69,11 @@ class StrumLine extends FlxSpriteGroup {
      * Defines whether notes are automatically hit.
      */
     public var cpu(default, set):Bool = false;
+
+    /**
+     * Defines the owner of this strumline, used to differ behaviours.
+     */
+    public var type:StrumlineType = OPPONENT;
 
     /**
      * Directions held by the player.
@@ -142,41 +142,30 @@ class StrumLine extends FlxSpriteGroup {
      * @param cpu Defines whether notes are automatically hit.
      * @param skin Initial noteskin.
      */
-    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, skin:String = "default"):Void {
+    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, type:StrumlineType = OPPONENT, skin:String = "default"):Void {
         super(x, y);
 
         this.cpu = cpu;
+        this.type = type;
         this.skin = skin;
+
+        sustains = new FlxTypedSpriteGroup<Sustain>();
+        sustains.active = false;
+        add(sustains);
 
         receptors = new FlxTypedSpriteGroup<Receptor>();
         add(receptors);
 
-        splashes = new FlxTypedSpriteGroup<Splash>();
-        holdCovers = new FlxTypedSpriteGroup<HoldCover>();
-        add(splashes);
-
-        // cache note splashes
-        if (!Options.noNoteSplash && !cpu) {
-            splashes.add(new Splash(skin)).kill();
-
-            // don't cache the hold cover if we can't see them anyways
-            if (!Options.holdBehindStrums)
-                holdCovers.add(new HoldCover(skin)).kill();
-        }
-
-        sustains = new FlxTypedSpriteGroup<Sustain>();
-        sustains.active = false;
-
-        if (Options.holdBehindStrums)
-            insert(0, sustains);
-        else
-            add(sustains);
-
-        add(holdCovers);
-
         notes = new FlxTypedSpriteGroup<Note>();
         notes.active = false;
         add(notes);
+
+        splashes = new FlxTypedSpriteGroup<Splash>();
+        add(splashes);
+
+        // prepare the note splash pool
+        if (!Options.noNoteSplash && !cpu)
+            splashes.add(new Splash(skin)).kill();
 
         for (i in 0...4) {
             var receptor:Receptor = new Receptor(i, skin);
@@ -254,7 +243,6 @@ class StrumLine extends FlxSpriteGroup {
             queueNoteRemove(note);
         else {
             if (!cpu) resizeLength(note);
-            if (!Options.holdBehindStrums && !Options.noNoteSplash) spawnCover(note);
             note.visible = false;
         }
 
@@ -299,12 +287,8 @@ class StrumLine extends FlxSpriteGroup {
         if (lastStep != Conductor.self.step || !note.beenHit)
             heldSustainBehaviour(note);
 
-        if (PlayState.self != null && this == PlayState.self.playerStrumline) {
+        if (PlayState.self != null && type == PLAYER)
             PlayState.self.stats.health += note.holdHealth * FlxG.elapsed;
-
-            if (!cpu)
-                PlayState.self.score += note.holdScore * FlxG.elapsed;
-        }
     }
 
     function canHold(note:Note):Bool {
@@ -329,7 +313,6 @@ class StrumLine extends FlxSpriteGroup {
         }
 
         if (note.holdable) {
-            note.perfectHold = false;
             note.visible = false;
             // resizeLength(note);
         } else {
@@ -345,9 +328,6 @@ class StrumLine extends FlxSpriteGroup {
             game_heldSustainBehaviour(note);
             return;
         }
-
-        if (note.holdCover == null && !Options.holdBehindStrums && !Options.noNoteSplash && !splashDisabled)
-            spawnCover(note);
 
         if (note.missed)
             charactersSing(note);
@@ -366,13 +346,7 @@ class StrumLine extends FlxSpriteGroup {
             return;
         }
 
-        if (note.holdCover != null) {
-            note.holdCover.kill();
-            note.holdCover = null;
-        }
-
         note.beenHit = false;
-        note.perfectHold = false;
         note.missed = true;
 
         onMiss.dispatch(note);
@@ -413,8 +387,7 @@ class StrumLine extends FlxSpriteGroup {
 
         heldKeys[dir] = true;
 
-        var possibleNotes:Array<Note> = notes.members.filter((note) -> note.direction == dir && note.canBeHit);
-        var targetNote:Note = possibleNotes[0];
+        var targetNote:Note = notes.group.getFirst((note) -> note.direction == dir && note.canBeHit);
 
         if (targetNote != null)
             noteHitBehaviour(targetNote);
@@ -463,26 +436,23 @@ class StrumLine extends FlxSpriteGroup {
     function game_noteHitBehaviour(note:Note):Void {
         var rating:Rating = PlayState.self.stats.evaluateNote(note);
 
-        // TODO: maybe don't reference the strumlines?
         var event:NoteHitEvent = Events.get(NoteHitEvent).setup(
             note,
-            this == PlayState.self.opponentStrumline,
+            type == OPPONENT,
             cpu,
             rating,
-            (!cpu && !note.holdable ? rating.score : 0),
-            (this != PlayState.self.opponentStrumline ? rating.health : 0),
+            (!cpu ? rating.score : 0),
+            (type == PLAYER ? rating.health : 0),
             (!cpu ? rating.accuracyMod : 0),
-            (!cpu ? Math.max(rating.score, 0) : 0),
-            (this == PlayState.self.playerStrumline ? Math.max(rating.health * 10, 0) : 0),
+            (type == PLAYER ? Math.max(rating.health * 10, 0) : 0),
             (!cpu && !rating.breakCombo && PlayState.self.stats.combo >= 10),
             (!cpu && rating.displaySplash && !Options.noNoteSplash),
-            (!Options.holdBehindStrums && !Options.noNoteSplash),
             !cpu,
             !cpu,
             !cpu,
             (!cpu && rating.breakCombo),
             !cpu,
-            this == PlayState.self.playerStrumline || PlayState.self.music.voices.length == 1,
+            type == PLAYER || PlayState.self.music.voices?.length == 1,
             !cpu
         );
 
@@ -495,7 +465,6 @@ class StrumLine extends FlxSpriteGroup {
         }
 
         note.beenHit = true;
-        note.holdScore = event.holdScore;
         note.holdHealth = event.holdHealth;
 
         if (!note.holdable) {
@@ -504,7 +473,6 @@ class StrumLine extends FlxSpriteGroup {
         }
         else {
             if (event.resizeLength) resizeLength(note);
-            if (event.spawnCover) spawnCover(note);
             note.visible = event.noteVisible;
         }
 
@@ -525,27 +493,24 @@ class StrumLine extends FlxSpriteGroup {
             return;
 
         if (note.holdable) {
-            note.perfectHold = !event.breakPerfectHold;
             note.visible = event.noteVisible;
         } else {
             note.alpha = event.noteAlpha;
         }
 
-        note.holdScore = event.holdScore;
         note.holdHealth = event.holdHealth;
-
         note.missed = true;
+
         onMiss.dispatch(note);
     }
 
     function game_heldSustainBehaviour(note:Note):Void {
         var event:NoteHoldEvent = Events.get(NoteHoldEvent).setup(
             note,
-            this == PlayState.self.opponentStrumline,
+            type == OPPONENT,
             cpu,
             note.missed,
-            this == PlayState.self.playerStrumline || PlayState.self.music.voices.length == 1,
-            (note.holdCover == null && !Options.holdBehindStrums && !Options.noNoteSplash && !splashDisabled)
+            type == PLAYER || PlayState.self.music.voices?.length == 1
         );
 
         PlayState.self.onNoteHold(event);
@@ -560,9 +525,6 @@ class StrumLine extends FlxSpriteGroup {
         note.missed = false;
         note.unheldTime = 0;
 
-        if (event.spawnCover)
-            spawnCover(note);
-
         if (event.playConfirm)
             playConfirm(note.direction);
 
@@ -576,16 +538,8 @@ class StrumLine extends FlxSpriteGroup {
         if (event.cancelled)
             return;
 
-        if (event.killCover && note.holdCover != null) {
-            note.holdCover.kill();
-            note.holdCover = null;
-        }
-
-        note.holdScore = event.holdScore;
         note.holdHealth = event.holdHealth;
-
         note.beenHit = false;
-        note.perfectHold = !event.breakPerfectHold;
         note.missed = true;
 
         onMiss.dispatch(note);
@@ -672,26 +626,8 @@ class StrumLine extends FlxSpriteGroup {
         splash.pop(note.direction);
     }
 
-    /**
-     * Adds a hold cover to this strumline.
-     * @param note Parent note.
-     */
-    public function spawnCover(note:Note):Void {
-        if (splashDisabled) return;
-
-        var cover:HoldCover = holdCovers.recycle(HoldCover, holdCoverConstructor);
-        cover.start(note);
-
-        cover.centerToObject(getReceptor(note.direction));
-        note.holdCover = cover;
-    }
-
     inline function splashConstructor():Splash {
         return new Splash(skin);
-    }
-
-    inline function holdCoverConstructor():HoldCover {
-        return new HoldCover(skin);
     }
 
     /*
@@ -817,6 +753,15 @@ class StrumLine extends FlxSpriteGroup {
         receptors?.forEach((r) -> r.x = x + (v * (r.direction - 2)));
         return receptorSpacing = v;
     }
+}
+
+/**
+ * Defines the owner of a strumline.
+ */
+enum abstract StrumlineType(Int) from Int to Int {
+    var NONE = -1;
+    var OPPONENT = 0;
+    var PLAYER = 1;
 }
 
 typedef NoteSignal = FlxTypedSignal<Note->Void>;

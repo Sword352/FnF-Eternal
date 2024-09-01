@@ -142,7 +142,7 @@ class StoryMenu extends MusicBeatState {
     override function update(elapsed:Float):Void {
         if (error) return;
 
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (allowInputs) {
@@ -196,7 +196,7 @@ class StoryMenu extends MusicBeatState {
                 arrow.animation.play(animation, true);
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {

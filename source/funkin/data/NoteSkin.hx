@@ -95,7 +95,6 @@ class NoteSkin {
 typedef NoteSkinConfig = {
     var note:NoteConfig;
     var receptor:ReceptorConfig;
-    var holdCover:GenericSkin;
     var splash:SplashConfig;
     var disableSplashes:Bool;
 }

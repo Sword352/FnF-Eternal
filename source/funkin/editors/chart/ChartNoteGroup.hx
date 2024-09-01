@@ -224,12 +224,13 @@ class DebugNote extends SelectableSprite {
     public function new():Void {
         super();
 
-        frames = Assets.getSparrowAtlas("notes/notes");
+        frames = Assets.getSparrowAtlas("game/notes");
 
         for (direction in Note.directions)
             animation.addByPrefix(direction, direction + "0", 0);
 
-        setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
+        animation.play("left");
+        setGraphicSize(0, ChartEditor.checkerSize);
         updateHitbox();
 
         text = new FlxText(0, 0, ChartEditor.checkerSize);

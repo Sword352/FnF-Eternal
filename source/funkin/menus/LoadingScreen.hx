@@ -201,18 +201,16 @@ class LoadingScreen extends FlxState {
             if (preloaded.contains(skin)) continue;
 
             // path, library
-            var note:Array<String> = ["notes/notes", null];
-            var strum:Array<String> = ["notes/receptors", null];
-            var splash:Array<String> = ["notes/noteSplashes", null];
-            var covers:Array<String> = ["notes/holds", null];
+            var note:Array<String> = ["game/notes", null];
+            var splash:Array<String> = ["game/splashes", null];
+            var receptor:Array<String> = [null, null]; // gets cached with notes by default
 
             if (skin != "default") {
                 var data:NoteSkinConfig = NoteSkin.get(skin);
                 var refs:Map<Array<String>, GenericSkin> = [
                     note => data.note,
-                    strum => data.receptor,
-                    splash => data.splash,
-                    covers => data.holdCover
+                    receptor => data.receptor,
+                    splash => data.splash
                 ];
 
                 for (k => v in refs) {
@@ -225,16 +223,16 @@ class LoadingScreen extends FlxState {
                 NoteSkin.clearData = false;
             }
 
-            var toPreload:Array<Array<String>> = [note, strum];
+            var toPreload:Array<Array<String>> = [note, receptor];
 
-            if (!Options.noNoteSplash) {
+            if (!Options.noNoteSplash)
                 toPreload.push(splash);
-                if (!Options.holdBehindStrums)
-                    toPreload.push(covers);
-            }
 
-            for (data in toPreload)
-                Assets.image(data[0], data[1]);
+            for (data in toPreload) {
+                var spritesheet:String = data[0];
+                if (spritesheet != null) 
+                    Assets.image(spritesheet, data[1]);
+            }
 
             preloaded.push(skin);
         }
@@ -243,8 +241,8 @@ class LoadingScreen extends FlxState {
     function loadCommon():Void {
         var uiStyle:String = stage?.uiStyle ?? "";
         
-        Assets.image('ui/gameplay/combo-numbers' + uiStyle);
-        Assets.image('ui/gameplay/ratings' + uiStyle);
+        Assets.image('game/combo-numbers' + uiStyle);
+        Assets.image('game/ratings' + uiStyle);
 
         Assets.image("ui/alphabet");
         Assets.music("breakfast");

@@ -307,13 +307,6 @@ class ChartEditor extends MusicBeatState {
         lastTime = conductor.time;
     }
 
-    override function stepHit(step:Int):Void {
-        if (music.playing)
-            music.resync();
-
-        super.stepHit(step);
-    }
-
     override function beatHit(beat:Int):Void {
         if (music.playing) {
             // sometimes it just mutes itself, and sometimes it proceeds to play hitsound instead of metronome
@@ -673,33 +666,22 @@ class ChartEditor extends MusicBeatState {
     }
 
     inline function loadSong():Void {
-        music = new SongPlayback(chart.meta.folder);
-        loadMusic();
+        music = new SongPlayback(chart);
         add(music);
 
-        music.onSongEnd.add(() -> {
+        music.onComplete.add(() -> {
             conductor.resetPrevTime();
             icons.forEach((icon) -> icon.resetBop());
             line.y = 0;
         });
 
-        music.time = startTime;
-    }
-
-    inline function loadMusic():Void {
-        music.setupInstrumental(chart.gameplayInfo.instrumental);
-
-        if (chart.gameplayInfo.voices?.length > 0)
-            for (voiceFile in chart.gameplayInfo.voices)
-                music.createVoice(voiceFile);
-
         music.instrumental.volume = (preferences.muteInst ?? false) ? 0 : 1;
         music.pitch = preferences.pitch ?? 1;
 
-        conductor.beatsPerMeasure = chart.gameplayInfo.beatsPerMeasure ?? 4;
-        conductor.stepsPerBeat = chart.gameplayInfo.stepsPerBeat ?? 4;
-        conductor.bpm = chart.gameplayInfo.bpm;
+        chart.prepareConductor(conductor);
         conductor.music = music.instrumental;
+
+        music.time = startTime;
     }
 
     inline function loadIcons():Void {

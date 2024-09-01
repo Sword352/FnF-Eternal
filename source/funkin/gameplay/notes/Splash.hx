@@ -43,7 +43,7 @@ class Splash extends OffsetSprite {
                 // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("notes/noteSplashes");
+                    frames = Assets.getSparrowAtlas("game/splashes");
 
                     var animationArray:Array<String> = ["down", "up", "left", "right"];
 

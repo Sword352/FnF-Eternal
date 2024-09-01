@@ -133,12 +133,12 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (error) {
             if (allowInputs && controls.justPressed("back")) leave();
-            scripts.call("onUpdatePost", [elapsed]);
+            scripts.call("onUpdatePost", elapsed);
             return;
         }
 
@@ -148,7 +148,7 @@ class FreeplayMenu extends MusicBeatState {
 
             if (Options.editorAccess && FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER) {
                 openChartEditor();
-                scripts.call("onUpdatePost", [elapsed]);
+                scripts.call("onUpdatePost", elapsed);
 
                 // avoid conflicts with other keybinds
                 return;
@@ -186,7 +186,7 @@ class FreeplayMenu extends MusicBeatState {
         difficultyText.text = diffText;
         difficultyText.centerToObject(scoreBG, X);
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(change:Int = 0):Void {

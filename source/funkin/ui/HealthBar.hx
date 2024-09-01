@@ -42,7 +42,7 @@ class HealthBar extends FlxSpriteGroup {
         super();
 
         playerSide = new HealthBarSide();
-        playerSide.loadGraphic(Assets.image('ui/gameplay/healthBar'));
+        playerSide.loadGraphic(Assets.image('game/healthBar'));
         playerSide.color = playerColor;
         add(playerSide);
 
@@ -67,9 +67,10 @@ class HealthBar extends FlxSpriteGroup {
     }
 
     function set_percent(v:Float):Float {
-        percent = v;
-        updateClip(v);
-        return v;
+        if (percent != v)
+            updateClip(v);
+
+        return percent = v;
     }
 
     inline function set_opponentColor(v:FlxColor):FlxColor {

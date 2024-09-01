@@ -56,12 +56,14 @@ class GameplayUI extends FlxSpriteGroup {
         add(healthBar);
 
         playerIcon = new HealthIcon(0, 0, PlayState.self.player?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        playerIcon.y = healthBar.y - (playerIcon.height / 2);
         playerIcon.state = NEUTRAL;
         playerIcon.flipX = true;
         playerIcon.health = 50;
         add(playerIcon);
 
         opponentIcon = new HealthIcon(0, 0, PlayState.self.opponent?.healthIcon ?? HealthIcon.DEFAULT_ICON);
+        opponentIcon.y = healthBar.y - (opponentIcon.height / 2);
         opponentIcon.state = NEUTRAL;
         opponentIcon.health = 50;
         add(opponentIcon);
@@ -107,10 +109,7 @@ class GameplayUI extends FlxSpriteGroup {
         super.update(elapsed);
 
         playerIcon.x = healthBar.x + healthBar.width * healthBar.percent - 20;
-        playerIcon.y = healthBar.y - (playerIcon.height / 2);
-
         opponentIcon.x = healthBar.x + healthBar.width * healthBar.percent - opponentIcon.width + 20;
-        opponentIcon.y = healthBar.y - (opponentIcon.height / 2);
     }
 
     /**

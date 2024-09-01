@@ -105,7 +105,7 @@ class OptionsMenu extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
@@ -137,7 +137,7 @@ class OptionsMenu extends MusicBeatState {
             }
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {

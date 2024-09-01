@@ -13,14 +13,14 @@ class ScriptedEvent extends SongEvent {
         var script:Script = _scripts[event.type];
 
         if (script != null)
-            script.call("onPreload", event.arguments);
+            script.callDyn("onPreload", event.arguments);
     }
 
     override function execute(event:ChartEvent):Void {
         var script:Script = _scripts[event.type];
 
         if (script != null)
-            script.call("onExecution", event.arguments);
+            script.callDyn("onExecution", event.arguments);
     }
 
     public function add(event:String):Void {

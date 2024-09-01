@@ -35,7 +35,7 @@ class KeybindSubState extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (allowInputs) {
@@ -59,7 +59,7 @@ class KeybindSubState extends MusicBeatSubState {
                         (horizontalSelection == 0 ? t.secondKeybind : t.firstKeybind).alpha = 0;
                 });
 
-                scripts.call("onUpdatePost", [elapsed]);
+                scripts.call("onUpdatePost", elapsed);
 
                 // we're returning here so it does not instantly detect the keybind
                 return;
@@ -75,7 +75,7 @@ class KeybindSubState extends MusicBeatSubState {
         }
 
         if (!changing) {
-            scripts.call("onUpdatePost", [elapsed]);
+            scripts.call("onUpdatePost", elapsed);
             return;
         }
 
@@ -107,7 +107,7 @@ class KeybindSubState extends MusicBeatSubState {
             targetItem.updateText(gotFromGamepad);
         }
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {

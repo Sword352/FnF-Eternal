@@ -1,6 +1,7 @@
 package funkin.data;
 
 import funkin.data.GameOverData;
+import funkin.gameplay.notes.StrumLine.StrumlineType;
 
 @:structInit
 class Chart {
@@ -8,6 +9,28 @@ class Chart {
     public var events:Array<ChartEvent>;
     public var gameplayInfo:GameplayInfo;
     public var meta:SongMeta;
+
+    /**
+     * Returns the noteskin corresponding to the strumline owner.
+     * @param owner Strumline owner.
+     * @return String
+     */
+    public function getNoteskin(owner:StrumlineType):String {
+        if (gameplayInfo.noteSkins == null || owner == NONE)
+            return "default";
+
+        return gameplayInfo.noteSkins[owner] ?? "default";
+    }
+
+    /**
+     * Applies tempo properties from this chart to a conductor.
+     * @param conductor Conductor instance.
+     */
+    public function prepareConductor(conductor:Conductor):Void {
+        conductor.beatsPerMeasure = gameplayInfo.beatsPerMeasure ?? 4;
+        conductor.stepsPerBeat = gameplayInfo.stepsPerBeat ?? 4;
+        conductor.bpm = gameplayInfo.bpm;
+    }
 
     public inline function toStruct():ChartJson {
         return {

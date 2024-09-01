@@ -62,7 +62,7 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", [elapsed]);
+        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
@@ -92,7 +92,7 @@ class GameOverScreen extends MusicBeatSubState {
         if (controls.justPressed("accept") && allowInputs)
             accept();
 
-        scripts.call("onUpdatePost", [elapsed]);
+        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {

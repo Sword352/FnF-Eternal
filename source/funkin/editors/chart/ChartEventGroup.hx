@@ -25,7 +25,7 @@ class EventSprite extends SelectableSprite {
     public function new():Void {
         super();
 
-        loadGraphic(Assets.image("ui/debug/event_icon"));
+        loadGraphic(Assets.image("ui/event_icon"));
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
 

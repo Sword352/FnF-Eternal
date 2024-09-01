@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="art/logo.png" width="750" />
+    <img src="resources/logo.png" width="750" />
     <h1 align="center">Friday Night Funkin': Eternal</h1>
     <h3 align="center">A framework made by modders for modders</h3>
 </p>
@@ -70,7 +70,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 - Simple to use Discord Presence API
 - Video cutscenes support on desktop platforms
 - Many options to customize your experience
-- In-game crash handler
+- A fresh new and efficient crash handler
 
 ... and more!
 
