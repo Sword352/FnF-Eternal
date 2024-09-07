@@ -169,7 +169,7 @@ class SongPlayback extends FlxTypedGroup<FlxSound> {
         return instrumental?.playing;
 
     function set_voices(v:Array<FlxSound>):Array<FlxSound> {
-        this.active = (v?.length > 0);
+        this.active = (v != null);
         return voices = v;
     }
 
