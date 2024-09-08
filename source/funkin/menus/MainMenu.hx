@@ -36,7 +36,7 @@ class MainMenu extends MusicBeatState {
 
     override function create():Void {
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "Main Menu";
+        DiscordRPC.self.details = "Main Menu";
         #end
 
         super.create();

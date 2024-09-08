@@ -68,6 +68,10 @@ class PauseScreen extends MusicBeatSubState {
         FlxTween.tween(songText, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
         FlxTween.tween(lossCounter, {alpha: 1, y: 52}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
 
+        #if DISCORD_RPC
+        PlayState.self.updatePresenceState(true);
+        #end
+
         scripts.call("onCreatePost");
     }
 
@@ -144,6 +148,14 @@ class PauseScreen extends MusicBeatSubState {
         }
 
         changeSelection();
+    }
+
+    override function close():Void {
+        #if DISCORD_RPC
+        PlayState.self.updatePresenceState();
+        #end
+
+        super.close();
     }
 
     override function destroy():Void {

@@ -122,11 +122,6 @@ class Countdown extends FlxBasic {
         if (onTick != null)
             onTick(tick);
 
-        #if DISCORD_RPC
-        if (force || event.changePresence)
-            DiscordPresence.presence.state = suffix + (tick == totalTicks ? '!' : '...');
-        #end
-
         if (PlayState.self != null && event.allowBeatEvents)
             PlayState.self.gameDance(tick - 1 + (totalTicks % 2));
 

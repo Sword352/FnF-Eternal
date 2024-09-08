@@ -214,8 +214,8 @@ class PlayState extends MusicBeatState {
         }
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = 'Playing ${song.meta.name} (${gameMode.toString()})';
-        DiscordPresence.presence.state = "";
+        DiscordRPC.self.details = song.meta.name;
+        updatePresenceState();
         #end
 
         conductor.enableInterpolation = true;
@@ -263,6 +263,11 @@ class PlayState extends MusicBeatState {
         if (subState == null && controls.justPressed("accept"))
             pause();
 
+        #if DISCORD_RPC
+        if (music.playing)
+            updatePresenceTimestamp();
+        #end
+
         if (gameMode != STORY) {
             if (Options.editorAccess && controls.justPressed("debug")) {
                 if (gameMode != DEBUG) {
@@ -301,10 +306,6 @@ class PlayState extends MusicBeatState {
         if (scripts.quickEvent("onPause").cancelled)
             return;
 
-        #if DISCORD_RPC
-        DiscordPresence.presence.state = "Paused";
-        #end
-
         openSubState(new PauseScreen());
     }
 
@@ -320,7 +321,7 @@ class PlayState extends MusicBeatState {
 
         #if DISCORD_RPC
         if (event.changePresence)
-            DiscordPresence.presence.state = "Game Over";
+            DiscordRPC.self.state = "Game Over";
         #end
 
         persistentDraw = event.persistentDraw;
@@ -348,7 +349,7 @@ class PlayState extends MusicBeatState {
             return;
 
         #if DISCORD_RPC
-        DiscordPresence.presence.state = "";
+        DiscordRPC.self.timestamp.start = 1;
         #end
 
         conductor.music = music.instrumental;
@@ -504,6 +505,21 @@ class PlayState extends MusicBeatState {
         FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
     }
 
+    #if DISCORD_RPC
+    function updatePresenceTimestamp():Void {
+        DiscordRPC.self.timestamp.end = 1 + Math.floor((music.instrumental.length - music.instrumental.time) * 0.001);
+    }
+
+    public function updatePresenceState(paused:Bool = false):Void {
+        var state:String = '${currentDifficulty} - ${gameMode.toString()}';
+
+        if (paused)
+            state += " (Paused)";
+
+        DiscordRPC.self.state = state;
+    }
+    #end
+
     // Overrides
     override function onSubStateOpen(subState:FlxSubState):Void {
         Tools.pauseEveryTween();
@@ -527,10 +543,6 @@ class PlayState extends MusicBeatState {
         Tools.resumeEveryTimer();
         music?.resume();
 
-        #if DISCORD_RPC
-        DiscordPresence.presence.state = "";
-        #end
-
         playerStrumline.inactiveInputs = false;
         super.onSubStateClose(subState);
     }
@@ -538,23 +550,24 @@ class PlayState extends MusicBeatState {
     override function onFocusLost():Void {
         super.onFocusLost();
 
+        // don't update the presence or pause if a substate is already opened
         if (subState == null) {
-            if (!FlxG.autoPause)
-                pause();
-            else {
+            if (FlxG.autoPause) {
                 #if DISCORD_RPC
-                DiscordPresence.presence.state = "Paused";
+                updatePresenceState(true);
                 #end
             }
+            else
+                pause();                
         }
     }
 
     override function onFocus():Void {
         super.onFocus();
 
-        if (subState == null) {
+        if (subState == null && FlxG.autoPause) {
             #if DISCORD_RPC
-            DiscordPresence.presence.state = "";
+            updatePresenceState();
             #end
         }
     }
@@ -563,7 +576,8 @@ class PlayState extends MusicBeatState {
         self = null;
 
         #if DISCORD_RPC
-        DiscordPresence.presence.state = "";
+        DiscordRPC.self.timestamp.reset();
+        DiscordRPC.self.state = null;
         #end
 
         stats = FlxDestroyUtil.destroy(stats);

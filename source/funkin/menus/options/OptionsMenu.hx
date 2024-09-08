@@ -48,7 +48,7 @@ class OptionsMenu extends MusicBeatState {
         Assets.clearAssets = !toPlayState || Options.reloadAssets;
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "In the options";
+        DiscordRPC.self.details = "In the options";
         #end
 
         Tools.playMusicCheck(toPlayState ? "chillFresh" : "freakyMenu");

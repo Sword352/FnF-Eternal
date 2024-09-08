@@ -53,7 +53,7 @@ class StoryMenu extends MusicBeatState {
         PlayState.gameMode = STORY;
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "Story Menu";
+        DiscordRPC.self.details = "Story Menu";
         #end
 
         super.create();

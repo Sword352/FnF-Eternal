@@ -30,7 +30,7 @@ class Script implements IFlxDestroyable {
         "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
 
         #if DISCORD_RPC
-        "DiscordPresence" => DiscordPresence,
+        "DiscordRPC" => DiscordRPC,
         #end
 
         "OffsetSprite" => funkin.objects.OffsetSprite,

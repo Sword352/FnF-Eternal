@@ -132,7 +132,7 @@ class ChartEditor extends MusicBeatState {
         FlxG.mouse.visible = FlxG.mouse.useSystemCursor = true;
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "Charting " + chart.meta.name;
+        DiscordRPC.self.details = "Charting " + chart.meta.name;
         #end
 
         // make sure save data isn't null
@@ -1105,7 +1105,7 @@ class ChartEditor extends MusicBeatState {
         spawnEvents(chart.events);
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "Charting " + chart.meta.name;
+        DiscordRPC.self.details = "Charting " + chart.meta.name;
         #end
     }
     */

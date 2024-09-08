@@ -58,7 +58,7 @@ class TitleScreen extends MusicBeatState {
         super.create();
 
         #if DISCORD_RPC
-        DiscordPresence.presence.details = "Title Screen";
+        DiscordRPC.self.details = "Title Screen";
         #end
 
         initStateScripts();

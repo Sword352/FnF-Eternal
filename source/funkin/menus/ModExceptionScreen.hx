@@ -40,7 +40,7 @@ class ModExceptionScreen extends FlxState {
 
         if (FlxG.keys.justPressed.ESCAPE) {
             #if DISCORD_RPC
-            DiscordPresence.shutdown();
+            DiscordRPC.self.shutdown();
             #end
             Sys.exit(0);
         }

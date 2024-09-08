@@ -56,7 +56,8 @@ class Options {
 
     #if DISCORD_RPC
     static function set_noDiscordRpc(v:Bool):Bool {
-        DiscordPresence.presence.hide(v);
+        if (DiscordRPC.self != null)
+            DiscordRPC.self.hidden = v;
         return noDiscordRpc = v;
     }
     #end

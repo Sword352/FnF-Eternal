@@ -171,7 +171,7 @@ class DeprecatedMods {
         Assets.currentDirectory = (currentMod == null) ? Assets.defaultDirectory : '${MODS_PATH}${currentMod.folder}/';
 
         #if DISCORD_RPC
-        DiscordPresence.reconnect(currentMod?.discordClient ?? DiscordPresence.DEFAULT_ID);
+        DiscordRPC.reconnect(currentMod?.discordClient ?? DiscordRPC.DEFAULT_ID);
         #end
 
         // clear all the static variables

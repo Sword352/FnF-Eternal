@@ -15,8 +15,11 @@ import funkin.save.*;
 import funkin.save.Options;
 
 import funkin.core.modding.Mods;
-#if DISCORD_RPC import funkin.core.DiscordPresence; #end
 import funkin.core.assets.Assets;
+
+#if DISCORD_RPC
+import funkin.core.DiscordRPC;
+#end
 
 import funkin.core.scripting.*;
 import funkin.core.scripting.events.*;

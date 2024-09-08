@@ -13,6 +13,7 @@
   - Make scripts initialization automatic in scriptable states (automatic `initStateScripts` call), along with calling `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost`
   - Fix issues with events dispatched by the `StrumLine` class (more details there)
   - Fix some events being repeatedly dispatched, such as `onGameOver`
+  - Add safety preventions
   - Perhaps rename `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost` to `create`/`createPost`/`update`/`updatePost`?
   - Allow for a more class-based scripting api?
 
@@ -50,7 +51,6 @@
   - Make the playback more synced
 
 - Rework the keybind system (and `Controls` class)
-- Implement a more robust Discord API
 
 - Rework a bit the chart format
 - Add support for VSlice charts

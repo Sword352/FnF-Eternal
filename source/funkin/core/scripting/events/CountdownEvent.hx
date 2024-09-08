@@ -30,11 +30,6 @@ class CountdownEvent extends ScriptEvent {
     @:eventConstructor public var spriteFrame:Int = -1;
 
     /**
-     * Whether to change the Discord rich presence on available platforms.
-     */
-    @:eventValue public var changePresence:Bool = true;
-
-    /**
      * Whether to allow beat events during the countdown, such as characters dancing.
      */
     @:eventValue public var allowBeatEvents:Bool = true;
