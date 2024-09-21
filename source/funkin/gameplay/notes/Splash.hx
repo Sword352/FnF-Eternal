@@ -3,20 +3,55 @@ package funkin.gameplay.notes;
 import funkin.data.NoteSkin;
 import funkin.objects.OffsetSprite;
 
+/**
+ * Sprite object which displays a splash during gameplay.
+ */
 class Splash extends OffsetSprite {
+    /**
+     * Noteskin of this splash.
+     */
     public var skin(default, set):String;
 
+    /**
+     * Maximum animation variation for this splash sprite.
+     */
     public var maxVariation:Int = 2;
+
+    /**
+     * Minimum animation rate.
+     */
     public var minSpeed:Float = 0.8;
+
+    /**
+     * Maximum animation rate.
+     */
     public var maxSpeed:Float = 1.2;
 
+    /**
+     * Creates a new `Splash`.
+     * @param skin Noteskin for this splash.
+     */
     public function new(skin:String = "default"):Void {
         super();
         this.skin = skin;
+
+        animation.finishCallback = (_) -> kill();
     }
 
+    override function update(elapsed:Float):Void {
+        animation.update(elapsed);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
+    }
+
+    /**
+     * Start displaying this note splash.
+     * @param direction Direction that should be displayed.
+     */
     public function pop(direction:Int):Void {
-        var anim:String = '${Note.directions[direction]}-${FlxG.random.int(1, maxVariation)}';
+        var anim:String = Note.directions[direction] + "-" + FlxG.random.int(1, maxVariation);
         animation.timeScale = FlxG.random.float(minSpeed, maxSpeed);
 
         playAnimation(anim, true);
@@ -25,13 +60,9 @@ class Splash extends OffsetSprite {
         offset.set(width * 0.3, height * 0.3);
     }
 
-    override function update(elapsed:Float):Void {
-        super.update(elapsed);
-        
-        if (animation.curAnim.finished)
-            kill();
-    }
-
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
         skin = null;
         super.destroy();
@@ -40,7 +71,6 @@ class Splash extends OffsetSprite {
     function set_skin(v:String):String {
         if (v != null) {
             switch (v) {
-                // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
                     frames = Assets.getSparrowAtlas("game/splashes");

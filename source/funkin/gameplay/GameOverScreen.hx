@@ -54,7 +54,7 @@ class GameOverScreen extends MusicBeatSubState {
         character.playAnimation("firstDeath");
 
         conductor.bpm = data.bpm ?? 100;
-        conductor.enableInterpolation = false;
+        conductor.interpolate = false;
         conductor.music = FlxG.sound.music;
         conductor.resetTime();
 

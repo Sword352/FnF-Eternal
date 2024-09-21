@@ -24,12 +24,7 @@ class NoteHoldInvalidationEvent extends ScriptEvent {
     /**
      * Health to lose. NOTE: this is multiplied by the fraction!
      */
-    @:eventValue public var healthLoss:Float = 0.0475;
-
-    /**
-     * Whether to decrease the gameplay accuracy.
-     */
-    @:eventValue public var decreaseAccuracy:Bool = true;
+    @:eventValue public var healthLoss:Float = 0.02375;
 
     /**
      * Whether to break the combo.

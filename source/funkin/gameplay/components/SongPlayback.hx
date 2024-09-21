@@ -107,6 +107,10 @@ class SongPlayback extends FlxTypedGroup<FlxSound> {
         for (audio in voices)
             if (audio.playing && Math.abs(audio.time - instrumental.time) > 5)
                 audio.time = instrumental.time;
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**

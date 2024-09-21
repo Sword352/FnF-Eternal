@@ -18,9 +18,9 @@ class GameStats implements IFlxDestroyable {
     public var misses:Int = 0;
 
     /**
-     * Current health amount, ranging from 0 to 2.
+     * Current health amount, ranging from 0 to 1.
      */
-    public var health(default, set):Float = 1;
+    public var health(default, set):Float = 0.5;
 
     /**
      * Current amount of chained note hits.
@@ -73,7 +73,7 @@ class GameStats implements IFlxDestroyable {
      * @return Corresponding `Rating`.
      */
     public inline function evaluateNote(note:Note):Rating {
-        return evaluate(Math.abs(note.time - Conductor.self.time) / Conductor.self.playbackRate);
+        return evaluate(Math.abs(note.time - Conductor.self.time) / Conductor.self.rate);
     }
 
     /**
@@ -93,7 +93,7 @@ class GameStats implements IFlxDestroyable {
      * Returns the most relevant `Rank`.
      */
     public function getRank():Rank {
-        if (PlayState.self.botplay)
+        if (PlayState.self.playField.botplay)
             return null;
 
         var output:Rank = null;
@@ -139,7 +139,7 @@ class GameStats implements IFlxDestroyable {
     }
 
     function set_health(v:Float):Float {
-        return health = FlxMath.bound(v, 0, 2);
+        return health = FlxMath.bound(v, 0, 1);
     }
 
     function get_accuracy():Float {

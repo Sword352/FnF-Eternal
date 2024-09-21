@@ -82,7 +82,7 @@
 	<define name="CUSTOM_CLASSES" />
 
 	<!-- Disables dead code elimination to force unused stuff to be compiled. -->
-	<haxeflag name="-dce" value="no" unless="hl" />
+	<haxeflag name="-dce" value="std" />
 
 	<!-- Runs the import macro that compiles some additional classes for scripting. -->
 	<haxeflag name="--macro" value='funkin.core.macros.IncludeMacro.addAdditionalClasses()' />

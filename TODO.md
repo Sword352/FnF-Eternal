@@ -45,10 +45,10 @@
   - Remove the use of static variables
   - Continue the code cleanup
 
-- Make `Conductor` beats consistent
-  - Implement a stronger and framerate independant beat system
-  - Implement timing points (or "bpm change map")
-  - Make the playback more synced
+- `Conductor` changes
+  - Implement a better structure for bpm changes
+  - Improve support for time signatures
+  - Add time signature changes
 
 - Rework the keybind system (and `Controls` class)
 
@@ -76,9 +76,9 @@
 - Perform a major code cleanup
 - Complete all remaining TODOs from the code
 - Restore back HTML5 support
-- Rewrite the crash handler
 
 - Remake most of the menus
+- Implement a nicer transition system
 - Add a result screen
 
 - Add modding documentation

@@ -13,14 +13,14 @@ class Receptor extends OffsetSprite {
     public var direction:Int = 0;
 
     /**
-     * Parent strumline (optional).
-     */
-    public var strumLine:StrumLine;
-
-    /**
      * Noteskin for this receptor.
      */
     public var skin(default, set):String;
+
+    /**
+     * Parent strumline.
+     */
+    public var strumLine:StrumLine;
 
     /**
      * Current animation hold time.
@@ -51,7 +51,11 @@ class Receptor extends OffsetSprite {
                 finishHolding();
         }
 
-        super.update(elapsed);
+        animation.update(elapsed);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -65,6 +69,8 @@ class Receptor extends OffsetSprite {
         super.playAnimation(name + " " + Note.directions[direction], force, reversed, frame);
         centerOffsets();
         centerOrigin();
+
+        this.active = (animation.curAnim.frameRate > 0 && animation.curAnim.frames.length > 1);
         holdTime = -1;
     }
 
@@ -72,7 +78,7 @@ class Receptor extends OffsetSprite {
      * Method called when an animation finishes.
      */
     function onAnimationFinished(name:String):Void {
-        if (strumLine == null || !name.startsWith("confirm"))
+        if (!name.startsWith("confirm"))
             return;
 
         holdTime = (strumLine.cpu ? 0.05 : 0.125);
@@ -98,7 +104,6 @@ class Receptor extends OffsetSprite {
     function set_skin(v:String):String {
         if (v != null) {
             switch (v) {
-                // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
                     frames = Assets.getSparrowAtlas("game/notes");

@@ -86,12 +86,12 @@ class ChangeCharacterEvent extends SongEvent {
 
         switch (target) {
             case "Player":
-                game.hud.healthBar.playerColor = intended.healthBarColor;
-                game.hud.playerIcon.character = intended.healthIcon;
+                game.playField.healthBar.playerColor = intended.healthBarColor;
+                game.playField.playerIcon.character = intended.healthIcon;
                 game.player = intended;
             case "Opponent":
-                game.hud.healthBar.opponentColor = intended.healthBarColor;
-                game.hud.opponentIcon.character = intended.healthIcon;
+                game.playField.healthBar.opponentColor = intended.healthBarColor;
+                game.playField.opponentIcon.character = intended.healthIcon;
                 game.opponent = intended;
             case "Spectator":
                 game.spectator = intended;
@@ -120,8 +120,8 @@ class ChangeCharacterEvent extends SongEvent {
 
     inline function getStrumline(target:String):StrumLine {
         return switch (target) {
-            case "Player": game.playerStrumline;
-            case "Opponent": game.opponentStrumline;
+            case "Player": game.playField.playerStrumLine;
+            case "Opponent": game.playField.opponentStrumLine;
             case _: null;
         }
     }

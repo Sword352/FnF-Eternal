@@ -59,7 +59,7 @@ class ComboPopup extends FlxSpriteGroup {
 
     /**
      * Displays a rating sprite.
-     * @param rating Parent rating.
+     * @param rating Rating to display.
      */
     public function displayRating(rating:Rating):Void {
         if (!spriteStack)
@@ -158,10 +158,11 @@ class RatingSprite extends BasicSprite {
         var graphic = Assets.image("game/ratings" + style);
         loadGraphic(graphic, true, graphic.width, Math.floor(graphic.height / division));
 
-        animation.add("sick", [0], 0);
-        animation.add("good", [1], 0);
-        animation.add("bad", [2], 0);
-        animation.add("awful", [3], 0);
+        animation.add("mad", [0], 0);
+        animation.add("sick", [1], 0);
+        animation.add("good", [2], 0);
+        animation.add("bad", [3], 0);
+        animation.add("awful", [4], 0);
 
         animation.play("sick");
         scale.set(0.65, 0.65);
@@ -197,8 +198,7 @@ class RatingSprite extends BasicSprite {
  */
 class ComboNumber extends BasicSprite {
     /**
-     * Number this combo number represents.
-     * TODO: find an efficient way to make this an int
+     * Number this combo sprite represents, as a string.
      */
     public var number(get, set):String;
 
@@ -288,22 +288,28 @@ private class BasicSprite extends OffsetSprite {
         var progress:Float = Conductor.self.time - startTime - delay;
         alpha = 1 - Math.max(progress, 0) / duration;
 
+        var scaleSubtract:Float = 0;
         scale.copyFrom(originalScale);
 
-        if (progress >= 0) {
-            scale.x -= scaleDiff * FlxEase.smootherStepInOut(progress / duration);
-            scale.y -= scaleDiff * FlxEase.smootherStepInOut(progress / duration);
-        }
-        else {
-            scale.x -= (scaleDiff / 2) * (Math.min(0, progress + delay * 0.75) / -delay);
-            scale.y -= (scaleDiff / 2) * (Math.min(0, progress + delay * 0.75) / -delay);
-        }
+        if (progress >= 0)
+            scaleSubtract = scaleDiff * FlxEase.smootherStepInOut(progress / duration);
+        else
+            scaleSubtract = (scaleDiff / 2) * (Math.min(0, progress + delay * 0.75) / -delay);
 
-        if (progress >= duration) {
+        scale.subtract(scaleSubtract, scaleSubtract);
+
+        if (progress >= duration)
             return kill();
-        }
 
-        super.update(elapsed * Conductor.self.playbackRate);
+        elapsed *= Conductor.self.rate;
+        updateMotion(elapsed);
+
+        if (animation.curAnim.frameRate > 0 && animation.curAnim.frames.length > 1)
+            animation.update(elapsed);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -320,7 +326,7 @@ private class BasicSprite extends OffsetSprite {
     function setProps():Void {
         scale.copyFrom(originalScale);
         startTime = Conductor.self.time;
-        delay = Conductor.self.crochet;
+        delay = Conductor.self.crotchet;
         alpha = 1;
     }
 

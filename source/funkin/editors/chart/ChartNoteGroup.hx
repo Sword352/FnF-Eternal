@@ -197,7 +197,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     }
 
     inline function measureTime(measure:Float):Float {
-        return Conductor.self.beatOffset.time + Conductor.self.stepCrochet * ((measure * Conductor.self.measureLength) - Conductor.self.beatOffset.step);
+        return Conductor.self.beatOffset.time + Conductor.self.semiQuaver * ((measure * Conductor.self.measureLength) - Conductor.self.beatOffset.step);
     }
 
     inline function inBounds(note:ChartNote, measureTime:Float, nextTime:Float) {
@@ -253,11 +253,11 @@ class DebugNote extends SelectableSprite {
 
         if (data.length != 0) {
             if (!FlxG.mouse.pressedRight || !FlxG.mouse.overlaps(sustain) || FlxG.mouse.y < sustain.y + height * 0.5) {
-                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.self.stepCrochet) - 0.5));
+                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.self.semiQuaver) - 0.5));
             }
             else {
                 sustain.scale.y = FlxG.mouse.y - sustain.y + ChartEditor.checkerSize * 0.5;
-                data.length = Conductor.self.stepCrochet * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
+                data.length = Conductor.self.semiQuaver * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
             }
 
             sustain.updateHitbox();

@@ -16,6 +16,12 @@ import sys.io.File;
 @:noCustomClass
 class CrashHandler {
     /**
+     * Internal flag which determines whether the program has crashed.
+     * This is used to avoid recursive crashes.
+     */
+    @:noCompletion static var __crashed:Bool = false;
+
+    /**
      * Initializes the crash handler.
      */
     public static function init():Void {
@@ -50,6 +56,7 @@ class CrashHandler {
      * @param event `UncaughtErrorEvent` instance containing details about the error.
      */
     static function onErrorOFL(event:UncaughtErrorEvent):Void {
+        event.stopImmediatePropagation();
         event.preventDefault();
         onError(event.error);
     }
@@ -59,6 +66,11 @@ class CrashHandler {
      * @param error The uncaught error.
      */
     static function onError(error:String):Void {
+        if (__crashed)
+            return;
+
+        __crashed = true;
+
         var logPath:String = "logs/crashdump__" + DateTools.format(Date.now(), "%Y-%m-%d__%H'%M'%S") + ".log";
         var dump:String = CallStack.toString(CallStack.exceptionStack(true)).trim() + '\nUncaught Error: ${error}\nVersion: ${Tools.gameVersion}';
 

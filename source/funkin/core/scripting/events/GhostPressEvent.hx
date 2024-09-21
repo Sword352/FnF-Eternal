@@ -22,7 +22,7 @@ class GhostPressEvent extends ScriptEvent {
     /**
      * Health to lose.
      */
-    @:eventValue public var healthLoss:Float = 0.0475;
+    @:eventValue public var healthLoss:Float = 0.02375;
 
     /**
      * Whether to break the player's combo.

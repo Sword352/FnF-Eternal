@@ -1,58 +1,133 @@
 package funkin.gameplay.notes;
 
-import flixel.FlxCamera;
 import flixel.math.FlxRect;
 import funkin.objects.OffsetSprite;
-import funkin.gameplay.components.Rating;
 import funkin.data.ChartFormat.ChartNote;
 import funkin.data.NoteSkin;
 
+/**
+ * Sprite object which represents a gameplay note.
+ */
 class Note extends OffsetSprite {
-    public static final defaultTypes:Array<String> = ["Alt Animation", "No Animation"];
+    /**
+     * List of builtin notetypes.
+     */
+    public static final defaultTypes:Array<String> = ["Alt Animation"];
+
+    /**
+     * Array containing each note direction as a string.
+     */
     public static final directions:Array<String> = ["left", "down", "up", "right"];
 
+    /**
+     * Determines how much early or late a note can be hit.
+     */
     public static var hitRegion(get, never):Float;
+
+    /**
+     * Determines how much pixels a millisecond represents.
+     */
+    public static var pixelPerMs(get, never):Float;
+
     static function get_hitRegion():Float
-        return 166.66 * Conductor.self.playbackRate;
+        return 180 * Conductor.self.rate;
 
-    public var beenHit:Bool = false;
-    public var missed:Bool = false;
+    static function get_pixelPerMs():Float
+        return 0.45 / Conductor.self.rate;
 
-    public var canBeHit(get, default):Bool = false;
-    public var late(get, default):Bool = false;
-
+    /**
+     * Position of this note in the song.
+     */
     public var time:Float = 0;
+
+    /**
+     * Determines this note's direction, ranging from 0 to 3 by default.
+     */
     public var direction:Int = 0;
 
-    public var parentStrumline:StrumLine;
-    public var strumline:Int = 0;
-
+    /**
+     * Hold length of this note.
+     */
     public var length(default, set):Float = 0;
-    public var sustain(default, set):Sustain;
 
-    public var holdable(get, never):Bool;
-    public var invalidatedHold(get, never):Bool;
-    public var finishedHold:Bool = false;
-    public var holdHealth:Float = 0; 
-    public var unheldTime:Float;
-
+    /**
+     * Notetype of this note.
+     */
     public var type(default, set):String;
+
+    /**
+     * Noteskin of this note.
+     */
     public var skin(default, set):String;
 
-    public var animSuffix:String;
-    public var noSingAnim:Bool = false;
-    public var noMissAnim:Bool = false;
-    public var lateKill:Bool = true;
+    /**
+     * Represents this note's current state.
+     */
+    public var state(default, set):NoteState;
 
-    public var earlyHitMult:Float = 1;
-    public var lateHitMult:Float = 1;
+    /**
+     * Determines whether this note has been hit, based on `state`.
+     */
+    public var beenHit(get, never):Bool;
 
+    /**
+     * Determines whether this note has been missed, based on `state`.
+     */
+    public var missed(get, never):Bool;
+
+    /**
+     * Determines whether we should no longer hold this note.
+     */
+    public var finishedHold:Bool = false;
+
+    /**
+     * Determines the amount of health gained each second by holding this note.
+     */
+    public var holdHealth:Float;
+
+    /**
+     * Stores the elapsed time since this note hasn't been held.
+     * The hold note is invalidated if this exceeds 1 second.
+     */
+    public var unheldTime:Float;
+
+    /**
+     * Child sustain for this note, if it is holdable.
+     */
+    public var sustain(default, set):Sustain;
+    
+    /**
+     * Determines the opacity of the sustain trail.
+     */
     public var sustainAlpha:Float = 1;
 
-    public var downscroll(get, default):Bool = Options.downscroll;
-    public var scrollSpeed(get, default):Float = 1;
-    public var distance(get, default):Float = 0;
+    /**
+     * Defines this note's parent strumline.
+     */
+    public var strumLine(default, set):StrumLine;
+    
+    /**
+     * Defines the receptor this note should visually follow.
+     */
+    public var targetReceptor:Receptor;
 
+    /**
+     * Determines whether this note should be killed if it is extremely late.
+     */
+    public var lateKill:Bool = true;
+
+    /**
+     * Suffix to append when playing character animations.
+     */
+    public var animSuffix:String;
+
+    /**
+     * Creates a new `Note`.
+     * @param time Initial time.
+     * @param direction Initial direction.
+     * @param type Initial type.
+     * @param skin Initial noteskin.
+     */
     public function new(time:Float = 0, direction:Int = 0, type:String = null, skin:String = "default"):Void {
         super();
 
@@ -60,37 +135,32 @@ class Note extends OffsetSprite {
         this.direction = direction;
         this.type = type;
         this.skin = skin;
-
-        moves = false;
     }
 
     /**
-     * Setups this `Note` from a `ChartNote`.
+     * Setups this note from a `ChartNote`.
      * @param data `ChartNote` entry
      * @return `this`
      */
     public inline function setupData(data:ChartNote):Note {
-        return setup(data.time, data.direction, data.strumline, data.length, data.type);
+        return setup(data.time, data.direction, data.length, data.type);
     }
 
     /**
-     * Reset this `Note`'s properties, making it ready to use for recycling.
+     * Reset this note's properties, making it ready to use for recycling.
      * @param time Time for this note.
      * @param direction Direction for this note.
-     * @param strumline Strumline index for this note.
      * @param length Hold length for this note.
      * @param type Note type for this note.
      * @return `this`
      */
-    public function setup(time:Float, direction:Int, strumline:Int, length:Float, type:String):Note {
+    public function setup(time:Float, direction:Int, length:Float, type:String):Note {
         this.time = time;
         this.direction = direction;
-        this.strumline = strumline;
         this.length = length;
         this.type = type;
 
-        beenHit = false;
-        missed = false;
+        state = NONE;
         visible = true;
 
         finishedHold = false;
@@ -104,68 +174,80 @@ class Note extends OffsetSprite {
         return this;
     }
 
-    public function follow(receptor:FlxSprite):Void {
-        x = receptor.x;
-        y = receptor.y + distance;
+    /**
+     * Returns whether the note is valid to be hit.
+     * @return Bool
+     */
+    public inline function isHittable():Bool {
+        return state == NONE && ((strumLine.cpu && time <= Conductor.self.time) || (!strumLine.cpu && Math.abs(time - Conductor.self.time) <= hitRegion));
     }
 
-    public function clipSustain(receptor:FlxSprite):Void {
-        var receptorCenter:Float = receptor.y + (receptor.height * 0.5);
-
-        if (sustain.clipRegion == null)
-            sustain.clipRegion = FlxRect.get(0, 0, sustain.width, sustain.height);
-
-        sustain.clipRegion.y = receptorCenter - sustain.y;
-
-        if (downscroll)
-            sustain.clipRegion.y = sustain.height - sustain.clipRegion.y;
+    /**
+     * Returns whether the note is late.
+     * @return Bool
+     */
+    public inline function isLate():Bool {
+        return Conductor.self.time > (time + hitRegion);
     }
 
-    public inline function findRating(ratings:Array<Rating>):Rating {
-        var diff:Float = (Math.abs(Conductor.self.time - time) / Conductor.self.playbackRate);
-        var rating:Rating = ratings[ratings.length - 1];
-        var i:Int = ratings.length - 2;
-
-        while (i >= 0 && diff <= ratings[i].hitWindow)
-            rating = ratings[i--];
-
-        return rating;
+    /**
+     * Returns whether this note can be held.
+     * @return Bool
+     */
+    public inline function isHoldable():Bool {
+        return length > 0;
     }
 
-    public inline function resetTypeProps():Void {
-        animSuffix = null;
-        earlyHitMult = 1;
-        lateHitMult = 1;
-        noSingAnim = false;
-        noMissAnim = false;
-        lateKill = true;
+    /**
+     * Returns whether this note is invalidated, meaning it can no longer be held.
+     * @return Bool
+     */
+    public inline function isHoldWindowLate():Bool {
+        return unheldTime > 1;
     }
 
-    public inline function getScrollSpeed():Float {
-        return Math.abs(parentStrumline?.scrollSpeed ?? @:bypassAccessor this.scrollSpeed);
-    }
-
+    /**
+     * Update behaviour.
+     */
     override function update(elapsed:Float):Void {
-        if (holdable && sustain.exists && sustain.active)
+        this.y = targetReceptor.y + (time - Conductor.self.time) * (strumLine.downscroll ? -1 : 1) * strumLine.scrollSpeed * pixelPerMs;
+
+        if (isHoldable() && sustain.exists && sustain.active)
             sustain.update(elapsed);
 
-        super.update(elapsed);
+        if (animation.curAnim.frameRate > 0 && animation.curAnim.frames.length > 1)
+            animation.update(elapsed);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
+    /**
+     * Kills this `Note` for recycling.
+     */
     override function kill():Void {
-        sustain?.kill();
-        sustain = null;
+        if (sustain != null) {
+            sustain.kill();
+            sustain = null;
+        }
+
         super.kill();
     }
 
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
+        strumLine = null;
         sustain = null;
-        parentStrumline = null;
         skin = null;
         type = null;
 
         super.destroy();
     }
+
+    // Getters and setters
 
     function set_length(v:Float):Float {
         return length = Math.max(v, 0);
@@ -179,15 +261,14 @@ class Note extends OffsetSprite {
     }
 
     function set_type(v:String):String {
-        resetTypeProps();
+        // reset notetype properties
+        animSuffix = null;
+        lateKill = true;
 
         if (v != null) {
-            // case "Type" to hardcode your notetypes
             switch (v) {
                 case "Alt Animation":
                     animSuffix = "-alt";
-                case "No Animation":
-                    noSingAnim = true;
             }
         }
 
@@ -197,7 +278,6 @@ class Note extends OffsetSprite {
     function set_skin(v:String):String {
         if (v != null) {
             switch (v) {
-                // case "name" to hardcode your noteskins
                 case "default":
                     // default noteskin
                     frames = Assets.getSparrowAtlas("game/notes");
@@ -232,45 +312,49 @@ class Note extends OffsetSprite {
         return skin = v;
     }
 
-    inline function get_scrollSpeed():Float
-        return getScrollSpeed() * 0.45;
+    function set_state(v:NoteState):NoteState {
+        switch (v) {
+            case BEEN_HIT:
+                if (sustain != null && sustain.clipRegion == null)
+                    sustain.clipRegion = FlxRect.get(0, 0, sustain.width, sustain.height);
+            
+            case _:
+        }
 
-    inline function get_downscroll():Bool
-        return parentStrumline?.downscroll ?? this.downscroll;
-
-    inline function get_invalidatedHold():Bool
-        return unheldTime > 1;
-
-    inline function get_holdable():Bool
-        return length != 0;
-
-    function get_distance():Float {
-        var timestamp:Float = (Conductor.self.enableInterpolation ? Conductor.self.interpolatedTime : Conductor.self.time);
-        return (time - timestamp) * scrollSpeed * (downscroll ? -1 : 1);
+        return state = v;
     }
 
-    function get_late():Bool {
-        return this.late || Conductor.self.time > time + hitRegion * lateHitMult;
+    function set_strumLine(v:StrumLine):StrumLine {
+        targetReceptor = v?.getReceptor(direction);
+        x = targetReceptor?.x;
+        return strumLine = v;
     }
 
-    function get_canBeHit():Bool {
-        if (beenHit || missed)
-            return false;
-
-        if (parentStrumline != null)
-            return (parentStrumline.cpu && time <= Conductor.self.time)
-                || (!parentStrumline.cpu && Conductor.self.time >= time - (hitRegion * earlyHitMult) && Conductor.self.time <= time + (hitRegion * lateHitMult));
-        
-        return this.canBeHit;
+    inline function get_beenHit():Bool {
+        return state == BEEN_HIT;
     }
 
-    override function set_cameras(v:Array<FlxCamera>):Array<FlxCamera> {
-        if (sustain != null) sustain.cameras = v;
-        return super.set_cameras(v);
+    inline function get_missed():Bool {
+        return state == MISSED;
     }
+}
 
-    override function set_camera(v:FlxCamera):FlxCamera {
-        if (sustain != null) sustain.camera = v;
-        return super.set_camera(v);
-    }
+/**
+ * Represents a note's state.
+ */
+enum abstract NoteState(Int) from Int to Int {
+    /**
+     * The note is still hittable.
+     */
+    var NONE = -1;
+
+    /**
+     * The note has been hit.
+     */
+    var BEEN_HIT;
+
+    /**
+     * The note has been missed.
+     */
+    var MISSED;
 }

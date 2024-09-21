@@ -1,6 +1,5 @@
 package funkin.editors;
 
-import flixel.FlxBasic;
 import flixel.math.FlxPoint;
 import haxe.ui.core.Screen;
 

@@ -21,7 +21,7 @@ import flixel.tweens.FlxEase;
 }))
 class ChangeScrollSpeedEvent extends SongEvent {
     override function execute(_):Void {
-        for (strumline in game.strumLines) {
+        for (strumline in game.playField.strumLines) {
             if (duration > 0)
                 FlxTween.tween(strumline, {scrollSpeed: newSpeed}, duration, {ease: resolveEase(ease, easeMode)});
             else

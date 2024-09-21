@@ -43,7 +43,7 @@ class OffsetSubState extends MusicBeatSubState {
         FlxG.sound.music.fadeOut(0.5, 0);
         conductor.music = music;
         
-        var beatDuration:Float = conductor.crochet / 1000;
+        var beatDuration:Float = conductor.crotchet / 1000;
         FlxTween.tween(offsetText, {alpha: 1}, beatDuration);
         FlxTween.tween(logo, {y: (FlxG.height - logo.height) * 0.5}, beatDuration, {ease: FlxEase.backOut, onComplete: (_) -> music.play()});
 

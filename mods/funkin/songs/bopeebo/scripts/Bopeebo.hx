@@ -7,8 +7,8 @@ function onBeatHit(event) {
         return;
     }
 
-    for (character in [player, spectator])
-        character.playSpecialAnim("hey", Conductor.self.crochet);
+    spectator.playSpecialAnim("hey", Conductor.self.crotchet);
+    player.playSpecialAnim("hey", Conductor.self.crotchet);
 
     camGame.zoom += 0.12;
 }

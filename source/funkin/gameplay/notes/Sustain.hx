@@ -21,18 +21,29 @@ class Sustain extends TiledSprite {
     }
 
     override function update(elapsed:Float):Void {
-        this.x = parent.x + (parent.width - width) * 0.5;
-        this.y = parent.y + parent.height * 0.5;
+        var receptor:Receptor = parent.targetReceptor;
 
         // we're making the sustain a bit longer here so it ends properly when it's about to be behind the receptor.
-        // TODO: this causes visual innacuracies, maybe find a better solution?
-        var receptor:Receptor = parent.parentStrumline.getReceptor(parent.direction);
-        height = (parent.length * parent.scrollSpeed) + (receptor.height * 0.5);
+        height = (parent.length * Note.pixelPerMs * parent.strumLine.scrollSpeed) + (receptor.height * 0.5);
+        this.y = parent.y + parent.height * 0.5;
 
-        if (parent.downscroll)
-            this.y -= height;
+        if (parent.strumLine.downscroll)
+            y -= height;
 
-        super.update(elapsed);
+        if (parent.beenHit) {
+            // update sustain clipping
+            clipRegion.y = receptor.y + receptor.height * 0.5 - y;
+
+            if (parent.strumLine.downscroll)
+                clipRegion.y = height - clipRegion.y;
+        }
+
+        if (animation.curAnim.frameRate > 0 && animation.curAnim.frames.length > 1)
+            animation.update(elapsed);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -50,9 +61,10 @@ class Sustain extends TiledSprite {
         updateHitbox();
 
         flipY = parent.flipY;
-        if (parent.downscroll)
+        if (parent.strumLine?.downscroll)
             flipY = !flipY;
 
+        x = parent.x + (parent.width - width) * 0.5;
         antialiasing = parent.antialiasing;
         alpha = parent.sustainAlpha;
         flipX = parent.flipX;

@@ -3,7 +3,7 @@ package funkin.gameplay.components;
 import flixel.FlxState;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
-import flixel.FlxBasic;
+import flixel.util.FlxSignal;
 
 /**
  * Countdown object which executes the countdown in gameplay.
@@ -35,14 +35,14 @@ class Countdown extends FlxBasic {
     public var asset:String = null;
 
     /**
-     * Callback fired on countdown tick.
+     * Signal dispatched when a countdown tick starts.
      */
-    public var onTick:Int->Void = null;
+    public var onTick:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
 
     /**
-     * Callback fired when the countdown finishes.
+     * Signal dispatched when the countdown finishes.
      */
-    public var onFinish:Void->Void = null;
+    public var onFinish:FlxSignal = new FlxSignal();
 
     /**
      * Parent state.
@@ -65,10 +65,12 @@ class Countdown extends FlxBasic {
         if (startTime == -1)
             return;
 
-        while (Conductor.self.time - startTime >= Conductor.self.crochet * (currentTick + 1))
+        while (Conductor.self.time - startTime >= Conductor.self.crotchet * (currentTick + 1))
             tick(++currentTick);
 
-        super.update(elapsed);
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -84,6 +86,7 @@ class Countdown extends FlxBasic {
         sprite.animation.add("countdown", [for (i in 0...frames) i], 0);
         sprite.animation.play("countdown");
         sprite.cameras = cameras;
+        sprite.active = false;
         parent.add(sprite);
 
         startTime = Conductor.self.time;
@@ -119,8 +122,7 @@ class Countdown extends FlxBasic {
             sound = event.soundAsset;
         }
 
-        if (onTick != null)
-            onTick(tick);
+        onTick.dispatch(tick);
 
         if (PlayState.self != null && event.allowBeatEvents)
             PlayState.self.gameDance(tick - 1 + (totalTicks % 2));
@@ -135,15 +137,14 @@ class Countdown extends FlxBasic {
         sprite.screenCenter();
 
         if ((force || event.allowTween) && spriteFrame != -1)
-            FlxTween.tween(sprite, {y: (sprite.y -= 50) + 100, alpha: 0}, Conductor.self.crochet * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+            FlxTween.tween(sprite, {y: (sprite.y -= 50) + 100, alpha: 0}, Conductor.self.crotchet * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
     }
 
     /**
      * Countdown end behaviour.
      */
     function finish():Void {
-        if (onFinish != null)
-            onFinish();
+        onFinish.dispatch();
 
         parent.remove(this, true);
         parent.remove(sprite, true);
@@ -156,8 +157,8 @@ class Countdown extends FlxBasic {
      * Clean up memory.
      */
     override function destroy():Void {
-        onFinish = null;
-        onTick = null;
+        onFinish = cast FlxDestroyUtil.destroy(onFinish);
+        onTick = cast FlxDestroyUtil.destroy(onTick);
 
         sprite = null;
         parent = null;

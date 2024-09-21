@@ -20,7 +20,7 @@ import funkin.data.ChartFormat.ChartEvent;
 }))
 class ChangeBpmEvent extends SongEvent {
     override function execute(event:ChartEvent):Void {
-        game.conductor.beatOffset.step += (event.time - game.conductor.beatOffset.time) / game.conductor.stepCrochet;
+        game.conductor.beatOffset.step += (event.time - game.conductor.beatOffset.time) / game.conductor.semiQuaver;
         game.conductor.beatOffset.time = event.time;
         game.conductor.bpm = newBpm;
     }

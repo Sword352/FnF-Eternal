@@ -240,7 +240,7 @@ class ChartEditor extends MusicBeatState {
 
             if (pressed || holding) {
                 var mult:Int = (FlxG.keys.pressed.E) ? 1 : -1;
-                selectedNote.data.length += (holding) ? (conductor.stepCrochet / 10 * Tools.framerateMult() * mult) : (conductor.stepCrochet * mult);
+                selectedNote.data.length += (holding) ? (conductor.semiQuaver / 10 * Tools.framerateMult() * mult) : (conductor.semiQuaver * mult);
 
                 if (selectedNote.data.length < 0) {
                     undoList.register(RemoveNote(selectedNote.data));
@@ -253,9 +253,9 @@ class ChartEditor extends MusicBeatState {
         super.update(elapsed);
 
         if (FlxG.mouse.wheel != 0 && !interacting)
-            incrementTime(-FlxG.mouse.wheel * conductor.stepCrochet * Tools.framerateMult(120));
+            incrementTime(-FlxG.mouse.wheel * conductor.semiQuaver * Tools.framerateMult(120));
         if ((FlxG.keys.pressed.UP || FlxG.keys.pressed.DOWN) && !interacting)
-            incrementTime(conductor.stepCrochet / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
+            incrementTime(conductor.semiQuaver / 4 * ((FlxG.keys.pressed.UP) ? -1 : 1) * Tools.framerateMult());
 
         icons.forEach((icon) -> {
             icon.x = checkerboard.x + (checkerboard.width * icon.ID) - (icon.width * (1 - icon.ID));
@@ -470,10 +470,8 @@ class ChartEditor extends MusicBeatState {
         }
 
         music.time = time;
-        conductor.resetPrevTime();
 
         if (snap) {
-            conductor.updateTime(0);
             line.y = getYFromTime(time);
         }
     }
@@ -598,7 +596,7 @@ class ChartEditor extends MusicBeatState {
             return;
 
         musicText.text = '${getTimeInfo()}\n\n' + 'Step: ${conductor.step}\n' + 'Beat: ${conductor.beat}\n'
-            + 'Measure: ${conductor.measure}\n\n' + '${getBPMInfo()}\n' + 'Time Signature: ${conductor.getSignature()}';
+            + 'Measure: ${conductor.measure}\n\n' + '${getBPMInfo()}\n' + 'Time Signature: ${conductor.beatsPerMeasure} / ${conductor.stepsPerBeat}';
 
         overlay.scale.x = musicText.width + 15;
         overlay.updateHitbox();
@@ -611,10 +609,10 @@ class ChartEditor extends MusicBeatState {
         var currentTime:String = FlxStringUtil.formatTime(music.time * 0.001);
         var maxTime:String = FlxStringUtil.formatTime(music.instrumental.length * 0.001);
 
-        var playbackRate:String = Std.string(music.pitch);
-        if (Math.floor(music.pitch) == music.pitch) playbackRate += ".0";
+        var rate:String = Std.string(music.pitch);
+        if (Math.floor(music.pitch) == music.pitch) rate += ".0";
 
-        return '${currentTime} / ${maxTime} (${playbackRate}x)';
+        return '${currentTime} / ${maxTime} (${rate}x)';
     }
 
     inline public function getBPMInfo():String
@@ -628,7 +626,6 @@ class ChartEditor extends MusicBeatState {
 
         if (!music.playing) line.y = getYFromTime(conductor.rawTime);
         if (updateMeasure) checkerboard.refreshMeasureSep();
-        if (resetTime) conductor.resetPrevTime();
     }
 
     public function updateCurrentBPM():Void {
@@ -670,7 +667,6 @@ class ChartEditor extends MusicBeatState {
         add(music);
 
         music.onComplete.add(() -> {
-            conductor.resetPrevTime();
             icons.forEach((icon) -> icon.resetBop());
             line.y = 0;
         });
@@ -1068,9 +1064,7 @@ class ChartEditor extends MusicBeatState {
                 return;
 
             pauseMusic();
-
             music.time = timeBar.pos;
-            conductor.resetPrevTime();
         }
 
         Main.fpsOverlay.position = BOTTOM;
@@ -1269,11 +1263,11 @@ class ChartEditor extends MusicBeatState {
     }
 
     public static inline function getTimeFromY(y:Float):Float {
-        return Conductor.self.beatOffset.time + Conductor.self.stepCrochet * ((y / checkerSize) - Conductor.self.beatOffset.step);
+        return Conductor.self.beatOffset.time + Conductor.self.semiQuaver * ((y / checkerSize) - Conductor.self.beatOffset.step);
     }
 
     public static inline function getYFromTime(time:Float):Float {
-        return checkerSize * (Conductor.self.beatOffset.step + ((time - Conductor.self.beatOffset.time) / Conductor.self.stepCrochet));
+        return checkerSize * (Conductor.self.beatOffset.step + ((time - Conductor.self.beatOffset.time) / Conductor.self.semiQuaver));
     }
 
     public static function getIcon(character:String):String {

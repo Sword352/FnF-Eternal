@@ -1,10 +1,10 @@
 function onCreatePost():Void {
-    ratingSprites.group.memberAdded.add((sprite) -> pixelize(sprite));
-    comboSprites.group.memberAdded.add((sprite) -> pixelize(sprite));
+    playField.comboPopup.ratingSprites.group.memberAdded.add(pixelize);
+    playField.comboPopup.comboSprites.group.memberAdded.add(pixelize);
 }
 
 function onCountdownTick(_):Void {
-    pixelize(countdownSprite);
+    pixelize(countdown.sprite);
 }
 
 function pixelize(sprite:FlxSprite):Void {

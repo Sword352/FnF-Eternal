@@ -1,7 +1,7 @@
 package funkin.data;
 
 import funkin.data.GameOverData;
-import funkin.gameplay.notes.StrumLine.StrumlineType;
+import funkin.gameplay.notes.StrumLine.StrumLineOwner;
 
 @:structInit
 class Chart {
@@ -15,8 +15,8 @@ class Chart {
      * @param owner Strumline owner.
      * @return String
      */
-    public function getNoteskin(owner:StrumlineType):String {
-        if (gameplayInfo.noteSkins == null || owner == NONE)
+    public function getNoteskin(owner:StrumLineOwner):String {
+        if (gameplayInfo.noteSkins == null)
             return "default";
 
         return gameplayInfo.noteSkins[owner] ?? "default";

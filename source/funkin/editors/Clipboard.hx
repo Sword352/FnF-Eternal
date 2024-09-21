@@ -1,7 +1,5 @@
 package funkin.editors;
 
-import flixel.FlxBasic;
-
 class Clipboard<V> extends FlxBasic {
     var items:Array<V> = [];
 

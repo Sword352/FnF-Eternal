@@ -105,7 +105,6 @@ class TitleScreen extends MusicBeatState {
         postRenderSprites.add(pressEnterSprite);
 
         conductor.music = FlxG.sound.music;
-        FlxG.sound.music.onComplete = () -> conductor.resetPrevTime();
 
         if (!firstTime) {
             clearSequences();
@@ -403,11 +402,6 @@ class TitleScreen extends MusicBeatState {
 
         postRenderSprites.add(logo);
         postRenderSprites.add(girlfriend);
-    }
-
-    override function destroy():Void {
-        FlxG.sound.music.onComplete = null;
-        super.destroy();
     }
 
     static function getDefaultSequences():Array<TitleSequence> {

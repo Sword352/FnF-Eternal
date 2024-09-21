@@ -1,7 +1,5 @@
 package funkin.editors;
 
-import flixel.FlxBasic;
-
 // extend flxbasic so it's automatically destroyed
 class UndoList<V> extends FlxBasic {
     // cap to avoid array overflowing

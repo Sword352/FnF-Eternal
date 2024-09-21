@@ -15,12 +15,12 @@ class Rating implements IFlxDestroyable {
     /**
      * Score amount the player gains from hitting this rating.
      */
-    @:optional public var score:Float = 350;
+    @:optional public var score:Float = 300;
 
     /**
      * Health amount the player gains from hitting this rating.
      */
-    @:optional public var health:Float = 0.023;
+    @:optional public var health:Float = 0.01;
 
     /**
      * Accuracy this rating gives, ranging from 0 to 1.
@@ -82,10 +82,11 @@ class Rating implements IFlxDestroyable {
      */
     public static function getDefault():Array<Rating> {
         return [
+            {name: "mad",   rank: new Rank("MFC", FlxColor.PINK), score: 450, health: 0.02, hitWindow: 22.5},
             {name: "sick",  rank: new Rank("SFC", FlxColor.CYAN)},
-            {name: "good",  rank: new Rank("GFC", FlxColor.LIME), score: 175, accuracyMod: 0.7, hitWindow: 90, displaySplash: false},
-            {name: "bad",   score: 50,  health: 0.01,   accuracyMod: 0.3, hitWindow: 140, invalidateRank: true, displaySplash: false},
-            {name: "awful", score: -25, health: -0.015, accuracyMod: 0,   hitWindow: 160, invalidateRank: true, displaySplash: false, breakCombo: true}
+            {name: "good",  rank: new Rank("GFC", FlxColor.LIME), score: 150, accuracyMod: 0.85, hitWindow: 90,  displaySplash: false},
+            {name: "bad",   score: 50,  health: 0.005,   accuracyMod: 0.3, hitWindow: 135, invalidateRank: true, displaySplash: false},
+            {name: "awful", score: -25, health: -0.0075, accuracyMod: 0,   hitWindow: 175, invalidateRank: true, displaySplash: false, breakCombo: true}
         ];
     }
 }

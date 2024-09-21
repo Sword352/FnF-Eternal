@@ -104,7 +104,7 @@ class Character extends Bopper {
      * Update behaviour.
      */
     override function update(elapsed:Float):Void {
-        super.update(elapsed);
+        animation.update(elapsed);
 
         switch (animState) {
             case SINGING | SPECIAL:
@@ -113,6 +113,10 @@ class Character extends Bopper {
             
             case _:
         }
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -126,7 +130,7 @@ class Character extends Bopper {
         animState = SINGING;
 
         // since hold notes have longer durations, we have to make sure they aren't overwritten (in case of double notes and such)
-        animDuration = Math.max(animDuration, Conductor.self.stepCrochet * singDuration);
+        animDuration = Math.max(animDuration, Conductor.self.semiQuaver * singDuration);
     }
 
     /**
@@ -135,7 +139,7 @@ class Character extends Bopper {
      */
     public function playMissAnim(direction:Int):Void {
         playAnimation(missAnimations[direction], true);
-        animDuration = Conductor.self.crochet;
+        animDuration = Conductor.self.crotchet;
         animTime = Conductor.self.time;
         animState = SPECIAL;
     }

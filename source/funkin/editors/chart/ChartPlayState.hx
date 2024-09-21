@@ -56,15 +56,12 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function create():Void {
-        conductor.enableInterpolation = true;
+        conductor.interpolate = true;
         conductor.active = true;
         conductor.music = null;
 
         conductor.onMeasure.remove(parent.measureHit);
         conductor.onBeat.remove(parent.beatHit);
-
-        if (startTime == 0)
-            conductor.resetPrevTime();
 
         super.create();
 
@@ -85,7 +82,7 @@ class ChartPlayState extends MusicBeatSubState {
         var oppNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
         opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, OPPONENT, oppNoteSkin);
-        opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed / parent.music.pitch;
+        opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed;
 
         playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, PLAYER, plrNoteSkin);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
@@ -123,7 +120,7 @@ class ChartPlayState extends MusicBeatSubState {
         createUI();
 
         conductor.time = startTime - (850 * parent.music.pitch);
-        conductor.playbackRate = parent.music.pitch;
+        conductor.rate = parent.music.pitch;
         parent.music.onComplete.add(close);
 
         camera.alpha = 0;
@@ -131,6 +128,7 @@ class ChartPlayState extends MusicBeatSubState {
 
         startTimer = new FlxTimer().start(0.85, (_) -> {
             conductor.music = parent.music.instrumental;
+            conductor.interpolate = false;
             parent.music.play(startTime);
         });
     }
@@ -169,7 +167,15 @@ class ChartPlayState extends MusicBeatSubState {
         note.ID = -1;
         totalPlayerNotes++;
 
-        var rating:Rating = note.findRating(ratings);
+        var rating:Rating = ratings[ratings.length - 1];
+
+        for (entry in ratings) {
+            if ((Math.abs(note.time - Conductor.self.time) / Conductor.self.rate) <= entry.hitWindow) {
+                rating = entry;
+                break;
+            }
+        }
+
         health += rating.health;
         accuracyMod += rating.accuracyMod;
         accuracyNotes++;
@@ -196,7 +202,7 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function onHoldInvalidation(note:Note):Void {
         var remainingLength:Float = note.length - (conductor.time - note.time);
-        var fraction:Float = (remainingLength / (conductor.stepCrochet * 2)) + 1;
+        var fraction:Float = (remainingLength / (conductor.semiQuaver * 2)) + 1;
 
         health -= 0.0475 * fraction;
         accuracyNotes += Math.floor(fraction);
@@ -299,8 +305,8 @@ class ChartPlayState extends MusicBeatSubState {
         parent.music.pause();
 
         conductor.music = parent.music.instrumental;
-        conductor.enableInterpolation = false;
-        conductor.playbackRate = 1;
+        conductor.interpolate = false;
+        conductor.rate = 1;
 
         conductor.onMeasure.add(parent.measureHit);
         conductor.onBeat.add(parent.beatHit);

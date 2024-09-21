@@ -2,12 +2,10 @@ package funkin.gameplay;
 
 import flixel.*;
 import flixel.math.FlxPoint;
-import flixel.group.FlxGroup;
 
 import funkin.gameplay.*;
 import funkin.gameplay.notes.*;
 import funkin.gameplay.components.*;
-import funkin.gameplay.components.ComboPopup;
 import funkin.gameplay.events.SongEventExecutor;
 import funkin.objects.Camera;
 
@@ -45,22 +43,9 @@ class PlayState extends MusicBeatState {
     public var player:Character;
     public var stage:Stage;
 
-    public var strumLines:FlxTypedGroup<StrumLine>;
-    public var noteSpawner:NoteSpawner;
-
-    public var opponentStrumline:StrumLine;
-    public var playerStrumline:StrumLine;
-
     public var stats:GameStats = new GameStats();
-    public var hud:GameplayUI;
-
-    public var comboPopup:ComboPopup;
+    public var playField:PlayField;
     public var countdown:Countdown;
-
-    public var score(get, set):Float;
-    public var misses(get, set):Int;
-    public var accuracyNotes(get, set):Int;
-    public var botplay(get, set):Bool;
 
     public var cameraSpeed:Float = 3;
     public var cameraZoom:Float = 1;
@@ -117,9 +102,6 @@ class PlayState extends MusicBeatState {
         super.create();
         scripts.call("onCreate");
 
-        var oppNoteSkin:String = song.getNoteskin(OPPONENT);
-        var plrNoteSkin:String = song.getNoteskin(PLAYER);
-
         music = new SongPlayback(song);
         music.onComplete.add(endSong);
         add(music);
@@ -144,59 +126,21 @@ class PlayState extends MusicBeatState {
         if (song.gameplayInfo.opponent != null && song.gameplayInfo.spectator != song.gameplayInfo.opponent) {
             opponent = new Character(200, 0, song.gameplayInfo.opponent);
             add(opponent);
-
-            if (opponent.noteSkin != null)
-                oppNoteSkin = opponent.noteSkin;
         }
 
         if (song.gameplayInfo.player != null) {
             player = new Character(400, 0, song.gameplayInfo.player);
             add(player);
-
-            if (player.noteSkin != null)
-                plrNoteSkin = player.noteSkin;
         }
 
         stage?.postBuild();
 
-        comboPopup = new ComboPopup(stats.ratings.length, stage?.uiStyle);
-        comboPopup.camera = camHUD;
-        add(comboPopup);
+        playField = new PlayField();
+        playField.camera = camHUD;
+        add(playField);
 
-        hud = new GameplayUI();
-        hud.camera = camHUD;
-        add(hud);
-
-        strumLines = new FlxTypedGroup<StrumLine>();
-        strumLines.camera = camHUD;
-
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 50, true, OPPONENT, oppNoteSkin);
-        opponentStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
-        strumLines.add(opponentStrumline);
-
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 50, false, PLAYER, plrNoteSkin);
-        playerStrumline.scrollSpeed = song.gameplayInfo.scrollSpeed;
-        strumLines.add(playerStrumline);
-
-        if (Options.downscroll)
-            playerStrumline.y = opponentStrumline.y = FlxG.height * 0.8;
-
-        if (Options.centeredStrumline) {
-            playerStrumline.x = FlxG.width / 2;
-            opponentStrumline.visible = false;
-        }
-
-        if (opponent != null)
-            opponentStrumline.characters.push(opponent);
-
-        if (player != null)
-            playerStrumline.characters.push(player);
-
-        noteSpawner = new NoteSpawner(strumLines.members, startTime);
-        add(noteSpawner);
-
-        // important to add strumlines *after* the note spawner!
-        add(strumLines);
+        events = new SongEventExecutor();
+        add(events);
 
         // look for notetype scripts
         var types:Array<String> = [];
@@ -218,10 +162,8 @@ class PlayState extends MusicBeatState {
         updatePresenceState();
         #end
 
-        conductor.enableInterpolation = true;
-
-        events = new SongEventExecutor();
-        add(events);
+        conductor.music = music.instrumental;
+        conductor.interpolate = true;
 
         if (startTime <= 0)
             startCountdown();
@@ -244,7 +186,7 @@ class PlayState extends MusicBeatState {
         countdown.camera = camHUD;
         add(countdown);
 
-        countdown.onFinish = startSong.bind(0);
+        countdown.onFinish.add(startSong.bind(0));
         conductor.beat = -event.totalTicks - 1;
         countdown.start();
     }
@@ -270,16 +212,13 @@ class PlayState extends MusicBeatState {
 
         if (gameMode != STORY) {
             if (Options.editorAccess && controls.justPressed("debug")) {
-                if (gameMode != DEBUG) {
-                    gameMode = DEBUG;
-                    validScore = false;
-                }
-
+                gameMode = DEBUG;
+                validScore = false;
                 openChartEditor();
             }
 
             if (controls.justPressed("autoplay"))
-                botplay = !botplay;
+                playField.botplay = !playField.botplay;
         }
         
         scripts.call("onUpdatePost", elapsed);
@@ -299,7 +238,7 @@ class PlayState extends MusicBeatState {
             gameDance(beat);
 
         if (event.iconBops)
-            hud.iconBops();
+            playField.iconBops();
     }
 
     public function pause():Void {
@@ -352,7 +291,7 @@ class PlayState extends MusicBeatState {
         DiscordRPC.self.timestamp.start = 1;
         #end
 
-        conductor.music = music.instrumental;
+        conductor.interpolate = false;
         music.play(time);
     }
 
@@ -404,107 +343,6 @@ class PlayState extends MusicBeatState {
         stage?.dance(beat);
     }
 
-    public function onNoteHit(event:NoteHitEvent):Void {
-        scripts.dispatchEvent("onNoteHit", event);
-        if (event.cancelled) return;
-
-        score += event.score;
-        stats.health += event.health;
-
-        if (event.increaseCombo) stats.combo++;
-        if (event.increaseHits) event.rating.hits++;
-        if (event.breakCombo) stats.combo = 0;
-
-        if (event.increaseAccuracy) {
-            stats.accuracyMod += event.accuracy;
-            accuracyNotes++;
-        }
-
-        if (event.displayRating) comboPopup.displayRating(event.rating);
-        if (event.displayCombo) comboPopup.displayCombo(stats.combo);
-
-        if (event.displaySplash)
-            event.note.parentStrumline.popSplash(event.note);
-
-        if (event.unmutePlayer)
-            music.playerVolume = event.playerVolume;
-    }
-
-    public function onNoteHold(event:NoteHoldEvent):Void {
-        scripts.dispatchEvent("onNoteHold", event);
-        if (event.cancelled) return;
-
-        if (event.unmutePlayer)
-            music.playerVolume = event.playerVolume;
-    }
-
-    public function onNoteHoldInvalidation(event:NoteHoldInvalidationEvent):Void {
-        scripts.dispatchEvent("onNoteHoldInvalidation", event);
-        if (event.cancelled) return;
-
-        score -= event.scoreLoss * Math.floor(event.fraction);
-        stats.health -= event.healthLoss * Math.floor(event.fraction);
-
-        if (event.decreaseAccuracy)
-            accuracyNotes += Math.floor(event.fraction);
-
-        if (event.breakCombo)
-            stats.combo = 0;
-
-        if (event.characterMiss)
-            characterMisses(event.note, -1, event.spectatorSad);
-        
-        if (event.playSound)
-            playMissSound(event.soundVolume, event.soundVolDiff);
-
-        music.playerVolume = event.playerVolume;
-    }
-
-    public function onMiss(event:NoteMissEvent):Void {
-        scripts.dispatchEvent("onMiss", event);
-        if (event.cancelled) return;
-
-        score -= event.scoreLoss;
-        stats.health -= event.healthLoss;
-
-        if (event.breakCombo) stats.combo = 0;
-        if (event.increaseMisses) misses++;
-        if (event.decreaseAccuracy) accuracyNotes++;
-
-        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
-        if (event.characterMiss) characterMisses(event.note, -1, event.spectatorSad);
-
-        music.playerVolume = event.playerVolume;
-    }
-
-    public function onGhostPress(event:GhostPressEvent):Void {
-        scripts.dispatchEvent("onGhostPress", event);
-        if (event.cancelled || event.ghostTapping) return;
-
-        score -= event.scoreLoss;
-        stats.health -= event.healthLoss;
-
-        if (event.breakCombo) stats.combo = 0;
-
-        if (event.characterMiss) characterMisses(null, event.direction, event.spectatorSad);
-        if (event.playSound) playMissSound(event.soundVolume, event.soundVolDiff);
-
-        music.playerVolume = event.playerVolume;
-    }
-
-    public function characterMisses(note:Note, direction:Int = -1, spectatorSad:Bool = true):Void {
-        if (direction != -1 || !note?.noMissAnim)
-            for (player in playerStrumline.characters)
-                player.playMissAnim(note?.direction ?? direction);
-
-        if (spectatorSad && spectator?.animation.exists("sad"))
-            spectator.playSpecialAnim("sad", Conductor.self.crochet);
-    }
-
-    public inline function playMissSound(volume:Float = 0.1, difference:Float = 0.1):Void {
-        FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
-    }
-
     #if DISCORD_RPC
     function updatePresenceTimestamp():Void {
         DiscordRPC.self.timestamp.end = 1 + Math.floor((music.instrumental.length - music.instrumental.time) * 0.001);
@@ -532,8 +370,8 @@ class PlayState extends MusicBeatState {
         if (camSubState != null)
             subState.camera = camSubState;
 
-        if (playerStrumline != null)
-            playerStrumline.inactiveInputs = true;
+        if (playField != null)
+            playField.inactiveInputs = true;
 
         super.onSubStateOpen(subState);
     }
@@ -543,7 +381,7 @@ class PlayState extends MusicBeatState {
         Tools.resumeEveryTimer();
         music?.resume();
 
-        playerStrumline.inactiveInputs = false;
+        playField.inactiveInputs = false;
         super.onSubStateClose(subState);
     }
 
@@ -609,49 +447,6 @@ class PlayState extends MusicBeatState {
         }
 
         return v;
-    }
-
-    function set_score(v:Float):Float {
-        stats.score = v;
-        hud.updateScore();
-        return v;
-    }
-
-    function set_misses(v:Int):Int {
-        stats.misses = v;
-        hud.updateMisses();
-        return v;
-    }
-
-    function set_accuracyNotes(v:Int):Int {
-        stats.accuracyNotes = v;
-        hud.updateAccuracy();
-        return v;
-    }
-
-    function set_botplay(v:Bool):Bool {
-        if (v)
-            validScore = false;
-
-        playerStrumline.cpu = v;
-        hud.updateAccuracy();
-        return v;
-    }
-
-    function get_score():Float {
-        return stats.score;
-    }
-
-    function get_misses():Int {
-        return stats.misses;
-    }
-
-    function get_accuracyNotes():Int {
-        return stats.accuracyNotes;
-    }
-
-    function get_botplay():Bool {
-        return playerStrumline?.cpu;
     }
 }
 

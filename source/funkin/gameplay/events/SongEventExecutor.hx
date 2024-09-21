@@ -1,6 +1,5 @@
 package funkin.gameplay.events;
 
-import flixel.FlxBasic;
 import funkin.data.ChartFormat.ChartEvent;
 
 /**
@@ -77,7 +76,9 @@ class SongEventExecutor extends FlxBasic {
             _currentEvent++;
         }
 
-        super.update(elapsed);
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
