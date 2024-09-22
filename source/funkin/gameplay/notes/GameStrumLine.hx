@@ -6,6 +6,13 @@ import funkin.gameplay.components.Rating;
  * Special `StrumLine` which handles extra gameplay logic for `PlayState`.
  */
 class GameStrumLine extends StrumLine {
+    /**
+     * Since the processed direction in `onKeyDown` and `onKeyUp` can be changed with an event, 
+     * it messes with sustain holding since `heldKeys` is shared for both input checks and sustain holding.
+     * This array allows us to handle these separatly.
+     */
+    var pressedKeys:Array<Bool> = [false, false, false, false];
+
     override function handleNoteHit(note:Note):Void {
         var rating:Rating = PlayState.self.stats.evaluateNote(note);
 
@@ -208,15 +215,16 @@ class GameStrumLine extends StrumLine {
         var key:Int = Tools.convertLimeKey(rawKey);
         var dir:Int = getDirFromKey(key);
 
-        if (dir == -1 || heldKeys[dir] || inactiveInputs)
+        if (dir == -1 || pressedKeys[dir] || inactiveInputs)
             return;
 
         var event:NoteKeyActionEvent = PlayState.self.scripts.dispatchEvent("onKeyPress", Events.get(NoteKeyActionEvent).setup(key, dir));
         if (event.cancelled)
             return;
 
-        heldKeys[dir] = true;
+        pressedKeys[dir] = true;
         dir = event.direction;
+        heldKeys[dir] = true;
 
         var targetNote:Note = notes.group.getFirst((note) -> note.direction == dir && note.isHittable());
 
@@ -237,8 +245,9 @@ class GameStrumLine extends StrumLine {
         if (event.cancelled)
             return;
 
-        heldKeys[dir] = false;
+        pressedKeys[dir] = false;
         dir = event.direction;
+        heldKeys[dir] = false;
         playStatic(dir);
 
         if (!heldKeys.contains(true)) {
@@ -286,5 +295,10 @@ class GameStrumLine extends StrumLine {
 
     inline function playMissSound(volume:Float = 0.1, difference:Float = 0.1):Void {
         FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
+    }
+
+    override function destroy():Void {
+        pressedKeys = null;
+        super.destroy();
     }
 }

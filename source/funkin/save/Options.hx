@@ -15,6 +15,7 @@ class Options {
 
     public static var audioStreaming:Bool = false;
     public static var audioOffset:Float = 0;
+    public static var noteOffset:Float = 0;
 
     // GAMEPLAY SETTINGS
     public static var downscroll:Bool = false;

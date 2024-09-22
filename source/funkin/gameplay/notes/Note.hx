@@ -155,7 +155,7 @@ class Note extends OffsetSprite {
      * @return `this`
      */
     public function setup(time:Float, direction:Int, length:Float, type:String):Note {
-        this.time = time;
+        this.time = time + Options.noteOffset;
         this.direction = direction;
         this.length = length;
         this.type = type;
