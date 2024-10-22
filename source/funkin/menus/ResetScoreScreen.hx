@@ -29,7 +29,7 @@ class ResetScoreScreen extends MusicBeatSubState {
         add(background);
 
         text = new FlxText(0, 150);
-        text.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, CENTER);
+        text.setFormat(Paths.font("vcr"), 32, FlxColor.WHITE, CENTER);
         text.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         text.text = 'RESET THE SCORE OF\n${display}?';
         text.screenCenter(X);

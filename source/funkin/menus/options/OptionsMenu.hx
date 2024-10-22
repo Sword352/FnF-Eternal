@@ -45,17 +45,17 @@ class OptionsMenu extends MusicBeatState {
         initStateScripts();
         scripts.call("onCreate");
 
-        Assets.clearAssets = !toPlayState || Options.reloadAssets;
+        Assets.clearCache = !toPlayState || Options.reloadAssets;
 
         #if DISCORD_RPC
         DiscordRPC.self.details = "In the options";
         #end
 
-        Tools.playMusicCheck(toPlayState ? "chillFresh" : "freakyMenu");
+        BGM.playMusic(toPlayState ? "chillFresh" : "freakyMenu");
         conductor.bpm = (toPlayState ? 117 : 102);
         conductor.music = FlxG.sound.music;
 
-        background = new FlxSprite(0, 0, Assets.image('menus/menuDesat'));
+        background = new FlxSprite(0, 0, Paths.image('menus/menuDesat'));
         background.scale.set(1.15, 1.15);
         background.color = 0x3E3E7A;
         background.screenCenter();
@@ -70,9 +70,9 @@ class OptionsMenu extends MusicBeatState {
         add(uiGroup);
 
         for (i in 0...categories.length) {
-            var image:String = 'menus/options/icon_${categories[i].name.toLowerCase().replace(" ", "-")}';
-            if (!FileTools.exists(Assets.getPath('images/${image}', IMAGE)))
-                image = 'menus/options/icon_default';
+            var graphic = Paths.image('menus/options/icon_${categories[i].name.toLowerCase().replace(" ", "-")}');
+            if (graphic == null)
+                graphic = Paths.image('menus/options/icon_default');
 
             var left:Bool = (i % 2 == 0);
 
@@ -86,7 +86,7 @@ class OptionsMenu extends MusicBeatState {
             if (!left)
                 categoryText.x -= categoryText.width;
 
-            var icon:FlxSprite = new FlxSprite(0, categoryText.y, Assets.image(image));
+            var icon:FlxSprite = new FlxSprite(0, categoryText.y, graphic);
             icon.scale.set(0.5, 0.5);
             icon.updateHitbox();
             add(icon);
@@ -145,14 +145,14 @@ class OptionsMenu extends MusicBeatState {
         uiGroup.forEach((element) -> element.alpha = (element.ID == currentSelection ? 1 : 0.4));
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
     function accept():Void {
         if (scripts.quickEvent("onAccept").cancelled) return;
 
         var category:OptionCategory = categories[currentSelection];
-        if (!category.noSound) FlxG.sound.play(Assets.sound("scrollMenu"));
+        if (!category.noSound) FlxG.sound.play(Paths.sound("scrollMenu"));
         category.action();
     }
 
@@ -177,8 +177,11 @@ class OptionsMenu extends MusicBeatState {
     }
 
     function exit():Void {
-        FlxG.sound.play(Assets.sound("cancelMenu"));
-        FlxG.switchState(toPlayState ? (Assets.clearAssets ? LoadingScreen.new.bind(0) : PlayState.new.bind(0)) : MainMenu.new);
+        FlxG.sound.play(Paths.sound("cancelMenu"));
+        FlxG.switchState(toPlayState ? (Assets.clearCache ? LoadingScreen.new.bind(0) : PlayState.new.bind(0)) : MainMenu.new);
+
+        if (toPlayState && !Assets.clearCache)
+            FlxG.sound.music.persist = false;
     }
 
     override function onSubStateOpen(subState:FlxSubState):Void {

@@ -33,7 +33,7 @@ class PauseScreen extends MusicBeatSubState {
         scripts.call("onCreate");
 
         // Caching
-        Assets.sound("scrollMenu");
+        Paths.sound("scrollMenu");
 
         background = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -46,7 +46,7 @@ class PauseScreen extends MusicBeatSubState {
         changeList("default");
 
         songText = new FlxText(0, 15);
-        songText.setFormat(Assets.font('vcr'), 32);
+        songText.setFormat(Paths.font('vcr'), 32);
         songText.updateHitbox();
         songText.text = '${PlayState.song.meta.name} (${PlayState.currentDifficulty.toUpperCase()})';
         songText.x = FlxG.width - songText.width - 10;
@@ -61,7 +61,7 @@ class PauseScreen extends MusicBeatSubState {
         lossCounter.alpha = 0;
         add(lossCounter);
 
-        music = FlxG.sound.load(Assets.music("breakfast"), 0, true);
+        music = FlxG.sound.load(Paths.music("breakfast"), 0, true);
         music.play(false, FlxG.random.int(0, Math.floor(music.length * 0.5)));
 
         FlxTween.tween(background, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
@@ -100,7 +100,7 @@ class PauseScreen extends MusicBeatSubState {
         }
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
     function accept(item:String):Void {
@@ -108,17 +108,17 @@ class PauseScreen extends MusicBeatSubState {
             case "resume":
                 close();
             case "restart song":
-                Assets.clearAssets = Transition.openOnSubState = Options.reloadAssets;
-                Transition.skipNextTransIn = Transition.skipNextTransOut = !Assets.clearAssets;
+                Assets.clearCache = Transition.openOnSubState = Options.reloadAssets;
+                Transition.skipNextTransIn = Transition.skipNextTransOut = !Assets.clearCache;
 
-                if (!Assets.clearAssets) FlxG.resetState();
+                if (!Assets.clearCache) FlxG.resetState();
                 else {
                     Transition.noPersistentUpdate = true;
                     FlxG.switchState(LoadingScreen.new.bind(PlayState.self.startTime));
                 }
             case "go to options":
                 Transition.openOnSubState = Transition.noPersistentUpdate = true;
-                Assets.clearAssets = Options.reloadAssets;
+                Assets.clearCache = Options.reloadAssets;
                 FlxG.switchState(OptionsMenu.new.bind(true));
             case "exit to menu":
                 Transition.openOnSubState = Transition.noPersistentUpdate = true;

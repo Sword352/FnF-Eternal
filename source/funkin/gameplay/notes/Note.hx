@@ -280,7 +280,7 @@ class Note extends OffsetSprite {
             switch (v) {
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("game/notes");
+                    frames = Paths.atlas("game/notes");
 
                     for (dir in directions) {
                         animation.addByPrefix(dir, '${dir}0', 0);

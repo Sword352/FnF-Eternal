@@ -42,7 +42,7 @@ class HealthBar extends FlxSpriteGroup {
         super();
 
         playerSide = new HealthBarSide();
-        playerSide.loadGraphic(Assets.image('game/healthBar'));
+        playerSide.loadGraphic(Paths.image('game/healthBar'));
         playerSide.color = playerColor;
         add(playerSide);
 

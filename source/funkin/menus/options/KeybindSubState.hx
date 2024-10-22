@@ -44,7 +44,7 @@ class KeybindSubState extends MusicBeatSubState {
 
             if (controls.anyJustPressed(["left", "right"])) {
                 horizontalSelection = FlxMath.wrap(horizontalSelection + (controls.lastAction == "left" ? -1 : 1), 0, 2);
-                FlxG.sound.play(Assets.sound("scrollMenu"));
+                FlxG.sound.play(Paths.sound("scrollMenu"));
                 changeSelection();
             }
 
@@ -124,7 +124,7 @@ class KeybindSubState extends MusicBeatSubState {
         }
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
     override function close():Void {
@@ -147,7 +147,7 @@ class KeybindItem extends FlxText {
         text = keybind.toUpperCase();
         this.keybind = keybind.toLowerCase();
 
-        setFormat(Assets.font("vcr"), 54, FlxColor.WHITE, CENTER);
+        setFormat(Paths.font("vcr"), 54, FlxColor.WHITE, CENTER);
         setBorderStyle(OUTLINE, FlxColor.BLACK, 2.5);
 
         firstKeybind = new FlxText();

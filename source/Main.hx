@@ -65,7 +65,6 @@ private class InitState extends FlxState {
         // Initialize backend
         Conductor.init();
         Controls.init();
-        Assets.init();
         NoteSkin.init();
         Events.init();
 

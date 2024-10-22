@@ -111,7 +111,7 @@ class FreeplayMenu extends MusicBeatState {
         add(scoreBG);
 
         scoreText = new FlxText(FlxG.width * 0.7, 5);
-        scoreText.setFormat(Assets.font("vcr"), 32, FlxColor.WHITE, RIGHT);
+        scoreText.setFormat(Paths.font("vcr"), 32, FlxColor.WHITE, RIGHT);
         add(scoreText);
         
         difficultyText = new FlxText(scoreText.x, scoreText.y + 36, 0, "", 24);
@@ -125,7 +125,7 @@ class FreeplayMenu extends MusicBeatState {
         add(instructions);
 
         inst = FlxG.sound.list.recycle(FlxSound);
-        Tools.playMusicCheck("freakyMenu");
+        BGM.playMusic("freakyMenu");
 
         changeSelection();
 
@@ -197,7 +197,7 @@ class FreeplayMenu extends MusicBeatState {
         if (change != 0) {
             selection = FlxMath.wrap(selection + change, 0, maxSelect);
             doTween = ((selection == 0 && oldSelect == maxSelect) || (selection == maxSelect && oldSelect == 0));
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
         }
 
         for (item in items) {
@@ -245,7 +245,7 @@ class FreeplayMenu extends MusicBeatState {
             inst.persist = true;
         }
 
-        FlxG.sound.play(Assets.sound("cancelMenu"));
+        FlxG.sound.play(Paths.sound("cancelMenu"));
         allowInputs = false;
 
         FlxG.switchState(MainMenu.new);
@@ -261,7 +261,7 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     function openChartEditor():Void {
-        Tools.stopMusic();
+        BGM.stopMusic();
 
         PlayState.gameMode = DEBUG;
         allowInputs = false;
@@ -309,20 +309,24 @@ class FreeplayMenu extends MusicBeatState {
 
         try {
             var song:String = songs[selection].folder;
-            var meta:String = Assets.json('songs/${song}/meta');
+            var file:String = null;
+
+            var chartFile:Dynamic = Paths.json('songs/${song}/charts/${difficulties[difficulty]}');
+            if (chartFile != null) {
+                if (chartFile.gameplayInfo != null || chartFile.gameplayInfo.instrumental != null)
+                    file = chartFile.gameplayInfo.instrumental;
+                else if (chartFile.song != null)
+                    file = "Inst";
+            }
+            else
+                file = Paths.json('songs/${song}/meta').instrumental;
     
-            var chartFile:String = FileTools.getContent(Assets.json('songs/${song}/charts/${difficulties[difficulty]}'));
-            if (!chartFile.contains("instrumental") && FileTools.exists(meta))
-                chartFile = FileTools.getContent(meta);
-    
-            var data:Dynamic = Json.parse(chartFile);
-            var file:String = (data.song != null ? "Inst" : data.gameplayInfo.instrumental);
-            finalAsset = Assets.songMusic(song, file);
+            finalAsset = Paths.songMusic(song, file);
         }
         catch (e) {
             // fallback
             trace('Failed to load instrumental! [${e.message}]');
-            finalAsset = Assets.music("chillFresh");
+            finalAsset = Paths.music("chillFresh");
         }
 
         inst.loadEmbedded(finalAsset);
@@ -336,8 +340,10 @@ class FreeplayMenu extends MusicBeatState {
             FlxG.sound.list.remove(inst, true);
             inst.destroy();
 
-            FlxG.sound.music.fadeTween?.cancel();
-            FlxG.sound.music.volume = 1;
+            if (FlxG.sound.music != null) {
+                FlxG.sound.music.fadeTween?.cancel();
+                FlxG.sound.music.volume = 1;
+            }
         }
 
         songs = null;
@@ -348,12 +354,17 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     public static function loadFreeplaySongs():Array<SongStructure> {
-        var lists:Array<String> = Assets.listFiles((structure) -> {
-            var path:String = structure.getPath("data/freeplaySongs", TEXT);
-            structure.entryExists(path) ? structure.getContent(path) : null;
+        var lists:Array<String> = [];
+
+        Assets.invoke((source) -> {
+            var extension:String = TXT.findExtension("data/freeplaySongs", source);
+
+            if (extension != null)
+                lists.push(source.getContent("data/freeplaySongs" + extension));
         });
 
-        if (lists.length == 0) return null;
+        if (lists.length == 0)
+            return null;
 
         var list:Array<SongStructure> = [];
 
@@ -361,11 +372,8 @@ class FreeplayMenu extends MusicBeatState {
             for (line in content.split("\n")) {
                 var song:String = line.trim();
     
-                var metaPath:String = Assets.json('songs/${song}/meta');
-                if (!FileTools.exists(metaPath)) continue;
-    
-                var meta:SongMeta = Json.parse(FileTools.getContent(metaPath));
-                if (meta.freeplayInfo?.parentWeek != null && !SongProgress.unlocked(meta.freeplayInfo.parentWeek, true))
+                var meta:SongMeta = Paths.json('songs/${song}/meta');
+                if (meta == null || (meta.freeplayInfo?.parentWeek != null && !SongProgress.unlocked(meta.freeplayInfo.parentWeek, true)))
                     continue;
     
                 var color:FlxColor = FlxColor.WHITE;
@@ -394,7 +402,7 @@ class Background extends FlxSprite {
     var tmr:Float;
 
     public function new(parent:FreeplayMenu):Void {
-        super(0, 0, Assets.image("menus/menuDesat"));
+        super(0, 0, Paths.image("menus/menuDesat"));
         this.parent = parent;
     }
 
@@ -446,7 +454,7 @@ class Instructions extends FlxSpriteGroup {
             var right:Bool = ((i % 2) == 0);
 
             var text:FlxText = new FlxText();
-            text.setFormat(Assets.font("vcr"), 18, FlxColor.WHITE, (center) ? CENTER : ((right) ? RIGHT : LEFT));
+            text.setFormat(Paths.font("vcr"), 18, FlxColor.WHITE, (center) ? CENTER : ((right) ? RIGHT : LEFT));
             text.text = instructionText[i];
 
             if (center) {

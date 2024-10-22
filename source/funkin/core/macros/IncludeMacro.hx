@@ -18,10 +18,6 @@ class IncludeMacro {
         Compiler.include("sys", true, [#if hl "sys.ssl", "sys.net", "sys.db", "sys.Http" #end]);
         #end
 
-        #if hxvlc
-        Compiler.include("hxvlc", true);
-        #end
-
         Compiler.include("StringBuf");
         #end
     }

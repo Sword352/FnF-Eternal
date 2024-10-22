@@ -68,7 +68,6 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
         - and more...
 
 - Simple to use Discord Presence API
-- Video cutscenes support on desktop platforms
 - Many options to customize your experience
 - A fresh new and efficient crash handler
 

@@ -219,10 +219,7 @@ class Character extends Bopper {
      * Internal method which checks for a character script.
      */
     function loadScript():Void {
-        var path:String = Assets.script('data/characters/${character}');
-        if (!FileTools.exists(path)) return;
-
-        script = PlayState.self.scripts.load(path);
+        script = PlayState.self.scripts.load('data/characters/${character}');
         if (script == null) return;
 
         script.set("this", this);
@@ -262,20 +259,14 @@ class Character extends Bopper {
         if (v != null) {
             destroyScript();
 
-            var yamlPath:String = Assets.yaml('data/characters/${v}');
-            if (!FileTools.exists(yamlPath)) {
+            var data:CharacterData = Paths.yaml('data/characters/${v}');
+            if (data == null) {
                 // TODO: have an hardcoded fallback character rather than looking for boyfriend's file
-                yamlPath = Assets.yaml("data/characters/boyfriend");
+                data = Paths.yaml("data/characters/boyfriend");
                 trace('Could not find character "${v}"!');
             }
 
-            var data:CharacterData = Tools.parseYAML(FileTools.getContent(yamlPath));
-            if (data == null) {
-                trace('Error loading character "${v}"!');
-                return v;
-            }
-
-            frames = Assets.getFrames(data.image, data.atlasType, data.library);
+            frames = Paths.buildAtlas(data.image);
             Tools.addYamlAnimations(this, data.animations);
     
             singDuration = data.singDuration ?? 4;

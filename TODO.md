@@ -34,7 +34,7 @@
   - Implement back the "mods not found" screen
   - Make a better mods overlay
   - Perhaps implement more modding tools?
-  - Implement zip mod support
+  - Implement zip mod support?
 
 - Continue tweaking up gameplay
   - Make it so restarting the song/leaving gameover still uses the same PlayState instance
@@ -57,12 +57,7 @@
 - Do a huge overhaul on softcodable data (characters, noteskins, stages...)
 - Implement dialogue cutscenes
 - Add support for VSlice softcoded data
-
-- Implement texture atlas support
-- Implement multi-atlas features
-- Implement automatic atlas type finding everywhere
-- Implement VRAM textures
-- Implement tools for shaders
+- Implement animate atlas support?
 
 - `HealthIcon` changes
   - Implement more animation states

@@ -5,19 +5,17 @@ import flixel.text.FlxText;
 
 class ModExceptionScreen extends FlxState {
     override function create():Void {
-        Tools.stopAllSounds();
-
         super.create();
 
         var background:FlxSprite = new FlxSprite();
-        background.loadGraphic(Assets.image("menus/exceptions/no-mods"));
+        background.loadGraphic(Paths.image("menus/exceptions/no-mods"));
         background.setGraphicSize(FlxG.width, FlxG.height);
         background.updateHitbox();
         background.alpha = 0.4;
         add(background);
 
         var warningText = new FlxText();
-        warningText.setFormat(Assets.font("vcr"), 33, FlxColor.WHITE, CENTER);
+        warningText.setFormat(Paths.font("vcr"), 33, FlxColor.WHITE, CENTER);
 
         var message:String = "Uh oh, looks like no mods has been found!\n";
         message += "Please install mods before opening the game.\n\n";

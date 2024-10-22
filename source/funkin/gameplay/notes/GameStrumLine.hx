@@ -294,7 +294,7 @@ class GameStrumLine extends StrumLine {
     }
 
     inline function playMissSound(volume:Float = 0.1, difference:Float = 0.1):Void {
-        FlxG.sound.play(Assets.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
+        FlxG.sound.play(Paths.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
     }
 
     override function destroy():Void {

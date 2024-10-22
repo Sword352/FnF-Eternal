@@ -73,7 +73,7 @@ class Splash extends OffsetSprite {
             switch (v) {
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("game/splashes");
+                    frames = Paths.atlas("game/splashes");
 
                     var animationArray:Array<String> = ["down", "up", "left", "right"];
 

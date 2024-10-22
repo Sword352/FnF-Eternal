@@ -84,29 +84,17 @@ class Stage extends FlxSpriteGroup {
      * Handles stage creation.
      */
     function buildStage(stage:String):Void {
-        var yamlPath:String = Assets.yaml('data/stages/${stage}');
-        if (!FileTools.exists(yamlPath)) {
+        var data:StageData = Paths.yaml('data/stages/${stage}');
+        if (data == null) {
             trace('Could not find stage "${stage}"!');
             return;
         }
 
-        var data:StageData = Tools.parseYAML(FileTools.getContent(yamlPath));
-        if (data == null) {
-            trace('Error loading stage data "${stage}"!');
-            return;
-        }
-
-        var scriptPath:String = Assets.script('data/stages/${stage}');
-        if (FileTools.exists(scriptPath)) {
-            script = PlayState.self.scripts.load(scriptPath);
-            script?.call("onStageCreation");
-        }
+        script = PlayState.self.scripts.load('data/stages/${stage}');
+        script?.call("onStageCreation");
 
         if (data.uiStyle != null) {
-            // ui style script
-            var path:String = Assets.script('scripts/uiStyles/${data.uiStyle}');
-            if (FileTools.exists(path)) PlayState.self.scripts.load(path);
-
+            PlayState.self.scripts.load('scripts/uiStyles/${data.uiStyle}');
             uiStyle = "-" + data.uiStyle;
         }
 
@@ -172,21 +160,12 @@ class Stage extends FlxSpriteGroup {
                 dancingSprites.push(sprite);
             }
 
-            switch ((data.type ?? "").toLowerCase().trim()) {
-                case "rect":
-                    sprite.makeGraphic(data.rectGraphic[0], data.rectGraphic[1], Tools.getColor(data.rectGraphic[2]));
-                case "sparrow":
-                    sprite.frames = Assets.getSparrowAtlas(data.image, data.library);
-                case "packer":
-                    sprite.frames = Assets.getPackerAtlas(data.image, data.library);
-                case "aseprite":
-                    sprite.frames = Assets.getAseAtlas(data.image, data.library);
-                default:
-                    if (data.frameRect != null)
-                        sprite.loadGraphic(Assets.image(data.image, data.library), true, data.frameRect[0], data.frameRect[1]);
-                    else
-                        sprite.loadGraphic(Assets.image(data.image, data.library));
-            }
+            if (data.rectGraphic != null)
+                sprite.makeGraphic(data.rectGraphic[0], data.rectGraphic[1], Tools.getColor(data.rectGraphic[2]));
+            else if (data.frameRect != null)
+                sprite.loadGraphic(Paths.image(data.image), true, data.frameRect[0], data.frameRect[1]);
+            else
+                sprite.frames = Paths.buildAtlas(data.image);
 
             if (data.color != null)
                 sprite.color = Tools.getColor(data.color);
@@ -204,7 +183,7 @@ class Stage extends FlxSpriteGroup {
                 sprite.setPosition(data.position[0] ?? 0, data.position[1] ?? 0);
             
             if (data.parallax != null)
-                sprite.scrollFactor.set(data.parallax[0] ?? 0, data.parallax[1] ?? 0);
+                sprite.scrollFactor.set(data.parallax[0] ?? 1, data.parallax[1] ?? 1);
 
             if (data.scale != null) {
                 sprite.scale.set(data.scale[0] ?? 1, data.scale[1] ?? 1);

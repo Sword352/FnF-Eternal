@@ -148,7 +148,7 @@ class AlphaGlyph extends FlxSprite {
 
     public function new():Void {
         super(x, y);
-        frames = Assets.getSparrowAtlas("ui/alphabet");
+        frames = Paths.atlas("ui/alphabet");
     }
 
     public inline function refresh(bold:Bool):Void {

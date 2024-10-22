@@ -1,7 +1,8 @@
 package funkin.core.modding;
 
-import funkin.core.assets.ModAssetStructure;
-import funkin.core.assets.AssetStructure;
+import funkin.core.assets.IAssetSource;
+import funkin.core.assets.FsAssetSource;
+import sys.FileSystem;
 
 class Mods {
     public static final FOLDER:String = "mods/";
@@ -27,27 +28,26 @@ class Mods {
     public static function reload():Void {
         clear();
 
-        var entries:Array<String> = FileTools.readDirectory(FOLDER);
+        var entries:Array<String> = FileSystem.readDirectory(FOLDER);
 
         for (entry in entries) {
-            /*
-            var zipEntry:Bool = entry.endsWith(".zip");
+            if (!FileSystem.isDirectory(FOLDER + entry))
+                continue;
 
-            if (!zipEntry && !FileTools.isDirectory(FOLDER + entry)) continue;
-            if (!zipEntry && !FileTools.exists(FOLDER + entry + "/pack.yaml")) continue;
-            */
+            var source:IAssetSource = new FsAssetSource(FOLDER + entry);
+            var metaExtension:String = YAML.findExtension("meta", source);
 
-            if (!FileTools.isDirectory(FOLDER + entry)) continue;
+            if (metaExtension == null) {
+                source.dispose();
+                continue;
+            }
 
-            var metaPath:String = Assets.filterPath(FOLDER + entry + "/meta", YAML);
-            if (metaPath == null) continue;
-
+            var metaData:Dynamic = Tools.parseYAML(source.getContent("meta" + metaExtension));
             var mod:ModStructure = {folder: entry};
-            var data:Dynamic = Tools.parseYAML(FileTools.getContent(metaPath));
 
             for (field in Type.getInstanceFields(ModStructure)) {
-                if (!metaBlacklist.contains(field) && Reflect.hasField(data, field))
-                    Reflect.setProperty(mod, field, Reflect.getProperty(data, field));
+                if (!metaBlacklist.contains(field) && Reflect.hasField(metaData, field))
+                    Reflect.setProperty(mod, field, Reflect.getProperty(metaData, field));
             }
 
             if (mod.title == null)
@@ -56,9 +56,7 @@ class Mods {
             if (mod.id == null)
                 mod.id = mod.folder;
 
-            // mod.assetStructure = (zipEntry) ? new ZipAssetStructure() : new ModAssetStructure(mod.folder);
-
-            mod.assetStructure = new ModAssetStructure(mod.folder);
+            mod.assetSource = source;
             mods.push(mod);
         }
 
@@ -89,7 +87,7 @@ class Mods {
     public static function enableAllMods():Void {
         for (i in 0...mods.length) {
             var mod:ModStructure = mods[i];
-            Assets.assetStructures.push(mod.assetStructure);
+            Assets.addAssetSource(mod.assetSource);
             enabledMods.push(mod);
             mod.priority = i;
         }
@@ -105,7 +103,7 @@ class Mods {
     public static function clear():Void {
         while (mods.length > 0) {
             var mod:ModStructure = mods.pop();
-            Assets.assetStructures.remove(mod.assetStructure);
+            Assets.removeAssetSource(mod.assetSource);
             mod.dispose();
         }
 
@@ -114,10 +112,11 @@ class Mods {
 
     public static function sortList():Void {
         enabledMods.sort(sortByPriority);
-        Assets.assetStructures.splice(0, Assets.assetStructures.length);
 
-        for (mod in enabledMods)
-            Assets.assetStructures.push(mod.assetStructure);
+        for (mod in enabledMods) {
+            Assets.removeAssetSource(mod.assetSource);
+            Assets.addAssetSource(mod.assetSource);
+        }            
     }
 
     public static function sortByPriority(a:ModStructure, b:ModStructure):Int {
@@ -127,7 +126,8 @@ class Mods {
     }
 }
 
-@:structInit class ModStructure {
+@:structInit
+class ModStructure {
     public var title:String;
     public var description:String;
 
@@ -142,7 +142,7 @@ class Mods {
     public var license:String;
     public var extra:Dynamic;
 
-    public var assetStructure:AssetStructure;
+    public var assetSource:IAssetSource;
     public var priority:Int = -1;
 
     public var enabled(get, set):Bool;
@@ -182,15 +182,15 @@ class Mods {
         license = null;
         extra = null;
 
-        assetStructure.dispose();
-        assetStructure = null;
+        assetSource.dispose();
+        assetSource = null;
     }
 
     inline function get_enabled():Bool {
         return Mods.enabledMods.contains(this);
     }
 
-    inline function set_enabled(v:Bool):Bool {
+    function set_enabled(v:Bool):Bool {
         if (v && !Mods.enabledMods.contains(this)) {
             Mods.enabledMods.push(this);
             priority = Mods.enabledMods.length - 1;

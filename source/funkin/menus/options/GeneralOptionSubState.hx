@@ -39,7 +39,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
         option.description = "Whether to disable flashing lights. It is highly recommended to enable this\noption if you are epileptical!";
         addOption(option);
 
-        boyfriend = new FlxSprite(0, 0, Assets.image("menus/options/options-bf"));
+        boyfriend = new FlxSprite(0, 0, Paths.image("menus/options/options-bf"));
         boyfriend.scale.set(0.25, 0.25);
         boyfriend.updateHitbox();
         boyfriend.screenCenter();
@@ -64,7 +64,7 @@ class GeneralOptionSubState extends BaseOptionSubState {
             var selectedSound:Int = FlxG.random.int(1, 8, [lastSound]);
             lastSound = selectedSound;
 
-            sound.loadEmbedded(Assets.sound('options/sound${selectedSound}')).play();
+            sound.loadEmbedded(Paths.sound('options/sound${selectedSound}')).play();
             boyfriend.scale.set(FlxG.random.float(0.3, 0.5), FlxG.random.float(0.3, 0.5));
         }
 

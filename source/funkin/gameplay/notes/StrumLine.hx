@@ -244,7 +244,7 @@ class StrumLine extends FlxSpriteGroup {
             handleLateNote(note);
 
         // the note has to be late in order to kill it, else it won't be considered a miss
-        if (note.lateKill && note.isLate() && Conductor.self.time > note.time + note.length + (400 / scrollSpeed))
+        if (note.lateKill && note.isLate() && Conductor.self.time > note.time + note.length + (400 / (scrollSpeed / Conductor.self.rate)))
             queueNoteRemoval(note);
 
         if (note.isHoldable() && note.state != NONE && !note.finishedHold) {

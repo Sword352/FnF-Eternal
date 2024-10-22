@@ -13,7 +13,6 @@ class Options {
     public static var noDiscordRpc(default, set):Bool = false;
     #end
 
-    public static var audioStreaming:Bool = false;
     public static var audioOffset:Float = 0;
     public static var noteOffset:Float = 0;
 
@@ -29,10 +28,6 @@ class Options {
     // DEBUG SETTINGS
     public static var editorAccess:Bool = false;
     public static var reloadAssets:Bool = false;
-
-    #if sys
-    public static var chartOverwrite:Bool = true;
-    #end
     //
 
     static function set_framerate(v:Int):Int {

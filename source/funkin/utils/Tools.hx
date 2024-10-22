@@ -99,42 +99,6 @@ class Tools {
             text.size--;
     }
 
-    public static function stopMusic():Void {
-        if (FlxG.sound.music != null && FlxG.sound.music.playing)
-            FlxG.sound.music.stop();
-    }
-
-    public static function stopAllSounds():Void {
-        if (FlxG.sound.music != null) {
-            FlxG.sound.music.destroy();
-            FlxG.sound.music = null;
-        }
-
-        if (FlxG.sound.list != null)
-            while (FlxG.sound.list.length > 0)
-                FlxG.sound.list.remove(FlxG.sound.list.members[0], true).destroy();
-
-        if (FlxG.sound.defaultMusicGroup != null) {
-            // using a while loop makes the game crash??
-            for (sound in FlxG.sound.defaultMusicGroup.sounds)
-                sound.destroy();
-
-            FlxG.sound.defaultMusicGroup.sounds = [];
-        }
-
-        if (FlxG.sound.defaultSoundGroup != null) {
-            for (sound in FlxG.sound.defaultSoundGroup.sounds)
-                sound.destroy();
-
-            FlxG.sound.defaultSoundGroup.sounds = [];
-        }
-    }
-
-    public static function playMusicCheck(file:String, ?library:String, loop:Bool = true):Void {
-        if (FlxG.sound.music == null || !FlxG.sound.music.playing)
-            FlxG.sound.playMusic(Assets.music(file, library), 1, loop);
-    }
-
     public static function invokeTempSave(funcToDo:FlxSave->Void, name:String, ?folder:String):Void {
         if (folder == null || folder.length < 1)
             folder = savePath;

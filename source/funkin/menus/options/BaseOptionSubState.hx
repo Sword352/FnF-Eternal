@@ -55,11 +55,11 @@ class BaseOptionSubState extends MusicBeatSubState {
         }
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
     inline function leave():Void {
-        FlxG.sound.play(Assets.sound("cancelMenu"));
+        FlxG.sound.play(Paths.sound("cancelMenu"));
         OptionsManager.save();
         close();
     }

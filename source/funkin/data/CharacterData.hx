@@ -1,11 +1,10 @@
 package funkin.data;
 
-typedef CharacterData = {
-    var image:String;
-    var animations:Array<YAMLAnimation>;
+import funkin.core.assets.Paths.AtlasAsset;
 
-    var ?atlasType:String;
-    var ?library:String;
+typedef CharacterData = {
+    var image:AtlasAsset;
+    var animations:Array<YAMLAnimation>;
 
     var ?antialiasing:Bool;
     var ?flip:Array<Bool>;

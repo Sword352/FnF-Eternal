@@ -15,11 +15,13 @@ class ScriptableState extends TransitionState {
     inline function initStateScripts():Void {
         var stateString:String = formatStateName(this);
 
-        var singleScript:String = Assets.script('scripts/states/${stateString}');
-        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript))
-            scripts.load(singleScript);
+        // we first check if there's a single script for this state
+        var script = scripts.load('scripts/states/${stateString}');
 
-        scripts.loadScripts('scripts/states/${stateString}');
+        if (script == null) {
+            // if not, it might be a directory
+            scripts.loadScripts('scripts/states/${stateString}');
+        }
     }
 
     override function openSubState(subState:FlxSubState):Void {
@@ -80,12 +82,11 @@ class ScriptableSubState extends FlxSubState {
 
     inline function initStateScripts():Void {
         var stateString:String = ScriptableState.formatStateName(this);
+        var script = scripts.load('scripts/states/${stateString}');
 
-        var singleScript:String = Assets.script('scripts/substates/${stateString}');
-        if (FileTools.exists(singleScript) && !FileTools.isDirectory(singleScript))
-            scripts.load(singleScript);
-
-        scripts.loadScripts('scripts/substates/${stateString}');
+        if (script == null) {
+            scripts.loadScripts('scripts/states/${stateString}');
+        }
     }
 
     override function close():Void {

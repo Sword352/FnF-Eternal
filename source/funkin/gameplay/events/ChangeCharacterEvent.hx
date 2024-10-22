@@ -44,7 +44,7 @@ class ChangeCharacterEvent extends SongEvent {
 
         // preload the health icon
         if (character.healthIcon != null)
-            Assets.image('icons/${character.healthIcon}');
+            Paths.image('icons/${character.healthIcon}');
 
         // hide the character while still allowing it to preload (TODO: find a smarter solution)
         character.alpha = 0.0000001;

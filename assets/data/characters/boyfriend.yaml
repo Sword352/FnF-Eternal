@@ -1,4 +1,4 @@
-image: characters/BOYFRIEND
+image: characters/boyfriend
 
 animations:
   - { name: idle, prefix: BF idle dance }
@@ -13,16 +13,11 @@ animations:
   - { name: missUp,    prefix: BF NOTE UP MISS,    offsets: [-29, 27] }
   - { name: missRight, prefix: BF NOTE RIGHT MISS, offsets: [-30, 21] }
 
-  - { name: preAttack, prefix: bf pre attack }
-  - { name: attack,    prefix: boyfriend attack }
-  - { name: dodge,     prefix: boyfriend dodge }
-  - { name: hit,       prefix: BF hit }
-
   - { name: scared, prefix: BF idle shaking, loop: true }
   - { name: hey,    prefix: BF HEY!!, offsets: [7, 4] }
 
 icon: bf
 healthBarColor: [49, 176, 209]
 
-cameraOffsets: [150, 150]
-gameOverChar: boyfriend-dead
+cameraOffsets: [150, 110]
+gameOverChar: boyfriend-gameover

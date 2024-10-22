@@ -91,46 +91,15 @@ class HealthIcon extends OffsetSprite {
     }
 
     public function changeIcon(icon:String):Void {
-        var configPath:String = Assets.yaml('images/icons/${icon}');
-        _character = icon;
-
-        if (!FileTools.exists(configPath))
-            changeSimple(icon);
-        else
-            changeAdvanced(Tools.parseYAML(FileTools.getContent(configPath)));
-
+        changeSimple(icon);
         playAnimation("neutral", true);
         size.set(width, height);
     }
 
-    function changeAdvanced(config:HealthIconConfig):Void {
-        var possibleFrames:FlxAtlasFrames = Assets.findFrames('icons/${character}');
-
-        if (possibleFrames != null)
-            frames = possibleFrames;
-        else {
-            var newGraphic:FlxGraphic = Assets.image('icons/${character}');
-            if (newGraphic == null) newGraphic = Assets.image('icons/${DEFAULT_ICON}');
-            loadGraphic(newGraphic, true, Math.floor(newGraphic.width / (config.frames ?? Math.floor(newGraphic.width / newGraphic.height))), newGraphic.height);
-        }
-
-        resetValues();
-
-        Tools.addYamlAnimations(this, config.animations);
-        scale.set(config.scale == null ? 1 : (config.scale[0] ?? 1), config.scale == null ? 1 : (config.scale[1] ?? 1));
-        updateHitbox();
-
-        var offsetX:Float = (config.globalOffsets != null ? (config.globalOffsets[0] ?? 0) : 0);
-        var offsetY:Float = (config.globalOffsets != null ? (config.globalOffsets[1] ?? 0) : 0);
-        globalOffsets.set(offsetX, offsetY);
-
-        antialiasing = config.antialiasing ?? FlxSprite.defaultAntialiasing;
-    }
-
     function changeSimple(icon:String):Void {
-        var newGraphic:FlxGraphic = Assets.image('icons/${icon}');
+        var newGraphic:FlxGraphic = Paths.image('icons/${icon}');
         if (newGraphic == null) {
-            newGraphic = Assets.image('icons/${DEFAULT_ICON}');
+            newGraphic = Paths.image('icons/${DEFAULT_ICON}');
             _character = DEFAULT_ICON;
         }
 
@@ -163,15 +132,6 @@ class HealthIcon extends OffsetSprite {
 
     inline function get_character():String
         return _character;
-}
-
-typedef HealthIconConfig = {
-    var ?frames:Int;
-    var ?animations:Array<YAMLAnimation>;
-    var ?globalOffsets:Array<Float>;
-
-    var ?scale:Array<Float>;
-    var ?antialiasing:Bool;
 }
 
 enum abstract HealthState(String) from String to String {

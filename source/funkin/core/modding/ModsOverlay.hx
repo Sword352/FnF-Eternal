@@ -4,9 +4,9 @@ import flixel.FlxCamera;
 import flixel.text.FlxText;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
-import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.group.FlxSpriteGroup;
 import haxe.ui.components.VerticalScroll;
+import openfl.display.BitmapData;
 import funkin.ui.Alphabet;
 
 var ROW:Int = 6;
@@ -44,7 +44,7 @@ class ModsOverlay extends MusicBeatSubState {
         add(text);
 
         var version:FlxText = new FlxText(PADDING_X, 50);
-        version.setFormat(Assets.font("vcr"), 16);
+        version.setFormat(Paths.font("vcr"), 16);
         version.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.25);
         version.text = 'Version: ${Tools.gameVersion}';
         add(version);
@@ -74,11 +74,11 @@ class ModsOverlay extends MusicBeatSubState {
             return;
         }
 
-        Tools.stopMusic();
+        BGM.stopMusic();
         FlxG.mouse.visible = false;
         stopInputs = true;
 
-        FlxG.sound.play(Assets.sound("cancelMenu"));
+        FlxG.sound.play(Paths.sound("cancelMenu"));
         Transition.skipNextTransOut = true;
 
         camera.fade(FlxColor.BLACK, 0.25, false, () -> {
@@ -214,20 +214,20 @@ class ModItem extends Group<FlxSprite> {
         add(icon);
 
         warningIcon = new FlxSprite(5, 5);
-        warningIcon.loadGraphic(Assets.image("ui/notification_warning"));
+        warningIcon.loadGraphic(Paths.image("ui/notification_warning"));
         warningIcon.setGraphicSize(30);
         warningIcon.updateHitbox();
         add(warningIcon);
 
         infoIcon = new FlxSprite(background.width - 5, 5);
-        infoIcon.loadGraphic(Assets.image("ui/notification_info"));
+        infoIcon.loadGraphic(Paths.image("ui/notification_info"));
         infoIcon.setGraphicSize(25);
         infoIcon.updateHitbox();
         infoIcon.x -= infoIcon.width;
         add(infoIcon);
 
         enabledButton = new FlxSprite();
-        enabledButton.frames = Assets.getSparrowAtlas("menus/mods/on_off");
+        enabledButton.frames = Paths.atlas("menus/mods/on_off");
         enabledButton.animation.addByPrefix("off", "off", 24);
         enabledButton.animation.addByPrefix("on", "on", 24);
         enabledButton.animation.play("on");
@@ -300,14 +300,15 @@ class ModItem extends Group<FlxSprite> {
         this.reference = mod;
 
         var modState:ModVersionState = mod.getVersionState();
+        var imageExtension:String = IMAGE.findExtension("meta", mod.assetSource);
 
-        var iconPath:String = mod.assetStructure.getPath("meta", IMAGE);
-        var iconBitmap:FlxGraphicAsset = mod.assetStructure.createBitmapData(iconPath);
+        if (imageExtension == null)
+            icon.loadGraphic(Paths.image("menus/questionMark"));
+        else {
+            var bytes = mod.assetSource.getBytes("meta" + imageExtension);
+            icon.loadGraphic(BitmapData.fromBytes(bytes));
+        }
 
-        if (iconBitmap == null)
-            iconBitmap = Assets.image("menus/questionMark");
-
-        icon.loadGraphic(iconBitmap);
         icon.setGraphicSize(0, 100);
         icon.updateHitbox();
 
@@ -440,7 +441,7 @@ class ModInfos extends Group<FlxSprite> {
         add(title);
 
         version = new FlxText();
-        version.setFormat(Assets.font("vcr"), 14);
+        version.setFormat(Paths.font("vcr"), 14);
         version.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
         add(version);
 
@@ -592,7 +593,7 @@ class CreditEntry extends Group<FlxSprite> {
         add(icon);
 
         name = new FlxText();
-        name.setFormat(Assets.font("vcr"), 16);
+        name.setFormat(Paths.font("vcr"), 16);
         name.setBorderStyle(OUTLINE, FlxColor.BLACK, 2);
         add(name);
 
@@ -604,14 +605,17 @@ class CreditEntry extends Group<FlxSprite> {
         clipRect = FlxRect.get();
     }
 
-    public function setup(author:ModAuthor, mod:ModItem):Void {
-        var iconPath:String = mod.reference.assetStructure.getPath("images/menus/credits/" + (author.icon ?? author.name), IMAGE);
-        var iconBitmap:FlxGraphicAsset = mod.reference.assetStructure.createBitmapData(iconPath);
+    public function setup(author:ModAuthor, mod:ModItem):Void {        
+        var iconPath:String = "images/menus/credits/" + (author.icon ?? author.name) + ".png";
+        var imageExtension:String = IMAGE.findExtension(iconPath, mod.reference.assetSource);
 
-        if (iconBitmap == null)
-            iconBitmap = Assets.image("menus/questionMark");
+        if (imageExtension == null)
+            icon.loadGraphic(Paths.image("menus/questionMark"));
+        else {
+            var bytes = mod.reference.assetSource.getBytes(iconPath + imageExtension);
+            icon.loadGraphic(BitmapData.fromBytes(bytes));
+        }
 
-        icon.loadGraphic(iconBitmap);
         icon.setGraphicSize(0, 50);
         icon.updateHitbox();
 
@@ -640,19 +644,19 @@ class Buttons extends FlxSpriteGroup {
     public function new():Void {
         super(FlxG.width - 388, 5);
 
-        enableMods = new FlxSprite(0, 0, Assets.image("menus/mods/enable"));
+        enableMods = new FlxSprite(0, 0, Paths.image("menus/mods/enable"));
         enableMods.scale.set(0.75, 0.75);
         enableMods.updateHitbox();
         enableMods.ID = 0;
         add(enableMods);
 
-        disableMods = new FlxSprite(100, 0, Assets.image("menus/mods/disable"));
+        disableMods = new FlxSprite(100, 0, Paths.image("menus/mods/disable"));
         disableMods.scale.set(0.75, 0.75);
         disableMods.updateHitbox();
         disableMods.ID = 1;
         add(disableMods);
 
-        reloadMods = new FlxSprite(200, 0, Assets.image("menus/mods/reload"));
+        reloadMods = new FlxSprite(200, 0, Paths.image("menus/mods/reload"));
         reloadMods.scale.set(0.75, 0.75);
         reloadMods.updateHitbox();
         reloadMods.ID = 2;
@@ -710,7 +714,7 @@ class Tooltip extends FlxText {
 
     public function new():Void {
         super();
-        setFormat(Assets.font("vcr"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+        setFormat(Paths.font("vcr"), 14, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
         visible = active = false;
         borderSize = 1.5;
     }

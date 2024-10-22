@@ -1,16 +1,77 @@
-spectatorPos: [500, 130]
-opponentPos: [200, 300]
-playerPos: [870, 450]
-playerCam: [0, 15]
+spectatorPos: [550, 130]
+opponentPos: [75, 300]
+playerPos: [825, 450]
+
+playerCam: [-15, 50]
+opponentCam: [0, 30]
+cameraZoom: 0.95
 
 sprites:
   - name: background
     image: stages/spooky/halloween_bg
-    type: sparrow
+    animations: [
+      {name: idle, prefix: bg0, fps: 0}
+    ]
+    position: [-200, -175]
 
-    position: [-200, -100]
-    antialiasing: true
+  - name: backgroundLight
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_light, fps: 0}
+    ]
+    position: [-200, -175]
+    blend: add
+    
+  - name: window 
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_window0, fps: 0}
+    ]
+    position: [15, -25]
+    scale: [0.9, 0.9]
 
-    animations:
-      - {name: idle, prefix: halloweem bg0, fps: 0}
-      - {name: lighting, prefix: halloweem bg lightning strike}
+  - name: windowLight
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_window_light, fps: 0}
+    ]
+    position: [15, -25]
+    scale: [0.9, 0.9]
+    blend: add
+
+  - name: stairs
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_stairs0, fps: 0}
+    ]
+    position: [1115, 110]
+    parallax: [0.92, 1]
+    scale: [0.77, 0.77]
+
+  - name: stairsLight
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_stairs_light, fps: 0}
+    ]
+    position: [1115, 110]
+    parallax: [0.92, 1]
+    scale: [0.77, 0.77]
+    blend: add
+
+  - name: windowShadow
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_window_shadow0, fps: 0}
+    ]
+    position: [160, 650]
+    scale: [0.9, 0.9]
+    blend: add
+
+  - name: windowShadowLight
+    image: stages/spooky/halloween_bg
+    animations: [
+      {name: idle, prefix: bg_window_shadow_light, fps: 0}
+    ]
+    position: [160, 650]
+    scale: [0.9, 0.9]
+    blend: add

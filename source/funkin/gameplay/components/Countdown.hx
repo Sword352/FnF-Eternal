@@ -79,7 +79,7 @@ class Countdown extends FlxBasic {
     public function start():Void {
         // avoids division by 0 and invalid frames
         var frames:Int = (totalTicks > 1 ? totalTicks - 1 : totalTicks);
-        var graphic = Assets.image(asset);
+        var graphic = Paths.image(asset);
 
         sprite = new FlxSprite();
         sprite.loadGraphic(graphic, true, graphic.width, Math.floor(graphic.height / frames));
@@ -131,7 +131,7 @@ class Countdown extends FlxBasic {
             sprite.animation.frameIndex = spriteFrame;
 
         if (sound != null)
-            FlxG.sound.play(Assets.sound(sound));
+            FlxG.sound.play(Paths.sound(sound));
 
         sprite.alpha = (spriteFrame == -1 ? 0 : 1);
         sprite.screenCenter();

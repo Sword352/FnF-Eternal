@@ -67,7 +67,7 @@ class SongPlayback extends FlxTypedGroup<FlxSound> {
      * @param song Song chart.
      */
     public function loadSong(song:Chart):Void {
-        instrumental = FlxG.sound.load(Assets.songMusic(song.meta.folder, song.gameplayInfo.instrumental));
+        instrumental = FlxG.sound.load(Paths.songMusic(song.meta.folder, song.gameplayInfo.instrumental));
         instrumental.onComplete = onComplete.dispatch;
         add(instrumental);
 
@@ -76,7 +76,7 @@ class SongPlayback extends FlxTypedGroup<FlxSound> {
                 voices = [];
 
             for (audio in song.gameplayInfo.voices) {
-                var voiceSound:FlxSound = FlxG.sound.load(Assets.songMusic(song.meta.folder, audio));
+                var voiceSound:FlxSound = FlxG.sound.load(Paths.songMusic(song.meta.folder, audio));
                 voices.push(add(voiceSound));
             }
         }

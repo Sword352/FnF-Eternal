@@ -18,8 +18,8 @@ class NoteSkin {
     }
 
     public static function load(skin:String):Void {
-        var path:String = Assets.yaml('data/noteskins/${skin}');
-        if (!FileTools.exists(path)) {
+        var data:NoteSkinConfig = Paths.yaml('data/noteskins/${skin}');
+        if (data == null) {
             if (!_warnings.contains(skin)) {
                 trace('Could not find noteskin "${skin}"!');
                 _warnings.push(skin);
@@ -28,7 +28,7 @@ class NoteSkin {
             return;
         }
 
-        skins.set(skin, Tools.parseYAML(FileTools.getContent(path)));
+        skins.set(skin, data);
     }
 
     public static function clear():Void {
@@ -40,13 +40,13 @@ class NoteSkin {
         clearData = true;
     }
 
-    public static inline function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {
+    public static function applyGenericSkin(sprite:OffsetSprite, skin:GenericSkin, mainAnim:String, ?direction:String):Void {
         sprite.offsets.clear();
 
         if (skin.frameRect != null)
-            sprite.loadGraphic(Assets.image(skin.image, skin.library), true, skin.frameRect[0], skin.frameRect[1]);
+            sprite.loadGraphic(Paths.image(skin.image), true, skin.frameRect[0], skin.frameRect[1]);
         else
-            sprite.frames = Assets.getFrames(skin.image, skin.atlasType, skin.library);
+            sprite.frames = Paths.atlas(skin.image);
 
         var animations:Array<YAMLAnimation> = skin.animations;
         if (direction != null) {
@@ -116,9 +116,6 @@ typedef SplashConfig = GenericSkin & {
 typedef GenericSkin = {
     var image:String;
     var animations:Array<YAMLAnimation>;
-
-    var ?library:String;
-    var ?atlasType:String;
 
     var ?frameRect:Array<Int>;
     var ?antialiasing:Bool;

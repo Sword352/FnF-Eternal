@@ -40,6 +40,7 @@ class StoryMenu extends MusicBeatState {
     var error:Bool = false;
 
     override function create():Void {
+        BGM.playMusic("freakyMenu");
         weeks = loadWeeks();
 
         if (weeks == null || weeks.length < 1) {
@@ -61,7 +62,6 @@ class StoryMenu extends MusicBeatState {
         initStateScripts();
         scripts.call("onCreate");
 
-        Tools.playMusicCheck("freakyMenu");
         conductor.music = FlxG.sound.music;
         conductor.bpm = 102;
 
@@ -72,12 +72,12 @@ class StoryMenu extends MusicBeatState {
             for (character in week.characters) {
                 if (character == "#NONE" || charactersData.exists(character)) continue;
 
-                var data:StoryCharacterData = Tools.parseYAML(FileTools.getContent(Assets.yaml('images/menus/story/characters/${character}')));
+                var data:StoryCharacterData = Paths.yaml('images/menus/story/characters/${character}');
                 charactersData.set(character, data);
 
                 // TODO: find a better solution, this should be good for now
                 var cache:FlxSprite = new FlxSprite();
-                cache.frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
+                cache.frames = Paths.atlas('menus/story/characters/${data.image ?? character}');
                 cache.alpha = 0.000001;
                 add(cache);
 
@@ -92,7 +92,7 @@ class StoryMenu extends MusicBeatState {
         yellowOverlay.makeRect(FlxG.width, 400, 0xFFF9CF51);
 
         tracks = new FlxText(FlxG.width * 0.05, yellowOverlay.x + yellowOverlay.height + 100, 0, "TRACKS");
-        tracks.setFormat(Assets.font("vcr"), 44, 0xFFe55777);
+        tracks.setFormat(Paths.font("vcr"), 44, 0xFFe55777);
         add(tracks);
 
         songDisplay = new FlxText(tracks.x, tracks.y + 50);
@@ -111,7 +111,7 @@ class StoryMenu extends MusicBeatState {
             var direction:String = (i == 0) ? "left" : "right";
 
             var arrow:OffsetSprite = new OffsetSprite((FlxG.width * 0.8) + (150 * i), yellowOverlay.y + yellowOverlay.height + 10);
-            arrow.frames = Assets.getSparrowAtlas("menus/story/ui");
+            arrow.frames = Paths.atlas("menus/story/ui");
             arrow.animation.addByPrefix("normal", 'arrow ${direction}', 0);
             arrow.animation.addByPrefix("press", 'arrow push ${direction}', 0);
             arrow.animation.play("normal", true);
@@ -148,7 +148,7 @@ class StoryMenu extends MusicBeatState {
         if (allowInputs) {
             if (controls.justPressed("back")) {
                 allowInputs = false;
-                FlxG.sound.play(Assets.sound("cancelMenu"));
+                FlxG.sound.play(Paths.sound("cancelMenu"));
                 FlxG.switchState(MainMenu.new);
             }
 
@@ -211,7 +211,7 @@ class StoryMenu extends MusicBeatState {
         currentSelection = FlxMath.wrap(currentSelection + i, 0, weeks.length - 1);
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
 
         for (sprite in weekSprites) {
             sprite.ID = weekSprites.members.indexOf(sprite) - currentSelection;
@@ -265,8 +265,7 @@ class StoryMenu extends MusicBeatState {
     }
 
     function updateDifficultySprite():Void {
-        // TODO: do not lowercase the difficulty (this is a temporary workaround for openfl assets)
-        var graphic = Assets.image('menus/story/${difficulties[currentDifficulty].toLowerCase()}');
+        var graphic = Paths.image('menus/story/${difficulties[currentDifficulty]}');
         if (difficultySprite.graphic == graphic) return;
 
         FlxTween.cancelTweensOf(difficultySprite);
@@ -296,14 +295,14 @@ class StoryMenu extends MusicBeatState {
     function accept():Void {
         // locked week
         if (weekSprites.members[currentSelection].lock != null) {
-            // FlxG.sound.play(Assets.sound("dialogueTick"));
+            // FlxG.sound.play(Paths.sound("dialogueTick"));
             return;
         }
 
         if (scripts.quickEvent("onAccept").cancelled) return;
 
         allowInputs = false;
-        FlxG.sound.play(Assets.sound("confirmMenu"));
+        FlxG.sound.play(Paths.sound("confirmMenu"));
 
         weekSprites.members[currentSelection].color = FlxColor.CYAN;
         doFlash = !Options.noFlashingLights;
@@ -330,63 +329,55 @@ class StoryMenu extends MusicBeatState {
     }
 
     public static function loadWeeks():Array<WeekStructure> {
-        var directories:Array<String> = Assets.listFiles((structure) -> {
-            var path:String = structure.getPath("data/weeks", NONE);
-            structure.entryExists(path) ? path : null;
-        });
-
-        if (directories.length == 0) return null;
-
         var list:Array<WeekStructure> = [];
-        var foundWeeks:Array<String> = [];
 
-        for (directory in directories)
-            for (entry in FileTools.readDirectory(directory))
-                foundWeeks.push(FileTools.getContent(directory + "/" + entry));
+        Assets.invoke((source) -> {
+            if (!source.exists("data/weeks"))
+                return;
 
-        for (file in foundWeeks) {
-            var data = Tools.parseYAML(file);
+            var weeks:Array<String> = null;
+            var orderExtension:String = TXT.findExtension("data/weeks/weekOrder", source);
 
-            var songs:Array<WeekSong> = cast data.songs;
-            if (songs == null || songs.length == 0) continue;
-
-            for (song in songs) {
-                if (song.folder != null && song.name == null) song.name = song.folder;
-                else if (song.folder == null && song.name != null) song.folder = song.name;
+            if (orderExtension != null) {
+                weeks = source.getContent("data/weeks/weekOrder" + orderExtension).split("\n").map(StringTools.trim.bind(_));
+            }
+            else {
+                // no week order file found, scan the directory instead
+                weeks = source.readDirectory("data/weeks");
             }
 
-            var id:String = file.substring(0, file.lastIndexOf("."));
-            var hideIfLocked:Bool = data.hideIfLocked ?? false;
-            var locked:Bool = data.locked ?? false;
+            for (file in weeks) {
+                var content = source.getContent("data/weeks/" + file.trim());
+                var data = Tools.parseYAML(content);
 
-            if (locked && hideIfLocked && !SongProgress.unlocked(id, true)) continue;
-
-            list.push({
-                songs: songs,
-                difficulties: data.difficulties ?? ["Easy", "Normal", "Hard"],
-                unlockableWeek: data.unlockableWeek,
-                locked: locked,
-                id: id,
-
-                image: data.image ?? "week",
-                tagline: data.tagline ?? "",
-                characters: data.characters
-            });
-        }
-
-        // TODO: reimplement back week orders without messing with mod orders.
-        /*
-        var orders:Array<String> = Assets.listFiles((structure) -> {
-            var path:String = structure.getPath("data/weeks/weekOrder", TEXT);
-
-            if (structure.entryExists(path)) {
-                allWeeks.remove(entry.getPath("data/weeks", NONE));
-                return structure.getContent(path);
+                var songs:Array<WeekSong> = cast data.songs;
+                if (songs == null || songs.length == 0) continue;
+    
+                for (song in songs) {
+                    if (song.folder != null && song.name == null) song.name = song.folder;
+                    else if (song.folder == null && song.name != null) song.folder = song.name;
+                }
+    
+                var id:String = file.substring(0, file.lastIndexOf("."));
+                var hideIfLocked:Bool = data.hideIfLocked ?? false;
+                var locked:Bool = data.locked ?? false;
+    
+                if (locked && hideIfLocked && !SongProgress.unlocked(id, true))
+                    continue;
+    
+                list.push({
+                    songs: songs,
+                    difficulties: data.difficulties ?? ["Easy", "Normal", "Hard"],
+                    unlockableWeek: data.unlockableWeek,
+                    locked: locked,
+                    id: id,
+    
+                    image: data.image ?? "week",
+                    tagline: data.tagline ?? "",
+                    characters: data.characters
+                });
             }
-            
-            return null;
         });
-        */
 
         return list;
     }
@@ -401,13 +392,13 @@ class WeekSprite extends FlxSpriteGroup {
         this.ID = id;
 
         handle = new OffsetSprite();
-        handle.loadGraphic(Assets.image('menus/story/${week.image}'));
+        handle.loadGraphic(Paths.image('menus/story/${week.image}'));
         handle.screenCenter(X);
         add(handle);
 
         if (week.locked && !SongProgress.unlocked(week.id, true)) {
             lock = new OffsetSprite(handle.x + handle.width + 10);
-            lock.frames = Assets.getSparrowAtlas("menus/story/ui");
+            lock.frames = Paths.atlas("menus/story/ui");
             lock.animation.addByPrefix("lock", "lock", 0);
             lock.animation.play("lock", true);
             add(lock);
@@ -424,7 +415,7 @@ class StoryMenuCharacter extends Bopper {
         if (this.character == character) return;
         this.character = character;
 
-        frames = Assets.getSparrowAtlas('menus/story/characters/${data.image ?? character}');
+        frames = Paths.atlas('menus/story/characters/${data.image ?? character}');
         Tools.addYamlAnimations(this, data.animations);
 
         danceSteps = data.danceSteps ?? ["idle"];

@@ -12,7 +12,6 @@ typedef TitleSprite = {
 
     var ?image:String;
     var ?type:String;
-    var ?library:String;
 
     var ?animations:Array<YAMLAnimation>;
     var ?animationSpeed:Float;
@@ -86,16 +85,16 @@ class TitleScreen extends MusicBeatState {
             add(alphabetGroup);
 
         pressEnterSprite = new FlxSprite(100, FlxG.height * 0.8);
-        pressEnterSprite.frames = Assets.getSparrowAtlas("menus/title/titleEnter");
+        pressEnterSprite.frames = Paths.atlas("menus/title/titleEnter");
         pressEnterSprite.animation.addByPrefix("normal", "Press Enter to Begin", 24);
         pressEnterSprite.animation.addByPrefix("pressed", "ENTER PRESSED", 24);
         pressEnterSprite.animation.play("normal");
         pressEnterSprite.updateHitbox();
 
         // load data
-        var path:String = Assets.yaml("data/titlescreen");
-        if (FileTools.exists(path))
-            setupFromData(Tools.parseYAML(FileTools.getContent(path)));
+        var data:Dynamic = Paths.yaml("data/titlescreen");
+        if (data != null)
+            setupFromData(data);
         else
             defaultSetup();
 
@@ -158,7 +157,7 @@ class TitleScreen extends MusicBeatState {
             flash();
 
             pressEnterSprite.animation.play("pressed", true);
-            FlxG.sound.play(Assets.sound("confirmMenu"));
+            FlxG.sound.play(Paths.sound("confirmMenu"));
 
             new FlxTimer().start(1, (_) -> FlxG.switchState(MainMenu.new));
         }
@@ -247,7 +246,7 @@ class TitleScreen extends MusicBeatState {
         }
 
         conductor.bpm = (data.bpm == null) ? 102 : data.bpm;
-        Tools.playMusicCheck((data.music == null) ? "freakyMenu" : data.music);
+        BGM.playMusic((data.music == null) ? "freakyMenu" : data.music);
 
         filterSequences(data.sequences);
         randomText = (data.randomText == null) ? getDefaultRandomText() : FlxG.random.getObject(data.randomText);
@@ -263,18 +262,18 @@ class TitleScreen extends MusicBeatState {
         if (data.postRenderSprites != null)
             setupSprites(data.postRenderSprites, postRenderSprites);
 
-        ngSprite?.loadGraphic(Assets.image((data.logo == null) ? "menus/title/newgrounds_logo" : data.logo));
+        ngSprite?.loadGraphic(Paths.image((data.logo == null) ? "menus/title/newgrounds_logo" : data.logo));
         ngSprite?.screenCenter(X);
     }
 
     function defaultSetup():Void {
         conductor.bpm = 102;
-        Tools.playMusicCheck("freakyMenu");
+        BGM.playMusic("freakyMenu");
 
         beatSequences = getDefaultSequences();
         randomText = getDefaultRandomText();
 
-        ngSprite?.loadGraphic(Assets.image("menus/title/newgrounds_logo"));
+        ngSprite?.loadGraphic(Paths.image("menus/title/newgrounds_logo"));
         ngSprite?.screenCenter(X);
 
         addDefaultSprites();
@@ -326,13 +325,9 @@ class TitleScreen extends MusicBeatState {
 
             switch ((data.type ?? "").toLowerCase().trim()) {
                 case "sparrow":
-                    sprite.frames = Assets.getSparrowAtlas(data.image, data.library);
-                case "packer":
-                    sprite.frames = Assets.getPackerAtlas(data.image, data.library);
-                case "aseprite":
-                    sprite.frames = Assets.getAseAtlas(data.image, data.library);
+                    sprite.frames = Paths.atlas(data.image);
                 default:
-                    var graphic = Assets.image(data.image, data.library);
+                    var graphic = Paths.image(data.image);
                     if (data.frameRect != null)
                         sprite.loadGraphic(graphic, true, data.frameRect[0], data.frameRect[1]);
                     else
@@ -382,7 +377,7 @@ class TitleScreen extends MusicBeatState {
 
     function addDefaultSprites():Void {
         var logo:Bopper = new Bopper(-150, -100);
-        logo.frames = Assets.getSparrowAtlas("menus/title/logoBumpin");
+        logo.frames = Paths.atlas("menus/title/logoBumpin");
         logo.animation.addByPrefix("bump", "logo bumpin", 24, false);
         logo.danceSteps.push("bump");
 
@@ -391,7 +386,7 @@ class TitleScreen extends MusicBeatState {
         logo.updateHitbox();
 
         var girlfriend:Bopper = new Bopper(FlxG.width * 0.4, FlxG.height * 0.07);
-        girlfriend.frames = Assets.getSparrowAtlas("menus/title/gfDanceTitle");
+        girlfriend.frames = Paths.atlas("menus/title/gfDanceTitle");
         girlfriend.animation.addByIndices("left", "gfDance", [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
         girlfriend.animation.addByIndices("right", "gfDance", [for (i in 15...30) i], "", 24, false);
         girlfriend.danceSteps = ["left", "right"];

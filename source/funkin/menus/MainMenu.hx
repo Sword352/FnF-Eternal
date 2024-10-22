@@ -44,11 +44,11 @@ class MainMenu extends MusicBeatState {
         initStateScripts();
         scripts.call("onCreate");
 
-        Tools.playMusicCheck("freakyMenu");
+        BGM.playMusic("freakyMenu");
         FlxG.cameras.reset(new Camera());
 
         background = new FlxSprite();
-        background.loadGraphic(Assets.image("menus/menuBG"));
+        background.loadGraphic(Paths.image("menus/menuBG"));
         background.scrollFactor.set(0, 0.17);
         background.scale.set(1.2, 1.2);
         background.updateHitbox();
@@ -56,7 +56,7 @@ class MainMenu extends MusicBeatState {
         add(background);
 
         if (!Options.noFlashingLights) {
-            flicker = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
+            flicker = new FlxSprite(0, 0, Paths.image("menus/menuDesat"));
             flicker.scrollFactor.set(0, background.scrollFactor.y);
             flicker.color = 0xFFfd719b;
             flicker.scale.set(1.2, 1.2);
@@ -71,7 +71,7 @@ class MainMenu extends MusicBeatState {
             devState = ' (${Tools.devState})';
 
         bottomText = new FlxText(5, 0, 0, 'Press ${controls.listKeys("open mods", " or ")} to open the mods menu\nEternal v${Tools.gameVersion}${devState}');
-        bottomText.setFormat(Assets.font("vcr"), 16);
+        bottomText.setFormat(Paths.font("vcr"), 16);
         bottomText.setBorderStyle(OUTLINE, FlxColor.BLACK);
         bottomText.y = FlxG.height - bottomText.height;
         bottomText.scrollFactor.set();
@@ -83,7 +83,7 @@ class MainMenu extends MusicBeatState {
 
         for (i in 0...itemList.length) {
             var item:FlxSprite = new FlxSprite();
-            item.frames = Assets.getSparrowAtlas('menus/main/${itemList[i]}');
+            item.frames = Paths.atlas('menus/main/${itemList[i]}');
             item.animation.addByPrefix("normal", "basic", 24);
             item.animation.addByPrefix("selected", "white", 24);
             item.animation.play("normal", true);
@@ -151,7 +151,7 @@ class MainMenu extends MusicBeatState {
         });
 
         if (i != 0)
-            FlxG.sound.play(Assets.sound("scrollMenu"));
+            FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
     function accept():Void {
@@ -159,7 +159,7 @@ class MainMenu extends MusicBeatState {
             return;
 
         allowInputs = false;
-        FlxG.sound.play(Assets.sound("confirmMenu"));
+        FlxG.sound.play(Paths.sound("confirmMenu"));
 
         for (item in items.members.filter((i) -> i.ID != currentSelection))
             FlxTween.tween(item, {alpha: 0}, 0.4, {ease: FlxEase.quadOut});
@@ -173,7 +173,7 @@ class MainMenu extends MusicBeatState {
     }
 
     function leave():Void {
-        FlxG.sound.play(Assets.sound("cancelMenu"));
+        FlxG.sound.play(Paths.sound("cancelMenu"));
         FlxG.switchState(TitleScreen.new);
         Transition.skipNextTransIn = true;
         allowInputs = false;

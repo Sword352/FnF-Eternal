@@ -1,266 +1,240 @@
 package funkin.menus;
 
 import flixel.FlxState;
+import funkin.data.ChartFormat;
+import funkin.data.NoteSkin;
+import funkin.data.StageData;
+import funkin.data.*;
+import lime.app.Future;
 import openfl.Lib;
 
-import funkin.data.ChartFormat.Chart;
-import funkin.data.NoteSkin;
-
-#if sys
-// import sys.thread.FixedThreadPool;
-import sys.thread.Thread;
-import sys.thread.Mutex;
-#end
-
-import funkin.data.StageData;
-import funkin.data.CharacterData;
-
-// you don't need to access this state in order to access PlayState. This just helps making the slow loading process faster.
-// TODO: thread-safe loading code, and maybe make this a bit more faster
+/**
+ * State which preloads assets before heading to gameplay.
+ */
 class LoadingScreen extends FlxState {
-    public static var loadTime:Float = -1;
-
-    var song(get, never):Chart;
-    inline function get_song():Chart
-        return PlayState.song;
-
-    var rotationSpeed:Float = FlxG.random.float(45, 180);
-    var startTime:Float = 0;
-
-    var circle:FlxSprite;
-
-    #if sys
-    // var threads:FixedThreadPool;
-    var mutex:Mutex;
+    #if debug
+    /**
+     * Time elapsed since the start of the program, used to determine how long the loading screen takes to load.
+     */
+    static var __loadTime:Float = -1;
     #end
 
-    var tasks:Array<Void->Void>;
-    var characters:Map<String, CharacterData> = [];
-    var stage:StageData = null;
+    /**
+     * Gameplay start time.
+     */
+    var startTime:Float = 0;
 
-    var switching:Bool = false;
-    var ranTask:Int = 0;
+    /**
+     * Rotating circle.
+     */
+    var circle:FlxSprite;
 
-    var autoPause:Bool;
+    #if debug
+    /**
+     * Traces how long the loading screen took to load.
+     */
+    public static function reportTime():Void {
+        if (__loadTime == -1)
+            return;
 
-    public static inline function getLoadTime():Float {
-        var time:Float = loadTime;
-        if (time == -1) return Lib.getTimer();
-
-        loadTime = -1;
-        return time;
+        trace('${PlayState.song.meta.name} (${PlayState.currentDifficulty}) - Took ${((Lib.getTimer() - __loadTime) / 1000)}s to load');
+        __loadTime = -1;
     }
+    #end
 
+    /**
+     * Creates a new `LoadingScreen`.
+     * @param startTime Gameplay start time.
+     */
     public function new(startTime:Float = 0):Void {
         this.startTime = startTime;
         super();
     }
 
+    /**
+     * Creation behaviour.
+     */
     override function create():Void {
-        loadTime = Lib.getTimer();
-        // Tools.stopMusic();
+        #if debug
+        __loadTime = Lib.getTimer();
+        #end
 
-        autoPause = FlxG.autoPause;
         FlxG.autoPause = false;
 
-        addVisuals();
-        prepareTasks();
-        runTasks();
-    }
+        var circleGraphic = Paths.image("menus/loading_circle");
+        Assets.cache.excludeGraphic(circleGraphic);
 
-    function addVisuals():Void {
-        var graphic = Assets.createGraphic("images/menus/loading_circle");
-        graphic.persist = false;
-
-        circle = new FlxSprite(0, 0, graphic);
-        circle.setPosition(FlxG.width - circle.width - 25, FlxG.height - circle.height - 25);
+        circle = new FlxSprite();
+        circle.x = FlxG.width - circleGraphic.width / 2 - 10;
+        circle.y = FlxG.height - circleGraphic.height / 2 - 10;
+        circle.loadGraphic(circleGraphic);
+        circle.scale.set(0.5, 0.5);
+        circle.updateHitbox();
         circle.alpha = 0;
         add(circle);
+
+        var tasks:Array<Void->Void> = getTasks();
+
+        new Future(() -> {
+            for (task in tasks)
+                task();
+            return 0;
+        }, true)
+        .onComplete(onComplete)
+        .onError(onError);
     }
 
-    function runTasks():Void {
-        #if sys
-        // threads = new FixedThreadPool(tasks.length);
-        mutex = new Mutex();
-
-        for (task in tasks) {
-            Thread.create(() -> {
-                // Sys.sleep(0.01);
-                
-                try
-                    task()
-                catch (e)
-                    trace("Skipping a task due to error: " + e.message);
-
-                mutex.acquire();
-                ranTask++;
-                mutex.release();
-            });
-        }
-        #else
-        // i kinda dont have the choice
-        for (task in tasks) {
-            task();
-            ranTask++;
-        }
-        #end
-    }
-
-    function prepareTasks():Void {
-        tasks = [loadCommon, loadNoteAssets];
-
-        for (char in [song.gameplayInfo.player, song.gameplayInfo.opponent, song.gameplayInfo.spectator]) {
-            if (char == null || characters.exists(char)) continue;
-
-            var file:String = Assets.yaml("data/characters/" + char);
-            if (!FileTools.exists(file)) continue;
-
-            var config:CharacterData = Tools.parseYAML(FileTools.getContent(file));
-            if (config == null) continue;
-
-            characters.set(char, config);
-
-            tasks.push(() -> {
-                // preload frame texture
-                Assets.image(config.image, config.library);
-
-                // also preload health icon (if its not the spectator)
-                if (config.icon != null && (song.gameplayInfo.opponent == char || song.gameplayInfo.player == char))
-                    Assets.image('icons/${config.icon}');
-            });
-        }
-        
-        var stageName:String = song.gameplayInfo.stage;
-        if (stageName?.length > 0) {
-            var stagePath:String = Assets.yaml('data/stages/${stageName}');
-
-            if (FileTools.exists(stagePath)) {
-                stage = Tools.parseYAML(FileTools.getContent(stagePath));
-                if (stage.sprites != null) tasks.push(loadStage);
-            }
-        }
-
-        /*
-        tasks.push(() -> Assets.image("notes/noteSplashes"));
-        tasks.push(() -> Assets.image("notes/receptors"));
-        tasks.push(() -> Assets.image("notes/notes"));
-        */
-
-        /*
-        tasks.push(() -> Assets.songMusic(song.meta.rawName, song.meta.instFile));
-        
-        if (song.meta.voices != null)
-            for (file in song.meta.voices)
-                tasks.push(() -> Assets.songMusic(song.meta.rawName, file));
-        */
-
-        tasks.push(() -> {
-            Assets.songMusic(song.meta.folder, song.gameplayInfo.instrumental);
-
-            if (song.gameplayInfo.voices != null)
-                for (file in song.gameplayInfo.voices)
-                    Assets.songMusic(song.meta.folder, file);
-        });
-    }
-
+    /**
+     * Update behaviour.
+     */
     override function update(elapsed:Float):Void {
         if (FlxG.sound.music?.volume > 0.05) 
-            FlxG.sound.music.volume = Math.max(FlxG.sound.music.volume - elapsed * 2, 0.05);
+            FlxG.sound.music.volume -= elapsed * 2;
 
-        if (circle.alpha < 1) circle.alpha += elapsed * 5;
-        circle.angle += rotationSpeed * elapsed;
-
-        if (switching || ranTask < tasks.length) return;
-
-        Assets.clearAssets = false;
-        // #if sys threads.shutdown(); #end
-
-        FlxG.switchState(PlayState.new.bind(startTime));
-        FlxG.signals.postStateSwitch.addOnce(() -> FlxG.autoPause = autoPause);
-        switching = true;
+        circle.angle += 45 * elapsed;
+        circle.alpha += elapsed * 5;
     }
 
-    function loadStage():Void {
-        for (sprite in stage.sprites)
-            if (sprite.type != "rect")
-                Assets.image(sprite.image, sprite.library);
-    }
+    /**
+     * Returns the tasks to be executed by the `Future` object.
+     */
+    function getTasks():Array<Void->Void> {
+        var tasks:Array<Void->Void> = [];
+        var song:Chart = PlayState.song;
 
-    function loadNoteAssets():Void {
-        var noteSkins:Array<String> = ["default", "default"];
-        var preloaded:Array<String> = [];
+        var queuedCharacters:Array<String> = [];
+        var queuedNoteSkins:Array<String> = [];
+        var noteSkins:Array<String> = [];
 
-        for (index => string in [song.gameplayInfo.opponent, song.gameplayInfo.player]) {
-            var data = characters[string];
-            if (string != null && data?.noteSkin != null) noteSkins[index] = data.noteSkin;
-            else if (song.gameplayInfo.noteSkins != null && song.gameplayInfo.noteSkins[index] != null)
-                noteSkins[index] = song.gameplayInfo.noteSkins[index];
+        // prepare characters
+        for (char in [song.gameplayInfo.player, song.gameplayInfo.opponent, song.gameplayInfo.spectator]) {
+            if (char == null || queuedCharacters.contains(char))
+                continue;
+
+            queuedCharacters.push(char);
+
+            var config:CharacterData = Paths.yaml("data/characters/" + char);
+            if (config == null) continue;
+
+            var isPlayer:Bool = (song.gameplayInfo.opponent == char || song.gameplayInfo.player == char);
+            tasks.push(loadCharacter.bind(config, isPlayer));
+
+            if (config.noteSkin != null && isPlayer && !noteSkins.contains(config.noteSkin))
+                noteSkins.push(config.noteSkin);
         }
 
-        for (skin in noteSkins) {
-            if (preloaded.contains(skin)) continue;
+        // prepare noteskins
+        for (i in 0...2) {
+            var noteSkin:String = noteSkins[i] ?? song.getNoteskin(i);
+            if (queuedNoteSkins.contains(noteSkin))
+                continue;
 
-            // path, library
-            var note:Array<String> = ["game/notes", null];
-            var splash:Array<String> = ["game/splashes", null];
-            var receptor:Array<String> = [null, null]; // gets cached with notes by default
-
-            if (skin != "default") {
-                var data:NoteSkinConfig = NoteSkin.get(skin);
-                var refs:Map<Array<String>, GenericSkin> = [
-                    note => data.note,
-                    receptor => data.receptor,
-                    splash => data.splash
-                ];
-
-                for (k => v in refs) {
-                    if (v == null) continue;
-                    k[0] = v.image;
-                    k[1] = v.library;
-                }
-
-                // since it's softcoded, don't parse it when going to playstate
-                NoteSkin.clearData = false;
-            }
-
-            var toPreload:Array<Array<String>> = [note, receptor];
-
-            if (!Options.noNoteSplash)
-                toPreload.push(splash);
-
-            for (data in toPreload) {
-                var spritesheet:String = data[0];
-                if (spritesheet != null) 
-                    Assets.image(spritesheet, data[1]);
-            }
-
-            preloaded.push(skin);
+            tasks.push(loadNoteskin.bind(noteSkin));
+            queuedNoteSkins.push(noteSkin);
         }
-    }
-
-    function loadCommon():Void {
-        var uiStyle:String = stage?.uiStyle ?? "";
         
-        Assets.image('game/combo-numbers' + uiStyle);
-        Assets.image('game/ratings' + uiStyle);
+        // prepare stage
+        var stageName:String = song.gameplayInfo.stage;
+        var uiStyle:String = "";
 
-        Assets.image("ui/alphabet");
-        Assets.music("breakfast");
+        if (stageName?.length > 0) {
+            var stage:StageData = Paths.yaml('data/stages/${stageName}');
+
+            if (stage?.uiStyle != null)
+                uiStyle = stage.uiStyle;
+
+            if (stage?.sprites != null)
+                tasks.push(loadStageElements.bind(stage.sprites));
+        }
+
+        tasks.push(loadCommonAssets.bind(uiStyle));
+        return tasks;
+    }
+
+    /**
+     * Method called whenever the `Future` object is done executing it's task.
+     */
+    function onComplete(_):Void {
+        Assets.clearCache = false;
+        BGM.stopMusic();
+
+        FlxG.signals.postStateSwitch.addOnce(() -> {
+            // run the garbage collector once the transition completes to avoid lagspikes mid-game, since bitmaps needs to be freed from ram
+            Transition.onComplete.add(openfl.system.System.gc);
+            FlxG.autoPause = Options.autoPause;
+        });
+        FlxG.switchState(PlayState.new.bind(startTime));
+    }
+
+    /**
+     * Method called whenever an error occurs while the `Future` object is executing it's task.
+     */
+    function onError(error:Any):Void {
+        throw error;
+    }
+
+    /**
+     * Method responsible of loading a character.
+     */
+    function loadCharacter(character:CharacterData, preloadIcon:Bool):Void {
+        Paths.preloadAtlas(character.image);
+
+        if (character.icon != null && preloadIcon)
+            Paths.image('icons/${character.icon}');
+    }
+
+    /**
+     * Method responsible of loading stage elements.
+     */
+    function loadStageElements(elements:Array<StageSprite>):Void {
+        for (element in elements)
+            if (element.rectGraphic == null)
+                Paths.preloadAtlas(element.image);
+    }
+
+    /**
+     * Method responsible of loading a noteskin.
+     */
+    function loadNoteskin(noteSkin:String):Void {
+        var noteSheet:String = "game/notes";
+        var splashSheet:String = "game/splashes";
+        var receptorSheet:String = null; // gets cached with notes by default
+
+        if (noteSkin != "default") {
+            var data:NoteSkinConfig = NoteSkin.get(noteSkin);
+
+            if (data.note != null)
+                noteSheet = data.note.image;
+
+            if (data.receptor != null)
+                receptorSheet = data.receptor.image;
+
+            if (data.splash != null)
+                splashSheet = data.splash.image;
+
+            // since it's softcoded, don't parse it again when going to playstate
+            NoteSkin.clearData = false;
+        }
+
+        Paths.image(noteSheet);
+
+        if (receptorSheet != null)
+            Paths.image(receptorSheet);
+
+        if (!Options.noNoteSplash)
+            Paths.image(splashSheet);
+    }
+
+    /**
+     * Method responsible of loading common assets.
+     */
+    function loadCommonAssets(uiStyle:String):Void {
+        Paths.image('game/combo-numbers' + uiStyle);
+        Paths.image('game/ratings' + uiStyle);
+        Paths.image('game/healthBar');
+        Paths.image("ui/alphabet");
 
         for (i in 1...4)
-            Assets.sound('gameplay/missnote${i}');
-    }
-
-    override function destroy():Void {
-        #if sys
-        // threads = null;
-        mutex = null;
-        #end
-
-        characters = null;
-        stage = null;
-        tasks = null;
-
-        super.destroy();
+            Paths.sound('gameplay/missnote${i}');
     }
 }

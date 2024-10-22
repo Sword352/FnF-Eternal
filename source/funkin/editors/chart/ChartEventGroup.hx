@@ -25,7 +25,7 @@ class EventSprite extends SelectableSprite {
     public function new():Void {
         super();
 
-        loadGraphic(Assets.image("ui/event_icon"));
+        loadGraphic(Paths.image("ui/event_icon"));
         setGraphicSize(ChartEditor.checkerSize, ChartEditor.checkerSize);
         updateHitbox();
 
@@ -34,7 +34,7 @@ class EventSprite extends SelectableSprite {
         rect.visible = false;
 
         text = new FlxText();
-        text.setFormat(Assets.font("vcr"), 12, FlxColor.WHITE, RIGHT);
+        text.setFormat(Paths.font("vcr"), 12, FlxColor.WHITE, RIGHT);
 
         var editor:ChartEditor = cast FlxG.state;
         var bound:Float = editor.checkerboard.x - ChartEditor.checkerSize - ChartEditor.separatorWidth;

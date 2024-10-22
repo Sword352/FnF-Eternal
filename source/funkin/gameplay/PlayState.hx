@@ -73,10 +73,7 @@ class PlayState extends MusicBeatState {
         currentDifficulty = diff;
     }
 
-    override public function create():Void {
-        var createTime:Float = LoadingScreen.getLoadTime();
-
-        Tools.stopMusic();
+    override function create():Void {
         self = this;
 
         scripts.loadScripts('songs/${song.meta.folder}/scripts');
@@ -148,10 +145,8 @@ class PlayState extends MusicBeatState {
         for (note in song.notes) {
             var type:String = note.type;
             if (type != null && !types.contains(type)) {
-                if (!Note.defaultTypes.contains(type)) {
-                    var path:String = Assets.script("scripts/notetypes/" + type);
-                    if (FileTools.exists(path)) scripts.load(path);
-                }
+                if (!Note.defaultTypes.contains(type))
+                    scripts.load("scripts/notetypes/" + type);
 
                 types.push(type);
             }
@@ -170,8 +165,9 @@ class PlayState extends MusicBeatState {
         else
             setTime(startTime);
 
-        if (gameMode != DEBUG)
-            trace('${song.meta.name} - Took ${((Lib.getTimer() - createTime) / 1000)}s to load');
+        #if debug
+        LoadingScreen.reportTime();
+        #end
 
         scripts.call("onCreatePost");
     }
@@ -191,7 +187,7 @@ class PlayState extends MusicBeatState {
         countdown.start();
     }
 
-    override public function update(elapsed:Float):Void {
+    override function update(elapsed:Float):Void {
         scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
@@ -249,7 +245,7 @@ class PlayState extends MusicBeatState {
     }
 
     public function gameOver():Void {
-        var character:String = player?.gameOverChar ?? player?.character ?? "boyfriend-dead";
+        var character:String = player?.gameOverChar ?? player?.character ?? "boyfriend-gameover";
         var position:FlxPoint = player?.getScreenCoords() ?? FlxPoint.get(camPos.x, camPos.y);
 
         var event:GameOverEvent = scripts.dispatchEvent("onGameOver", Events.get(GameOverEvent).setup(character, position, camGame.zoom));
@@ -271,7 +267,7 @@ class PlayState extends MusicBeatState {
     }
 
     inline public function openChartEditor():Void {
-        Assets.clearAssets = Options.reloadAssets;
+        Assets.clearCache = Options.reloadAssets;
         FlxG.switchState(ChartEditor.new.bind(song, currentDifficulty, (FlxG.keys.pressed.SHIFT) ? Math.max(conductor.time, 0) : 0));
     }
 
@@ -349,7 +345,7 @@ class PlayState extends MusicBeatState {
     }
 
     public function updatePresenceState(paused:Bool = false):Void {
-        var state:String = '${currentDifficulty} - ${gameMode.toString()}';
+        var state:String = currentDifficulty + " - " + gameMode.toString();
 
         if (paused)
             state += " (Paused)";

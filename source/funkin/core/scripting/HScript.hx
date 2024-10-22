@@ -17,7 +17,7 @@ class HScript extends Script {
      */
     var _interp:Interp;
 
-    override function execute():Void {
+    override function execute(content:String):Void {
         _parser = new Parser();
         _interp = new Interp();
 
@@ -25,7 +25,7 @@ class HScript extends Script {
         _interp.allowPublicVariables = _interp.allowStaticVariables = true;
         _interp.staticVariables = Script.staticFields;
 
-        _interp.execute(_parser.parseString(script, fileName));
+        _interp.execute(_parser.parseString(content, name));
     }
 
     override function set(key:String, v:Dynamic):Dynamic {
@@ -54,13 +54,13 @@ class HScript extends Script {
         super.applyPresets();
 
         set("importModule", (module:String) -> {
-            var path:String = Assets.script(module);
-            if (!FileTools.exists(path)) {
+            var content:String = Paths.script(module);
+            if (content == null) {
                 trace('Could not find module "${module}"!');
                 return;
             }
 
-            var moduleScript:HScript = new HScript(path);
+            var moduleScript:HScript = new HScript(content, module);
             if (!moduleScript.alive) return;
 
             for (customClass in moduleScript._interp.customClasses.keys()) {

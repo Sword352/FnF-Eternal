@@ -16,7 +16,8 @@ import funkin.save.*;
 import funkin.save.Options;
 
 import funkin.core.modding.Mods;
-import funkin.core.assets.Assets;
+import funkin.core.assets.Extensions;
+import funkin.core.assets.*;
 
 #if DISCORD_RPC
 import funkin.core.DiscordRPC;

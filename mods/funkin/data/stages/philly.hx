@@ -30,7 +30,7 @@ function onCreatePost():Void {
     light.shader.setFloat("fadeMod", 1);
 
     // Load the train sound effect
-    trainSound = FlxG.sound.load(Assets.sound("train_passes"));
+    trainSound = FlxG.sound.load(Paths.sound("train_passes"));
 }
 
 function onUpdatePost(elapsed:Float):Void {

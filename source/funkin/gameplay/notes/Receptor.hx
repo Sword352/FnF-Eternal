@@ -106,7 +106,7 @@ class Receptor extends OffsetSprite {
             switch (v) {
                 case "default":
                     // default noteskin
-                    frames = Assets.getSparrowAtlas("game/notes");
+                    frames = Paths.atlas("game/notes");
 
                     var dir:String = Note.directions[direction];
                     animation.addByPrefix("static " + dir, '${dir} static', 24, false);

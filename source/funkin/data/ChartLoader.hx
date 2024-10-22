@@ -1,7 +1,6 @@
 package funkin.data;
 
 import funkin.data.ChartFormat;
-import haxe.Json;
 
 class ChartLoader {
     public static function getEmptyGameplay():GameplayInfo
@@ -34,13 +33,12 @@ class ChartLoader {
         };
 
     public static function loadMeta(song:String):SongMeta {
-        var path:String = Assets.json('songs/${song}/meta');
-        if (!FileTools.exists(path)) {
+        var data:SongMeta = Paths.json('songs/${song}/meta');
+        if (data == null) {
             trace('Could not find meta file for song "${song}"!');
             return getEmptyMeta();
         }
 
-        var data:SongMeta = Json.parse(FileTools.getContent(path));
         data.folder = song;
         return data;
     }
@@ -191,16 +189,11 @@ class ChartLoader {
         if (difficulty == null)
             difficulty = "normal";
 
-        var path:String = Assets.json('songs/${song}/charts/${difficulty}');
-        var data:Dynamic = Json.parse(FileTools.getContent(path));
+        var data:Dynamic = Paths.json('songs/${song}/charts/${difficulty}');
         var finalChart:Chart = null;
 
-        #if sys var overwrite:Bool = false; #end
-
-        if (data.song != null) {
+        if (data.song != null)
             data = convertChart(data.song); // convert charts that uses fnf legacy format
-            #if sys overwrite = Options.chartOverwrite; #end
-        }
         
         finalChart = Chart.resolve(data);
         finalChart.meta = loadMeta(song);
@@ -208,17 +201,13 @@ class ChartLoader {
 
         // check for events
         if (finalChart.events == null) {
-            var eventsPath:String = Assets.json('songs/${song}/events');
-            if (FileTools.exists(eventsPath))
-                finalChart.events = Json.parse(FileTools.getContent(eventsPath));
+            var events:Dynamic = Paths.json('songs/${song}/events');
+
+            if (events != null)
+                finalChart.events = cast events;
             else
                 finalChart.events = [];
         }
-
-        #if sys
-        if (overwrite)
-            sys.io.File.saveContent(path, Json.stringify(finalChart.toStruct())); // overwrite the chart json
-        #end
 
         return finalChart;
     }

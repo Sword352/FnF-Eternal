@@ -23,7 +23,7 @@ class OffsetSubState extends MusicBeatSubState {
         conductor.bpm = 80;
         add(conductor);
 
-        logo = new FlxSprite(0, FlxG.height, Assets.image("menus/logo"));
+        logo = new FlxSprite(0, FlxG.height, Paths.image("menus/logo"));
         logo.scale.set(0.4, 0.4);
         logo.updateHitbox();
         logo.screenCenter(X);
@@ -31,14 +31,14 @@ class OffsetSubState extends MusicBeatSubState {
         add(logo);
 
         offsetText = new FlxText();
-        offsetText.setFormat(Assets.font('vcr'), 34, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+        offsetText.setFormat(Paths.font('vcr'), 34, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
         offsetText.updateHitbox();
         offsetText.y = FlxG.height - offsetText.height - 25;
         offsetText.alpha = 0;
         refreshText();
         add(offsetText);
 
-        music = FlxG.sound.load(Assets.music("offsetSong"), 1, true);
+        music = FlxG.sound.load(Paths.music("offsetSong"), 1, true);
         music.onComplete = conductor.resetTime;
         FlxG.sound.music.fadeOut(0.5, 0);
         conductor.music = music;

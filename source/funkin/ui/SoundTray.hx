@@ -1,5 +1,6 @@
 package funkin.ui;
 
+import openfl.media.Sound;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.text.TextField;
@@ -8,8 +9,9 @@ import openfl.text.TextFormat;
 import flixel.system.ui.FlxSoundTray;
 
 class SoundTray extends FlxSoundTray {
-    var text:TextField;
-    var intendedY:Float;
+    var _text:TextField;
+    var _intendedY:Float;
+    var _sound:Sound;
 
     @:keep
     public function new():Void {
@@ -18,22 +20,24 @@ class SoundTray extends FlxSoundTray {
         var background:Bitmap = cast getChildAt(0);
 
         // dispose old bitmap data
-        background.bitmapData.disposeImage();
         background.bitmapData.dispose();
 
-        background.bitmapData = openfl.Assets.getBitmapData("assets/images/ui/soundtray.png");
+        // load custom bitmap data
+        background.bitmapData = BitmapData.fromFile("assets/images/ui/soundtray.png");
+        background.bitmapData.disposeImage();
+        
         background.scaleX = background.scaleY = 0.5;
         background.smoothing = true;
         background.alpha = 0.65;
 
-        text = cast getChildAt(1);
+        _text = cast getChildAt(1);
 
         // get_defaultTextFormat returns a copy of the actual text format...
-        var textFormat:TextFormat = text.defaultTextFormat;
+        var textFormat:TextFormat = _text.defaultTextFormat;
         textFormat.font = "assets/fonts/vcr.ttf";
-        text.defaultTextFormat = textFormat;
+        _text.defaultTextFormat = textFormat;
 
-        text.y = background.height * 0.25;
+        _text.y = background.height * 0.25;
 
         for (i in 0...10) {
             var bar:Bitmap = cast getChildAt(2 + i);
@@ -41,11 +45,11 @@ class SoundTray extends FlxSoundTray {
             bar.bitmapData.dispose();
 
             bar.bitmapData = new BitmapData(4, 1, false, FlxColor.WHITE);
-            bar.y = text.y;
+            bar.y = _text.y;
         }
 
-        volumeUpSound = volumeDownSound = "assets/sounds/scrollVolume.ogg";
-        y = intendedY = -height;
+        _sound = Sound.fromFile("assets/sounds/scrollVolume.ogg");
+        y = _intendedY = -height;
     }
 
     override function update(ms:Float):Void {
@@ -53,36 +57,36 @@ class SoundTray extends FlxSoundTray {
 
         if (_timer > 0)
             _timer -= elapsed;
-        else if (intendedY > -height) {
-            intendedY -= elapsed * height * 4;
-            if (intendedY <= -height) {
+        else if (_intendedY > -height) {
+            _intendedY -= elapsed * height * 4;
+            if (_intendedY <= -height) {
                 active = visible = false;
                 saveSoundPreferences();
             }
         }
 
-        if (intendedY != y)
-            y = Tools.lerp(y, intendedY, 24);
+        if (_intendedY != y)
+            y = Tools.lerp(y, _intendedY, 24);
     }
 
     override function show(up:Bool = false):Void {
         var volume:Int = (FlxG.sound.muted) ? 0 : Math.floor(FlxG.sound.volume * 100);
         var globalVolume:Int = (FlxG.sound.muted) ? 0 : Math.round(FlxG.sound.volume * 10);
 
+        _text.text = 'VOLUME: ${volume}%';
+
         for (i in 0..._bars.length)
             _bars[i].alpha = (i < globalVolume) ? 1 : 0.5;
 
-        text.text = 'VOLUME: ${volume}%';
-
         if (!silent)
-            FlxG.sound.play((up) ? volumeUpSound : volumeDownSound);
+            _sound.play();
 
         active = visible = true;
-        intendedY = 0;
+        _intendedY = 0;
         _timer = 1;
     }
 
-    inline function saveSoundPreferences():Void {
+    function saveSoundPreferences():Void {
         if (!FlxG.save.isBound)
             return;
 

@@ -144,7 +144,7 @@ class PlayField extends FlxGroup {
         // FlxBitmapText doesn't run well with outlines,
         // so we're using FlxTexts for now
         score = new FlxText(healthBar.x + 50, healthBar.y + healthBar.height + 25, healthBar.width / 3);
-        score.setFormat(Assets.font("vcr"), 19);
+        score.setFormat(Paths.font("vcr"), 19);
         score.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
         score.fieldHeight = 30;
         score.active = false;

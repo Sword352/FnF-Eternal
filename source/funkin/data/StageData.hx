@@ -1,5 +1,7 @@
 package funkin.data;
 
+import funkin.core.assets.Paths.AtlasAsset;
+
 typedef StageData = {
     var ?cameraSpeed:Float;
     var ?camBeatZoom:Float;
@@ -25,10 +27,8 @@ typedef StageData = {
 
 typedef StageSprite = {
     var ?name:String; // optional identifier to access the sprite
-    var ?image:String;
-    var ?library:String;
+    var ?image:AtlasAsset;
 
-    var ?type:String; // sparrow, packer... etc
     var ?layer:String; // foreground / spectator
     var ?rectGraphic:Array<Dynamic>; // makeGraphic()
 

@@ -53,7 +53,7 @@ class Script implements IFlxDestroyable {
         "Tools" => Tools,
         "StringTools" => StringTools,
         "Assets" => Assets,
-        "Paths" => Assets, // base game compat
+        "Paths" => Paths
     ];
 
     /**
@@ -62,42 +62,19 @@ class Script implements IFlxDestroyable {
     public static final staticFields:Map<String, Dynamic> = [];
 
     /**
-     * Loads a script from the specified path and returns it.
-     * @param path The path to look for
+     * Executes code from a string and returns the script.
+     * @param content Script to execute.
+     * @param name Optional name to use for logging.
      */
-    public static inline function load(path:String):Script {
-        /*
-        switch (haxe.io.Path.extension(path)) {
-            case "cppia":
-                #if cpp
-                return new CppiaScript(path);
-                #else
-                trace("CPPIA scripts aren't supported in this target!");
-                return null;
-                #end
-            default:
-                return new HScript(path);
-        }
-        */
-
+    public static inline function load(content:String, ?name:String):Script {
         // only hscript is supported as of now
-        return new HScript(path);
+        return new HScript(content, name);
     }
 
     /**
-     * File path of this script.
+     * Name of this script, used for logging.
      */
-    public var path(default, null):String;
-
-    /**
-     * File name of this script.
-     */
-    public var fileName(default, null):String;
-
-    /**
-     * File content of this script.
-     */
-    public var script(default, null):String;
+    public var name(default, null):String;
 
     /**
      * Defines whether this script is alive. If `false`, it can't be used anymore.
@@ -117,20 +94,19 @@ class Script implements IFlxDestroyable {
     // public var priority:Int = -1; // TODO
 
     /**
-     * Creates a `Script` instance and execute the code from the file specified by `path`.
-     * @param path Path of the file to load
+     * Creates a `Script` instance.
+     * @param content Script to execute.
+     * @param name Optional name to use for logging.
      */
-    public function new(path:String):Void {
-        this.path = path;
-        this.fileName = path.substring(path.lastIndexOf("/") + 1);
+    public function new(content:String, ?name:String):Void {
+        this.name = name;
 
         try {
-            this.script = FileTools.getContent(path);
-            execute();
+            execute(content);
             applyPresets();
         }
         catch (e:Exception) {
-            trace('Failed to execute script "${path}"! [${e.message}]');
+            trace('Failed to execute script "${name}"! [${e.message}]');
             destroy();
         }
     }
@@ -272,10 +248,8 @@ class Script implements IFlxDestroyable {
             parent.remove(this);
 
         alive = false;
-        fileName = null;
-        script = null;
         parent = null;
-        path = null;
+        name = null;
     }
 
     /**
@@ -309,7 +283,7 @@ class Script implements IFlxDestroyable {
     /**
      * Internal method which executes the script. (override me!)
      */
-    function execute():Void {}
+    function execute(content:String):Void {}
 
     function get_object():Dynamic
         return null;

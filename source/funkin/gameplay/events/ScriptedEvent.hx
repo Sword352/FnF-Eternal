@@ -24,12 +24,7 @@ class ScriptedEvent extends SongEvent {
     }
 
     public function add(event:String):Void {
-        var path:String = Assets.script("data/events/" + event);
-
-        if (FileTools.exists(path))
-            _scripts.set(event, game.scripts.load(path));
-        else
-            _scripts.set(event, null);
+        _scripts.set(event, game.scripts.load("data/events/" + event));
     }
 
     override function destroy():Void {

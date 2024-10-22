@@ -30,20 +30,21 @@ class ScriptContainer implements IFlxDestroyable {
     /**
      * Loads all scripts from the specified directory.
      * @param path Directory to scan.
-     * @param global Whether to check for scripts in all asset trees.
+     * @param global Whether to check for scripts in all asset sources.
      */
     public function loadScripts(path:String, global:Bool = false):Void {
-        if (global) {
-            var directories:Array<String> = Assets.listFiles((structure) -> {
-                var path:String = structure.getPath('${path}/', NONE);
-                structure.entryExists(path) ? path : null;
-            });
-            for (directory in directories) _loadScripts(directory);
+        if (!global) {
+            var realPath:String = path + "/";
+            var source:IAssetSource = Assets.getSourceFromPath(realPath, NONE);
+
+            if (source != null)
+                _loadScripts(realPath, source);
         }
         else {
-            var realPath:String = Assets.getPath('${path}/', NONE);
-            if (!FileTools.exists(realPath) || !FileTools.isDirectory(realPath)) return;
-            _loadScripts(realPath);
+            Assets.invoke((source) ->  {
+                if (source.exists(path + "/"))
+                    _loadScripts(path + "/", source);
+            });
         }
     }
 
@@ -52,25 +53,34 @@ class ScriptContainer implements IFlxDestroyable {
      * @param path Path of the script to load.
      */
     public function load(path:String):Script {
-        var script:Script = Script.load(path);
+        var content:String = Paths.script(path);
+        if (content == null) return null;
+
+        var script:Script = Script.load(content, path);
         if (!script.alive) return null;
         return add(script);
     }
 
-    function _loadScripts(path:String):Void {
-        var exts:Array<String> = SCRIPT.getExtensions();
+    function _loadScripts(path:String, source:IAssetSource):Void {
+        var extensions:Array<String> = SCRIPT.getExtensions();
 
-        for (entry in FileTools.readDirectory(path)) {
-            var fullPath:String = path + entry;
+        for (script in source.readDirectory(path)) {
+            var srcPath:String = path + script;
 
-            if (FileTools.isDirectory(fullPath)) {
-                _loadScripts(fullPath + "/");
+            if (source.isDirectory(srcPath)) {
+                _loadScripts(srcPath + "/", source);
                 continue;
             }
 
-            for (ext in exts) {
-                if (entry.endsWith(ext))
-                    load(fullPath);
+            for (extension in extensions) {
+                if (!script.endsWith(extension))
+                    continue;
+
+                var content:String = source.getContent(srcPath);
+                var instance:Script = Script.load(content, srcPath);
+
+                if (instance.alive)
+                    add(instance);
             }
         }
     }

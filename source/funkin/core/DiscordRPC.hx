@@ -149,7 +149,7 @@ class DiscordRPC {
     function threadLoop():Void {
         while (!hidden) {
             if (_presenceDirty) {
-                Discord.UpdatePresence(cpp.RawPointer.addressOf(_presenceData));
+                Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_presenceData));
                 _presenceDirty = false;
             }
 

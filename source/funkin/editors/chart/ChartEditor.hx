@@ -19,6 +19,7 @@ import funkin.gameplay.notes.Note;
 import funkin.gameplay.notes.Receptor;
 
 import funkin.data.ChartFormat;
+import funkin.data.CharacterData;
 import funkin.gameplay.components.SongPlayback;
 import funkin.gameplay.events.EventList;
 import funkin.gameplay.events.EventTypes;
@@ -149,10 +150,10 @@ class ChartEditor extends MusicBeatState {
         var hitsoundVol:Float = preferences.hitsoundVol ?? 0;
         var metronomeVol:Float = preferences.metronomeVol ?? 0;
 
-        hitsound = Assets.sound("editors/hitsound");
+        hitsound = Paths.sound("editors/hitsound");
         hitsoundVolume = hitsoundVol;
 
-        metronome = FlxG.sound.load(Assets.sound("editors/metronome"));
+        metronome = FlxG.sound.load(Paths.sound("editors/metronome"));
         metronome.volume = metronomeVol;
 
         // cache a small amount of note sprites
@@ -504,14 +505,14 @@ class ChartEditor extends MusicBeatState {
         music.stop();
 
         FlxG.mouse.visible = false;
-        Assets.clearAssets = Options.reloadAssets;
+        Assets.clearCache = Options.reloadAssets;
         skipUpdate = true;
 
         PlayState.currentDifficulty = difficulty;
         PlayState.song = chart;
 
         var time:Float = (here ? currentTime : 0);
-        FlxG.switchState(Assets.clearAssets ? LoadingScreen.new.bind(time) : PlayState.new.bind(time));
+        FlxG.switchState(Assets.clearCache ? LoadingScreen.new.bind(time) : PlayState.new.bind(time));
     }
 
     public function playTest(here:Bool = false, asOpponent:Bool = false):Void {
@@ -697,10 +698,11 @@ class ChartEditor extends MusicBeatState {
         eventArgs = [for (arg in currentEvent.arguments) arg.defaultValue];
         noteTypes = Note.defaultTypes.copy();
 
-        var softcodedTypes:String = Assets.getPath("scripts/notetypes", NONE);
-        if (FileTools.exists(softcodedTypes))
-            for (script in FileTools.readDirectory(softcodedTypes))
-                noteTypes.push(script.substring(0, script.lastIndexOf(".")));
+        Assets.invoke((source) ->  {
+            if (source.exists("scripts/notetypes"))
+                for (file in source.readDirectory("scripts/notetypes"))
+                    noteTypes.push(file.substring(0, file.lastIndexOf(".")));
+        });
 
         add(clipboard = new Clipboard<ChartClipboardItems>());
         add(undoList = new UndoList<ChartUndos>());
@@ -971,7 +973,7 @@ class ChartEditor extends MusicBeatState {
         add(legacyBg);
         */
 
-        background = new FlxSprite(0, 0, Assets.image("menus/menuDesat"));
+        background = new FlxSprite(0, 0, Paths.image("menus/menuDesat"));
         background.scrollFactor.set();
         background.color = 0x312C2D;
         background.active = false;
@@ -1035,7 +1037,7 @@ class ChartEditor extends MusicBeatState {
         add(overlay);
 
         musicText = new FlxText(5, overlay.y);
-        musicText.setFormat(Assets.font("vcr"), 14);
+        musicText.setFormat(Paths.font("vcr"), 14);
         musicText.setBorderStyle(OUTLINE, FlxColor.BLACK, 0.5);
         musicText.visible = overlay.visible;
         musicText.scrollFactor.set();
@@ -1129,7 +1131,7 @@ class ChartEditor extends MusicBeatState {
 
         // perhaps it's better not to switch states at all?
 
-        Assets.clearAssets = false;
+        Assets.clearCache = false;
         FlxG.switchState(ChartEditor.new.bind(chart, difficulty, 0));
     }
 
@@ -1164,7 +1166,8 @@ class ChartEditor extends MusicBeatState {
     }
 
     override function destroy():Void {
-        if (runAutosave) autoSave();
+        // don't try this at home
+        // if (runAutosave) autoSave();
 
         difficulty = null;
         chart = null;
@@ -1178,6 +1181,7 @@ class ChartEditor extends MusicBeatState {
         eventsToKill = null;
         eventArgs = null;
         noteTypes = null;
+        metronome = null;
         hitsound = null;
         // theme = null;
 
@@ -1274,11 +1278,12 @@ class ChartEditor extends MusicBeatState {
         if (character == null)
             return HealthIcon.DEFAULT_ICON;
 
-        var file:String = Assets.yaml('data/characters/${character}');
-        if (!FileTools.exists(file))
+        var data:Dynamic = Paths.yaml('data/characters/${character}');
+
+        if (data == null)
             return HealthIcon.DEFAULT_ICON;
 
-        var icon:String = Tools.parseYAML(FileTools.getContent(file)).icon;
-        return (icon == null) ? HealthIcon.DEFAULT_ICON : icon;
+        var icon:String = (cast data:CharacterData).icon;
+        return icon ?? HealthIcon.DEFAULT_ICON;
     }
 }

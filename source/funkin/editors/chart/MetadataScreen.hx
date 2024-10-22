@@ -5,7 +5,90 @@ import haxe.ui.containers.VBox;
 import haxe.ui.backend.flixel.UIRuntimeSubState;
 import funkin.ui.HealthIcon;
 
-@:build(haxe.ui.RuntimeComponentBuilder.build("assets/data/metadataScreen.xml"))
+@:xml('
+<vbox width="100%" height="100%" style="background-color: black; opacity: 0.6;">
+    <panel text="Edit Metadata" width="65%" height="85%" style="top: 54px; background-color: #2c2e31; opacity: 1;" id="vboxContainer" horizontalAlign="center" >
+        <style>
+            .dropdown.charDrop {
+                width: 150px;
+                height: 35px;
+            }
+
+            .number-stepper, .textfield {
+                font-name: "assets/fonts/dm-sans.ttf";
+                font-size: 12px;
+            }
+        </style>
+
+        <hbox width="100%" height="100%">
+            <vbox width="31%" height="100%" style="spacing: 10px;">
+                <vbox width="150" height="225" horizontalAlign="right" style="spacing: 25px;">
+                    <vbox >
+                        <label text="Opponent" />
+                        <dropdown text="Opponent" id="oppDrop" styleName="charDrop" searchable="true" searchPrompt="..." />
+                    </vbox>
+
+                    <vbox >
+                        <label text="Spectator" />
+                        <dropdown text="Opponent" id="specDrop" styleName="charDrop" searchable="true" searchPrompt="..." />
+                    </vbox>
+
+                    <vbox >
+                        <label text="Player" />
+                        <dropdown text="Opponent" id="plrDrop" styleName="charDrop" searchable="true" searchPrompt="..." />
+                    </vbox>
+                </vbox>
+
+                <vbox style="padding-left: 2px; spacing: 10px;">
+                    <rule />
+                    <hbox >
+                        <label text="Stage" verticalAlign="center" />
+                        <dropdown text="Stage" id="stageDrop" width="210" height="25" searchable="true" searchPrompt="..." />
+                    </hbox>
+                </vbox>
+            </vbox>
+
+            <spacer width="19%" />
+
+            <vbox height="100%">
+                <vertical-rule width="15" height="100%" horizontalAlign="center" verticalAlign="center" />
+            </vbox>
+
+            <vbox width="50%" height="50%" style="spacing: 5px;">
+                <hbox width="77%" height="30%" style="spacing: 15px;" horizontalAlign="right">
+                    <vbox height="100%">
+                        <label text="BPM" horizontalAlign="center" />
+                        <number-stepper id="bpmStepper" min="1" horizontalAlign="center" />
+                    </vbox>
+                    <vbox height="100%">
+                        <label text="Scroll Speed" horizontalAlign="center" />
+                        <number-stepper id="scrollSpeed" horizontalAlign="center" />
+                    </vbox>
+                    <vbox height="100%">
+                        <label text="Time Signature" horizontalAlign="center" />
+                        <hbox >
+                            <number-stepper id="tsBpm" width="50" height="29" value="4" min="1" />
+                            <label text="/" style="padding-left: 2px;" verticalAlign="center" />
+                            <number-stepper id="tsSpb" width="50" height="29" value="4" min="1" />
+                        </hbox>
+                    </vbox>
+                </hbox>
+
+                <vbox width="100%" height="20%" >
+                    <label text="Instrumental" horizontalAlign="right" />
+                    <textfield text="Inst.ogg" horizontalAlign="right" />
+                </vbox>
+
+                <!--
+                <vbox width="100%" height="100%" >
+                    <label text="Voices" horizontalAlign="right" />
+                </vbox>
+                -->
+            </vbox>
+        </hbox>
+    </panel>
+</vbox>
+')
 class MetadataScreen extends UIRuntimeSubState {
     var parent(get, never):ChartEditor;
     inline function get_parent():ChartEditor
@@ -189,25 +272,19 @@ class MetadataScreen extends UIRuntimeSubState {
         super.close();
     }
 
-    // used to return the lists from assets and mods
-    inline function getList(from:String):Array<String> {
-        var path:String = Assets.getPath('data/${from}', NONE);
-        var pathDefault:String = 'assets/data/${from}';
+    function getList(from:String):Array<String> {
         var list:Array<String> = [];
+        
+        Assets.invoke((source) -> {
+            if (!source.exists('data/${from}'))
+                return;
 
-        if (pathDefault != path && FileTools.exists(pathDefault)) {
-            for (entry in FileTools.readDirectory(pathDefault)) {
+            var entries:Array<String> = source.readDirectory('data/${from}');
+            for (entry in entries) {
                 var formatted:String = entry.substring(0, entry.lastIndexOf("."));
                 if (!list.contains(formatted)) list.push(formatted);
             }
-        }
-
-        if (FileTools.exists(path)) {
-            for (entry in FileTools.readDirectory(path)) {
-                var formatted:String = entry.substring(0, entry.lastIndexOf("."));
-                if (!list.contains(formatted)) list.push(formatted);
-            }
-        }
+        });
 
         return list;
     }

@@ -14,7 +14,6 @@
 
 	<source path="source" />
 	<assets path="assets" />
-	<assets path="LICENSE" />
 	<assets path="mods" />
 
 	<!-- Defines build directories depending on the target. -->
@@ -37,9 +36,6 @@
 	
 	<!-- Enables the Discord Rich Presence. -->
 	<define name="DISCORD_RPC" if="cpp" />
-		
-	<!-- Enables video cutscenes. -->
-	<define name="VIDEO_CUTSCENES" if="cpp" />
 
 	<!-- [[ Librairies ]] -->
 
@@ -49,9 +45,6 @@
 
 	<!-- Discord Rich Presence library -->
 	<haxelib name="hxdiscord_rpc" if="DISCORD_RPC" />
-
-	<!-- Video rendering library -->
-	<haxelib name="hxvlc" if="VIDEO_CUTSCENES" />
 
 	<!-- HScript scripting library -->
 	<haxelib name="hscript-improved" rename="hscript" />

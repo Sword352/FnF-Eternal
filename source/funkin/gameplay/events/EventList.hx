@@ -21,49 +21,41 @@ class EventList {
      * Returns builtin and softcoded event metadatas.
      */
     public static function getMetas():Map<String, EventMeta> {
-        var path:String = Assets.getPath("data/events", NONE);
         var output:Array<EventMeta> = [for (meta in metas) meta];
+        var extensions:Array<String> = YAML.getExtensions();
 
-        if (FileTools.exists(path))
-            output = output.concat(readEvents(path));
+        Assets.invoke((source) -> {
+            if (!source.exists("data/events"))
+                return;
+
+            for (file in source.readDirectory("data/events")) {
+                var point:Int = file.indexOf(".");
+                if (!extensions.contains(file.substring(point)))
+                    continue;
+    
+                var content:String = source.getContent("data/events/" + file);
+                var event:EventMeta = Tools.parseYAML(content);
+                event.type = file.substring(0, point);
+    
+                if (event.name == null)
+                    event.name = event.type;
+    
+                if (event.arguments == null)
+                    event.arguments = [];
+    
+                /*
+                // converts string type into int
+                for (argument in event.arguments) {
+                    if (argument.type is String)
+                        argument.type = EventArgumentType.fromString(cast argument.type);
+                }
+                */
+    
+                output.push(event);
+            }
+        });
 
         return [for (ev in output) ev.type => ev];
-    }
-
-    /**
-     * Method which looks for softcoded events from a path.
-     * @param path The path to scan
-     */
-    static function readEvents(path:String):Array<EventMeta> {
-        var exts:Array<String> = YAML.getExtensions();
-        var output:Array<EventMeta> = [];
-
-        for (file in FileTools.readDirectory(path)) {
-            var point:Int = file.indexOf(".");
-            if (!exts.contains(file.substring(point))) continue;
-
-            var content:String = FileTools.getContent(path + "/" + file);
-            var event:EventMeta = Tools.parseYAML(content);
-            event.type = file.substring(0, point);
-
-            if (event.name == null)
-                event.name = event.type;
-
-            if (event.arguments == null)
-                event.arguments = [];
-
-            /*
-            // converts string type into int
-            for (argument in event.arguments) {
-                if (argument.type is String)
-                    argument.type = EventArgumentType.fromString(cast argument.type);
-            }
-            */
-
-            output.push(event);
-        }
-
-        return output;
     }
 
     /**

@@ -74,8 +74,8 @@ class ChartPlayState extends MusicBeatSubState {
         comboPopup.cameras = cameras; // TODO: remove this when sprite group cameras are fixed
         add(comboPopup);
 
-        Assets.image('game/combo-numbers');
-        Assets.image('game/ratings');
+        Paths.image('game/combo-numbers');
+        Paths.image('game/ratings');
 
         var noteSkinExists:Bool = parent.chart.gameplayInfo.noteSkins != null;
         var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
@@ -263,7 +263,7 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function createUI():Void {
         infos = new FlxText(0, FlxG.height * ((playerStrumline.downscroll) ? 0.1 : 0.875));
-        infos.setFormat(Assets.font("vcr"), 20, FlxColor.WHITE, CENTER);
+        infos.setFormat(Paths.font("vcr"), 20, FlxColor.WHITE, CENTER);
         infos.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.5);
         add(infos);
 

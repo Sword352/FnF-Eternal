@@ -224,7 +224,7 @@ class DebugNote extends SelectableSprite {
     public function new():Void {
         super();
 
-        frames = Assets.getSparrowAtlas("game/notes");
+        frames = Paths.atlas("game/notes");
 
         for (direction in Note.directions)
             animation.addByPrefix(direction, direction + "0", 0);
@@ -234,7 +234,7 @@ class DebugNote extends SelectableSprite {
         updateHitbox();
 
         text = new FlxText(0, 0, ChartEditor.checkerSize);
-        text.setFormat(Assets.font("vcr"), 14);
+        text.setFormat(Paths.font("vcr"), 14);
         text.setBorderStyle(OUTLINE, FlxColor.BLACK, 1.35);
         text.fieldHeight = ChartEditor.checkerSize;
 

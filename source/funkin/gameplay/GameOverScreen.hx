@@ -21,7 +21,7 @@ class GameOverScreen extends MusicBeatSubState {
     var allowInputs:Bool = true;
     var started:Bool = false;
 
-    public function new(x:Float = 0, y:Float = 0, character:String = "boyfriend-dead"):Void {
+    public function new(x:Float = 0, y:Float = 0, character:String = "boyfriend-gameover"):Void {
         super();
 
         this.characterStr = character;
@@ -50,12 +50,12 @@ class GameOverScreen extends MusicBeatSubState {
         cameraObject.setPosition(position.x, position.y);
         position.put();
 
-        FlxG.sound.play(Assets.sound(data.deathSound ?? "gameplay/fnf_loss_sfx"));
+        FlxG.sound.play(Paths.sound(data.deathSound ?? "gameplay/fnf_loss_sfx"));
         character.playAnimation("firstDeath");
 
         conductor.bpm = data.bpm ?? 100;
         conductor.interpolate = false;
-        conductor.music = FlxG.sound.music;
+        conductor.active = true;
         conductor.resetTime();
 
         scripts.call("onCreatePost");
@@ -70,14 +70,15 @@ class GameOverScreen extends MusicBeatSubState {
                 camera.follow(cameraObject, LOCKON, 0.06);
 
             if (character.animation.curAnim.finished) {
-                FlxG.sound.playMusic(Assets.music(data.music ?? "gameover/gameOver"));
-                conductor.active = true;
+                FlxG.sound.playMusic(Paths.music(data.music ?? "gameover/gameOver"));
+                conductor.music = FlxG.sound.music;
+                conductor.time = -conductor.crotchet;
                 started = true;
             }
         }
 
         if (controls.justPressed("back")) {
-            Tools.stopMusic();
+            BGM.stopMusic();
 
             Transition.skipNextTransOut = true;
             PlayState.lossCounter = 0;
@@ -105,13 +106,13 @@ class GameOverScreen extends MusicBeatSubState {
     function accept():Void {
         if (scripts.quickEvent("onAccept").cancelled) return;
 
-        Assets.clearAssets = Options.reloadAssets;
+        Assets.clearCache = Options.reloadAssets;
         allowInputs = false;
 
         conductor.music = null;
-        Tools.stopMusic();
+        BGM.stopMusic();
 
-        FlxG.sound.play(Assets.sound(data.confirmSound ?? "gameplay/gameOverEnd"));
+        FlxG.sound.play(Paths.sound(data.confirmSound ?? "gameplay/gameOverEnd"));
         character?.playAnimation("deathConfirm", true);
 
         FlxTimer.wait(0.7, () -> camera.fade(FlxColor.BLACK, 2, false, FlxG.resetState));

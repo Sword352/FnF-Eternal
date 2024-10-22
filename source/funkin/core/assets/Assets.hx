@@ -1,311 +1,216 @@
 package funkin.core.assets;
 
 import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxAtlasFrames;
-
+import lime.media.vorbis.VorbisFile;
+import lime.media.AudioBuffer;
 import openfl.media.Sound;
-import openfl.display.BitmapData;
-import openfl.Assets as OpenFLAssets;
-import openfl.system.System;
+import haxe.io.Bytes;
 
-// TODO: maybe partially remove the graphic cache in favor of flixel's
+/**
+ * One of the most important building-block of the engine, the `Assets` singleton is an API for helping with assets retrieval.
+ * It contains methods and helpers for managing assets.
+ */
 class Assets {
-    public static var clearAssets:Bool = true;
-    
-    public static final defaultAssetStructure:DefaultAssetStructure = new DefaultAssetStructure();
-    public static final assetStructures:Array<AssetStructure> = [];
+    /**
+     * Asset cache used by the `Assets` singleton.
+     */
+    public static final cache:AssetCache = new AssetCache();
 
-    static final loadedGraphics:Map<String, FlxGraphic> = [];
-    static final loadedSounds:Map<String, Sound> = [];
+    /**
+     * Determines whether the cache should automatically be cleared during next state switch.
+     */
+    public static var clearCache(get, set):Bool;
 
-    public static function init():Void {
-        FlxG.signals.preStateSwitch.add(freeMemory);
-        FlxG.signals.preStateCreate.add(freeMemoryPost);
-    }
+    /**
+     * Internal, contains each registered asset sources.
+     */
+    static final __assetSources:Array<IAssetSource> = [new FsAssetSource("assets")];
 
-    // Path shortcuts & atlas stuff
-    public inline static function image(file:String, ?library:String):FlxGraphic
-        return getGraphic('images/${file}', library);
-
-    public inline static function music(file:String, ?library:String):Sound
-        return getSound('music/${file}', Options.audioStreaming, library);
-
-    public inline static function sound(file:String, ?library:String):Sound
-        return getSound('sounds/${file}', false, library);
-
-    public inline static function songMusic(song:String, file:String, ?library:String):Sound
-        return getSound('songs/${song}/music/${file}', Options.audioStreaming, library);
-
-    public inline static function json(file:String, ?library:String):String
-        return getPath(file, JSON, library);
-
-    public inline static function yaml(file:String, ?library:String):String
-        return getPath(file, YAML, library);
-
-    public inline static function xml(file:String, ?library:String):String
-        return getPath(file, XML, library);
-
-    public inline static function txt(file:String, ?library:String):String
-        return getPath(file, TEXT, library);
-
-    public inline static function font(file:String, ?library:String):String
-        return getPath('fonts/${file}', FONT, library);
-
-    public inline static function script(file:String, ?library:String):String
-        return getPath(file, SCRIPT, library);
-
-    #if VIDEO_CUTSCENES
-    public inline static function video(file:String, ?library:String):String
-        return getPath('videos/${file}', VIDEO, library);
-    #end
-
-    public inline static function getSparrowAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromSparrow(image(file, library), resolveAtlasData('images/${file}', XML, library));
-
-    public inline static function getPackerAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromSpriteSheetPacker(image(file, library), resolveAtlasData('images/${file}', TEXT, library));
-
-    public inline static function getAseAtlas(file:String, ?library:String):FlxAtlasFrames
-        return FlxAtlasFrames.fromAseprite(image(file, library), resolveAtlasData('images/${file}', JSON, library));
-
-    public inline static function getFrames(file:String, ?type:String, ?library:String):FlxAtlasFrames {
-        return switch ((type ?? "").toLowerCase().trim()) {
-            case "packer": getPackerAtlas(file, library);
-            case "aseprite": getAseAtlas(file, library);
-            default: getSparrowAtlas(file, library);
+    /**
+     * Registers an asset source.
+     * @param assetSource Asset source to register.
+     */
+    public static function addAssetSource(assetSource:IAssetSource):Void {
+        if (assetSource != null) {
+            // use insert as the default asset source should always be last
+            __assetSources.insert(__assetSources.length - 1, assetSource);
         }
     }
 
-    public static function findFrames(file:String, ?library:String):FlxAtlasFrames {
-        if (FileTools.exists(xml('images/${file}', library))) return getSparrowAtlas(file, library);
-        if (FileTools.exists(txt('images/${file}', library))) return getPackerAtlas(file, library);
-        if (FileTools.exists(json('images/${file}', library))) return getAseAtlas(file, library);
+    /**
+     * Removes an asset source.
+     * @param assetSource Asset source to remove.
+     */
+    public static function removeAssetSource(assetSource:IAssetSource):Void {
+        if (assetSource != null)
+            __assetSources.remove(assetSource);
+    }
+
+    /**
+     * Runs an anonymous function on each registered asset sources.
+     * @param closure Function accepting an `IAssetSource`.
+     */
+    public static function invoke(closure:IAssetSource->Void):Void {
+        for (source in __assetSources)
+            closure(source);
+    }
+
+    /**
+     * Retrieves a graphic from the cache, or load it if not existing yet.
+     * @param path Path to the image file.
+     * @param hardware Whether to dispose the image from ram, leaving it in GPU memory.
+     * @param key Optional cache key for the graphic.
+     * @return FlxGraphic
+     */
+    public static function getGraphic(path:String, hardware:Bool = true, ?key:String):FlxGraphic {
+        key ??= path;
+
+        var cachedGraphic:FlxGraphic = cache.getGraphic(key);
+        if (cachedGraphic != null)
+            return cachedGraphic;
+
+        var bytes:Bytes = getBytes(path, IMAGE);
+        if (bytes == null) {
+            trace('Couldn\'t find graphic from path "${path}"!');
+            return null;
+        }
+
+        return cache.loadGraphic(key, bytes, hardware);
+    }
+
+    /**
+     * Retrieves a sound from the cache, or load it if not existing yet.
+     * @param path Path to the sound file.
+     * @param stream Whether the audio should be streamed.
+     * @param key Optional cache key for the sound.
+     * @return Sound
+     */
+    public static function getSound(path:String, stream:Bool = false, ?key:String):Sound {
+        key ??= path;
+
+        var cachedSound:Sound = cache.getSound(key);
+        if (cachedSound != null)
+            return cachedSound;
+
+        if (stream) {
+            for (source in __assetSources) {
+                var extension:String = AUDIO.findExtension(path, source);
+                if (extension == null) continue;
+
+                if (!(source is FsAssetSource)) {
+                    // if the source is not an FsAssetSource, we can still use the compressed audio data directly to allocate less memory
+                    return cache.loadSound(key, source.getBytes(path + extension), true);
+                }
+
+                // use a vorbis file from the local filesystem to save memory
+                var vb:VorbisFile = VorbisFile.fromFile((cast source:FsAssetSource).root + path + extension);
+                var buffer:AudioBuffer = AudioBuffer.fromVorbisFile(vb);
+
+                if (buffer == null) {
+                    // couldn't create vorbis file so just load (and eventually decompress) the full audio
+                    return cache.loadSound(key, source.getBytes(path + extension));
+                }
+
+                var sound:Sound = Sound.fromAudioBuffer(buffer);
+                cache.registerSound(key, sound);
+                return sound;
+            }
+
+            trace('Couldn\'t find sound from path "${path}"!');
+            return null;
+        }
+
+        var bytes:Bytes = getBytes(path, AUDIO);
+        if (bytes == null) {
+            trace('Couldn\'t find sound from path "${path}"!');
+            return null;
+        }
+
+        return cache.loadSound(key, bytes);
+    }
+
+    /**
+     * Retrieves a font from the cache, or load it if not existing yet.
+     * @param font Path to the font file.
+     * @param key Optional cache key for the font.
+     * @return String
+     */
+    public static function getFont(path:String, ?key:String):String {
+        key ??= path;
+
+        var cachedFont:String = cache.getFont(key);
+        if (cachedFont != null)
+            return cachedFont;
+		
+		var bytes:Bytes = getBytes(path, FONT);
+		if (bytes == null) {
+            trace('Couldn\'t find font from path "${path}"!');
+			return null;
+		}
+
+        return cache.loadFont(key, bytes);
+    }
+
+    /**
+     * Returns the first asset source to detain a file or directory located at a specific path.
+     * @param path File or directory to look for.
+     * @param assetType Asset type.
+     * @return IAssetSource
+     */
+    public static function getSourceFromPath(path:String, assetType:AssetType):IAssetSource {
+        var extensions:Array<String> = assetType.getExtensions();
+
+        for (source in __assetSources) {
+            for (extension in extensions) {
+                if (source.exists(path + extension))
+                    return source;
+            }
+        }
+
         return null;
     }
 
-    public static inline function getPath(file:String, type:AssetType, ?library:String):String {
-        return getStructure(file, type, library).getPath(file, type, library);
-    }
+    /**
+     * Returns the bytes of a file from the first asset source detaining a location directing to the file's path.
+     * @param path Path to look for.
+     * @param assetType Asset type.
+     * @return Bytes
+     */
+    public static function getBytes(path:String, assetType:AssetType):Bytes {
+        var extensions:Array<String> = assetType.getExtensions();
 
-    public static function getStructure(file:String, type:AssetType, ?library:String):AssetStructure {
-        for (structure in assetStructures) {
-            var path:String = structure.getPath(file, type, library);
-            if (structure.entryExists(path)) return structure;
-        }
-
-        return defaultAssetStructure;
-    }
-
-    public static function listFiles(method:AssetStructure->String):Array<String> {
-        var output:Array<String> = [];
-
-        var defaultString:String = method(defaultAssetStructure);
-        if (defaultString != null) output.push(defaultString);
-
-        for (structure in assetStructures) {
-            var string:String = method(structure);
-            if (string != null) output.push(string);
-        }
-
-        return output;
-    }
-
-    public static function filterPath(path:String, type:AssetType):String {
-        var extensions:Array<String> = type.getExtensions();
-        var output:String = null;
-
-        while (extensions.length != 0) {
-            var current:String = path + extensions.pop();
-            if (FileTools.exists(current)) {
-                output = current;
-                break;
+        for (source in __assetSources) {
+            for (extension in extensions) {
+                if (source.exists(path + extension))
+                    return source.getBytes(path + extension);
             }
         }
 
-        return output;
+        return null;
     }
 
-    // Asset handling & cache
-    public static function getGraphic(path:String, ?library:String, ?key:String):FlxGraphic {
-        if (key == null)
-            key = path;
+    /**
+     * Returns the content of a file from the first asset source detaining a location directing to the file's path.
+     * @param path Path to look for.
+     * @param assetType Asset type.
+     * @return String
+     */
+    public static function getContent(path:String, assetType:AssetType):String {
+        var extensions:Array<String> = assetType.getExtensions();
 
-        var graphic:FlxGraphic = loadedGraphics.get(key);
-
-        if (graphic == null) {
-            graphic = createGraphic(path, library, key);
-            if (graphic != null)
-                registerGraphic(key, graphic);
-        }
-
-        return graphic;
-    }
-
-    public static function getSound(path:String, stream:Bool = false, ?library:String, ?key:String):Sound {
-        if (key == null)
-            key = path;
-
-        var sound:Sound = loadedSounds.get(key);
-
-        if (sound == null) {
-            sound = createSound(path, library, stream);
-            if (sound != null)
-                registerSound(key, sound);
-        }
-
-        return sound;
-    }
-
-    public static function createGraphic(path:String, ?library:String, ?key:String):FlxGraphic {
-        var structure:AssetStructure = getStructure(path, IMAGE, library);
-        var realPath:String = structure.getPath(path, IMAGE, library);
-        var bitmap:BitmapData = structure.createBitmapData(realPath);
-
-        if (bitmap == null) {
-            trace('Invalid graphic path "${realPath}"!');
-            return null;
-        }
-
-        var graphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key ?? path, true);
-        graphic.persist = true;
-        return graphic;
-    }
-
-    public static function createSound(path:String, ?library:String, stream:Bool = false):Sound {
-        var structure:AssetStructure = getStructure(path, SOUND, library);
-        var realPath:String = structure.getPath(path, SOUND, library);
-
-        if (!structure.entryExists(realPath)) {
-            trace('Invalid sound path "${realPath}"!');
-            return null;
-        }
-
-        var sound:Sound = (stream) ? structure.createSoundStream(realPath) : structure.createSound(realPath);
-        OpenFLAssets.cache.setSound(path, sound);
-        return sound;
-    }
-
-    public inline static function registerSound(key:String, asset:Sound):Void
-        loadedSounds.set(key, asset);
-
-    public inline static function registerGraphic(key:String, asset:FlxGraphic):Void
-        loadedGraphics.set(key, asset);
-
-    public static function resolveAtlasData(path:String, type:AssetType, library:String):String {
-        var structure:AssetStructure = getStructure(path, type, library);
-        var path:String = structure.getPath(path, type, library);
-        return structure.getAtlasData(path);
-    }
-
-    // Assets clearing
-    public inline static function freeMemory():Void {
-        if (!clearAssets)
-            return;
-
-        // Clear the cache entirely
-        clearCache();
-
-        // Clear the OpenFL cache
-        OpenFLAssets.cache.clear();
-    }
-
-    public inline static function freeMemoryPost(?_):Void {
-        // If it is false, set it to true
-        clearAssets = true;
-        // Run the garbage collector
-        System.gc();
-    }
-
-    public inline static function clearCache():Void {
-        clearSounds();
-        clearGraphics();
-        clearFonts();
-    }
-
-    public static function clearSounds():Void {
-        for (key in loadedSounds.keys()) {
-            // TODO: implement persistent assets. this should be good for now (fixes an issue where the music stops when tabbing out)
-            var sound:Sound = loadedSounds.get(key);
-
-            if (@:privateAccess FlxG.sound.music?._sound == sound)
-                continue;
-
-            OpenFLAssets.cache.removeSound(key);
-            loadedSounds.remove(key);
-
-            // latest version of openfl kind of broke sound clearing, this is a temporary bandaid
-            // TODO: investigate this more
-            try {
-                sound.close();
+        for (source in __assetSources) {
+            for (extension in extensions) {
+                if (source.exists(path + extension))
+                    return source.getContent(path + extension);
             }
-            catch (e) {}
-        }
-    }
-
-    public static function clearGraphics():Void {
-        @:privateAccess
-        for (key in FlxG.bitmap._cache.keys()) {
-            var graphic:FlxGraphic = FlxG.bitmap.get(key);
-            if (graphic.persist && !loadedGraphics.exists(key))
-                continue;
-
-            graphic.dump();
-            graphic.destroy();
-            FlxG.bitmap.removeKey(key);
         }
 
-        for (key in loadedGraphics.keys()) {
-            var graphic:FlxGraphic = loadedGraphics.get(key);
-
-            graphic.dump();
-            graphic.destroy();
-
-            FlxG.bitmap.remove(graphic);
-            loadedGraphics.remove(key);
-        }
+        return null;
     }
 
-    public static function clearFonts():Void {
-        var cache:openfl.utils.AssetCache = cast OpenFLAssets.cache;
-        for (key in cache.font.keys())
-            cache.font.remove(key);
-    }
-}
+    static inline function get_clearCache():Bool
+        return cache.autoClear;
 
-enum abstract AssetType(String) from String to String {
-    var IMAGE = "image";
-    var SOUND = "sound";
-    var FONT = "font";
-
-    var XML = "xml";
-    var TEXT = "txt";
-    var JSON = "json";
-    var YAML = "yaml";
-    var SCRIPT = "script";
-
-    #if VIDEO_CUTSCENES
-    var VIDEO = "video";
-    #end
-
-    var NONE = "none";
-
-    public function getExtensions():Array<String> {
-        return switch (this:AssetType) {
-            case IMAGE: [".png"];
-            case SOUND: [".ogg", #if web "mp3" #end];
-            case FONT:  [".ttf", ".otf"];
-
-            case XML:   [".xml"];
-            case TEXT:  [".txt"];
-            case JSON:  [".json"];
-            case YAML:  [".yaml", ".yml"];
-            case SCRIPT: [".hx", ".hxs", ".hscript"];
-            
-            #if VIDEO_CUTSCENES
-            case VIDEO:  [".mp4", ".webm", ".mov", ".avi"];
-            #end
-
-            case NONE: [""];
-        }
-    }
+    static inline function set_clearCache(v:Bool):Bool
+        return cache.autoClear = v;
 }

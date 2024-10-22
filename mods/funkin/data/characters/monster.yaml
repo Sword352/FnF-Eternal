@@ -7,8 +7,8 @@ animations:
   - { name: singUp,     prefix: monster up note,    fps: 24, loop: false, offsets: [-20, 94]  }
   - { name: singRight,  prefix: Monster left note,  fps: 24, loop: false, offsets: [-30, 20]  }
 
-cameraOffsets: [-200, 125]
-globalOffsets: [25, 125]
+cameraOffsets: [-300, 60]
+globalOffsets: [25, 120]
 
 icon: monster
 healthBarColor: "#051650"
