@@ -80,9 +80,8 @@
 	<!-- Runs the import macro that compiles some additional classes for scripting. -->
 	<haxeflag name="--macro" value='funkin.core.macros.IncludeMacro.addAdditionalClasses()' />
 
-	<!-- OpenFL error handling is disabled on debug. This won't be required in next OpenFL versions. -->
-	<!-- TODO: remove this in future OpenFL versions -->
-	<undefine name="openfl-disable-handle-error" if="CRASH_HANDLER debug" />
+	<!-- Enables OpenFL error handling. -->
+	<define name="openfl-enable-handle-error" if="CRASH_HANDLER" />
 
 	<!-- Includes the crash dialog executable on Windows. -->
 	<!-- TODO: this is just a bandaid for now, come up with a better solution later (that works with other targets as well) -->

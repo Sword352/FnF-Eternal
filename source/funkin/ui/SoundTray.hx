@@ -41,7 +41,6 @@ class SoundTray extends FlxSoundTray {
 
         for (i in 0...10) {
             var bar:Bitmap = cast getChildAt(2 + i);
-            bar.bitmapData.disposeImage();
             bar.bitmapData.dispose();
 
             bar.bitmapData = new BitmapData(4, 1, false, FlxColor.WHITE);

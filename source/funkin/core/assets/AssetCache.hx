@@ -409,17 +409,7 @@ class AssetCache {
         _vorbisBytes.remove(sound);
 
         // clear sound from memory
-        @:privateAccess {
-            // there's currently an issue with latest openfl where closing a sound can cause a runtime error,
-            // so we dispose the buffer manually as a temporary workaround
-
-            if (sound.__buffer != null) {
-                sound.__buffer.dispose();
-                sound.__buffer = null;
-            }
-        }
-
-        // sound.close();
+        sound.close();
 
         // remove sound from cache
         _sounds.remove(key);

@@ -29,7 +29,12 @@ class FPSOverlay extends Sprite {
     /**
      * Defines the refresh rate of the overlay in milliseconds.
      */
-    public var pollingRate:Float = 1000;
+    public var pollingRate(default, set):Float = 1000;
+
+    /**
+     * Determines how much frames should be accounted in the average framerate calculation.
+     */
+    public var framerateChecks(default, set):Int = 5;
 
     /**
      * Overlay background.
@@ -40,6 +45,22 @@ class FPSOverlay extends Sprite {
      * Text displaying the current framerate.
      */
     public var text:TextField;
+
+    /**
+     * Determines the time to wait before increasing `_fpsAverage`.
+     * This value is determined by `pollingRate` and `framerateChecks`.
+     */
+    var _fpsPollingRate:Float = 200;
+
+    /**
+     * Stores the accumulation of each accounted frames to calculate the average framerate.
+     */
+    var _fpsAverage:Float = 0;
+
+    /**
+     * Tracks the elapsed time since `_fpsAverage` was last increased.
+     */
+    var _fpsDelay:Float = 0;
 
     /**
      * Tracks the elapsed time since the last update.
@@ -174,6 +195,12 @@ class FPSOverlay extends Sprite {
             // use exponential smoothing to avoid "flickering" values
             _fps = (_fps * 0.8) + (Math.floor(1000 / deltaTime) * 0.2);
         }
+
+        _fpsDelay += deltaTime;
+        if (_fpsDelay >= _fpsPollingRate) {
+            _fpsAverage += _fps;
+            _fpsDelay = 0;
+        }
     }
 
     /**
@@ -181,8 +208,7 @@ class FPSOverlay extends Sprite {
      * @return String
      */
     function getText():String {
-        // need to bound the framerate due to an issue with openfl's main loop, which is going to be fixed soon
-        var output:String = '<font size="17">' + Math.floor(Math.min(FlxG.drawFramerate, _fps)) + "</font> FPS";
+        var output:String = '<font size="17">' + getAverageFramerate() + "</font> FPS";
 
         if (displayMemory)
             output += "\n" + getMemory();
@@ -191,11 +217,24 @@ class FPSOverlay extends Sprite {
     }
 
     /**
+     * Returns the average framerate since the last elapsed second.
+     * @return Int
+     */
+    function getAverageFramerate():Int {
+        // need to bound the framerate due to an issue with lime's main loop, which is going to be fixed soon
+        var average:Float = _fpsAverage / framerateChecks;
+        var output:Int = Math.floor(Math.min(FlxG.drawFramerate, average));
+
+        _fpsAverage = 0;
+        return output;
+    }
+
+    /**
      * Method which outputs a formatted string displaying the current memory usage.
      * @return String
      */
     function getMemory():String {
-        static var memoryUnits:Array<String> = ["Bytes", "kB", "MB", "GB"];
+        static var memoryUnits:Array<String> = ["B", "KB", "MB", "GB"];
         
         var memory:Float = Memory.getProcessUsage();
         var iterations:Int = 0;
@@ -239,6 +278,16 @@ class FPSOverlay extends Sprite {
                 FlxG.save.data.displayMemory = displayMemory;
                 FlxG.save.flush();       
         }
+    }
+
+    function set_pollingRate(v:Float):Float {
+        _fpsPollingRate = v / framerateChecks;
+        return pollingRate = v;
+    }
+
+    function set_framerateChecks(v:Int):Int {
+        _fpsPollingRate = pollingRate / v;
+        return framerateChecks = v;
     }
 
     function set_position(v:FPSPos):FPSPos {
