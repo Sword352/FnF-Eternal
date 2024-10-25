@@ -148,13 +148,14 @@ class DiscordRPC {
      */
     function threadLoop():Void {
         while (!hidden) {
+            Discord.UpdateConnection();
+            Discord.RunCallbacks();
+
             if (_presenceDirty) {
                 Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_presenceData));
                 _presenceDirty = false;
             }
 
-            Discord.UpdateConnection();
-            Discord.RunCallbacks();
             Sys.sleep(1);
         }
     }
