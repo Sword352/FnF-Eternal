@@ -14,11 +14,7 @@ Eternal is an independant [Friday Night Funkin'](https://github.com/FunkinCrew/F
 
 # Licensing
 
-- This project's code is licensed under the [GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#license-text) license.
-- Some of this project's assets are owned by or are based on work by the [Funkin' Crew](https://github.com/FunkinCrew). Assets owned by the Funkin' Crew have specific licensing, see the [official repository](https://github.com/FunkinCrew/funkin.assets/) for more information.
-- You can use, modify or distribute assets made by the Eternal developer team as long as:
-    - It is used for a mod built with Eternal or a fork of the project.
-    - You are not exploiting or making money with those.
+See the [licensing requirements](LICENSING.md) for more information.
 
 <details>
     <summary>
