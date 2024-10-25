@@ -4,6 +4,7 @@ package funkin.core;
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
 import sys.thread.Thread;
+import sys.thread.Mutex;
 import haxe.Int64;
 
 /**
@@ -85,6 +86,11 @@ class DiscordRPC {
     var _updateThread:Thread;
 
     /**
+     * Internal mutex used to make `_presenceDirty` safe to access by the update thread.
+     */
+    var _presenceMutex:Mutex;
+
+    /**
      * Creates a new `DiscordRPC`.
      */
     public function new():Void {
@@ -96,6 +102,8 @@ class DiscordRPC {
         _connectionEvents.ready = cpp.Function.fromStaticFunction(onReady);
         _connectionEvents.errored = cpp.Function.fromStaticFunction(onError);
         _connectionEvents.disconnected = cpp.Function.fromStaticFunction(onDisconnect);
+
+        _presenceMutex = new Mutex();
 
         largeImage = new LargeDiscordImage();
         smallImage = new SmallDiscordImage();
@@ -148,14 +156,20 @@ class DiscordRPC {
      */
     function threadLoop():Void {
         while (!hidden) {
+            var updatePresence:Bool = false;
+
+            _presenceMutex.acquire();
+            if (_presenceDirty) {
+                _presenceDirty = false;
+                updatePresence = true;
+            }
+            _presenceMutex.release();
+
+            if (updatePresence)
+                Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_presenceData));
+
             Discord.UpdateConnection();
             Discord.RunCallbacks();
-
-            if (_presenceDirty) {
-                Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_presenceData));
-                _presenceDirty = false;
-            }
-
             Sys.sleep(1);
         }
     }
