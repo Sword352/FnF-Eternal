@@ -9,12 +9,13 @@
 	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
 	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
 
+	<assets path="assets" type="template" /> <!-- We can safely declare this as template since we're handling assets on our own -->
+	<assets path="mods" type="template" />
+
 	<icon path="resources/win-icon-pixel.png" size="16" />
 	<icon path="resources/win-icon.png" />
 
 	<source path="source" />
-	<assets path="assets" />
-	<assets path="mods" />
 
 	<!-- Defines build directories depending on the target. -->
 	<section if="debug">
@@ -85,7 +86,7 @@
 
 	<!-- Includes the crash dialog executable on Windows. -->
 	<!-- TODO: this is just a bandaid for now, come up with a better solution later (that works with other targets as well) -->
-	<assets path="resources/CrashDialog.exe" rename="CrashDialog.exe" if="CRASH_HANDLER windows" unless="32bits" />
+	<assets path="resources/CrashDialog.exe" rename="CrashDialog.exe" if="CRASH_HANDLER windows" unless="32bits" type="template" />
 
 	<!-- Required for HaxeUI states. -->
 	<haxedef name="haxeui_dont_impose_base_class" />
