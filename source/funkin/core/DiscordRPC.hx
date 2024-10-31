@@ -176,7 +176,13 @@ class DiscordRPC {
 
     function set_state(v:String):String {
         if (state != v) {
-            _presenceData.state = v ?? "  ";
+            // state must be at least 2 characters long
+            if (v != null)
+                v = v.rpad(" ", 2);
+            else
+                v = "  ";
+
+            _presenceData.state = v;
             _presenceDirty = true;
         }
 
