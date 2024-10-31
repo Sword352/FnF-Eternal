@@ -176,7 +176,7 @@ class DiscordRPC {
 
     function set_state(v:String):String {
         if (state != v) {
-            _presenceData.state = v;
+            _presenceData.state = v ?? "  ";
             _presenceDirty = true;
         }
 
