@@ -3,7 +3,7 @@ package funkin.utils;
 import haxe.Log;
 import haxe.PosInfos;
 
-// import flixel.system.debug.log.LogStyle as FlxLogStyle;
+import flixel.system.debug.log.LogStyle as FlxLogStyle;
 
 /**
  * Utility class for tracing fancy strings into the console.
@@ -31,8 +31,8 @@ class Logging {
         addLogStyle(new LogStyle(WARNING, "! | ", YELLOW));
         addLogStyle(new LogStyle(ERROR,   "X | ", RED));
 
-        // FlxLogStyle.WARNING.callback = flixelWarning;
-        // FlxLogStyle.ERROR.callback = flixelError;
+        FlxLogStyle.WARNING.onLog.add(flixelWarning);
+        FlxLogStyle.ERROR.onLog.add(flixelError);
 
         // override the default trace behavior
         Log.trace = haxeTrace;
@@ -142,7 +142,6 @@ class Logging {
         Logging.trace(v, INFO, infos);
     }
 
-    /*
     static inline function flixelWarning(v:Any):Void {
         traceString('Flixel: ${v}', WARNING);
     }
@@ -150,7 +149,6 @@ class Logging {
     static inline function flixelError(v:Any):Void {
         traceString('Flixel: ${v}', ERROR);
     }
-    */
 
     static inline function _trace(v:String, logStyle:LogStyle):Void {
         Sys.println(logStyle.color.toAnsi() + logStyle.header + v + "\u001b[0m");
