@@ -109,10 +109,8 @@ class AssetCache {
             return null;
         }
 
-        #if !hl
         if (hardware)
             bitmap.disposeImage();
-        #end
 
         var graphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key);
         registerGraphic(key, graphic);
