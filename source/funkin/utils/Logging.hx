@@ -81,7 +81,14 @@ class Logging {
         v = Log.formatOutput(v, infos);
         #else
         // no need for extra infos on release builds
-        v = formatClassName(infos.className) + ": " + Std.string(v) + formatExtraParams(infos.customParams);
+        v = ": " + Std.string(v) + formatExtraParams(infos.customParams);
+
+        if (infos.className != null)
+            v = formatClassName(infos.className) + v;
+        else {
+            // script traces
+            v = infos.fileName + ":" + infos.lineNumber + v;
+        }
         #end
 
         traceString(v, style);
