@@ -133,13 +133,13 @@ class Paths {
 		if (assets is Array) {
 			var atlases:Array<String> = cast assets;
 			if (atlases.length == 0) {
-				trace("Cannot construct frame collection from empty array!");
+				Logging.error("Cannot construct frame collection from empty array!");
 				return null;
 			}
 
 			var parent:FlxAtlasFrames = atlas(atlases[0], hardware);
 			if (parent == null) {
-				trace('Parent atlas "${atlases[0]}" could not be built!');
+				Logging.warning('Parent atlas "${atlases[0]}" could not be built!');
 				return null;
 			}
 			
@@ -149,14 +149,14 @@ class Paths {
 					if (atlas != null)
 						parent.addAtlas(atlas);
 					else
-						trace('Atlas "${atlases[i]}" could not be built!');
+						Logging.warning('Atlas "${atlases[i]}" could not be built!');
 				}
 			}
 
 			return parent;
 		}
 
-		trace("Invalid atlas data has been passed to buildAtlas()!");
+		Logging.error("Invalid atlas data has been passed to buildAtlas()!");
 		return null;
 	}
 

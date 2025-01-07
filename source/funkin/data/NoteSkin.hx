@@ -21,7 +21,7 @@ class NoteSkin {
         var data:NoteSkinConfig = Paths.yaml('data/noteskins/${skin}');
         if (data == null) {
             if (!_warnings.contains(skin)) {
-                trace('Could not find noteskin "${skin}"!');
+                Logging.warning('Could not find noteskin "${skin}"!');
                 _warnings.push(skin);
             }
 

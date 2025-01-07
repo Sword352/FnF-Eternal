@@ -75,11 +75,8 @@
 	<!-- Allows HScript custom classes. -->
 	<define name="CUSTOM_CLASSES" />
 
-	<!-- Disables dead code elimination to force unused stuff to be compiled. -->
-	<haxeflag name="-dce" value="std" />
-
 	<!-- Runs the import macro that compiles some additional classes for scripting. -->
-	<haxeflag name="--macro" value='funkin.core.macros.IncludeMacro.addAdditionalClasses()' />
+	<haxeflag name="--macro" value='funkin.core.macros.ScriptMacros.addAdditionalClasses()' />
 
 	<!-- Enables OpenFL error handling. -->
 	<define name="openfl-enable-handle-error" if="CRASH_HANDLER" />

@@ -4,7 +4,11 @@ import funkin.data.ChartFormat.ChartEvent;
 
 /**
  * Event runner which executes song events during gameplay.
+ * This object dispatches the following event(s):
+ * - `GameEvents.EVENT_EXECUTION`
+ * - `GameEvents.EVENT_PRELOAD`
  */
+@:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
 class SongEventExecutor extends FlxBasic {
     /**
      * Stored event executors.
@@ -22,6 +26,11 @@ class SongEventExecutor extends FlxBasic {
     var _currentEvent:Int = 0;
 
     /**
+     * Cached script event object.
+     */
+    var _scriptEvent:SongEventScriptEvent = new SongEventScriptEvent();
+
+    /**
      * Creates a `SongEventExecutor` instance.
      */
     public function new():Void {
@@ -33,26 +42,18 @@ class SongEventExecutor extends FlxBasic {
 
         _executors = [];
 
-        // declare the executor so scripted events share the same
-        var scriptedExecutor:ScriptedEvent = null;
-
         for (event in _events) {
             if (_executors.exists(event.type)) {
                 preloadEvent(event);
                 continue;
             }
 
-            var cls:Class<SongEvent> = EventList.list.get(event.type);
+            var cls:Class<SongEvent> = SongEventList.list.get(event.type);
 
             if (cls != null)
                 _executors.set(event.type, Type.createInstance(cls, []));
-            else {
-                if (scriptedExecutor == null)
-                    scriptedExecutor = new ScriptedEvent();
-
-                _executors.set(event.type, scriptedExecutor);
-                scriptedExecutor.add(event.type);
-            }
+            else
+                findScriptedExecutor(event.type);
 
             preloadEvent(event);
         }
@@ -89,8 +90,8 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        var scriptEvent:SongEventActionEvent = PlayState.self.scripts.dispatchEvent("onEventExecution", Events.get(SongEventActionEvent).setup(event, executor));
-        if (scriptEvent.cancelled) return;
+        dispatchEvent(GameEvents.EVENT_EXECUTION, _scriptEvent.reset(event, executor));
+        if (_scriptEvent.cancelled) return;
 
         executor.currentEvent = event;
         executor.execute(event);
@@ -104,24 +105,40 @@ class SongEventExecutor extends FlxBasic {
         var executor:SongEvent = _executors[event.type];
         if (executor == null) return;
 
-        var scriptEvent:SongEventActionEvent = PlayState.self.scripts.dispatchEvent("onEventPreload", Events.get(SongEventActionEvent).setup(event, executor));
-        if (scriptEvent.cancelled) return;
+        dispatchEvent(GameEvents.EVENT_PRELOAD, _scriptEvent.reset(event, executor));
+        if (_scriptEvent.cancelled) return;
         
         executor.currentEvent = event;
         executor.preload(event);
     }
 
     /**
+     * Attemps to find and create a scripted event executor if no executor is available for a specific event type.
+     * @param event Event type.
+     */
+    function findScriptedExecutor(event:String):Void {
+        // set to null just in case there was no scripted executor, so that we don't re-attemp to find one
+        _executors.set(event, null);
+
+        var script:Script = ScriptManager.getScript(event);
+        if (script == null) return;
+
+        var executor:SongEvent = script.buildClass(SongEvent);
+        if (executor != null) _executors.set(event, executor);
+    }
+
+    /**
      * Clean up memory.
      */
     override function destroy():Void {
+        _scriptEvent = FlxDestroyUtil.destroy(_scriptEvent);
+
         for (executor in _executors)
-            executor.destroy();
-
-        _executors.clear();
+            executor?.destroy();
+        
         _executors = null;
-
         _events = null;
+        
         super.destroy();
     }
 }

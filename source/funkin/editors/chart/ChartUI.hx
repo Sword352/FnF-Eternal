@@ -15,7 +15,7 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 
-import funkin.gameplay.events.EventTypes;
+import funkin.gameplay.events.SongEventTypes;
 import funkin.data.ChartFormat;
 import funkin.data.ChartLoader;
 import haxe.Json;
@@ -602,13 +602,13 @@ class EventDialog extends CollapsibleDialog {
     }
 
     function rebuildArguments(withValues:Bool = false):Void {
-        var meta:EventMeta = parent.currentEvent;
+        var meta:SongEventMeta = parent.currentEvent;
 
         scrollView._height = null; // temporary until max-height gets fixed
         argContainer.removeAllComponents();
 
         for (i in 0...meta.arguments.length) {
-            var argument:EventArgument = meta.arguments[i];
+            var argument:SongEventArgument = meta.arguments[i];
 
             var text:Label = new Label();
             text.verticalAlign = "center";
@@ -622,7 +622,7 @@ class EventDialog extends CollapsibleDialog {
         }
     }
 
-    inline function buildComponent(argument:EventArgument, loopIndex:Int, ?value:Dynamic):Component {
+    inline function buildComponent(argument:SongEventArgument, loopIndex:Int, ?value:Dynamic):Component {
         var component:Component = null;
 
         switch (argument.type) {

@@ -16,12 +16,12 @@ class Bopper extends OffsetSprite {
 
     /**
      * Plays a beat animation.
-     * @param currentBeat Current beat.
+     * @param beat Current beat.
      * @param forced Whether the animation is forced to be played.
      */
     public function dance(beat:Float, forced:Bool = false):Void {
         if (beat % danceInterval == 0)
-            playAnimation(danceSteps[Math.floor(beat % danceSteps.length)], forced);
+            playAnimation(danceSteps[Math.floor(beat / danceInterval) % danceSteps.length], forced);
     }
 
     /**

@@ -21,8 +21,8 @@ import funkin.gameplay.notes.Receptor;
 import funkin.data.ChartFormat;
 import funkin.data.CharacterData;
 import funkin.gameplay.components.SongPlayback;
-import funkin.gameplay.events.EventList;
-import funkin.gameplay.events.EventTypes;
+import funkin.gameplay.events.SongEventList;
+import funkin.gameplay.events.SongEventTypes;
 import funkin.menus.LoadingScreen;
 
 import haxe.ui.core.Screen;
@@ -48,10 +48,10 @@ class ChartEditor extends MusicBeatState {
     public var difficulty:String;
     public var chart:Chart;
 
-    public var eventList:Map<String, EventMeta>;
-    public var noteTypes:Array<String>;
+    public var eventList:Map<String, SongEventMeta>;
+    public var noteTypes:Array<String> = [];
 
-    public var currentEvent:EventMeta;
+    public var currentEvent:SongEventMeta;
     public var currentNoteType:String;
     public var eventArgs:Array<Any>;
 
@@ -168,7 +168,7 @@ class ChartEditor extends MusicBeatState {
         // spawn existing events
         spawnEvents(chart.events);
 
-        FlxG.stage.window.onClose.add(autoSave);
+        // FlxG.stage.window.onClose.add(autoSave);
     }
 
     override function update(elapsed:Float):Void {
@@ -322,7 +322,7 @@ class ChartEditor extends MusicBeatState {
         super.beatHit(beat);
     }
 
-    inline function checkSpawnNote():Void {
+    function checkSpawnNote():Void {
         var direction:Int = Math.floor((mouseCursor.x - checkerboard.x) / checkerSize);
         var strumline:Int = Math.floor(direction / 4);
         direction %= 4;
@@ -365,7 +365,7 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
-    inline function checkSpawnEvent():Void {
+    function checkSpawnEvent():Void {
         var existingEvent:EventSprite = events.getFirst((e) -> e.alive && FlxG.mouse.overlaps(e));
 
         // no existing event found, create one
@@ -402,12 +402,12 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
-    inline function killHoveredObjects():Void {
+    function killHoveredObjects():Void {
         killNotes((note) -> FlxG.mouse.overlaps(note) && !note.selected);
         killEvents((event) -> FlxG.mouse.overlaps(event) && !event.selected);
     }
 
-    inline function killSelectedObjects():Void {
+    function killSelectedObjects():Void {
         notes.forEachAlive((note) -> {
             if (note.selected) notesToKill.push(note);
         });
@@ -423,7 +423,7 @@ class ChartEditor extends MusicBeatState {
         while (eventsToKill.length != 0) killEvent(eventsToKill.pop());
     }
 
-    inline function checkObjectSelect():Void {
+    function checkObjectSelect():Void {
         // register clicked notes to the selection
         notes.forEachAlive((note) -> {
             if (FlxG.mouse.overlaps(note))
@@ -544,7 +544,7 @@ class ChartEditor extends MusicBeatState {
             + "CTRL+S: Save chart"));
     }
 
-    inline function killNote(note:DebugNote):Void {
+    function killNote(note:DebugNote):Void {
         if (selectedNote == note)
             selectedNote = null;
 
@@ -553,7 +553,7 @@ class ChartEditor extends MusicBeatState {
         notes.killNote(note);
     }
 
-    inline function killEvent(event:EventSprite):Void {
+    function killEvent(event:EventSprite):Void {
         if (selectedEvent == event)
             selectedEvent = null;
 
@@ -562,7 +562,7 @@ class ChartEditor extends MusicBeatState {
         event.kill();
     }
 
-    inline function killNotes(condition:DebugNote->Bool):Void {
+    function killNotes(condition:DebugNote->Bool):Void {
         notes.forEachAlive((note) -> {
             if (condition(note)) notesToKill.push(note);
         });
@@ -574,7 +574,7 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
-    inline function killEvents(condition:EventSprite->Bool):Void {
+    function killEvents(condition:EventSprite->Bool):Void {
         events.forEachAlive((event) -> {
             if (condition(event)) eventsToKill.push(event);
         });
@@ -586,13 +586,13 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
-    inline function pauseMusic():Void {
+    function pauseMusic():Void {
         music.pause();
         icons.forEach((icon) -> icon.resetBop());
         metronome.stop();
     }
 
-    inline function updateMusicText():Void {
+    function updateMusicText():Void {
         if (!musicText.visible)
             return;
 
@@ -663,7 +663,7 @@ class ChartEditor extends MusicBeatState {
         }
     }
 
-    inline function loadSong():Void {
+    function loadSong():Void {
         music = new SongPlayback(chart);
         add(music);
 
@@ -681,7 +681,7 @@ class ChartEditor extends MusicBeatState {
         music.time = startTime;
     }
 
-    inline function loadIcons():Void {
+    function loadIcons():Void {
         opponentIcon.character = getIcon(chart.gameplayInfo.opponent);
         opponentIcon.setGraphicSize(0, 100);
         opponentIcon.updateHitbox();
@@ -691,24 +691,28 @@ class ChartEditor extends MusicBeatState {
         playerIcon.updateHitbox();
     }
 
-    inline function loadData():Void {
-        eventList = EventList.getMetas();
+    function loadData():Void {
+        eventList = SongEventList.getMetas();
         currentEvent = eventList.get("change camera target");
 
         eventArgs = [for (arg in currentEvent.arguments) arg.defaultValue];
-        noteTypes = Note.defaultTypes.copy();
-
-        Assets.invoke((source) ->  {
-            if (source.exists("scripts/notetypes"))
-                for (file in source.readDirectory("scripts/notetypes"))
-                    noteTypes.push(file.substring(0, file.lastIndexOf(".")));
-        });
+        Assets.invoke(findNoteTypeList);
 
         add(clipboard = new Clipboard<ChartClipboardItems>());
         add(undoList = new UndoList<ChartUndos>());
 
         lateAlphaOn = preferences.lateAlpha ?? true;
         beatSnap = preferences.beatSnap ?? 16;
+    }
+
+    function findNoteTypeList(source:IAssetSource):Void {
+        var ext:String = TXT.findExtension("data/noteTypes", source);
+        if (ext == null) return;
+
+        var list:String = source.getContent("data/noteTypes" + ext);
+        for (line in list.split("\n")) {
+            noteTypes.push(line.trim());
+        }
     }
 
     public function undo(recursive:Bool = false):Void {
@@ -823,21 +827,21 @@ class ChartEditor extends MusicBeatState {
             undoList.register(CopyObjects(noteRewinds, eventRewinds));
     }
 
-    inline function undo_addNote(data:ChartNote):DebugNote {
+    function undo_addNote(data:ChartNote):DebugNote {
         var note:DebugNote = notes.addNote(data);
         chart.notes.push(data);
         sortNotes();
         return note;
     }
 
-    inline function undo_removeNote(data:ChartNote):Void {
+    function undo_removeNote(data:ChartNote):Void {
         notes.forEachAlive((note) -> {
             if (note.data == data)
                 killNote(note);
         });
     }
 
-    inline function undo_addEvent(data:ChartEvent):EventSprite {
+    function undo_addEvent(data:ChartEvent):EventSprite {
         var sprite:EventSprite = events.recycle(EventSprite);
         sprite.y = getYFromTime(data.time);
         sprite.data = data;
@@ -848,14 +852,14 @@ class ChartEditor extends MusicBeatState {
         return sprite;
     }
 
-    inline function undo_removeEvent(data:ChartEvent):Void {
+    function undo_removeEvent(data:ChartEvent):Void {
         events.forEachAlive((event) -> {
             if (event.data == data)
                 killEvent(event);
         });
     }
 
-    inline function undo_noteDrag(note:ChartNote, time:Float, direction:Int, strumline:Int):Void {
+    function undo_noteDrag(note:ChartNote, time:Float, direction:Int, strumline:Int):Void {
         note.time = time;
         note.direction = direction;
         note.strumline = strumline;
@@ -873,7 +877,7 @@ class ChartEditor extends MusicBeatState {
         requestSortNotes = true;
     }
 
-    inline function undo_eventDrag(event:ChartEvent, time:Float):Void {
+    function undo_eventDrag(event:ChartEvent, time:Float):Void {
         event.time = time;
         events.forEachAlive((spr) -> {
             if (spr.data == event)
@@ -883,7 +887,7 @@ class ChartEditor extends MusicBeatState {
         requestSortEvents = true;
     }
 
-    inline function createGrid():Void {
+    function createGrid():Void {
         // thanks to RapperGF for the idea!
         miniMap = new Camera(0, 0, checkerSize * 8 + separatorWidth + 10, Math.floor(checkerSize * 40), 0.15);
         miniMap.x = FlxG.width - 30 - miniMap.width * miniMap.zoom;
@@ -963,7 +967,7 @@ class ChartEditor extends MusicBeatState {
         add(receptors);
     }
 
-    inline function createBackground():Void {
+    function createBackground():Void {
         /*
         legacyBg = new CheckerboardBG(200, 200, FlxColor.PURPLE, FlxColor.TRANSPARENT);
         legacyBg.scrollFactor.set(0.2, 0.2);
@@ -989,7 +993,7 @@ class ChartEditor extends MusicBeatState {
         */
     }
 
-    inline function createUI():Void {
+    function createUI():Void {
         substateCam = new Camera();
         substateCam.bgColor.alpha = 0;
         FlxG.cameras.add(substateCam, false);
@@ -1146,7 +1150,7 @@ class ChartEditor extends MusicBeatState {
         }, "chart_autosave");
     }
 
-    inline function spawnEvents(eventArray:Array<ChartEvent>):Void {
+    function spawnEvents(eventArray:Array<ChartEvent>):Void {
         if (eventArray.length == 0) return;
 
         for (eventData in eventArray) {
@@ -1186,7 +1190,7 @@ class ChartEditor extends MusicBeatState {
         // theme = null;
 
         FlxG.save.flush();
-        FlxG.stage.window.onClose.remove(autoSave);
+        //FlxG.stage.window.onClose.remove(autoSave);
         Main.fpsOverlay.position = TOP;
 
         super.destroy();

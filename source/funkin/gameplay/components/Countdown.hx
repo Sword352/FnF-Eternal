@@ -7,7 +7,10 @@ import flixel.util.FlxSignal;
 
 /**
  * Countdown object which executes the countdown in gameplay.
+ * This object dispatches the following event(s):
+ * - `GameEvents.COUNTDOWN_TICK`
  */
+@:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
 class Countdown extends FlxBasic {
     /**
      * Displayed countdown sprite.
@@ -104,27 +107,22 @@ class Countdown extends FlxBasic {
             return;
         }
 
-        var event:CountdownEvent = null;
-        var force:Bool = true;
-
         var suffix:String = (tick == totalTicks ? "Go" : Std.string(totalTicks - tick));
         var sound:String = 'gameplay/intro${suffix}';
         var spriteFrame:Int = tick - 2;
 
-        if (PlayState.self != null) {
+        if (PlayState.self != null)
             sound += PlayState.self.stage?.uiStyle ?? "";
-            force = false;
 
-            event = PlayState.self.scripts.dispatchEvent("onCountdownTick", Events.get(CountdownEvent).setup(TICK, tick, null, sound, spriteFrame));
-            if (event.cancelled) return;
+        var event:CountdownTickEvent = dispatchEvent(GameEvents.COUNTDOWN_TICK, new CountdownTickEvent(tick, sound, spriteFrame));
+        if (event.cancelled) return;
 
-            spriteFrame = event.spriteFrame;
-            sound = event.soundAsset;
-        }
+        spriteFrame = event.spriteFrame;
+        sound = event.soundAsset;
 
         onTick.dispatch(tick);
 
-        if (PlayState.self != null && event.allowBeatEvents)
+        if (PlayState.self != null)
             PlayState.self.gameDance(tick - 1 + (totalTicks % 2));
 
         if (spriteFrame != -1)
@@ -136,7 +134,7 @@ class Countdown extends FlxBasic {
         sprite.alpha = (spriteFrame == -1 ? 0 : 1);
         sprite.screenCenter();
 
-        if ((force || event.allowTween) && spriteFrame != -1)
+        if (spriteFrame != -1)
             FlxTween.tween(sprite, {y: (sprite.y -= 50) + 100, alpha: 0}, Conductor.self.crotchet * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
     }
 

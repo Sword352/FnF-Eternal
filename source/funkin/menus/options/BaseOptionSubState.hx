@@ -20,23 +20,11 @@ class BaseOptionSubState extends MusicBeatSubState {
 
     override function create():Void {
         super.create();
-
-        initStateScripts();
-        scripts.call("onCreate");
-
         add(optionsGroup);
         changeSelection();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
-        superUpdate(elapsed);
-        scripts.call("onUpdatePost", elapsed);
-    }
-
-    function superUpdate(elapsed:Float):Void {
         super.update(elapsed);
 
         if (optionsGroup.length > 1 && controls.anyJustPressed(["up", "down"]))
@@ -58,7 +46,7 @@ class BaseOptionSubState extends MusicBeatSubState {
             FlxG.sound.play(Paths.sound("scrollMenu"));
     }
 
-    inline function leave():Void {
+    function leave():Void {
         FlxG.sound.play(Paths.sound("cancelMenu"));
         OptionsManager.save();
         close();

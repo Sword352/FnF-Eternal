@@ -3,6 +3,12 @@ package funkin;
 import flixel.FlxSubState;
 import funkin.core.scripting.ScriptableState;
 
+/**
+ * This object dispatches the following event(s):
+ * - `Events.STEP_HIT`
+ * - `Events.BEAT_HIT`
+ * - `Events.MEASURE_HIT`
+ */
 class MusicBeatState extends ScriptableState {
     public var conductor(default, set):Conductor;
     public var controls:Controls = Controls.global;
@@ -13,17 +19,13 @@ class MusicBeatState extends ScriptableState {
     }
 
     override function onSubStateOpen(subState:FlxSubState):Void {
-        if (conductor != null)
-            conductor.active = (subState is TransitionSubState && !Transition.noPersistentUpdate);
-
-        super.onSubStateOpen(subState);
+        if (conductor == null) return;
+        conductor.active = (subState is TransitionSubState && !Transition.noPersistentUpdate);
     }
 
     override function onSubStateClose(subState:FlxSubState):Void {
-        if (conductor != null)
-            conductor.active = true;
-
-        super.onSubStateClose(subState);
+        if (conductor == null) return;
+        conductor.active = true;
     }
 
     override function destroy():Void {
@@ -33,15 +35,15 @@ class MusicBeatState extends ScriptableState {
     }
 
     public function stepHit(step:Int):Void {
-        scripts.call("onStepHit", step);
+        dispatchEvent(Events.STEP_HIT, step);
     }
 
     public function beatHit(beat:Int):Void {
-        scripts.call("onBeatHit", beat);
+        dispatchEvent(Events.BEAT_HIT, beat);
     }
 
     public function measureHit(measure:Int):Void {
-        scripts.call("onMeasureHit", measure);
+        dispatchEvent(Events.MEASURE_HIT, measure);
     }
 
     function set_conductor(v:Conductor):Conductor {
@@ -97,6 +99,12 @@ class MusicBeatState extends ScriptableState {
     //
 }
 
+/**
+ * This object dispatches the following event(s):
+ * - `Events.STEP_HIT`
+ * - `Events.BEAT_HIT`
+ * - `Events.MEASURE_HIT`
+ */
 class MusicBeatSubState extends ScriptableSubState {
     public var conductor(default, set):Conductor;
     public var controls:Controls = Controls.global;
@@ -107,15 +115,15 @@ class MusicBeatSubState extends ScriptableSubState {
     }
 
     public function stepHit(step:Int):Void {
-        scripts.call("onStepHit", step);
+        dispatchEvent(Events.STEP_HIT, step);
     }
 
     public function beatHit(beat:Int):Void {
-        scripts.call("onBeatHit", beat);
+        dispatchEvent(Events.BEAT_HIT, beat);
     }
 
     public function measureHit(measure:Int):Void {
-        scripts.call("onMeasureHit", measure);
+        dispatchEvent(Events.MEASURE_HIT, measure);
     }
 
     override public function destroy():Void {

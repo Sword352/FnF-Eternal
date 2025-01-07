@@ -34,7 +34,7 @@ class StrumLine extends FlxSpriteGroup {
      * Determines whether notes are automatically processed.
      */
     public var cpu(default, set):Bool = false;
-
+    
     /**
      * Defines the owner of this strumline.
      */
@@ -139,11 +139,10 @@ class StrumLine extends FlxSpriteGroup {
      * @param owner Defines this strumline's owner.
      * @param skin Initial noteskin.
      */
-    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, owner:StrumLineOwner = OPPONENT, skin:String = "default"):Void {
+    public function new(x:Float = 0, y:Float = 0, cpu:Bool = false, skin:String = "default"):Void {
         super(x, y);
 
         this.cpu = cpu;
-        this.owner = owner;
         this.skin = skin;
 
         sustains = new FlxTypedSpriteGroup<Sustain>();
@@ -190,10 +189,10 @@ class StrumLine extends FlxSpriteGroup {
      * @param note Note to add.
      */
     public function addNote(note:Note):Void {
-        notes.add(note);
+        notes.group.add(note);
 
         if (note.sustain != null)
-            sustains.add(note.sustain);
+            sustains.group.add(note.sustain);
     }
 
     /**
@@ -420,14 +419,10 @@ class StrumLine extends FlxSpriteGroup {
 
     /**
      * Resizes the hold length of the passed note if the player has hit the note earlier or later.
-     * The note gets removed if the new length is 0.
      */
     function resizeLength(note:Note):Void {
         note.length += (note.time - Conductor.self.time);
         note.time = Conductor.self.time;
-
-        if (note.length == 0)
-            removeNote(note);
     }
 
     /**
@@ -436,7 +431,7 @@ class StrumLine extends FlxSpriteGroup {
      */
     function charactersSing(note:Note):Void {
         for (character in characters) {
-            character.playSingAnim(note.direction, note.animSuffix);
+            character.playSingAnim(note.direction);
 
             if (!cpu)
                 character.animState = HOLDING;

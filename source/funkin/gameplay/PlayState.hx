@@ -4,7 +4,6 @@ import flixel.*;
 import flixel.math.FlxPoint;
 
 import funkin.gameplay.*;
-import funkin.gameplay.notes.*;
 import funkin.gameplay.components.*;
 import funkin.gameplay.events.SongEventExecutor;
 import funkin.objects.Camera;
@@ -18,10 +17,21 @@ import funkin.data.ChartLoader;
 import funkin.data.ChartFormat.Chart;
 import funkin.save.SongProgress;
 
-import openfl.Lib;
-
+/**
+ * This object dispatches the following event(s):
+ * - `GameEvents.COUNTDOWN_START`
+ * - `GameEvents.GAME_OVER`
+ * - `GameEvents.SONG_START`
+ * - `GameEvents.SONG_END`
+ */
 class PlayState extends MusicBeatState {
-    public static var self:PlayState;
+    /**
+     * Current `PlayState` instance.
+     */
+    public static var self(get, never):PlayState;
+    static inline function get_self():PlayState
+        return cast FlxG.state;
+    
     public static var song:Chart;
 
     public static var songPlaylist:Array<String>;
@@ -63,6 +73,12 @@ class PlayState extends MusicBeatState {
     public var validScore:Bool = (gameMode != DEBUG);
     public var startTime:Float;
 
+    /**
+     * Flag used to prevent the game over event from being repeatedly dispatched.
+     */
+    @:allow(funkin.gameplay.components.GameStats)
+    var _checkGameOver:Bool = false;
+
     public function new(startTime:Float = 0):Void {
         this.startTime = startTime;
         super();
@@ -74,10 +90,8 @@ class PlayState extends MusicBeatState {
     }
 
     override function create():Void {
-        self = this;
-
-        scripts.loadScripts('songs/${song.meta.folder}/scripts');
-        scripts.loadScripts('scripts/gameplay', true);
+        ScriptManager.addVariable("game", this);
+        super.create();
 
         camGame = new Camera();
         camGame.bgColor.alpha = 0;
@@ -96,9 +110,6 @@ class PlayState extends MusicBeatState {
         camGame.follow(camDisplace, LOCKON);
         add(camDisplace);
 
-        super.create();
-        scripts.call("onCreate");
-
         music = new SongPlayback(song);
         music.onComplete.add(endSong);
         add(music);
@@ -107,12 +118,12 @@ class PlayState extends MusicBeatState {
         camBumpInterval = conductor.beatsPerMeasure;
 
         if (song.gameplayInfo.stage?.length > 0) {
-            stage = new Stage(song.gameplayInfo.stage);
+            stage = Stage.create(song.gameplayInfo.stage);
             add(stage);
         }
 
         if (song.gameplayInfo.spectator != null) {
-            spectator = new Character(400, 0, song.gameplayInfo.spectator);
+            spectator = Character.create(400, 0, song.gameplayInfo.spectator);
             add(spectator);
 
             // make the spectator behave as the opponent
@@ -121,12 +132,12 @@ class PlayState extends MusicBeatState {
         }
 
         if (song.gameplayInfo.opponent != null && song.gameplayInfo.spectator != song.gameplayInfo.opponent) {
-            opponent = new Character(200, 0, song.gameplayInfo.opponent);
+            opponent = Character.create(200, 0, song.gameplayInfo.opponent);
             add(opponent);
         }
 
         if (song.gameplayInfo.player != null) {
-            player = new Character(400, 0, song.gameplayInfo.player);
+            player = Character.create(400, 0, song.gameplayInfo.player);
             add(player);
         }
 
@@ -138,19 +149,6 @@ class PlayState extends MusicBeatState {
 
         events = new SongEventExecutor();
         add(events);
-
-        // look for notetype scripts
-        var types:Array<String> = [];
-
-        for (note in song.notes) {
-            var type:String = note.type;
-            if (type != null && !types.contains(type)) {
-                if (!Note.defaultTypes.contains(type))
-                    scripts.load("scripts/notetypes/" + type);
-
-                types.push(type);
-            }
-        }
 
         #if DISCORD_RPC
         DiscordRPC.self.details = song.meta.name;
@@ -168,12 +166,10 @@ class PlayState extends MusicBeatState {
         #if debug
         LoadingScreen.reportTime();
         #end
-
-        scripts.call("onCreatePost");
     }
 
     function startCountdown():Void {
-        var event:CountdownEvent = scripts.dispatchEvent("onCountdownStart", Events.get(CountdownEvent).setup(START, -1, "game/countdown" + (stage?.uiStyle ?? "")));
+        var event:CountdownStartEvent = dispatchEvent(GameEvents.COUNTDOWN_START, new CountdownStartEvent(stage?.uiStyle ?? ""));
         if (event.cancelled) return;
 
         countdown = new Countdown();
@@ -188,11 +184,10 @@ class PlayState extends MusicBeatState {
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
-        if (stats.health <= 0 && subState == null)
-            gameOver();
+        if (_checkGameOver)
+            _performGameOverCheck();
 
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, bumpSpeed);
         camHUD.zoom = Tools.lerp(camHUD.zoom, hudZoom, bumpSpeed);
@@ -216,54 +211,48 @@ class PlayState extends MusicBeatState {
             if (controls.justPressed("autoplay"))
                 playField.botplay = !playField.botplay;
         }
-        
-        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
-        var event:BeatHitEvent = Events.get(BeatHitEvent).setup(conductor.step, beat, conductor.measure, beat % camBumpInterval == 0);
-        scripts.dispatchEvent("onBeatHit", event);
-        if (event.cancelled) return;
-
-        if (event.cameraBump) {
+        if (beat % camBumpInterval == 0) {
             camGame.zoom += gameBeatBump;
             camHUD.zoom += hudBeatBump;
         }
 
-        if (event.allowDance)
-            gameDance(beat);
+        playField.iconBops();
+        gameDance(beat);
 
-        if (event.iconBops)
-            playField.iconBops();
+        super.beatHit(beat);
     }
 
-    public function pause():Void {
-        if (scripts.quickEvent("onPause").cancelled)
-            return;
-
+    public inline function pause():Void {
         openSubState(new PauseScreen());
     }
 
     public function gameOver():Void {
+        var event:ScriptEvent = dispatchEvent(GameEvents.GAME_OVER, new ScriptEvent());
+        if (event.cancelled) return;
+
         var character:String = player?.gameOverChar ?? player?.character ?? "boyfriend-gameover";
         var position:FlxPoint = player?.getScreenCoords() ?? FlxPoint.get(camPos.x, camPos.y);
 
-        var event:GameOverEvent = scripts.dispatchEvent("onGameOver", Events.get(GameOverEvent).setup(character, position, camGame.zoom));
-        if (event.cancelled) return;
-
-        if (event.stopMusic)
-            music.stop();
+        music.stop();
 
         #if DISCORD_RPC
-        if (event.changePresence)
-            DiscordRPC.self.state = "Game Over";
+        DiscordRPC.self.state = "Game Over";
         #end
 
-        persistentDraw = event.persistentDraw;
-        camSubState.zoom = event.zoom;
+        camSubState.zoom = camGame.zoom;
+        persistentDraw = false;
 
-        openSubState(new GameOverScreen(event.position.x, event.position.y, event.character));
-        event.position.put();
+        openSubState(new GameOverScreen(position.x, position.y, character));
+        position.put();
+    }
+
+    function _performGameOverCheck():Void {
+        if (stats.health <= 0)
+            gameOver();
+        _checkGameOver = false;
     }
 
     inline public function openChartEditor():Void {
@@ -280,8 +269,8 @@ class PlayState extends MusicBeatState {
     }
 
     public function startSong(time:Float = 0):Void {
-        if (scripts.quickEvent("onSongStart").cancelled)
-            return;
+        var event:ScriptEvent = dispatchEvent(GameEvents.SONG_START, new ScriptEvent());
+        if (event.cancelled) return;
 
         #if DISCORD_RPC
         DiscordRPC.self.timestamp.start = 1;
@@ -292,41 +281,36 @@ class PlayState extends MusicBeatState {
     }
 
     public function endSong():Void {
-        var event:SongEndEvent = scripts.dispatchEvent("onSongEnd", Events.get(SongEndEvent).setup(weekToUnlock, validScore));
+        var event:ScriptEvent = dispatchEvent(GameEvents.SONG_END, new ScriptEvent());
         if (event.cancelled) return;
 
-        if (event.resetLossCount)
-            lossCounter = 0;
+        conductor.music = null;
+        lossCounter = 0;
 
-        if (event.saveScore) {
+        if (validScore) {
             var song:String = '${song.meta.folder}-${currentDifficulty}';
             if (gameMode == STORY) song += "_story";
-
             Scoring.self.registerGame(song, stats);
         }
 
-        if (event.leaveState) {
-            switch (gameMode) {
-                case STORY:
-                    if (songPlaylist.length > 0) {
-                        Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
-                        FlxG.switchState(LoadingScreen.new.bind(0));
-                    }
-                    else {
-                        if (event.unlockedWeek != null)
-                            SongProgress.unlock(event.unlockedWeek, true);
+        switch (gameMode) {
+            case STORY:
+                if (songPlaylist.length > 0) {
+                    Transition.onComplete.add(() -> load(songPlaylist.shift(), currentDifficulty));
+                    FlxG.switchState(LoadingScreen.new.bind(0));
+                }
+                else {
+                    if (weekToUnlock != null)
+                        SongProgress.unlock(weekToUnlock, true);
                         
-                        weekToUnlock = null;
-                        FlxG.switchState(StoryMenu.new);
-                    }
-                case DEBUG:
-                    openChartEditor();
-                default:
-                    FlxG.switchState(FreeplayMenu.new);
-            }
+                    weekToUnlock = null;
+                    FlxG.switchState(StoryMenu.new);
+                }
+            case DEBUG:
+                openChartEditor();
+            default:
+                FlxG.switchState(FreeplayMenu.new);
         }
-
-        conductor.music = null;
     }
 
     public function gameDance(beat:Int):Void {
@@ -407,8 +391,6 @@ class PlayState extends MusicBeatState {
     }
 
     override function destroy():Void {
-        self = null;
-
         #if DISCORD_RPC
         DiscordRPC.self.timestamp.reset();
         DiscordRPC.self.state = null;
@@ -419,6 +401,9 @@ class PlayState extends MusicBeatState {
         cameraFocus = null;
 
         super.destroy();
+
+        // only remove the variable once Events.DESTROY has been dispatched
+        ScriptManager.removeVariable("game");
     }
 
     public inline function setTime(time:Float):Void {
@@ -428,21 +413,12 @@ class PlayState extends MusicBeatState {
 
     function set_cameraFocus(v:Character):Character {
         if (v != null) {
-            var event:CameraFocusEvent = scripts.dispatchEvent("onCameraFocus", Events.get(CameraFocusEvent).setup(v));
-            if (event.cancelled) return cameraFocus;
-
-            v = event.character;
-
-            if (v != null) {
-                var cameraPosition:FlxPoint = v.getCameraDisplace();
-                camPos.copyFrom(cameraPosition);
-                cameraPosition.put();
-            }
-    
-            cameraFocus = v;
+            var cameraPosition:FlxPoint = v.getCameraDisplace();
+            camPos.copyFrom(cameraPosition);
+            cameraPosition.put();
         }
 
-        return v;
+        return cameraFocus = v;
     }
 }
 

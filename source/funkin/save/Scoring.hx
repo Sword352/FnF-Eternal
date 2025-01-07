@@ -36,7 +36,7 @@ class Scoring {
         if (FlxG.save.data.scores == null)
             FlxG.save.data.scores = new Map<String, GameSession>();
 
-        _sessions = (cast FlxG.save.data.scores : Map<String, GameSession>).copy();
+        _sessions = (cast FlxG.save.data.scores:Map<String, GameSession>).copy();
     }
 
     /**

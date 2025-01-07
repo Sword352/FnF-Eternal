@@ -35,14 +35,11 @@ class MainMenu extends MusicBeatState {
     var cameraSpeed:Float = 4.5;
 
     override function create():Void {
+        super.create();
+
         #if DISCORD_RPC
         DiscordRPC.self.details = "Main Menu";
         #end
-
-        super.create();
-
-        initStateScripts();
-        scripts.call("onCreate");
 
         BGM.playMusic("freakyMenu");
         FlxG.cameras.reset(new Camera());
@@ -107,12 +104,9 @@ class MainMenu extends MusicBeatState {
         itemOrder = items.members.copy();
         currentSelection = lastSelection % itemList.length;
         changeSelection();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         var itemMidpoint:FlxPoint = itemOrder[currentSelection].getMidpoint();
@@ -127,8 +121,6 @@ class MainMenu extends MusicBeatState {
             if (subState == null && controls.justPressed("open mods"))
                 openSubState(new funkin.core.modding.ModsOverlay());
         }
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {
@@ -155,9 +147,6 @@ class MainMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        if (scripts.quickEvent("onAccept").cancelled)
-            return;
-
         allowInputs = false;
         FlxG.sound.play(Paths.sound("confirmMenu"));
 
@@ -175,7 +164,6 @@ class MainMenu extends MusicBeatState {
     function leave():Void {
         FlxG.sound.play(Paths.sound("cancelMenu"));
         FlxG.switchState(TitleScreen.new);
-        Transition.skipNextTransIn = true;
         allowInputs = false;
     }
 

@@ -16,9 +16,6 @@ class OffsetSubState extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        initStateScripts();
-        scripts.call("onCreate");
-
         conductor = new Conductor();
         conductor.bpm = 80;
         add(conductor);
@@ -46,12 +43,9 @@ class OffsetSubState extends MusicBeatSubState {
         var beatDuration:Float = conductor.crotchet / 1000;
         FlxTween.tween(offsetText, {alpha: 1}, beatDuration);
         FlxTween.tween(logo, {y: (FlxG.height - logo.height) * 0.5}, beatDuration, {ease: FlxEase.backOut, onComplete: (_) -> music.play()});
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (music.playing) {
@@ -72,8 +66,6 @@ class OffsetSubState extends MusicBeatSubState {
             OptionsManager.save();
             close();
         }
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {

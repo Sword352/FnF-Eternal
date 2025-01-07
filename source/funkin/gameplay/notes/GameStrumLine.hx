@@ -1,10 +1,17 @@
 package funkin.gameplay.notes;
 
-import funkin.gameplay.components.Rating;
-
 /**
  * Special `StrumLine` which handles extra gameplay logic for `PlayState`.
+ * This object dispatches the following event(s):
+ * - `GameEvents.NOTE_HIT`
+ * - `GameEvents.NOTE_HOLD`
+ * - `GameEvents.NOTE_HOLD_INVALIDATION`
+ * - `GameEvents.GHOST_PRESS`
+ * - `GameEvents.NOTE_KEY_PRESS`
+ * - `GameEvents.NOTE_KEY_RELEASE`
+ * - `GameEvents.NOTE_MISS`
  */
+@:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
 class GameStrumLine extends StrumLine {
     /**
      * Since the processed direction in `onKeyDown` and `onKeyUp` can be changed with an event, 
@@ -13,117 +20,109 @@ class GameStrumLine extends StrumLine {
      */
     var pressedKeys:Array<Bool> = [false, false, false, false];
 
+    /**
+     * Cached note hit event object.
+     */
+    var _noteHitEvent:NoteHitEvent = new NoteHitEvent();
+
+    /**
+     * Cached note miss event object.
+     */
+    var _noteMissEvent:NoteMissEvent = new NoteMissEvent();
+
+    /**
+     * Cached note hold invalidation event object.
+     */
+    var _noteHoldMissEvent:NoteHoldInvalidationEvent = new NoteHoldInvalidationEvent();
+
+    /**
+     * Cached note hold event object.
+     */
+    var _noteHoldEvent:NoteHoldEvent = new NoteHoldEvent();
+
+    /**
+     * Cached ghost press event object.
+     */
+    var _ghostPressEvent:GhostPressEvent = new GhostPressEvent();
+
+    /**
+     * Cached note input event object.
+     */
+    var _inputEvent:NoteInputEvent = new NoteInputEvent();
+
     override function handleNoteHit(note:Note):Void {
-        var rating:Rating = PlayState.self.stats.evaluateNote(note);
-
-        var event:NoteHitEvent = Events.get(NoteHitEvent).setup(
-            note,
-            owner == OPPONENT,
-            cpu,
-            rating,
-            (!cpu ? rating.score : 0),
-            (owner == PLAYER ? rating.health : 0),
-            (!cpu ? rating.accuracyMod : 0),
-            (owner == PLAYER ? Math.max(rating.health * 10, 0) : 0),
-            (!cpu && !rating.breakCombo && PlayState.self.stats.combo >= 10),
-            (!cpu && rating.displaySplash && !Options.noNoteSplash),
-            !cpu,
-            !cpu,
-            !cpu,
-            (!cpu && rating.breakCombo),
-            !cpu,
-            owner == PLAYER || PlayState.self.music.voices?.length == 1,
-            !cpu
-        );
-
         note.state = BEEN_HIT;
-        PlayState.self.scripts.dispatchEvent("onNoteHit", event);
 
-        if (event.cancelled)
-            return;
+        var game:PlayState = PlayState.self;
+        var prevCombo:Int = game.stats.combo;
 
-        PlayState.self.playField.incrementScore(event.score);
-        PlayState.self.stats.health += event.health;
+        dispatchEvent(GameEvents.NOTE_HIT, _noteHitEvent.reset(note, game.stats.combo));
+        if (_noteHitEvent.cancelled) return;
 
-        if (event.breakCombo)
-            PlayState.self.stats.combo = 0;
-        else if (event.increaseCombo)
-            PlayState.self.stats.combo++;
+        note.holdHealth = _noteHitEvent.holdHealth;
+        game.playField.incrementScore(_noteHitEvent.score);
+        game.stats.health += _noteHitEvent.health;
+        game.stats.combo = _noteHitEvent.combo;
 
-        if (event.increaseHits)
-            event.rating.hits++;
+        if (_noteHitEvent.rating != null) {
+            _noteHitEvent.rating.hits++;
+            game.playField.displayRating(_noteHitEvent.rating);
+        }
 
-        if (event.increaseAccuracy)
-            PlayState.self.playField.incrementAccuracy(event.accuracy);
+        if (_noteHitEvent.accuracy != null)
+            game.playField.incrementAccuracy(_noteHitEvent.accuracy);
 
-        if (event.displayRating)
-            PlayState.self.playField.displayRating(event.rating);
+        if (game.stats.combo > prevCombo && game.stats.combo >= 10)
+            game.playField.displayCombo(game.stats.combo);
 
-        if (event.displayCombo)
-            PlayState.self.playField.displayCombo(PlayState.self.stats.combo);
-
-        if (event.displaySplash)
+        if (_noteHitEvent.displaySplash)
             popSplash(note);
 
-        if (event.unmutePlayer)
-            PlayState.self.music.playerVolume = event.playerVolume;
+        if (_noteHitEvent.unmutePlayer)
+            game.music.playerVolume = 1;
 
         if (note.isHoldable())
-            note.visible = event.noteVisible;
-        else if (event.removeNote)
+            note.visible = _noteHitEvent.noteVisible;
+        else if (_noteHitEvent.removeNote)
             queueNoteRemoval(note);
 
-        if (event.playConfirm)
+        if (_noteHitEvent.playConfirm)
             note.targetReceptor.playAnimation("confirm", true);
 
-        if (event.characterSing)
+        if (_noteHitEvent.characterSing)
             charactersSing(note);
 
-        note.holdHealth = event.holdHealth;
         onNoteHit.dispatch(note);
 
-        if (note.isHoldable() && event.resizeLength)
+        if (note.isHoldable() && !cpu)
             resizeLength(note);
     }
 
     override function handleLateNote(note:Note):Void {
-        var event:NoteMissEvent = Events.get(NoteMissEvent).setup(note);
-        _onMiss(event);
-
-        if (event.cancelled)
-            return;
+        _onMiss(_noteMissEvent.reset(note, false));
+        if (_noteMissEvent.cancelled) return;
 
         if (note.isHoldable())
-            note.visible = event.noteVisible;
+            note.visible = _noteMissEvent.noteVisible;
         else
-            note.alpha = event.noteAlpha;
+            note.alpha = _noteMissEvent.noteAlpha;
 
-        note.holdHealth = event.holdHealth;
         onMiss.dispatch(note);
     }
 
     override function handleSustainNote(note:Note):Void {
-        var event:NoteHoldEvent = Events.get(NoteHoldEvent).setup(
-            note,
-            owner == OPPONENT,
-            cpu,
-            note.missed,
-            owner == PLAYER || PlayState.self.music.voices?.length == 1
-        );
-
+        dispatchEvent(GameEvents.NOTE_HOLD, _noteHoldEvent.reset(note));
         note.state = BEEN_HIT;
-        PlayState.self.scripts.dispatchEvent("onNoteHold", event);
-        
-        if (event.cancelled)
-            return;
 
-        if (event.unmutePlayer)
-            PlayState.self.music.playerVolume = event.playerVolume;
+        if (_noteHoldEvent.cancelled) return;
 
-        if (event.characterSing)
+        if (_noteHoldEvent.unmutePlayer)
+            PlayState.self.music.playerVolume = 1;
+
+        if (_noteHoldEvent.characterSing)
             charactersSing(note);
 
-        if (event.playConfirm)
+        if (_noteHoldEvent.playConfirm)
             note.targetReceptor.playAnimation("confirm", true);
 
         note.unheldTime = 0;
@@ -131,83 +130,70 @@ class GameStrumLine extends StrumLine {
     }
 
     override function unholdSustainNote(note:Note):Void {
-        var event:NoteMissEvent = Events.get(NoteMissEvent).setup(note, true);
-        _onMiss(event);
-
-        if (event.cancelled)
-            return;
-
-        note.holdHealth = event.holdHealth;
+        _onMiss(_noteMissEvent.reset(note, true));
+        if (_noteMissEvent.cancelled) return;
         onMiss.dispatch(note);
     }
 
     override function invalidateHoldNote(note:Note):Void {
-        var remainingLength:Float = note.length - (PlayState.self.conductor.time - note.time);
-        var fraction:Float = (remainingLength / (PlayState.self.conductor.semiQuaver * 2)) + 1;
+        dispatchEvent(GameEvents.NOTE_HOLD_INVALIDATION, _noteHoldMissEvent.reset(note));
+        if (_noteHoldMissEvent.cancelled) return;
 
-        var event:NoteHoldInvalidationEvent = Events.get(NoteHoldInvalidationEvent).setup(note, fraction);
-        PlayState.self.scripts.dispatchEvent("onNoteHoldInvalidation", event);
-        
-        if (event.cancelled)
-            return;
+        var game:PlayState = PlayState.self;
+        game.playField.incrementScore(-Math.floor(_noteHoldMissEvent.scoreLoss * _noteHoldMissEvent.fraction));
+        game.stats.health -= _noteHoldMissEvent.healthLoss * _noteHoldMissEvent.fraction;
 
-        PlayState.self.playField.incrementScore(-Math.floor(event.scoreLoss * event.fraction));
-        PlayState.self.stats.health -= event.healthLoss * event.fraction;
+        if (_noteHoldMissEvent.breakCombo)
+            game.stats.combo = 0;
 
-        if (event.breakCombo)
-            PlayState.self.stats.combo = 0;
-
-        if (event.characterMiss)
+        if (_noteHoldMissEvent.characterMiss)
             charactersMiss(note.direction);
 
-        if (event.spectatorSad)
+        if (_noteHoldMissEvent.spectatorSad)
             makeSpectatorSad();
         
-        if (event.playSound)
-            playMissSound(event.soundVolume, event.soundVolDiff);
+        if (_noteHoldMissEvent.playSound)
+            playMissSound();
 
-        PlayState.self.music.playerVolume = event.playerVolume;
+        if (_noteHoldMissEvent.mutePlayer)
+            game.music.playerVolume = 0;
 
-        note.sustain.alpha *= 0.5; // TODO: event prop
+        note.sustain.alpha *= _noteHoldMissEvent.alphaMultiplier;
         onHoldInvalidation.dispatch(note);
     }
 
     override function ghostPress(direction:Int):Void {
-        var event:GhostPressEvent = Events.get(GhostPressEvent).setup(direction, ghostTapping || notes.length == 0);
-        PlayState.self.scripts.dispatchEvent("onGhostPress", event);
+        dispatchEvent(GameEvents.GHOST_PRESS, _ghostPressEvent.reset(direction, ghostTapping || notes.length == 0));
+        if (_ghostPressEvent.cancelled) return;
 
-        if (event.cancelled)
-            return;
+        if (_ghostPressEvent.playPress) playPress(_ghostPressEvent.direction);
+        if (_ghostPressEvent.ghostTapping) return;
 
-        if (event.playPress)
-            playPress(event.direction);
+        var game:PlayState = PlayState.self;
 
-        if (event.ghostTapping)
-            return;
+        game.playField.incrementScore(-_ghostPressEvent.scoreLoss);
+        game.stats.health -= _ghostPressEvent.healthLoss;
 
-        PlayState.self.playField.incrementScore(-event.scoreLoss);
-        PlayState.self.stats.health -= event.healthLoss;
+        if (_ghostPressEvent.breakCombo)
+            game.stats.combo = 0;
 
-        if (event.breakCombo)
-            PlayState.self.stats.combo = 0;
+        if (_ghostPressEvent.characterMiss)
+            charactersMiss(_ghostPressEvent.direction);
 
-        if (event.characterMiss)
-            charactersMiss(event.direction);
-
-        if (event.spectatorSad)
+        if (_ghostPressEvent.spectatorSad)
             makeSpectatorSad();
 
-        if (event.playSound)
-            playMissSound(event.soundVolume, event.soundVolDiff);
+        if (_ghostPressEvent.playSound)
+            playMissSound();
 
-        PlayState.self.music.playerVolume = event.playerVolume;
-        onGhostMiss.dispatch(event.direction);         
+        if (_ghostPressEvent.mutePlayer)
+            game.music.playerVolume = 0;
+
+        onGhostMiss.dispatch(_ghostPressEvent.direction);         
     }
 
     override function holdSustainNote(note:Note):Void {
-        if (owner == PLAYER)
-            PlayState.self.stats.health += note.holdHealth * FlxG.elapsed;
-
+        PlayState.self.stats.health += note.holdHealth * FlxG.elapsed;
         super.holdSustainNote(note);
     }
 
@@ -215,15 +201,13 @@ class GameStrumLine extends StrumLine {
         var key:Int = Tools.convertLimeKey(rawKey);
         var dir:Int = getDirFromKey(key);
 
-        if (dir == -1 || pressedKeys[dir] || inactiveInputs)
-            return;
+        if (dir == -1 || pressedKeys[dir] || inactiveInputs) return;
 
-        var event:NoteKeyActionEvent = PlayState.self.scripts.dispatchEvent("onKeyPress", Events.get(NoteKeyActionEvent).setup(key, dir));
-        if (event.cancelled)
-            return;
+        dispatchEvent(GameEvents.NOTE_KEY_PRESS, _inputEvent.reset(key, dir));
+        if (_inputEvent.cancelled) return;
 
         pressedKeys[dir] = true;
-        dir = event.direction;
+        dir = _inputEvent.direction;
         heldKeys[dir] = true;
 
         var targetNote:Note = notes.group.getFirst((note) -> note.direction == dir && note.isHittable());
@@ -237,16 +221,13 @@ class GameStrumLine extends StrumLine {
     override function onKeyUp(rawKey:Int, _):Void {
         var key:Int = Tools.convertLimeKey(rawKey);
         var dir:Int = getDirFromKey(key);
+        if (dir == -1) return;
 
-        if (dir == -1)
-            return;
-
-        var event:NoteKeyActionEvent = PlayState.self.scripts.dispatchEvent("onKeyRelease", Events.get(NoteKeyActionEvent).setup(key, dir));
-        if (event.cancelled)
-            return;
+        dispatchEvent(GameEvents.NOTE_KEY_RELEASE, _inputEvent.reset(key, dir));
+        if (_inputEvent.cancelled) return;
 
         pressedKeys[dir] = false;
-        dir = event.direction;
+        dir = _inputEvent.direction;
         heldKeys[dir] = false;
         playStatic(dir);
 
@@ -259,25 +240,20 @@ class GameStrumLine extends StrumLine {
 
     function _onMiss(event:NoteMissEvent):Void {
         event.note.state = MISSED;
-        PlayState.self.scripts.dispatchEvent("onMiss", event);
+        dispatchEvent(GameEvents.NOTE_MISS, event);
+        if (event.cancelled) return;
 
-        if (event.cancelled)
-            return;
-
-        PlayState.self.playField.incrementScore(-event.scoreLoss);
-        PlayState.self.stats.health -= event.healthLoss;
-
-        if (event.breakCombo) 
-            PlayState.self.stats.combo = 0;
-
-        if (event.increaseMisses) 
-            PlayState.self.playField.incrementMisses();
+        var game:PlayState = PlayState.self;
+        game.playField.incrementScore(-event.scoreLoss);
+        game.playField.incrementMisses();
+        game.stats.health -= event.healthLoss;
+        game.stats.combo = 0;
 
         if (event.decreaseAccuracy)
-            PlayState.self.playField.incrementAccuracy(0);
+            game.playField.incrementAccuracy(0);
 
         if (event.playSound)
-            playMissSound(event.soundVolume, event.soundVolDiff);
+            playMissSound();
 
         if (event.characterMiss)
             charactersMiss(event.note.direction);
@@ -285,7 +261,10 @@ class GameStrumLine extends StrumLine {
         if (event.spectatorSad)
             makeSpectatorSad();
 
-        PlayState.self.music.playerVolume = event.playerVolume;
+        if (event.mutePlayer)
+            game.music.playerVolume = 0;
+
+        event.note.holdHealth = event.holdHealth;
     }
 
     function makeSpectatorSad():Void {
@@ -293,11 +272,18 @@ class GameStrumLine extends StrumLine {
             PlayState.self.spectator.playSpecialAnim("sad", Conductor.self.crotchet);
     }
 
-    inline function playMissSound(volume:Float = 0.1, difference:Float = 0.1):Void {
-        FlxG.sound.play(Paths.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(volume, volume + difference));
+    inline function playMissSound():Void {
+        FlxG.sound.play(Paths.sound('gameplay/missnote${FlxG.random.int(1, 3)}'), FlxG.random.float(0.1, 0.2));
     }
 
     override function destroy():Void {
+        _noteHitEvent = FlxDestroyUtil.destroy(_noteHitEvent);
+        _noteMissEvent = FlxDestroyUtil.destroy(_noteMissEvent);
+        _noteHoldEvent = FlxDestroyUtil.destroy(_noteHoldEvent);
+        _noteHoldMissEvent = FlxDestroyUtil.destroy(_noteHoldMissEvent);
+        _ghostPressEvent = FlxDestroyUtil.destroy(_ghostPressEvent);
+        _inputEvent = FlxDestroyUtil.destroy(_inputEvent);
+
         pressedKeys = null;
         super.destroy();
     }

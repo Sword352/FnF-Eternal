@@ -71,7 +71,7 @@ class Assets {
 
         var bytes:Bytes = getBytes(path, IMAGE);
         if (bytes == null) {
-            trace('Couldn\'t find graphic from path "${path}"!');
+            Logging.warning('Couldn\'t find graphic from path "${path}"!');
             return null;
         }
 
@@ -116,13 +116,13 @@ class Assets {
                 return sound;
             }
 
-            trace('Couldn\'t find sound from path "${path}"!');
+            Logging.warning('Couldn\'t find sound from path "${path}"!');
             return null;
         }
 
         var bytes:Bytes = getBytes(path, AUDIO);
         if (bytes == null) {
-            trace('Couldn\'t find sound from path "${path}"!');
+            Logging.warning('Couldn\'t find sound from path "${path}"!');
             return null;
         }
 
@@ -144,7 +144,7 @@ class Assets {
 		
 		var bytes:Bytes = getBytes(path, FONT);
 		if (bytes == null) {
-            trace('Couldn\'t find font from path "${path}"!');
+            Logging.warning('Couldn\'t find font from path "${path}"!');
 			return null;
 		}
 

@@ -1,11 +1,12 @@
 package;
 
 import flixel.FlxGame;
-import flixel.FlxState;
 
 import funkin.data.NoteSkin;
 import funkin.save.SongProgress;
+
 import funkin.menus.TitleScreen;
+import funkin.menus.ScriptLoadScreen;
 
 import funkin.ui.SoundTray;
 import funkin.ui.FPSOverlay;
@@ -13,6 +14,8 @@ import funkin.ui.FPSOverlay;
 #if CRASH_HANDLER
 import funkin.core.CrashHandler;
 #end
+
+import funkin.utils.Logging;
 
 import openfl.ui.Keyboard;
 import openfl.display.Sprite;
@@ -51,7 +54,7 @@ class Main extends Sprite {
  */
 private class GameInstance extends FlxGame {
     public function new():Void {
-        super(0, 0, InitState, 60, 60, true);
+        super(0, 0, InitState.new, 60, 60, true);
         _customSoundTray = SoundTray;
     }
 }
@@ -60,20 +63,21 @@ private class GameInstance extends FlxGame {
  * Small state used to initialize the backstage of the engine.
  * NOTE: this is a state because initializing Flixel things in the `Main` class constructor is a bit unreliable.
  */
-private class InitState extends FlxState {
+class InitState extends ScriptableState {
     override function create():Void {
         // Initialize backend
+        ScriptManager.init();
+        Logging.init();
         Conductor.init();
         Controls.init();
         NoteSkin.init();
-        Events.init();
 
         // Initialize HaxeUI
         Toolkit.theme = "eternal";
         Toolkit.init();
 
         // Load mods
-        Mods.init();
+        Mods.reload();
 
         // Load save data
         OptionsManager.load();
@@ -93,9 +97,11 @@ private class InitState extends FlxState {
         if (FlxG.save.data.fullscreen != null)
             FlxG.fullscreen = FlxG.save.data.fullscreen;
 
-        // To go on/off fullscreen by pressing F11
+        // Setup few key actions
         FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, (ev) -> {
             switch (ev.keyCode) {
+                case Keyboard.F5:
+                    ScriptLoadOverlay.open();
                 case Keyboard.F11:
                     FlxG.fullscreen = !FlxG.fullscreen;
                     FlxG.save.data.fullscreen = FlxG.fullscreen;
@@ -104,12 +110,13 @@ private class InitState extends FlxState {
         });
 
         /*
-        // If no mods has been found, it automatically switch to an exception state, no need to go to the titlescreen
+        // If no mods has been found, it automatically switch to an exception state, no need to go to the next screen
         if (Mods.mods.length == 0) return;
         */
 
-        // Go to the titlescreen
-        Transition.skipNextTransIn = true;
-        FlxG.switchState(TitleScreen.new);
+        Transition.skipNextTransOut = true;
+
+        // Go to the script load screen
+        FlxG.switchState(ScriptLoadScreen.new.bind(TitleScreen.new));
     }
 }

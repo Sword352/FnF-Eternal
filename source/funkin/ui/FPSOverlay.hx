@@ -320,6 +320,6 @@ class FPSOverlay extends Sprite {
 }
 
 enum abstract FPSPos(Int) from Int to Int {
-    var TOP = 0;
-    var BOTTOM = 1;
+    var TOP;
+    var BOTTOM;
 }

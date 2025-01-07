@@ -12,7 +12,6 @@ import funkin.editors.chart.ChartEditor;
 import funkin.data.ChartFormat;
 import funkin.save.SongProgress;
 import funkin.save.Scoring;
-import haxe.Json;
 
 class FreeplayMenu extends MusicBeatState {
     public var background:Background;
@@ -43,7 +42,7 @@ class FreeplayMenu extends MusicBeatState {
         songs = loadFreeplaySongs();
 
         if (songs == null || songs.length < 1) {
-            trace("No songs available!");
+            Logging.error("No songs available!");
             error = true;
         }
 
@@ -54,9 +53,6 @@ class FreeplayMenu extends MusicBeatState {
         PlayState.gameMode = FREEPLAY;
 
         super.create();
-
-        initStateScripts();
-        scripts.call("onCreate");
 
         background = new Background(this);
         add(background);
@@ -79,8 +75,6 @@ class FreeplayMenu extends MusicBeatState {
             goBack.y = overlay.y + overlay.height - goBack.height - 10;
             goBack.x = overlay.width - goBack.width - 10;
             add(goBack);
-
-            scripts.call("onCreatePost");
 
             return;
         }
@@ -128,17 +122,13 @@ class FreeplayMenu extends MusicBeatState {
         BGM.playMusic("freakyMenu");
 
         changeSelection();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (error) {
             if (allowInputs && controls.justPressed("back")) leave();
-            scripts.call("onUpdatePost", elapsed);
             return;
         }
 
@@ -148,8 +138,6 @@ class FreeplayMenu extends MusicBeatState {
 
             if (Options.editorAccess && FlxG.keys.pressed.SHIFT && FlxG.keys.justPressed.ENTER) {
                 openChartEditor();
-                scripts.call("onUpdatePost", elapsed);
-
                 // avoid conflicts with other keybinds
                 return;
             }
@@ -185,8 +173,6 @@ class FreeplayMenu extends MusicBeatState {
 
         difficultyText.text = diffText;
         difficultyText.centerToObject(scoreBG, X);
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(change:Int = 0):Void {
@@ -195,7 +181,7 @@ class FreeplayMenu extends MusicBeatState {
         var doTween:Bool = false;
 
         if (change != 0) {
-            selection = FlxMath.wrap(selection + change, 0, maxSelect);
+            selection = FlxMath.wrap(selection + change, 0, items.length - 1);
             doTween = ((selection == 0 && oldSelect == maxSelect) || (selection == maxSelect && oldSelect == 0));
             FlxG.sound.play(Paths.sound("scrollMenu"));
         }
@@ -228,26 +214,14 @@ class FreeplayMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        if (scripts.quickEvent("onAccept").cancelled)
-            return;
-
         allowInputs = false;
-
         Transition.onComplete.add(() -> PlayState.load(songs[selection].folder, difficulties[difficulty]));
         FlxG.switchState(LoadingScreen.new.bind(0));
     }
 
     function leave():Void {
-        if (FlxG.keys.pressed.SHIFT && inst.playing) {
-            FlxG.sound.music.fadeTween?.cancel();
-            FlxG.sound.music.destroy();
-            FlxG.sound.music = inst;
-            inst.persist = true;
-        }
-
-        FlxG.sound.play(Paths.sound("cancelMenu"));
         allowInputs = false;
-
+        FlxG.sound.play(Paths.sound("cancelMenu"));
         FlxG.switchState(MainMenu.new);
     }
 
@@ -325,7 +299,7 @@ class FreeplayMenu extends MusicBeatState {
         }
         catch (e) {
             // fallback
-            trace('Failed to load instrumental! [${e.message}]');
+            Logging.warning('Failed to load instrumental! [${e.message}]');
             finalAsset = Paths.music("chillFresh");
         }
 

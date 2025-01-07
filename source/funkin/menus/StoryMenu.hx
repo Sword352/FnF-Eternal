@@ -40,11 +40,13 @@ class StoryMenu extends MusicBeatState {
     var error:Bool = false;
 
     override function create():Void {
+        super.create();
+
         BGM.playMusic("freakyMenu");
         weeks = loadWeeks();
 
         if (weeks == null || weeks.length < 1) {
-            trace("Error loading weeks, going back to the Main Menu.");
+            Logging.error("Error loading weeks, going back to the Main Menu.");
 
             error = true;
             FlxG.switchState(MainMenu.new);
@@ -56,11 +58,6 @@ class StoryMenu extends MusicBeatState {
         #if DISCORD_RPC
         DiscordRPC.self.details = "Story Menu";
         #end
-
-        super.create();
-
-        initStateScripts();
-        scripts.call("onCreate");
 
         conductor.music = FlxG.sound.music;
         conductor.bpm = 102;
@@ -135,22 +132,15 @@ class StoryMenu extends MusicBeatState {
         add(characters);
 
         changeSelection();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
         if (error) return;
 
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (allowInputs) {
-            if (controls.justPressed("back")) {
-                allowInputs = false;
-                FlxG.sound.play(Paths.sound("cancelMenu"));
-                FlxG.switchState(MainMenu.new);
-            }
+            if (controls.justPressed("back")) leave();
 
             if (weekSprites.length > 1 && controls.anyJustPressed(["up", "down"])) changeSelection((controls.lastAction == "up") ? -1 : 1);
             if (difficulties.length > 1 && controls.anyJustPressed(["left", "right"])) changeDifficulty((controls.lastAction == "left") ? -1 : 1);
@@ -195,8 +185,6 @@ class StoryMenu extends MusicBeatState {
             if (arrow.animation.name != animation)
                 arrow.animation.play(animation, true);
         }
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
@@ -299,8 +287,6 @@ class StoryMenu extends MusicBeatState {
             return;
         }
 
-        if (scripts.quickEvent("onAccept").cancelled) return;
-
         allowInputs = false;
         FlxG.sound.play(Paths.sound("confirmMenu"));
 
@@ -318,6 +304,12 @@ class StoryMenu extends MusicBeatState {
         PlayState.songPlaylist = songs;
 
         new FlxTimer().start(1, (_) -> FlxG.switchState(LoadingScreen.new.bind(0)));
+    }
+
+    function leave():Void {        
+        allowInputs = false;
+        FlxG.sound.play(Paths.sound("cancelMenu"));
+        FlxG.switchState(MainMenu.new);
     }
 
     override function destroy():Void {

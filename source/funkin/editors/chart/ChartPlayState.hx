@@ -81,11 +81,12 @@ class ChartPlayState extends MusicBeatSubState {
         var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
         var oppNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[0] : "default") ?? "default";
 
-        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, OPPONENT, oppNoteSkin);
+        opponentStrumline = new StrumLine(FlxG.width * 0.25, 55, !playAsOpponent, oppNoteSkin);
         opponentStrumline.scrollSpeed = parent.chart.gameplayInfo.scrollSpeed;
 
-        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, PLAYER, plrNoteSkin);
+        playerStrumline = new StrumLine(FlxG.width * 0.75, 55, playAsOpponent, plrNoteSkin);
         playerStrumline.scrollSpeed = opponentStrumline.scrollSpeed;
+        playerStrumline.owner = PLAYER;
 
         if (playAsOpponent) {
             var temp:StrumLine = playerStrumline;

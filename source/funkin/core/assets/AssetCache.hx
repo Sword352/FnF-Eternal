@@ -105,7 +105,7 @@ class AssetCache {
         var bitmap:BitmapData = BitmapData.fromBytes(bytes);
 
         if (bitmap == null) {
-            trace('Couldn\'t load graphic with key "${key}"!');
+            Logging.warning('Couldn\'t load graphic with key "${key}"!');
             return null;
         }
 
@@ -148,7 +148,7 @@ class AssetCache {
         }
 
         if (buffer == null) {
-            trace('Couldn\'t load sound with key "${key}"!');
+            Logging.warning('Couldn\'t load sound with key "${key}"!');
             return null;
         }
 
@@ -173,7 +173,7 @@ class AssetCache {
 
         var font:Font = Font.fromBytes(bytes);
         if (font == null) {
-            trace('Couldn\'t load font with key "${key}"!');
+            Logging.warning('Couldn\'t load font with key "${key}"!');
             return null;
         }
 

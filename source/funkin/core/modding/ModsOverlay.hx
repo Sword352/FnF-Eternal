@@ -7,6 +7,8 @@ import flixel.math.FlxPoint;
 import flixel.group.FlxSpriteGroup;
 import haxe.ui.components.VerticalScroll;
 import openfl.display.BitmapData;
+import funkin.menus.ScriptLoadScreen;
+import funkin.menus.MainMenu;
 import funkin.ui.Alphabet;
 
 var ROW:Int = 6;
@@ -83,7 +85,7 @@ class ModsOverlay extends MusicBeatSubState {
 
         camera.fade(FlxColor.BLACK, 0.25, false, () -> {
             Mods.sortList();
-            FlxTimer.wait(0.2, FlxG.resetState);
+            FlxTimer.wait(0.2, FlxG.switchState.bind(ScriptLoadOverlay.new.bind(MainMenu.new)));
             Mods.saveEnabledMods();
         });
     }

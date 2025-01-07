@@ -33,10 +33,7 @@ class GameOverScreen extends MusicBeatSubState {
     override function create():Void {
         super.create();
 
-        initStateScripts();
-        scripts.call("onCreate");
-
-        character = new Character(0, 0, characterStr);
+        character = Character.create(0, 0, characterStr);
         character.setPosition(position.x, position.y);
         add(character);
 
@@ -57,12 +54,9 @@ class GameOverScreen extends MusicBeatSubState {
         conductor.interpolate = false;
         conductor.active = true;
         conductor.resetTime();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (character.animation.curAnim.name == "firstDeath" && !started) {
@@ -92,8 +86,6 @@ class GameOverScreen extends MusicBeatSubState {
 
         if (controls.justPressed("accept") && allowInputs)
             accept();
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
@@ -104,8 +96,6 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     function accept():Void {
-        if (scripts.quickEvent("onAccept").cancelled) return;
-
         Assets.clearCache = Options.reloadAssets;
         allowInputs = false;
 

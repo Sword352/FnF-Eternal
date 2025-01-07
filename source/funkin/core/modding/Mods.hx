@@ -13,18 +13,6 @@ class Mods {
     public static var mods:Array<ModStructure> = [];
     public static var enabledMods:Array<ModStructure> = [];
 
-    public static function init():Void {
-        reload();
-
-        // TODO: is this a good idea?
-        /*
-        FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, (ev) -> {
-            if (Controls.global.keybinds["open mods"][0].contains(ev.keyCode) && (FlxG.state.subState == null || !Std.isOfType(FlxG.state.subState, ModsOverlay)))
-                FlxG.state.openSubState(new ModsOverlay());
-        });
-        */
-    }
-
     public static function reload():Void {
         clear();
 
@@ -106,7 +94,6 @@ class Mods {
             Assets.removeAssetSource(mod.assetSource);
             mod.dispose();
         }
-
         enabledMods.splice(0, enabledMods.length);
     }
 

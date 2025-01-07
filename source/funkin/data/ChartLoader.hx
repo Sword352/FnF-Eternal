@@ -35,7 +35,7 @@ class ChartLoader {
     public static function loadMeta(song:String):SongMeta {
         var data:SongMeta = Paths.json('songs/${song}/meta');
         if (data == null) {
-            trace('Could not find meta file for song "${song}"!');
+            Logging.warning('Could not find meta file for song "${song}"!');
             return getEmptyMeta();
         }
 

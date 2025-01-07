@@ -9,7 +9,7 @@ haxelib git haxeui-flixel https://github.com/haxeui/haxeui-flixel
 haxelib install flixel-text-input
 haxelib git yaml https://github.com/Sword352/hx-yaml
 haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc
-haxelib git hscript-improved https://github.com/FNF-CNE-Devs/hscript-improved
+haxelib git hscript-improved https://github.com/Sword352/hscript-improved
 haxelib install hxcpp
 haxelib install hxcpp-debug-server
 echo Setting up Flixel and Lime...

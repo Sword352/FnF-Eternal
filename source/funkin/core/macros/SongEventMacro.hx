@@ -1,12 +1,12 @@
 package funkin.core.macros;
 
-import funkin.gameplay.events.EventTypes;
-import funkin.gameplay.events.EventMacroFixer;
-
 import haxe.macro.Expr;
 import haxe.macro.Expr.Field;
 import haxe.macro.Context;
 import haxe.macro.Compiler;
+
+import funkin.gameplay.events.SongEventTypes;
+import funkin.gameplay.events.SongEventMacroFixer;
 
 using haxe.macro.ExprTools;
 using StringTools;
@@ -28,13 +28,13 @@ class SongEventMacro {
 	/**
 	 * Final meta list.
 	 */
-	static var _metas:Map<String, EventMeta> = [];
+	static var _metas:Map<String, SongEventMeta> = [];
 	
 	/**
 	 * Register the class and the passed meta to the global event list.
 	 * @param event Event metadata
 	 */
-	public static function build(event:EventMeta):Array<Field> {
+	public static function build(event:SongEventMeta):Array<Field> {
 		final classData = Context.getLocalClass().get();
 
 		// If the class exists in a sub-package, generate the prefix.
@@ -90,12 +90,12 @@ class SongEventMacro {
 	/**
 	 * Generate getters for the passed event.
 	 */
-	static function generateGetters(event:EventMeta, fields:Array<Field>):Void {
+	static function generateGetters(event:SongEventMeta, fields:Array<Field>):Void {
 		for (argument in event.arguments) {
 			var converted:String = validateName(argument.name);
 			var argumentIndex:Int = event.arguments.indexOf(argument);
 
-			var defaultValue:Dynamic = EventMacroFixer.fixMacroValue(argument);
+			var defaultValue:Dynamic = SongEventMacroFixer.fixMacroValue(argument);
 			var type:ComplexType = null;
 			
 			switch (argument.type) {

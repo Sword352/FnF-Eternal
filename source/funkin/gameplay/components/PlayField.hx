@@ -100,14 +100,15 @@ class PlayField extends FlxGroup {
         strumLines.active = false;
         add(strumLines);
 
-        opponentStrumLine = new GameStrumLine(FlxG.width * 0.25, 50, true, OPPONENT, opponentNoteSkin);
+        opponentStrumLine = new GameStrumLine(FlxG.width * 0.25, 50, true, opponentNoteSkin);
         opponentStrumLine.scrollSpeed = PlayState.song.gameplayInfo.scrollSpeed;
         opponentStrumLine.addCharacter(game.opponent);
         strumLines.add(opponentStrumLine);
 
-        playerStrumLine = new GameStrumLine(FlxG.width * 0.75, 50, false, PLAYER, playerNoteSkin);
+        playerStrumLine = new GameStrumLine(FlxG.width * 0.75, 50, false, playerNoteSkin);
         playerStrumLine.scrollSpeed = PlayState.song.gameplayInfo.scrollSpeed;
         playerStrumLine.addCharacter(game.player);
+        playerStrumLine.owner = PLAYER;
         strumLines.add(playerStrumLine);
 
         noteSpawner = new NoteSpawner(strumLines.members, game.startTime);

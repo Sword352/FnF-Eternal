@@ -139,6 +139,7 @@ class GameStats implements IFlxDestroyable {
     }
 
     function set_health(v:Float):Float {
+        PlayState.self._checkGameOver = (v < health && v <= 0);
         return health = FlxMath.bound(v, 0, 1);
     }
 

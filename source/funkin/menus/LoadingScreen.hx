@@ -1,6 +1,6 @@
 package funkin.menus;
 
-import flixel.FlxState;
+import funkin.ui.SpinningCircle;
 import funkin.data.ChartFormat;
 import funkin.data.NoteSkin;
 import funkin.data.StageData;
@@ -11,12 +11,12 @@ import openfl.Lib;
 /**
  * State which preloads assets before heading to gameplay.
  */
-class LoadingScreen extends FlxState {
+class LoadingScreen extends ScriptableState {
     #if debug
     /**
      * Time elapsed since the start of the program, used to determine how long the loading screen takes to load.
      */
-    static var __loadTime:Float = -1;
+    static var _loadTime:Float = -1;
     #end
 
     /**
@@ -24,21 +24,15 @@ class LoadingScreen extends FlxState {
      */
     var startTime:Float = 0;
 
-    /**
-     * Rotating circle.
-     */
-    var circle:FlxSprite;
-
     #if debug
     /**
      * Traces how long the loading screen took to load.
      */
     public static function reportTime():Void {
-        if (__loadTime == -1)
-            return;
+        if (_loadTime == -1) return;
 
-        trace('${PlayState.song.meta.name} (${PlayState.currentDifficulty}) - Took ${((Lib.getTimer() - __loadTime) / 1000)}s to load');
-        __loadTime = -1;
+        trace('${PlayState.song.meta.name} (${PlayState.currentDifficulty}) - Took ${((Lib.getTimer() - _loadTime) / 1000)}s to load');
+        _loadTime = -1;
     }
     #end
 
@@ -56,22 +50,17 @@ class LoadingScreen extends FlxState {
      */
     override function create():Void {
         #if debug
-        __loadTime = Lib.getTimer();
+        _loadTime = Lib.getTimer();
         #end
 
+        Transition.skipNextTransOut = true;
         FlxG.autoPause = false;
 
-        var circleGraphic = Paths.image("menus/loading_circle");
-        Assets.cache.excludeGraphic(circleGraphic);
-
-        circle = new FlxSprite();
-        circle.x = FlxG.width - circleGraphic.width / 2 - 10;
-        circle.y = FlxG.height - circleGraphic.height / 2 - 10;
-        circle.loadGraphic(circleGraphic);
-        circle.scale.set(0.5, 0.5);
-        circle.updateHitbox();
-        circle.alpha = 0;
+        var circle:SpinningCircle = new SpinningCircle();
         add(circle);
+
+        // exclude the graphic since we only want to keep gameplay assets
+        Assets.cache.excludeGraphic(circle.graphic);
 
         var tasks:Array<Void->Void> = getTasks();
 
@@ -80,7 +69,7 @@ class LoadingScreen extends FlxState {
                 task();
             return 0;
         }, true)
-        .onComplete(onComplete)
+        .onComplete((_) -> circle.fade(10, false, onComplete))
         .onError(onError);
     }
 
@@ -91,8 +80,7 @@ class LoadingScreen extends FlxState {
         if (FlxG.sound.music?.volume > 0.05) 
             FlxG.sound.music.volume -= elapsed * 2;
 
-        circle.angle += 45 * elapsed;
-        circle.alpha += elapsed * 5;
+        super.update(elapsed);
     }
 
     /**
@@ -154,7 +142,7 @@ class LoadingScreen extends FlxState {
     /**
      * Method called whenever the `Future` object is done executing it's task.
      */
-    function onComplete(_):Void {
+    function onComplete():Void {
         Assets.clearCache = false;
         BGM.stopMusic();
 

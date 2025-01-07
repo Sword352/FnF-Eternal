@@ -1,12 +1,12 @@
 package funkin.gameplay.events;
 
-import funkin.gameplay.events.EventTypes.EventArgument;
+import funkin.gameplay.events.SongEventTypes.SongEventArgument;
 
 /**
  * Temporary workaround to make default argument values still work with macros.
  */
-class EventMacroFixer {
-    public static function fixMacroValue(argument:EventArgument):Dynamic {
+class SongEventMacroFixer {
+    public static function fixMacroValue(argument:SongEventArgument):Dynamic {
         var output:Dynamic = argument.defaultValue;
 
         if (output == null && argument.tempValue != null) {

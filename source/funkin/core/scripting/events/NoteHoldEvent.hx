@@ -3,44 +3,48 @@ package funkin.core.scripting.events;
 import funkin.gameplay.notes.Note;
 
 /**
- * Event dispatched when a note is being held in gameplay.
+ * Event dispatched when a note is being held during gameplay.
  */
 class NoteHoldEvent extends ScriptEvent {
     /**
-     * Target hold note.
+     * Note associated with this event.
      */
-    @:eventConstructor public var note(default, null):Note;
-
-    /**
-     * Whether the parent of the hold note is the opponent.
-     */
-    @:eventConstructor public var opponent(default, null):Bool;
-
-    /**
-     * Whether the target strumline had cpu enabled.
-     */
-    @:eventConstructor public var cpu(default, null):Bool;
+    public var note(default, null):Note;
 
     /**
      * Whether to make the characters sing.
      */
-    @:eventConstructor public var characterSing:Bool = false;
+    public var characterSing:Bool = false;
 
     /**
      * Whether to unmute the player vocals.
      */
-    @:eventConstructor public var unmutePlayer:Bool = true;
+    public var unmutePlayer:Bool = true;
 
     /**
      * Whether to play the confirm animation on the target receptor.
      */
-    @:eventValue public var playConfirm:Bool = true;
+    public var playConfirm:Bool = true;
 
     /**
-     * Volume for the player vocals.
+     * Resets this event.
+     * @param note Note associated with this event.
+     * @return NoteHoldEvent
      */
-    @:eventValue public var playerVolume:Float = 1;
+    public function reset(note:Note):NoteHoldEvent {
+        this.note = note;
 
+        characterSing = note.missed;
+        unmutePlayer = (note.strumLine.owner != OPPONENT || PlayState.self.music.voices?.length == 1);
+        playConfirm = true;
+
+        cancelled = false;
+        return this;
+    }
+
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
         note = null;
     }

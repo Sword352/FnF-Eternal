@@ -1,101 +1,207 @@
 package funkin.core.scripting;
 
-import flixel.FlxState;
 import flixel.FlxSubState;
-import funkin.core.scripting.events.StateEvents;
 
+// @:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
+// https://github.com/HaxeFoundation/haxe/issues/6567
+
+/**
+ * A state able to dispatch script events.
+ * Most states of the game inherits from this class.
+ * 
+ * This object dispatches the following event(s):
+ * - `Events.CREATE` (handled by script manager)
+ * - `Events.CREATE_POST` (handled by script manager)
+ * - `Events.UPDATE`
+ * - `Events.UPDATE_POST`
+ * - `Events.STATE_SWITCH`
+ * - `Events.SUBSTATE_OPEN`
+ * - `Events.SUBSTATE_CLOSE`
+ * - `Events.DESTROY`
+ */
 class ScriptableState extends TransitionState {
-    public var scripts:ScriptContainer;
-
-    public function new():Void {
-        super();
-        scripts = new ScriptContainer(this);
-    }
-
-    inline function initStateScripts():Void {
-        var stateString:String = formatStateName(this);
-
-        // we first check if there's a single script for this state
-        var script = scripts.load('scripts/states/${stateString}');
-
-        if (script == null) {
-            // if not, it might be a directory
-            scripts.loadScripts('scripts/states/${stateString}');
+    /**
+     * Method called by flixel to update the state.
+     * @param elapsed Elapsed time between the last and current frame.
+     */
+    override function tryUpdate(elapsed:Float):Void {
+        if (persistentUpdate || subState == null) {
+            dispatchEvent(Events.UPDATE, elapsed);
+            update(elapsed);
+            dispatchEvent(Events.UPDATE_POST, elapsed);
         }
+
+		if (_requestSubStateReset) {
+			_requestSubStateReset = false;
+			resetSubState();
+		}
+
+		if (subState != null) {
+			subState.tryUpdate(elapsed);
+		}
     }
 
+    /**
+     * Method called by flixel to switch states.
+     * @param onOutroComplete Function responsible of switching states.
+     */
+    override function startOutro(onOutroComplete:Void->Void):Void {
+        var event:StateSwitchEvent = dispatchEvent(Events.STATE_SWITCH, new StateSwitchEvent(onOutroComplete));
+        if (event.cancelled) return;
+
+        super.startOutro(onOutroComplete);
+    }
+
+    /**
+     * Opens an `FlxSubState` on top of this state.
+     * @param subState Substate to open.
+     */
     override function openSubState(subState:FlxSubState):Void {
-        if (!subStateEvent(OPEN, subState)) return;
+        var event:SubStateEvent = dispatchEvent(Events.SUBSTATE_OPEN, new SubStateEvent(subState));
+        if (event.cancelled) return;
+
+        onSubStateOpen(subState);
         super.openSubState(subState);
     }
 
+    /**
+     * Closes the substate if one is opened.
+     */
     override function closeSubState():Void {
-        if (!subStateEvent(CLOSE, subState)) return;
+        var event:SubStateEvent = dispatchEvent(Events.SUBSTATE_CLOSE, new SubStateEvent(subState));
+        if (event.cancelled) return;
+
+        onSubStateClose(subState);
         super.closeSubState();
     }
 
-    function subStateEvent(type:SubStateEventAction, subState:FlxSubState):Bool {
-        var event:SubStateEvent = Events.get(SubStateEvent).setup(type, subState);
-        scripts.dispatchEvent("onSubState" + Tools.capitalize(type), event);
-
-        if (!event.cancelled) {
-            switch (type) {
-                case OPEN:
-                    onSubStateOpen(subState);
-                case CLOSE:
-                    onSubStateClose(subState);
-            }
-        }
-
-        return !event.cancelled;
-    }
-
+    /**
+     * Method called when a substate is about to open.
+     * @param subState Pending substate.
+     */
     function onSubStateOpen(subState:FlxSubState):Void {}
+
+    /**
+     * Method called when a substate is about to close.
+     * @param subState Pending substate.
+     */
     function onSubStateClose(subState:FlxSubState):Void {}
 
-    function superOpenSubState(subState:FlxSubState):Void {
-        super.openSubState(subState);
-    }
-
-    function superCloseSubState():Void {
-        super.closeSubState();
-    }
-
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
-        scripts = FlxDestroyUtil.destroy(scripts);
+        dispatchEvent(Events.DESTROY);
+
+        _eventDispatcher = FlxDestroyUtil.destroy(_eventDispatcher);
         super.destroy();
     }
 
-    public static inline function formatStateName(state:FlxState):String {
-        var statePackage:String = Type.getClassName(Type.getClass(state));
-        return statePackage.substring(statePackage.lastIndexOf('.') + 1);
+    @:noCompletion private var _eventDispatcher:EventDispatcher = new EventDispatcher();
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.addListener)
+    public inline function addEventListener(event:String, callback:haxe.Constraints.Function, priority:Int = -1):Void {
+        return _eventDispatcher.addListener(event, callback, priority);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.removeListener)
+    public inline function removeEventListener(event:String, callback:haxe.Constraints.Function):Bool {
+        return _eventDispatcher.removeListener(event, callback);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.hasListener)
+    public inline function hasEventListener(event:String, callback:haxe.Constraints.Function):Bool {
+        return _eventDispatcher.hasListener(event, callback);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.stopPropagation)
+    public inline function stopEventPropagation():Void {
+        return _eventDispatcher.stopPropagation();
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.dispatch)
+    public inline function dispatchEvent(event:String, ?value:Any):Any {
+        return _eventDispatcher.dispatch(event, value);
     }
 }
 
+/**
+ * A substate able to dispatch script events.
+ * Most substates of the game inherits from this class.
+ * 
+ * This object dispatches the following event(s):
+ * - `Events.STATE_SWITCH` if opened as a regular state
+ * - `Events.UPDATE`
+ * - `Events.UPDATE_POST`
+ * - `Events.DESTROY`
+ */
 class ScriptableSubState extends FlxSubState {
-    public var scripts:ScriptContainer;
-
-    public function new():Void {
-        super();
-        scripts = new ScriptContainer(this);
-    }
-
-    inline function initStateScripts():Void {
-        var stateString:String = ScriptableState.formatStateName(this);
-        var script = scripts.load('scripts/states/${stateString}');
-
-        if (script == null) {
-            scripts.loadScripts('scripts/states/${stateString}');
+    /**
+     * Method called by flixel to update the substate.
+     * @param elapsed Elapsed time between the last and current frame.
+     */
+    override function tryUpdate(elapsed:Float):Void {
+        if (persistentUpdate || subState == null) {
+            dispatchEvent(Events.UPDATE, elapsed);
+            update(elapsed);
+            dispatchEvent(Events.UPDATE_POST, elapsed);
         }
+
+		if (_requestSubStateReset) {
+			_requestSubStateReset = false;
+			resetSubState();
+		}
+
+		if (subState != null) {
+			subState.tryUpdate(elapsed);
+		}
     }
 
-    override function close():Void {
-        scripts.call("onClose");
-        super.close();
+    /**
+     * Method called by flixel to switch states.
+     * @param onOutroComplete Function responsible of switching states.
+     */
+    override function startOutro(onOutroComplete:Void->Void):Void {
+        var event:StateSwitchEvent = dispatchEvent(Events.STATE_SWITCH, new StateSwitchEvent(onOutroComplete));
+        if (event.cancelled) return;
+
+        super.startOutro(onOutroComplete);
     }
 
+    /**
+     * Clean up memory.
+     */
     override function destroy():Void {
-        scripts = FlxDestroyUtil.destroy(scripts);
+        dispatchEvent(Events.DESTROY);
+        
+        _eventDispatcher = FlxDestroyUtil.destroy(_eventDispatcher);
         super.destroy();
+    }
+
+    @:noCompletion private var _eventDispatcher:EventDispatcher = new EventDispatcher();
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.addListener)
+    public inline function addEventListener(event:String, callback:haxe.Constraints.Function, priority:Int = -1):Void {
+        return _eventDispatcher.addListener(event, callback, priority);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.removeListener)
+    public inline function removeEventListener(event:String, callback:haxe.Constraints.Function):Bool {
+        return _eventDispatcher.removeListener(event, callback);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.hasListener)
+    public inline function hasEventListener(event:String, callback:haxe.Constraints.Function):Bool {
+        return _eventDispatcher.hasListener(event, callback);
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.stopPropagation)
+    public inline function stopEventPropagation():Void {
+        return _eventDispatcher.stopPropagation();
+    }
+
+    @:inheritDoc(funkin.core.scripting.EventDispatcher.dispatch)
+    public inline function dispatchEvent(event:String, ?value:Any):Any {
+        return _eventDispatcher.dispatch(event, value);
     }
 }

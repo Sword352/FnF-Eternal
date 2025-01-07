@@ -1,22 +1,5 @@
 ## TODO list
 
-- Finish the scripting backend rework
-  - Implement global modules
-  - Implement back overridable states
-  - Implement reloadable modules (?)
-  - Implement script priorities
-  - Allow more states and subStates to be scripted (LoadingScreen, Transition, ChartEditor...)
-  - Change most string enum abstracts to int once enums are supported in hscript
-    - IDEA: perhaps make a universal enum macro so that enums are converted into static values for now?
-  - Implement `Constants` singleton to be able to modify common values
-  - Add more events and expand the current ones (if possible)
-  - Make scripts initialization automatic in scriptable states (automatic `initStateScripts` call), along with calling `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost`
-  - Fix issues with events dispatched by the `StrumLine` class (more details there)
-  - Fix some events being repeatedly dispatched, such as `onGameOver`
-  - Add safety preventions
-  - Perhaps rename `onCreate`/`onCreatePost`/`onUpdate`/`onUpdatePost` to `create`/`createPost`/`update`/`updatePost`?
-  - Allow for a more class-based scripting api?
-
 - Finish song events rework
   - Add event descriptions in the chart editor
   - Allow dropdown items to display a text different than their actual values
@@ -29,7 +12,6 @@
 
 - Finish the modding support rework
   - Clean up code
-  - Rework the asset tree (asset structures) system
   - Implement back mod options
   - Implement back the "mods not found" screen
   - Make a better mods overlay
@@ -70,7 +52,6 @@
 
 - Perform a major code cleanup
 - Complete all remaining TODOs from the code
-- Restore back HTML5 support
 
 - Remake most of the menus
 - Implement a nicer transition system
@@ -78,3 +59,8 @@
 
 - Add modding documentation
 - Add API documentation
+
+# Future concerns
+- Replace HScript with a faster and more performant scripting engine, if possible
+  - Note that it doesn't necessarly needs to run Haxe code. Other scripting languages such as Lua are still options
+    (although HScript will have to be kept, otherwise it's a breaking change).

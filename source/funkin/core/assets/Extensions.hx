@@ -7,10 +7,10 @@ class Extensions {
     /**
      * Map containing each asset type and their underlying file extensions.
      */
-    static var __extensions:Map<String, Array<String>>;
+    static var _extensions:Map<String, Array<String>>;
 
     static function __init__():Void {
-        __extensions = new Map();
+        _extensions = new Map();
 
         // register default extensions
         register(IMAGE, [".png", ".jpg", ".jpeg"]);
@@ -20,7 +20,7 @@ class Extensions {
         register(XML, [".xml"]);
         register(JSON, [".json"]);
         register(YAML, [".yml", ".yaml"]);
-        register(SCRIPT, [".hx", ".hxs", ".hxc", ".hscript"]);
+        register(SCRIPT, [".hx", ".hxs"]);
         register(NONE, [""]);
     }
 
@@ -30,18 +30,16 @@ class Extensions {
      * @param extensions Extensions of the asset type.
      */
     public static function register(assetType:AssetType, extensions:Array<String>):Void {
-        if (assetType == null || extensions == null)
-            return;
-
-        __extensions.set(assetType, extensions);
+        if (assetType == null || extensions == null) return;
+        _extensions.set(assetType, extensions);
     }
 
     /**
      * Removes an asset type from the registery.
      * @param assetType Asset type to remove.
      */
-    public static function remove(assetType:AssetType):Void {
-        __extensions.remove(assetType);
+    public static inline function remove(assetType:AssetType):Void {
+        _extensions.remove(assetType);
     }
 
     /**
@@ -50,11 +48,10 @@ class Extensions {
      * @param extension Extension to add.
      */
     public static function addExtensionTo(assetType:AssetType, extension:String):Void {
-        if (extension == null)
-            return;
+        if (extension == null) return;
 
-        if (__extensions.exists(assetType))
-            __extensions.get(assetType).push(extension);
+        if (_extensions.exists(assetType))
+            _extensions.get(assetType).push(extension);
     }
 
     /**
@@ -63,11 +60,10 @@ class Extensions {
      * @param extension Extension to remove.
      */
     public static function removeExtensionFrom(assetType:AssetType, extension:String):Void {
-        if (extension == null)
-            return;
+        if (extension == null) return;
 
-        if (__extensions.exists(assetType))
-            __extensions.get(assetType).remove(extension);
+        if (_extensions.exists(assetType))
+            _extensions.get(assetType).remove(extension);
     }
 
     /**
@@ -75,8 +71,8 @@ class Extensions {
      * @param assetType Asset type in which to retrieve the extensions from.
      * @return Array<String>
      */
-    public static function getExtensionsFor(assetType:AssetType):Array<String> {
-        return __extensions.get(assetType);
+    public static inline function getExtensionsFor(assetType:AssetType):Array<String> {
+        return _extensions.get(assetType);
     }
 }
 
@@ -149,5 +145,15 @@ enum abstract AssetType(String) from String to String {
                 return extension;
 
         return null;
+    }
+
+    /**
+     * Returns whether a file path ends with an extension matching this asset type.
+     * @param path File path to check.
+     * @return Bool
+     */
+    public function hasExtension(path:String):Bool {
+        var extension:String = path.substring(path.indexOf("."), path.length);
+        return getExtensions().contains(extension);
     }
 }

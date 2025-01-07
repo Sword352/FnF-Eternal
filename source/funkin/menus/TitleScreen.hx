@@ -54,14 +54,12 @@ class TitleScreen extends MusicBeatState {
     public static var firstTime:Bool = true;
 
     override function create():Void {
+        Transition.skipNextTransIn = true;
         super.create();
 
         #if DISCORD_RPC
         DiscordRPC.self.details = "Title Screen";
         #end
-
-        initStateScripts();
-        scripts.call("onCreate");
 
         // initialize elements
         spritesGroup = new FlxSpriteGroup();
@@ -111,12 +109,9 @@ class TitleScreen extends MusicBeatState {
         }
 
         firstTime = false;
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (stepSequences != null)
@@ -129,8 +124,6 @@ class TitleScreen extends MusicBeatState {
 
         if (allowInputs && controls.justPressed("accept"))
             accept();
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     override function beatHit(beat:Int):Void {
@@ -147,8 +140,6 @@ class TitleScreen extends MusicBeatState {
     }
 
     function accept():Void {
-        if (scripts.quickEvent("onAccept").cancelled) return;
-
         if (!skippedIntro) {
             clearSequences();
             skipIntro();
@@ -193,8 +184,6 @@ class TitleScreen extends MusicBeatState {
                     ngSprite.visible = false;
             case "skip intro":
                 skipIntro();
-            case "call function":
-                scripts.callDyn(seq.arguments[0], seq.arguments[1]);
         }
     }
 
@@ -216,8 +205,6 @@ class TitleScreen extends MusicBeatState {
     }
 
     function skipIntro():Void {
-        if (scripts.quickEvent("onIntroSkip").cancelled) return;
-
         flash();
         skippedIntro = true;
 
@@ -369,9 +356,6 @@ class TitleScreen extends MusicBeatState {
                 sprite.antialiasing = data.antialiasing;
 
             group.add(sprite);
-
-            if (data.name != null)
-                scripts.set(data.name, sprite);
         }
     }
 

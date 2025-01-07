@@ -1,66 +1,79 @@
 package funkin.core.scripting.events;
 
 /**
- * Event dispatched when a ghost press happens in gameplay.
+ * Event dispatched when a ghost press happens during gameplay.
  */
 class GhostPressEvent extends ScriptEvent {
     /**
-     * Direction.
+     * Direction associated with this event.
      */
-    @:eventConstructor public var direction:Int;
+    public var direction:Int;
 
     /**
      * Whether ghost tapping is allowed.
      */
-    @:eventConstructor public var ghostTapping:Bool;
+    public var ghostTapping:Bool;
 
     /**
      * Score to lose.
      */
-    @:eventValue public var scoreLoss:Float = 10;
+    public var scoreLoss:Float = 10;
 
     /**
      * Health to lose.
      */
-    @:eventValue public var healthLoss:Float = 0.02375;
+    public var healthLoss:Float = 0.02375;
 
     /**
      * Whether to break the player's combo.
      */
-    @:eventValue public var breakCombo:Bool = true;
+    public var breakCombo:Bool = true;
 
     /**
      * Whether to make the character play a miss animation.
      */
-    @:eventValue public var characterMiss:Bool = true;
+    public var characterMiss:Bool = true;
 
     /**
      * Whether to make the spectator play the sad animation.
      */
-    @:eventValue public var spectatorSad:Bool = true;
+    public var spectatorSad:Bool = true;
 
     /**
      * Whether to play the miss sound.
      */
-    @:eventValue public var playSound:Bool = true;
+    public var playSound:Bool = true;
 
     /**
      * Whether to play the press animation on the target receptor.
      */
-    @:eventValue public var playPress:Bool = true;
+    public var playPress:Bool = true;
 
     /**
-     * Default volume for the miss sound.
+     * Whether to mute the player voices.
      */
-    @:eventValue public var soundVolume:Float = 0.1;
+    public var mutePlayer:Bool = true;
 
     /**
-     * How much can the miss sound's volume vary.
+     * Resets this event.
+     * @param direction Direction associated with this event.
+     * @param ghostTapping Whether ghost tapping is allowed.
+     * @return GhostPressEvent
      */
-    @:eventValue public var soundVolDiff:Float = 0.1;
+    public function reset(direction:Int, ghostTapping:Bool):GhostPressEvent {
+        this.direction = direction;
+        this.ghostTapping = ghostTapping;
 
-    /**
-     * Volume of the players vocal.
-     */
-    @:eventValue public var playerVolume:Float = 0;
+        scoreLoss = 10;
+        healthLoss = 0.02375;
+        breakCombo = true;
+        characterMiss = true;
+        spectatorSad = true;
+        playSound = true;
+        playPress = true;
+        mutePlayer = true;
+
+        cancelled = false;
+        return this;
+    }
 }

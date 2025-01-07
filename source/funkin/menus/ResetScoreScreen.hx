@@ -1,7 +1,7 @@
 package funkin.menus;
 
-import flixel.tweens.FlxTween;
 import flixel.text.FlxText;
+import flixel.tweens.FlxTween;
 
 class ResetScoreScreen extends MusicBeatSubState {
     public var songs:Array<String>;
@@ -19,9 +19,6 @@ class ResetScoreScreen extends MusicBeatSubState {
 
     override function create():Void {
         super.create();
-
-        initStateScripts();
-        scripts.call("onCreate");
 
         background = new FlxSprite();
         background.makeRect(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -48,12 +45,9 @@ class ResetScoreScreen extends MusicBeatSubState {
         FlxTween.tween(text, {alpha: 1}, 0.25);
         FlxTween.tween(instructions, {alpha: 1}, 0.25);
         FlxTween.tween(background, {alpha: 0.45}, 0.25);
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         if (FlxG.keys.justPressed.ENTER) {
@@ -67,14 +61,9 @@ class ResetScoreScreen extends MusicBeatSubState {
         rotateSine += elapsed * 2;
         text.angle = 5 * FlxMath.fastSin(rotateSine);
         text.y -= FlxMath.fastCos(rotateSine * 1.5);
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     function resetScore():Void {
-        if (scripts.quickEvent("onAccept").cancelled)
-            return;
-
         for (rawName in songs) {
             var song:String = '${rawName}-${difficulty}';
             if (story) song += "_story";

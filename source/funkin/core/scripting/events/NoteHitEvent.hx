@@ -4,124 +4,124 @@ import funkin.gameplay.notes.Note;
 import funkin.gameplay.components.Rating;
 
 /**
- * Event dispatched whenever a note hit happens in gameplay.
+ * Event dispatched when a `StrumLine` hits a note, typically during gameplay.
  */
 class NoteHitEvent extends ScriptEvent {
     /**
-     * Target note.
+     * Note associated with this event.
      */
-    @:eventConstructor public var note(default, null):Note;
-
-    /**
-     * Whether this note has been hit by the opponent.
-     */
-    @:eventConstructor public var opponent(default, null):Bool;
-
-    /**
-     * Whether the target strumline had cpu set to true.
-     */
-    @:eventConstructor public var cpu(default, null):Bool;
+    public var note(default, null):Note;
 
     /**
      * Rating for this note hit.
      */
-    @:eventConstructor public var rating(default, null):Rating = null;
+    public var rating:Rating;
 
     /**
      * Score gain.
      */
-    @:eventConstructor public var score:Float = 0;
+    public var score:Float = 0;
 
     /**
      * Health gain.
      */
-    @:eventConstructor public var health:Float = 0;
+    public var health:Float = 0;
+
+    /**
+     * Amount of health gained each second while holding this note, if it's a hold note.
+     */
+    public var holdHealth:Float = 0;
 
     /**
      * Accuracy gain.
      */
-    @:eventConstructor public var accuracy:Float = 0;
+    public var accuracy:Null<Float> = 0;
 
     /**
-     * Health the player gains each second by holding this note (if it's a hold note).
+     * Current combo count.
      */
-    @:eventConstructor public var holdHealth:Float = 0;
-
-    /**
-     * Whether to allow the combo to be displayed.
-     */
-    @:eventConstructor public var displayCombo:Bool = true;
+    public var combo:Int = 0;
 
     /**
      * Whether to pop a splash.
      */
-    @:eventConstructor public var displaySplash:Bool = true;
-
-    /**
-     * Whether to make a rating popup.
-     */
-    @:eventConstructor public var displayRating:Bool = true;
-
-    /**
-     * Whether to allow accuracy gain.
-     */
-    @:eventConstructor public var increaseAccuracy:Bool = true;
-
-    /**
-     * Whether to allow combo gain.
-     */
-    @:eventConstructor public var increaseCombo:Bool = true;
-
-    /**
-     * Whether to break the combo.
-     */
-    @:eventConstructor public var breakCombo:Bool = false;
-
-    /**
-     * Whether to allow hit gain.
-     */
-    @:eventConstructor public var increaseHits:Bool = true;
+    public var displaySplash:Bool = true;
 
     /**
      * Whether to unmute the player vocals.
      */
-    @:eventConstructor public var unmutePlayer:Bool = true;
-
-    /**
-     * Whether to resize the hold length if this is a hold note.
-     */
-    @:eventConstructor public var resizeLength:Bool = true;
+    public var unmutePlayer:Bool = true;
 
     /**
      * Whether to play the confirm animation on the target receptor.
      */
-    @:eventValue public var playConfirm:Bool = true;
+    public var playConfirm:Bool = true;
 
     /**
      * Whether to make the characters sing.
      */
-    @:eventValue public var characterSing:Bool = true;
+    public var characterSing:Bool = true;
 
     /**
      * Whether to remove the note.
      */
-    @:eventValue public var removeNote:Bool = true;
+    public var removeNote:Bool = true;
 
     /**
      * Visibility of the note after it has been hit. Only counts if this is a hold note.
      */
-    @:eventValue public var noteVisible:Bool = false;
+    public var noteVisible:Bool = false;
 
     /**
-     * Volume for the player vocals. Doesn't have an effect if `unmutePlayer` is false.
+     * Resets this event.
+     * @param note Note associated with this event.
+     * @param combo Current combo count.
+     * @return NoteHitEvent
      */
-    @:eventValue public var playerVolume:Float = 1;
+    public function reset(note:Note, combo:Int):NoteHitEvent {
+        this.note = note;
+        this.combo = combo;
+
+        score = 0;
+        health = 0;
+        accuracy = null;
+        rating = null;
+
+        if (!note.strumLine.cpu) {
+            rating = PlayState.self.stats.evaluateNote(note);
+
+            score = rating.score;
+            accuracy = rating.accuracyMod;
+            health = rating.health;
+
+            if (rating.breakCombo)
+                this.combo = 0;
+            else
+                this.combo++;
+        }
+        else if (note.strumLine.owner == PLAYER) {
+            health = PlayState.self.stats.ratings[0].health;
+        }
+
+        holdHealth = Math.max(health * 10, 0);
+
+        displaySplash = (!note.strumLine.cpu && rating.displaySplash && !Options.noNoteSplash);
+        unmutePlayer = (note.strumLine.owner != OPPONENT || PlayState.self.music.voices?.length == 1);
+
+        playConfirm = true;
+        characterSing = true;
+        removeNote = true;
+        noteVisible = false;
+
+        cancelled = false;
+        return this;
+    }
 
     /**
-     * Destroys this event.
+     * Clean up memory.
      */
     override function destroy():Void {
-        note = null;
         rating = null;
+        note = null;
     }
 }

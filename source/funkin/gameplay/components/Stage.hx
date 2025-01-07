@@ -2,15 +2,16 @@ package funkin.gameplay.components;
 
 import funkin.data.StageData;
 import funkin.objects.Bopper;
-import funkin.core.scripting.Script;
 import flixel.group.FlxSpriteGroup;
+import hscript.IHScriptCustomBehaviour;
+import hscript.IHScriptCustomClassBehaviour;
 
 /**
  * Object which allows for the creation of stages.
  * Stages can be made by providing data in YAML files in the `data/stages` folder.
  * Stage-specific logic can also be implemented by creating a script under the same path and file name.
  */
-class Stage extends FlxSpriteGroup {
+class Stage extends FlxSpriteGroup implements IHScriptCustomBehaviour {
     /**
      * Sprite group containing sprites layered in front of characters.
      */
@@ -62,22 +63,41 @@ class Stage extends FlxSpriteGroup {
     var opponentCam:Array<Float> = [];
 
     /**
+     * List of sprites.
+     */
+    var sprites:Map<String, FlxSprite> = [];
+
+    /**
      * Whether to hide the spectator.
      */
     var hideSpectator:Bool = false;
 
     /**
-     * Reference to the stage script.
+     * Creates a new `Stage`.
+     * Unlike the constructor, this method takes account for scripted stages.
+     * @param stage Stage to build.
+     * @return Stage
      */
-    var script:Script;
+    public static function create(stage:String):Stage {
+        var script:Script = ScriptManager.getScript(stage);
+        if (script == null) return new Stage(stage);
+
+        var output:Stage = script.buildClass(Stage);
+        if (output == null) output = new Stage(null);
+        output.buildStage(stage);
+        return output;
+    }
 
     /**
      * Creates a new `Stage`.
+     * NOTE: constructor doesn't take account for scripted stages! Use `Stage.create` instead unless you know what you're doing.
      * @param stage Stage to build.
      */
     public function new(stage:String):Void {
         super();
-        buildStage(stage);
+        
+        if (stage != null)
+            buildStage(stage);
     }
 
     /**
@@ -86,17 +106,12 @@ class Stage extends FlxSpriteGroup {
     function buildStage(stage:String):Void {
         var data:StageData = Paths.yaml('data/stages/${stage}');
         if (data == null) {
-            trace('Could not find stage "${stage}"!');
+            Logging.warning('Could not find stage "${stage}"!');
             return;
         }
 
-        script = PlayState.self.scripts.load('data/stages/${stage}');
-        script?.call("onStageCreation");
-
-        if (data.uiStyle != null) {
-            PlayState.self.scripts.load('scripts/uiStyles/${data.uiStyle}');
+        if (data.uiStyle != null)
             uiStyle = "-" + data.uiStyle;
-        }
 
         if (data.cameraSpeed != null)
             PlayState.self.cameraSpeed = data.cameraSpeed;
@@ -129,8 +144,6 @@ class Stage extends FlxSpriteGroup {
 
         if (data.sprites != null)
             buildSprites(data.sprites);
-
-        script?.call("onStageCreationPost");
     }
 
     /**
@@ -201,8 +214,15 @@ class Stage extends FlxSpriteGroup {
             if (data.animationSpeed != null)
                 sprite.animation.timeScale = data.animationSpeed;
 
-            if (data.name != null)
-                script?.set(data.name, sprite);
+            if (data.name != null) {
+                // if this is a scripted stage, register the sprite to the global scope of the script class
+                if (this is IHScriptCustomClassBehaviour) {
+                    var me:IHScriptCustomClassBehaviour = cast this;
+                    me.__interp.variables.set(data.name, sprite);
+                }
+                
+                this.sprites.set(data.name, sprite);
+            }
         }
     }
 
@@ -259,6 +279,34 @@ class Stage extends FlxSpriteGroup {
     }
 
     /**
+     * Custom script dot access behaviour that allows stage sprites to be accessed like a real field.
+     * @param name Name of the field to get.
+     * @return Dynamic
+     */
+    public function hget(name:String):Dynamic {
+        if (sprites?.exists(name))
+            return sprites.get(name);
+
+        return Reflect.getProperty(this, name);
+    }
+
+    /**
+     * Custom script dot access behaviour that allows sprites to be assigned to the stage like a real field.
+     * @param name Name of the field.
+     * @param value Value to assign.
+     * @return Dynamic
+     */
+    public function hset(name:String, value:Dynamic):Dynamic {
+        if (sprites?.exists(name) && (value == null || value is FlxSprite)) {
+            sprites.set(name, value);
+            return value;
+        }
+
+        Reflect.setProperty(this, name, value);
+        return value;
+    }
+
+    /**
      * Clean up memory.
      */
     override function destroy():Void {
@@ -270,8 +318,8 @@ class Stage extends FlxSpriteGroup {
         opponentCam = null;
 
         dancingSprites = null;
+        sprites = null;
         uiStyle = null;
-        script = null;
 
         super.destroy();
     }

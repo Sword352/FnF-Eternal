@@ -39,7 +39,7 @@ class ChangeCharacterEvent extends SongEvent {
         if (_characters[target].exists(to))
             return;
 
-        var character:Character = new Character(0, 0, to);
+        var character:Character = Character.create(0, 0, to);
         _characters[target].set(to, character);
 
         // preload the health icon

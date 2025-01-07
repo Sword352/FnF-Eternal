@@ -85,17 +85,29 @@ class Character extends Bopper {
     public var noteSkin:String = "default";
 
     /**
-     * Internal reference to the character script.
+     * Creates a new `Character`.
+     * Unlike the constructor, this method takes account for scripted characters.
+     * @param x Initial `x` position.
+     * @param y Initial `y` position.
+     * @param character Character this instance represents.
+     * @return Character
      */
-    var script:Script;
+    public static function create(x:Float = 0, y:Float = 0, character:String = "boyfriend"):Character {
+        var script:Script = ScriptManager.getScript(character);
+        if (script == null) return new Character(x, y, character);
+
+        var output:Character = script.buildClass(Character, [x, y, character]);
+        return output ?? new Character(x, y, character);
+    }
 
     /**
      * Creates a new `Character`.
+     * NOTE: constructor doesn't take account for scripted characters! Use `Character.create` instead unless you know what you're doing.
      * @param x Initial `x` position.
      * @param y Initial `y` position.
      * @param character Character this instance represents.
      */
-    public function new(x:Float = 0, y:Float = 0, character:String = "bf"):Void {
+    public function new(x:Float = 0, y:Float = 0, character:String = "boyfriend"):Void {
         super(x, y);
         this.character = character;
     }
@@ -104,8 +116,6 @@ class Character extends Bopper {
      * Update behaviour.
      */
     override function update(elapsed:Float):Void {
-        animation.update(elapsed);
-
         switch (animState) {
             case SINGING | SPECIAL:
                 if (animDuration != -1 && (Conductor.self.time - animTime) >= animDuration)
@@ -113,6 +123,8 @@ class Character extends Bopper {
             
             case _:
         }
+
+        animation.update(elapsed);
 
         #if FLX_DEBUG
         FlxBasic.activeCount++;
@@ -216,30 +228,9 @@ class Character extends Bopper {
     }
 
     /**
-     * Internal method which checks for a character script.
-     */
-    function loadScript():Void {
-        script = PlayState.self.scripts.load('data/characters/${character}');
-        if (script == null) return;
-
-        script.set("this", this);
-        script.call("onCharacterCreation");
-    }
-
-    /**
-     * Internal method which destroys the character script if existing.
-     */
-    function destroyScript():Void {
-        script?.destroy();
-        script = null;
-    }
-
-    /**
      * Clean up memory.
      */
     override function destroy():Void {
-        destroyScript();
-
         cameraOffsets = FlxDestroyUtil.put(cameraOffsets);
         globalOffsets = FlxDestroyUtil.put(globalOffsets);
 
@@ -257,13 +248,11 @@ class Character extends Bopper {
         character = v;
 
         if (v != null) {
-            destroyScript();
-
             var data:CharacterData = Paths.yaml('data/characters/${v}');
             if (data == null) {
                 // TODO: have an hardcoded fallback character rather than looking for boyfriend's file
+                Logging.warning('Could not find character "${v}"!');
                 data = Paths.yaml("data/characters/boyfriend");
-                trace('Could not find character "${v}"!');
             }
 
             frames = Paths.buildAtlas(data.image);
@@ -314,8 +303,6 @@ class Character extends Bopper {
                 flipX = !flipX;
             }
             */
-
-            loadScript();
         }
 
         return v;

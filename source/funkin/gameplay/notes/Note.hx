@@ -10,11 +10,6 @@ import funkin.data.NoteSkin;
  */
 class Note extends OffsetSprite {
     /**
-     * List of builtin notetypes.
-     */
-    public static final defaultTypes:Array<String> = ["Alt Animation"];
-
-    /**
      * Array containing each note direction as a string.
      */
     public static final directions:Array<String> = ["left", "down", "up", "right"];
@@ -115,11 +110,6 @@ class Note extends OffsetSprite {
      * Determines whether this note should be killed if it is extremely late.
      */
     public var lateKill:Bool = true;
-
-    /**
-     * Suffix to append when playing character animations.
-     */
-    public var animSuffix:String;
 
     /**
      * Creates a new `Note`.
@@ -262,16 +252,7 @@ class Note extends OffsetSprite {
 
     function set_type(v:String):String {
         // reset notetype properties
-        animSuffix = null;
         lateKill = true;
-
-        if (v != null) {
-            switch (v) {
-                case "Alt Animation":
-                    animSuffix = "-alt";
-            }
-        }
-
         return type = v;
     }
 

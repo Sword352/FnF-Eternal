@@ -3,64 +3,88 @@ package funkin.core.scripting.events;
 import funkin.gameplay.notes.Note;
 
 /**
- * Event dispatched when a hold note gets invalidated in gameplay.
+ * Event dispatched when a hold note is about to be invalidated during gameplay.
  */
 class NoteHoldInvalidationEvent extends ScriptEvent {
     /**
-     * Target note.
+     * Note associated with this event.
      */
-    @:eventConstructor public var note(default, null):Note;
+    public var note(default, null):Note;
 
     /**
      * Split remaining length of the hold note.
      */
-    @:eventConstructor public var fraction:Float;
+    public var fraction:Float;
 
     /**
-     * Score to lose. NOTE: this is multiplied by the fraction!
+     * Score to lose.
+     * NOTE: this is multiplied by the fraction!
      */
-    @:eventValue public var scoreLoss:Float = 10;
+    public var scoreLoss:Float = 10;
 
     /**
-     * Health to lose. NOTE: this is multiplied by the fraction!
+     * Health to lose.
+     * NOTE: this is multiplied by the fraction!
      */
-    @:eventValue public var healthLoss:Float = 0.02375;
+    public var healthLoss:Float = 0.02375;
+
+    /**
+     * By how much the note's sustain alpha should be multiplied.
+     */
+    public var alphaMultiplier:Float = 0.5;
 
     /**
      * Whether to break the combo.
      */
-    @:eventValue public var breakCombo:Bool = true;
+    public var breakCombo:Bool = true;
 
     /**
      * Whether to make the character play a miss animation.
      */
-    @:eventValue public var characterMiss:Bool = true;
+    public var characterMiss:Bool = true;
 
     /**
      * Whether to make the spectator play the sad animation.
      */
-    @:eventValue public var spectatorSad:Bool = true;
+    public var spectatorSad:Bool = true;
 
     /**
      * Whether to play the miss sound.
      */
-    @:eventValue public var playSound:Bool = true;
+    public var playSound:Bool = true;
 
     /**
-     * Default volume for the miss sound.
+     * Whether to mute the player voices.
      */
-    @:eventValue public var soundVolume:Float = 0.4;
+    public var mutePlayer:Bool = true;
 
     /**
-     * How much can the miss sound's volume vary.
+     * Resets this event.
+     * @param note Note associated with this event.
+     * @return NoteHoldInvalidationEvent
      */
-    @:eventValue public var soundVolDiff:Float = 0.1;
+    public function reset(note:Note):NoteHoldInvalidationEvent {
+        this.note = note;
+
+        var remainingLength:Float = note.length - (Conductor.self.time - note.time);
+        fraction = (remainingLength / (Conductor.self.semiQuaver * 2)) + 1;
+
+        scoreLoss = 10;
+        healthLoss = 0.02375;
+        alphaMultiplier = 0.5;
+        breakCombo = true;
+        characterMiss = true;
+        spectatorSad = true;
+        playSound = true;
+        mutePlayer = true;
+
+        cancelled = false;
+        return this;
+    }
 
     /**
-     * Volume for the player vocals.
+     * Clean up memory.
      */
-    @:eventValue public var playerVolume:Float = 0;
-
     override function destroy():Void {
         note = null;
     }

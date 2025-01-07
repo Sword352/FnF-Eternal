@@ -3,7 +3,7 @@ package funkin.gameplay.events;
 /**
  * Event metadata. Contain infos used for the chart editor.
  */
-typedef EventMeta = {
+typedef SongEventMeta = {
     /**
      * Display name for this event.
      */
@@ -22,13 +22,13 @@ typedef EventMeta = {
     /**
      * Event arguments.
      */
-    var ?arguments:Array<EventArgument>;
+    var ?arguments:Array<SongEventArgument>;
 }
 
 /**
  * Event argument. Metadata for a value in the `arguments` array of a `ChartEvent`.
  */
-typedef EventArgument = {
+typedef SongEventArgument = {
     /**
      * Display name for this argument.
      */
@@ -37,7 +37,7 @@ typedef EventArgument = {
     /**
      * The value type of this argument.
      */
-    var type:EventArgumentType;
+    var type:SongEventArgumentType;
 
     /**
      * Default value for this argument.
@@ -78,7 +78,7 @@ typedef EventArgument = {
 /**
  * Represents an argument value type.
  */
-enum abstract EventArgumentType(String) from String to String {
+enum abstract SongEventArgumentType(String) from String to String {
     var FLOAT = "Float";
     var INT = "Int";
     var STRING = "String";
@@ -91,18 +91,18 @@ enum abstract EventArgumentType(String) from String to String {
 
 /*
 @:structInit
-class EventMeta {
+class SongEventMeta {
     public var name:String;
     public var type:String;
 
     @:optional public var description:String;
-    @:optional public var arguments:Array<EventArgument>;
+    @:optional public var arguments:Array<SongEventArgument>;
 }
 
 @:structInit
-class EventArgument {
+class SongEventArgument {
     public var name:String;
-    public var type:EventArgumentType;
+    public var type:SongEventArgumentType;
 
     @:optional public var defaultValue:Dynamic;
     @:optional public var tempValue:String;
@@ -113,7 +113,7 @@ class EventArgument {
     @:optional public var list:Array<String>;
 }
 
-enum abstract EventArgumentType(Int) from Int to Int {
+enum abstract SongEventArgumentType(Int) from Int to Int {
     var FLOAT = 0;
     var INT = 1;
     var STRING = 2;
@@ -121,7 +121,7 @@ enum abstract EventArgumentType(Int) from Int to Int {
     var LIST = 4;
     var COLOR = 5;
 
-    @:from public static function fromString(v:String):EventArgumentType {
+    @:from public static function fromString(v:String):SongEventArgumentType {
         return switch (v) {
             case "Float": FLOAT;
             case "Int": INT;

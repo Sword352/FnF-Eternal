@@ -26,7 +26,7 @@ class TransitionState extends FlxState {
         Transition.skipNextTransIn = false;
     }
 
-    override function startOutro(onOutroComplete:() -> Void):Void {
+    override function startOutro(onOutroComplete:Void->Void):Void {
         if (Transition.skipNextTransOut) {
             Transition.skipNextTransOut = false;
             onOutroComplete();
@@ -34,14 +34,14 @@ class TransitionState extends FlxState {
         }
 
         if (subState != null && subState is TransitionSubState)
-            cast(subState, TransitionSubState).reset(OUT);
+            (cast subState:TransitionSubState).reset(OUT);
         else
             openTransition(new TransitionSubState(OUT));
 
         Transition.onComplete.add(onOutroComplete);
     }
 
-    inline function openTransition(transition:TransitionSubState):Void {
+    function openTransition(transition:TransitionSubState):Void {
         var parent:FlxState = this;
 
         if (Transition.openOnSubState)
@@ -118,7 +118,7 @@ class TransitionSubState extends FlxSubState {
         scale = 0;
     }
 
-    inline function finish():Void {
+    function finish():Void {
         Transition.onComplete.dispatch();
         Transition.onComplete.removeAll();
 
@@ -131,7 +131,7 @@ class TransitionSubState extends FlxSubState {
     }
 }
 
-enum abstract TransitionType(String) from String to String {
-    var IN = "in";
-    var OUT = "out";
+enum abstract TransitionType(Int) from Int to Int {
+    var IN;
+    var OUT;
 }

@@ -3,7 +3,7 @@ package funkin.editors.chart;
 import flixel.text.FlxText;
 import flixel.group.FlxGroup;
 import funkin.editors.SelectionHelper.SelectableSprite;
-import funkin.gameplay.events.EventTypes.EventMeta;
+import funkin.gameplay.events.SongEventTypes.SongEventMeta;
 import funkin.data.ChartFormat.ChartEvent;
 
 class ChartEventGroup extends FlxTypedGroup<EventSprite> {
@@ -85,7 +85,7 @@ class EventSprite extends SelectableSprite {
     override function draw():Void {
         if (!isOnScreen(camera)) return;
 
-        var eventMeta:EventMeta = (cast FlxG.state:ChartEditor).eventList.get(data.type);
+        var eventMeta:SongEventMeta = (cast FlxG.state:ChartEditor).eventList.get(data.type);
         var displayText:String = eventMeta?.name ?? data.type;
 
         if (data.arguments != null)

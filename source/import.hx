@@ -9,11 +9,12 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.FlxDestroyUtil;
 
-import funkin.core.Controls;
 import funkin.utils.*;
+import funkin.utils.Logging.DefaultLogStyle;
 
 import funkin.save.*;
 import funkin.save.Options;
+import funkin.core.Controls;
 
 import funkin.core.modding.Mods;
 import funkin.core.assets.Extensions;
@@ -25,11 +26,12 @@ import funkin.core.DiscordRPC;
 
 import funkin.core.scripting.*;
 import funkin.core.scripting.events.*;
+import funkin.core.scripting.Events;
 
 import funkin.Conductor;
 import funkin.MusicBeatState;
-import funkin.gameplay.PlayState;
 import funkin.Transition;
+import funkin.gameplay.PlayState;
 
 using funkin.utils.Tools;
 using StringTools;

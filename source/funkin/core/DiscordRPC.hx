@@ -227,14 +227,14 @@ class DiscordRPC {
      * Method called whenever an error occurs.
      */
     static function onError(errorCode:Int, message:cpp.ConstCharStar):Void {
-        trace('An error has occured! (message: ${message}, error code: ${errorCode})');
+        Logging.error('An error has occured! (message: ${message}, error code: ${errorCode})');
     }
 
     /**
      * Method called whenever a disconnection occurs.
      */
     static function onDisconnect(errorCode:Int, message:cpp.ConstCharStar):Void {
-        trace('Connection has been lost! (message: ${message}, error code: ${errorCode})');
+        Logging.warning('Connection has been lost! (message: ${message}, error code: ${errorCode})');
     }
 }
 

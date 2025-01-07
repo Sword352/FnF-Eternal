@@ -201,7 +201,7 @@ class Tools {
     }
 
     static function onFileRefError(_):Void {
-        trace('Error while saving file "${_fileRef.name}"!');
+        Logging.error('Error while saving file "${_fileRef.name}"!');
         destroyFileRef(null);
     }
 

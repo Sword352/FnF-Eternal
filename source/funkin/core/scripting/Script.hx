@@ -1,293 +1,301 @@
 package funkin.core.scripting;
 
-import haxe.PosInfos;
+import funkin.core.scripting.ScriptException;
+import funkin.core.macros.ScriptMacros;
+import lime.app.Promise;
+import lime.app.Future;
 import haxe.Exception;
-import haxe.Constraints.Function;
 
 /**
- * Base script class.
+ * A script is an object able to dynamically execute code at runtime.
+ * This class isn't meant to be instansiated directly; it is used as a base for implementing other classes executing code for a specific programming language.
+ * For creating a script, use the appropriate factory functions or create instances of classes inheriting from this class such as `HScript`.
  */
+@:noCustomClass
 class Script implements IFlxDestroyable {
     /**
-     * List of variables imported by default in all scripts.
+     * Recursively loads each script located at the given directory, in all asset sources.
+     * @param directory Directory to scan.
+     * @return Array<Script>
      */
-    public static final presets:Map<String, Dynamic> = [
-        // Flixel
-        "FlxG" => flixel.FlxG,
-        "FlxSprite" => flixel.FlxSprite,
-        "FlxText" => flixel.text.FlxText,
-        "FlxSound" => flixel.sound.FlxSound,
+    public static function fromDirectory(directory:String):Array<Script> {
+        var output:Array<Script> = [];
 
-        "FlxGroup" => flixel.group.FlxGroup,
-        "FlxTween" => flixel.tweens.FlxTween,
-        "FlxEase" => flixel.tweens.FlxEase,
-        "FlxTimer" => flixel.util.FlxTimer,
-        "FlxMath" => flixel.math.FlxMath,
+        Assets.invoke((source) -> {
+            if (!source.exists(directory) || !source.isDirectory(directory)) return;
 
-        "FlxAxes" => flixel.util.FlxAxes.FlxAxes_HSC,
-        "FlxPoint" => flixel.math.FlxPoint.FlxPoint_HSC,
-        "FlxColor" => flixel.util.FlxColor.FlxColor_HSC,
-        "FlxTweenType" => flixel.tweens.FlxTween.FlxTweenType_HSC,
-
-        #if DISCORD_RPC
-        "DiscordRPC" => DiscordRPC,
-        #end
-
-        "OffsetSprite" => funkin.objects.OffsetSprite,
-        "Conductor" => Conductor,
-        "Options" => Options,
-
-        // Transition stuff
-        "Transition" => Transition,
-        "TranitionState" => TransitionState,
-        "TransitionSubState" => TransitionSubState,
-
-        // Misc
-        "PlayState" => funkin.gameplay.PlayState,
-        "FlxRuntimeShader" => flixel.addons.display.FlxRuntimeShader,
-        "ShaderFilter" => openfl.filters.ShaderFilter,
-
-        // Tools
-        "Std" => Std,
-        "Math" => Math,
-        "Tools" => Tools,
-        "StringTools" => StringTools,
-        "Assets" => Assets,
-        "Paths" => Paths
-    ];
-
-    /**
-     * Used so you can declare and use static variables in scripts.
-     */
-    public static final staticFields:Map<String, Dynamic> = [];
-
-    /**
-     * Executes code from a string and returns the script.
-     * @param content Script to execute.
-     * @param name Optional name to use for logging.
-     */
-    public static inline function load(content:String, ?name:String):Script {
-        // only hscript is supported as of now
-        return new HScript(content, name);
+            var files:Array<String> = _scanDirectory(source, directory);
+            for (file in files) {
+                var script:Script = _scriptFromFile(source, file);
+                if (script != null) output.push(script);
+            }
+        });
+        
+        return output;
     }
 
     /**
-     * Name of this script, used for logging.
+     * Recursively loads each script located at the given directory asynchronously, in all asset sources.
+     * @param directory Directory to scan.
+     * @return Future<Array<Script>> Future object.
+     */
+    public static function loadFromDirectory(directory:String):Future<Array<Script>> {
+        var promise:Promise<Array<Script>> = new Promise();
+        new Future<Void>(_loadAsync.bind(directory, promise), true);
+        return promise.future;
+    }
+
+    /**
+     * Creates a script executing the given string content.
+     * @param content Content to execute.
+     * @param path Path of the script file.
+     * @return Script
+     */
+    public static function fromString(content:String, path:String):Script {
+        var name:String = path.substring(path.lastIndexOf("/") + 1, path.length);
+        var script:Script = null;
+
+        try {
+            // only haxe scripts are supported as of now
+            script = new HScript(content, name);
+        }
+        catch (e:ScriptException) {
+            switch (e.reason) {
+                case PARSING_ERROR(error):
+                    Logging.traceString(error, DefaultLogStyle.ERROR);
+                case MALICIOUS_CONTENT:
+                    Logging.traceString('${name}: Script content is suspected to be malicious, aborting.', DefaultLogStyle.ERROR);
+            }
+
+            script = null;
+        }
+
+        return script;
+    }
+
+    /**
+     * Identifier for this script.
      */
     public var name(default, null):String;
 
     /**
-     * Defines whether this script is alive. If `false`, it can't be used anymore.
-     */
-    public var alive(default, null):Bool = true;
-
-    /**
-     * Defines the script's parent object, meaning all of the object's properties are available in this script.
-     */
-    public var object(get, set):Dynamic;
-
-    /**
-     * `ScriptContainer` this script belongs to.
-     */
-    public var parent:ScriptContainer;
-
-    // public var priority:Int = -1; // TODO
-
-    /**
      * Creates a `Script` instance.
-     * @param content Script to execute.
-     * @param name Optional name to use for logging.
+     * @param content Code to execute.
+     * @param name Optional identifier for this script.
+     * @throws ScriptException Script content was considered malicious.
+     * @throws ScriptException Parsing the script content failed.
      */
-    public function new(content:String, ?name:String):Void {
+    function new(content:String, ?name:String):Void {
         this.name = name;
 
-        try {
-            execute(content);
-            applyPresets();
-        }
+        if (!isContentSafe(content))
+            throw new MaliciousScriptException();
+
+        try execute(content)
         catch (e:Exception) {
-            trace('Failed to execute script "${name}"! [${e.message}]');
-            destroy();
+            this.destroy();
+            throw new ParsingScriptException(e.message);
         }
     }
 
     /**
-     * Sets a variable in this script and returns it.
-     * @param key The variable's name
-     * @param v The variable's value
+     * Registers a variable in this script and returns it's value.
+     * @param key Variable name.
+     * @param value Variable value.
      */
-    public function set(key:String, v:Dynamic):Dynamic {
-        return v;
+    public function set(key:String, value:Any):Any {
+        return value;
     }
 
     /**
-     * Returns a variable from this script if it exists.
-     * @param key The variable's name
+     * Returns a variable from this script.
+     * @param key Variable name.
      */
-    public function get(key:String):Dynamic {
+    public function get(key:String):Any {
         return null;
     }
 
     /**
      * Returns whether a variable exists in this script.
-     * @param key Variable to look for
+     * @param key Variable name.
      */
     public function exists(key:String):Bool {
         return false;
     }
 
     /**
-     * Calls a method from this script and returns it's output.
-     * @param method Method to call.
-     * @return Dynamic
+     * Creates an instance of the first scripted class from this script.
+     * @param cls Optional, existing class the scripted class should extend.
+     * @param args Optional array of arguments to pass to the constructor of the class.
+     * @return An instance of a scripted class, or null if not found.
      */
-    public inline extern overload function call(method:String):Dynamic {
-        var func:Function = get(method);
-
-        if (func == null)
-            return null;
-
-        try
-            return func()
-        catch (e:Exception) {
-            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
-            return null;
-        }
+    public function buildClass<T>(?cls:Class<T>, ?args:Array<Any>):T {
+        return null;
     }
 
     /**
-     * Calls a method from this script and returns it's output.
-     * @param method Method to call.
-     * @param v1 Optional argument.
-     * @return Dynamic
+     * Creates instances of each scripted classes from this script.
+     * @param cls Optional, existing class the scripted classes should extend.
+     * @param args Optional array of arguments to pass to the constructor of each classes.
+     * @return An array of each initialized class instances, or null if not found.
      */
-    public inline extern overload function call(method:String, v1:Dynamic):Dynamic {
-        var func:Function = get(method);
-
-        if (func == null)
-            return null;
-
-        try
-            return func(v1)
-        catch (e:Exception) {
-            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
-            return null;
-        }
+    public function buildClasses<T>(?cls:Class<T>, ?args:Array<Any>):Array<T> {
+        return null;
     }
 
     /**
-     * Calls a method from this script and returns it's output.
-     * @param method Method to call.
-     * @param v1 Optional argument.
-     * @param v2 Optional argument.
-     * @return Dynamic
+     * Creates an instance of a scripted class from this script by it's name.
+     * @param name Name of the scripted class to instansiate.
+     * @param args Optional array of arguments to pass to the constructor of the class.
+     * @return An instance of the desired scripted class, or null if not found.
      */
-    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic):Dynamic {
-        var func:Function = get(method);
-
-        if (func == null)
-            return null;
-
-        try
-            return func(v1, v2)
-        catch (e:Exception) {
-            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
-            return null;
-        }
-    }
-
-    /**
-     * Calls a method from this script and returns it's output.
-     * @param method Method to call.
-     * @param v1 Optional argument.
-     * @param v2 Optional argument.
-     * @param v3 Optional argument.
-     * @return Dynamic
-     */
-    public inline extern overload function call(method:String, v1:Dynamic, v2:Dynamic, v3:Dynamic):Dynamic {
-        var func:Function = get(method);
-
-        if (func == null)
-            return null;
-
-        try
-            return func(v1, v2, v3)
-        catch (e:Exception) {
-            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
-            return null;
-        }
-    }
-
-    /**
-     * Calls a method from this script with an undefined amount of arguments and returns it's output.
-     * @param method Method to call.
-     * @param arguments Optional arguments.
-     * @return Dynamic
-     */
-    public function callDyn(method:String, ?arguments:Array<Dynamic>):Dynamic {
-        var func:Function = get(method);
-        
-        if (func == null)
-            return null;
-
-        try
-            return Reflect.callMethod(null, func, arguments)
-        catch (e:Exception) {
-            haxe.Log.trace('${method}: ${buildError(e.message)}', buildPosInfos(e));
-            return null;
-        }
+    public function buildClassByName<T>(name:String, ?args:Array<Any>):T {
+        return null;
     }
 
     /**
      * Clean up memory.
      */
     public function destroy():Void {
-        call("onDestroy");
-
-        if (parent != null)
-            parent.remove(this);
-
-        alive = false;
-        parent = null;
         name = null;
     }
 
     /**
-     * Internal method which adds variables that should be pre-imported.
-     */
-    function applyPresets():Void {
-        // apply default presets
-        for (i in presets.keys())
-            set(i, presets.get(i));
-
-        // allows to close the script at any time
-        set("closeScript", destroy);
-    }
-
-    /**
-     * Internal method which returns pos infos for the call error trace. (override me!)
-     * @param exception Error exception.
-     */
-    function buildPosInfos(exception:Exception):PosInfos {
-        return null;
-    }
-
-    /**
-     * Internal method allowing to modify the error to trace. (override me!)
-     * @param exception Error string.
-     */
-    function buildError(exception:String):String {
-        return exception;
-    }
-
-    /**
-     * Internal method which executes the script. (override me!)
+     * Internal method which executes the script content.
+     * This method should be overrode by classes inheriting from this class.
      */
     function execute(content:String):Void {}
 
-    function get_object():Dynamic
-        return null;
+    /**
+     * Internal method which pre-imports variables.
+     * NOTE: this should be called manually by class extensions.
+     */
+    function applyPresets():Void {
+        for (name => value in ScriptManager._presets)
+            set(name, value);
+    }
 
-    function set_object(v:Dynamic):Dynamic
-        return null;
+    /**
+     * Internal method which checks if the script content is malicious.
+     * @param content Content to verify.
+     * @return `true` if the content is not malicious, `false` otherwise.
+     */
+    inline function isContentSafe(content:String):Bool {
+        return !__blacklistRegex.match(content);
+    }
+
+    static function _loadAsync(directory:String, promise:Promise<Array<Script>>):Void {
+        var scripts:Array<Script> = [];
+        var paths:Map<IAssetSource, Array<String>> = [];
+
+        var total:Int = 0;
+        var progress:Int = 0;
+
+        Assets.invoke((source) -> {
+            var files:Array<String> = _scanDirectory(source, directory);
+            paths.set(source, files);
+            total += files.length;
+        });
+
+        // dispatch progress/complete feedback in the main thread to avoid race conditions
+        haxe.MainLoop.runInMainThread(() -> promise.progress(progress, total));
+
+        Assets.invoke((source) -> {
+            var files:Array<String> = paths.get(source);
+            for (file in files) {
+                var script:Script = _scriptFromFile(source, file);
+
+                if (script != null) {
+                    progress++;
+                    scripts.push(script);
+                }
+                else {
+                    total--;
+                }
+
+                haxe.MainLoop.runInMainThread(() -> promise.progress(progress, total));
+            }
+        });
+
+        haxe.MainLoop.runInMainThread(() -> promise.complete(scripts));
+    }
+
+    static function _scanDirectory(source:IAssetSource, directory:String):Array<String> {
+        var entries:Array<String> = source.readDirectory(directory);
+        if (entries.length == 0) return [];
+
+        var output:Array<String> = [];
+
+        for (entry in entries) {
+            var path:String = directory + entry;
+
+            if (source.isDirectory(path)) {
+                output = output.concat(_scanDirectory(source, path + "/"));
+                continue;
+            }
+
+            if (SCRIPT.hasExtension(entry)) {
+                output.push(path);
+            }
+        }
+
+        return output;
+    }
+
+    static inline function _scriptFromFile(source:IAssetSource, path:String):Script {
+        return fromString(source.getContent(path), path);
+    }
+
+    /**
+     * Internal regex used to determinate whether a script contains malicious code.
+     */
+    static final __blacklistRegex:EReg = ScriptMacros.buildSafetyRegex([
+        // Disallow sys, filesystem and network apis
+        "sys.io",
+        "sys.net",
+        "sys.db",
+        "sys.ssl",
+        "FileSystem",
+        "FsAssetSource",
+        "openfl.filesystem",
+        "Http",
+        "Sys",
+
+        // Disallow the ability to run external code (NDLLs, external processes, etc.)
+        "openfl.desktop.NativeProcess",
+        "lime.system.System",
+        "lime.system.CFFI",
+        "lime.system.JNI",
+        "hscript.Interp",
+        "hscript.Parser",
+        "hscript.Expr",
+
+        #if cpp
+        // CPP-specific apis
+        "cpp.Lib",
+        "cpp.NativeFile",
+        "cpp.NativeProcess",
+        "cpp.NativeSocket",
+        "cpp.NativeSsl",
+        "cpp.NativeSys",
+        "cpp.Prime",
+        "cpp.Stdio",
+        #end
+
+        // Disallow reflection
+        "Reflect",
+        "Type",
+
+        // Disallow access to the haxe unserializer as it can resolve classes
+        "haxe.Unserializer",
+
+        // OpenFL's Assets API has 2 static methods related to reflection,
+        // so we blacklist the methods instead of locking access to the entirety of the class
+        // as it can be fairly useful
+        "resolveClass",
+        "resolveEnum",
+
+        // Disallow blacklist manipulation
+        "__blacklistRegex"
+    ]);
 }

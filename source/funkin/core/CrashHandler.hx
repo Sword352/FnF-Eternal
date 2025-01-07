@@ -88,12 +88,12 @@ class CrashHandler {
                 new Process(dialog, [dump, logPath]);
             }
             catch (e:Exception) {
-                trace("Failed opening crash dialog! [" + e + "]");
+                Sys.println("Failed opening crash dialog! [" + e + "]");
                 fallback(dump, logPath);
             }
         }
         else {
-            trace("Couldn't find crash dialog!");
+            Sys.println("Couldn't find crash dialog!");
             fallback(dump, logPath);
         }
 

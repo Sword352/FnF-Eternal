@@ -42,9 +42,6 @@ class OptionsMenu extends MusicBeatState {
             {name: "Exit", action: exit, noSound: true},
         ];
 
-        initStateScripts();
-        scripts.call("onCreate");
-
         Assets.clearCache = !toPlayState || Options.reloadAssets;
 
         #if DISCORD_RPC
@@ -100,12 +97,9 @@ class OptionsMenu extends MusicBeatState {
         }
 
         changeSelection();
-
-        scripts.call("onCreatePost");
     }
 
     override function update(elapsed:Float):Void {
-        scripts.call("onUpdate", elapsed);
         super.update(elapsed);
 
         background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
@@ -136,8 +130,6 @@ class OptionsMenu extends MusicBeatState {
                 accept();
             }
         }
-
-        scripts.call("onUpdatePost", elapsed);
     }
 
     function changeSelection(i:Int = 0):Void {
@@ -149,8 +141,6 @@ class OptionsMenu extends MusicBeatState {
     }
 
     function accept():Void {
-        if (scripts.quickEvent("onAccept").cancelled) return;
-
         var category:OptionCategory = categories[currentSelection];
         if (!category.noSound) FlxG.sound.play(Paths.sound("scrollMenu"));
         category.action();

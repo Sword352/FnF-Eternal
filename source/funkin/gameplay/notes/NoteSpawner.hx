@@ -7,7 +7,10 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 /**
  * `NoteSpawner` object, which progressively spawns notes from a chart.
  * Notes and sustains made by the spawner are recycled (meaning they get re-used), to improve performance.
+ * This object dispatches the following event(s):
+ * - `GameEvents.NOTE_INCOMING`
  */
+@:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
 class NoteSpawner extends FlxBasic {
     /**
      * The note pool.
@@ -35,6 +38,11 @@ class NoteSpawner extends FlxBasic {
     var _lastNote:ChartNote;
 
     /**
+     * Cached note incoming script event object.
+     */
+    var _noteIncomingEvent:NoteIncomingEvent = new NoteIncomingEvent();
+
+    /**
      * Creates a new `NoteSpawner`
      * @param strumLines The strumlines in which notes are going to be spawned into.
      * @param startTime Start time, where we start spawning notes at.
@@ -48,7 +56,7 @@ class NoteSpawner extends FlxBasic {
         PlayState.song.notes.sort((a, b) -> Std.int(a.time - b.time));
 
         // skip notes with a time value lower than the start time
-        if (startTime != 0) {
+        if (startTime != 0 && PlayState.song.notes.length > 0) {
             while (PlayState.song.notes[currentNote].time < startTime) {
                 // avoids null object reference when skipping every notes
                 if (++currentNote >= PlayState.song.notes.length)
@@ -90,19 +98,13 @@ class NoteSpawner extends FlxBasic {
                 continue;
             }
 
-            var event:NoteIncomingEvent = null;
-
-            if (PlayState.self != null) {
-                event = Events.get(NoteIncomingEvent).setup(note, note.time, note.direction, note.strumline, note.length, note.type, strumLine, strumLine.skin);
-                PlayState.self.scripts.dispatchEvent("onNoteIncoming", event);
-
-                if (event.cancelled) {
-                    currentNote++;
-                    continue;
-                }
+            dispatchEvent(GameEvents.NOTE_INCOMING, _noteIncomingEvent.reset(note, strumLine));
+            if (_noteIncomingEvent.cancelled) {
+                currentNote++;
+                continue;
             }
 
-            var newNote:Note = getNote(note, event);
+            var newNote:Note = getNote(_noteIncomingEvent);
             newNote.strumLine.addNote(newNote);
 
             _lastNote = note;
@@ -118,6 +120,8 @@ class NoteSpawner extends FlxBasic {
      * Clean up memory.
      */
     override function destroy():Void {
+        _noteIncomingEvent = FlxDestroyUtil.destroy(_noteIncomingEvent);
+
         sustains = FlxDestroyUtil.destroy(sustains);
         notes = FlxDestroyUtil.destroy(notes);
 
@@ -129,36 +133,17 @@ class NoteSpawner extends FlxBasic {
 
     /**
      * Recycling behaviour.
-     * @param chartNote The note data
-     * @param event Optional `NoteIncomingEvent`. If not null, `chartNote` is unused.
+     * @param event `NoteIncomingEvent` object.
      * @return A `Note` instance
      */
-    function getNote(chartNote:ChartNote, ?event:NoteIncomingEvent):Note {
-        var parent:StrumLine = null;
-
-        if (event == null)
-            parent = strumLines[chartNote.strumline];
-        else
-            parent = strumLines[event.strumline] ?? event.strumLine;
-
-        // safety mesure
-        if (parent == null) {
-            trace("Invalid parent strumline for note " + chartNote + "!");
-            parent = strumLines[0];
-        }
-
+    function getNote(event:NoteIncomingEvent):Note {
         var note:Note = notes.recycle(Note, noteConstructor);
-        
-        if (event == null)
-            note.setupData(chartNote);
-        else
-            note.setup(event.time, event.direction, event.length, event.type);
-
-        note.strumLine = parent;
+        note.setup(event.time, event.direction, event.length, event.type);
+        note.strumLine = event.strumLine;
 
         // don't swap the noteskin if it's the same!
-        var skin:String = event?.skin ?? parent.skin;
-        if (note.skin != skin) note.skin = skin;
+        if (note.skin != event.skin)
+            note.skin = event.skin;
 
         if (note.isHoldable())
             note.sustain = sustains.recycle(Sustain);
