@@ -83,14 +83,6 @@ class Paths {
 	}
 
 	/**
-	 * Returns the content of a script file.
-	 * @param path Path to the script.
-	 * @return String
-	 */
-	public static inline function script(path:String):String
-		return Assets.getContent(path, SCRIPT);
-
-	/**
 	 * Parses and returns a sparrow atlas from files in the `images` folder.
 	 * @param path Path to the atlas.
      * @param hardware Whether to dispose the image from ram, leaving it in GPU memory.
