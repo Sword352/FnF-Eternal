@@ -19,6 +19,9 @@ class Tutorial extends SongElement {
     }
 
     function onCreatePost():Void {
+        // place girlfriend at the intended position
+        game.opponent.setPosition(game.stage.spectatorPos[0], game.stage.spectatorPos[1]);
+
         game.events.addEventListener(GameEvents.EVENT_EXECUTION, onEventExecution);
         game.gameBeatBump = game.hudBeatBump = 0;
         game.camGame.zoom = 1;
@@ -31,7 +34,7 @@ class Tutorial extends SongElement {
     function onEventExecution(event):Void {
         if (event.event.type == "change camera target") {
             intendedZoom = switch (event.event.arguments[0]) {
-                case 1: 1.1; // spectator
+                case 0: 1.1; // spectator
                 case 2: 0.9; // player
             }
         }

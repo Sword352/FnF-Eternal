@@ -8,10 +8,10 @@
     "gameplayInfo": {
         "instrumental": "Inst",
         "voices": ["Voices-bf", "Voices-gf"],
-        "spectator":"girlfriend",
-        "opponent":"girlfriend",
-        "player":"boyfriend",
-        "stage":"stage",
+        "spectator": null,
+        "opponent": "girlfriend",
+        "player": "boyfriend",
+        "stage": "stage",
         "scrollSpeed": 1,
         "bpm": 100
     }

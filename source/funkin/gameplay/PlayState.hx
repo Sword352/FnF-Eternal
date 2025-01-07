@@ -125,13 +125,9 @@ class PlayState extends MusicBeatState {
         if (song.gameplayInfo.spectator != null) {
             spectator = Character.create(400, 0, song.gameplayInfo.spectator);
             add(spectator);
-
-            // make the spectator behave as the opponent
-            if (song.gameplayInfo.opponent != null && song.gameplayInfo.opponent == song.gameplayInfo.spectator)
-                opponent = spectator;
         }
 
-        if (song.gameplayInfo.opponent != null && song.gameplayInfo.spectator != song.gameplayInfo.opponent) {
+        if (song.gameplayInfo.opponent != null) {
             opponent = Character.create(200, 0, song.gameplayInfo.opponent);
             add(opponent);
         }
@@ -316,10 +312,7 @@ class PlayState extends MusicBeatState {
     public function gameDance(beat:Int):Void {
         player?.dance(beat);
         spectator?.dance(beat);
-
-        if (opponent != null && opponent != spectator)
-            opponent.dance(beat);
-
+        opponent?.dance(beat);
         stage?.dance(beat);
     }
 

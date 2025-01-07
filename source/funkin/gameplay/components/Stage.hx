@@ -261,10 +261,8 @@ class Stage extends FlxSpriteGroup implements IHScriptCustomBehaviour {
 
         applyCharacterData(game.player, playerPos, playerCam);
         applyCharacterData(game.spectator, spectatorPos, spectatorCam);
-
-        if (game.opponent != null && game.opponent != game.spectator)
-            applyCharacterData(game.opponent, opponentPos, opponentCam);
-
+        applyCharacterData(game.opponent, opponentPos, opponentCam);
+        
         if (game.spectator != null)
             game.spectator.visible = !hideSpectator;
     }
