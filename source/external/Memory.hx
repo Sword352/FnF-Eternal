@@ -11,7 +11,8 @@ package external;
 class Memory {
     /**
      * Returns the amount of memory currently used by the program, in bytes.
-     * On Windows, this returns the process memory usage. Otherwise this returns the amount of memory the garbage collector is allowed to use.
+     * On Windows, this returns the total amount of memory allocated by the process.
+     * On other targets, this returns the amount of memory allocated by the garbage collector.
      */
     #if (cpp && windows)
     @:functionCode('
@@ -21,12 +22,6 @@ class Memory {
     ')
     #end
     public static function getProcessUsage():Float {
-        #if hl
-        // hashlink specific
-        return hl.Gc.stats().currentMemory;
-        #else
-        // other targets, also serves as a fallback for windows
-        return openfl.system.System.totalMemory;
-        #end
+        return openfl.system.System.totalMemoryNumber;
     }
 }
