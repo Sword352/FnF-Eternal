@@ -253,22 +253,13 @@ class FPSOverlay extends Sprite {
      */
     function onKeyRelease(event:KeyboardEvent):Void {
         switch (event.keyCode) {
-            #if FLX_DEBUG
             case Keyboard.F3:
-            #else
-            case Keyboard.F2:
-            #end
                 visibility = (visibility + 1) % 3;
                 forceRefresh();
 
                 FlxG.save.data.fpsVisibility = visibility;
                 FlxG.save.flush();
-            
-            #if FLX_DEBUG
             case Keyboard.F4:
-            #else
-            case Keyboard.F3:
-            #end
                 displayMemory = !displayMemory;
                 forceRefresh();
 
