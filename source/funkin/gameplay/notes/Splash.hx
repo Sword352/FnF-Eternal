@@ -35,7 +35,7 @@ class Splash extends OffsetSprite {
         super();
         this.skin = skin;
 
-        animation.finishCallback = (_) -> kill();
+        animation.onFinish.add(onAnimationFinished);
     }
 
     override function update(elapsed:Float):Void {
@@ -58,6 +58,10 @@ class Splash extends OffsetSprite {
         updateHitbox();
 
         offset.set(width * 0.3, height * 0.3);
+    }
+
+    function onAnimationFinished(_):Void {
+        kill();
     }
 
     /**

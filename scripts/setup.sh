@@ -9,7 +9,7 @@ haxelib git yaml https://github.com/Sword352/hx-yaml
 haxelib install hxdiscord_rpc
 haxelib git hscript-improved https://github.com/Sword352/hscript-improved
 haxelib install hxcpp
-haxelib install hxcpp-debug-server
+haxelib git hxcpp-debug-server https://github.com/vshaxe/hxcpp-debugger
 echo Setting up Flixel and Lime...
 haxelib run lime setup
 haxelib run flixel setup

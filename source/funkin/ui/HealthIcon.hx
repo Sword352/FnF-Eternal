@@ -4,7 +4,6 @@ import flixel.FlxCamera;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase;
 import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.objects.OffsetSprite;
 
 class HealthIcon extends OffsetSprite {
@@ -15,6 +14,8 @@ class HealthIcon extends OffsetSprite {
 
     public var size:FlxPoint = FlxPoint.get(150, 150);
     public var globalOffsets:FlxPoint = FlxPoint.get();
+
+    public var health:Float = 0;
     public var healthAnim:Bool = true;
 
     public var bopSize:Float = 25;

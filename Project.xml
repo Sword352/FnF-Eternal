@@ -62,6 +62,9 @@
 
 	<!-- [[ Defines ]] -->
 
+	<!-- Removes the health field from FlxObject to remove deprecation warnings (this can be removed once flixel 6.0.0 releases). -->
+	<define name="FLX_NO_HEALTH" />
+
 	<!-- Keeps the song event classes compiled. -->
 	<haxeflag name="--macro" value="funkin.core.macros.SongEventMacro.keepClasses()" />
  
@@ -114,7 +117,4 @@
 	    <haxedef name="HXCPP_STACK_LINE"    if="CRASH_HANDLER" />
 		<haxedef name="HXCPP_STACK_TRACE"   if="CRASH_HANDLER" />
 	</section>
-
-	<!-- Disables deprecation warnings. -->
-	<haxedef name="no-deprecation-warnings" />
 </project>

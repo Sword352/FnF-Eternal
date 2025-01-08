@@ -41,10 +41,6 @@
 - Add support for VSlice softcoded data
 - Implement animate atlas support?
 
-- `HealthIcon` changes
-  - Implement more animation states
-  - Make it not use `health` as it is deprecated
-
 - Finish support for controller inputs
 - Finish support for the visual offset option
 - Finish the Friday Night Funkin' modpack

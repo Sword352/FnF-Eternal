@@ -38,7 +38,7 @@ class Receptor extends OffsetSprite {
         this.direction = direction;
         this.skin = skin;
 
-        animation.finishCallback = onAnimationFinished;
+        animation.onFinish.add(onAnimationFinished);
     }
 
     /**

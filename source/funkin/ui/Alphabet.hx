@@ -49,7 +49,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphaGlyph> {
     // fix for getting width and height, skips killed characters
     override function findMinXHelper():Float {
         var value:Float = Math.POSITIVE_INFINITY;
-        for (member in _sprites) {
+        for (member in group.members) {
             if (member == null || !member.exists)
                 continue;
 
@@ -61,7 +61,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphaGlyph> {
 
     override function findMaxXHelper():Float {
         var value:Float = Math.NEGATIVE_INFINITY;
-        for (member in _sprites) {
+        for (member in group.members) {
             if (member == null || !member.exists)
                 continue;
 
@@ -73,7 +73,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphaGlyph> {
 
     override function findMinYHelper():Float {
         var value:Float = Math.POSITIVE_INFINITY;
-        for (member in _sprites) {
+        for (member in group.members) {
             if (member == null || !member.exists)
                 continue;
 
@@ -85,7 +85,7 @@ class Alphabet extends FlxTypedSpriteGroup<AlphaGlyph> {
 
     override function findMaxYHelper():Float {
         var value:Float = Math.NEGATIVE_INFINITY;
-        for (member in _sprites) {
+        for (member in group.members) {
             if (member == null || !member.exists)
                 continue;
 

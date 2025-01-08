@@ -926,10 +926,11 @@ class ChartEditor extends MusicBeatState {
             var receptor:Receptor = new Receptor(Std.int(i % 4));
             receptor.x = checkerSize * i + separatorWidth * Math.floor(i / 4);
 
-            receptor.animation.finishCallback = (name) -> {
+            receptor.animation.onFinish.removeAll();
+            receptor.animation.onFinish.add((name) -> {
                 if (name.startsWith("confirm"))
                     receptor.playAnimation("static", true);
-            };
+            });
 
             receptor.setGraphicSize(checkerSize, checkerSize);
             receptor.updateHitbox();
