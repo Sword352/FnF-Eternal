@@ -168,7 +168,7 @@ class ChartUI extends UIRuntimeFragment {
     /*
     @:bind(menuBar, UIEvent.BEFORE_CLOSE)
     function menuBar_beforeClose(event:UIEvent):Void {
-        if (haxe.ui.core.Screen.instance.hasComponentUnderPoint(FlxG.mouse.screenX, FlxG.mouse.screenY, Slider))
+        if (haxe.ui.core.Screen.instance.hasComponentUnderPoint(FlxG.mouse.viewX, FlxG.mouse.viewY, Slider))
             event.cancel();
     }
     */

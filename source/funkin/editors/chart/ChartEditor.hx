@@ -187,7 +187,7 @@ class ChartEditor extends MusicBeatState {
             return;
         }
 
-        var interacting:Bool = Screen.instance.hasComponentUnderPoint(FlxG.mouse.screenX, FlxG.mouse.screenY);
+        var interacting:Bool = Screen.instance.hasComponentUnderPoint(FlxG.mouse.viewX, FlxG.mouse.viewY);
 
         var mouseX:Float = quantizePos(FlxG.mouse.x - checkerboard.x);
         mouseCursor.x = Math.min(checkerboard.x + mouseX + separatorWidth * Math.floor(mouseX / checkerSize / 4), checkerboard.x + checkerboard.width);
@@ -602,7 +602,7 @@ class ChartEditor extends MusicBeatState {
         overlay.scale.x = musicText.width + 15;
         overlay.updateHitbox();
 
-        if (!timeBar.hitTest(FlxG.mouse.screenX, FlxG.mouse.screenY) || !FlxG.mouse.pressed)
+        if (!timeBar.hitTest(FlxG.mouse.viewX, FlxG.mouse.viewY) || !FlxG.mouse.pressed)
             timeBar.pos = music.time;
     }
 
@@ -1066,7 +1066,7 @@ class ChartEditor extends MusicBeatState {
 
         timeBar.max = music.instrumental.length - 1; // offset of 1ms so it can actually reach the end
         timeBar.onChange = (_) -> {
-            if (!timeBar.hitTest(FlxG.mouse.screenX, FlxG.mouse.screenY) || !FlxG.mouse.pressed)
+            if (!timeBar.hitTest(FlxG.mouse.viewX, FlxG.mouse.viewY) || !FlxG.mouse.pressed)
                 return;
 
             pauseMusic();

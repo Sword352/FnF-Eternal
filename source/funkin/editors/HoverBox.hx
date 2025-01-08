@@ -19,7 +19,7 @@ class HoverBox extends FlxSprite {
     }
 
     override function update(elapsed:Float):Void {
-        if (FlxG.mouse.justPressed && !Screen.instance.hasComponentUnderPoint(FlxG.mouse.screenX, FlxG.mouse.screenY)) {
+        if (FlxG.mouse.justPressed && !Screen.instance.hasComponentUnderPoint(FlxG.mouse.viewX, FlxG.mouse.viewY)) {
             setPosition(FlxG.mouse.x, FlxG.mouse.y);
             visible = true;
         }

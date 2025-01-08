@@ -49,7 +49,7 @@ class SelectionHelper extends FlxBasic {
             }
 
             if (!dragging) {
-                if (!Screen.instance.hasComponentUnderPoint(FlxG.mouse.screenX, FlxG.mouse.screenY)) reset();
+                if (!Screen.instance.hasComponentUnderPoint(FlxG.mouse.viewX, FlxG.mouse.viewY)) reset();
                 return;
             }
 

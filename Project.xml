@@ -56,7 +56,6 @@
 	<!-- UI librairies -->
 	<haxelib name="haxeui-core" />
 	<haxelib name="haxeui-flixel" />
-	<haxelib name="flixel-text-input" />
 
 	<!-- Debugging library -->
 	<haxelib name="hxcpp-debug-server" if="cpp debug" unless="hxtelemetry" />

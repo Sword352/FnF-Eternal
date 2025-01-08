@@ -722,7 +722,7 @@ class Tooltip extends FlxText {
     }
 
     override function update(elapsed:Float):Void {
-        setPosition(FlxG.mouse.screenX + 15, FlxG.mouse.screenY - height * 0.75);
+        setPosition(FlxG.mouse.viewX + 15, FlxG.mouse.viewY - height * 0.75);
         if (!mouseOverlaps(target)) deactivate();
     }
 
@@ -799,5 +799,5 @@ class ScrollBar extends VerticalScroll {
 }
 
 function mouseOverlaps(sprite:FlxSprite):Bool {
-    return FlxG.mouse.overlaps(sprite, FlxG.state.subState.camera) && (sprite.clipRect == null || FlxG.mouse.screenY >= sprite.y + sprite.clipRect.y * sprite.scale.y);
+    return FlxG.mouse.overlaps(sprite, FlxG.state.subState.camera) && (sprite.clipRect == null || FlxG.mouse.viewY >= sprite.y + sprite.clipRect.y * sprite.scale.y);
 }
