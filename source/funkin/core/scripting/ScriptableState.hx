@@ -19,7 +19,7 @@ import flixel.FlxSubState;
  * - `Events.SUBSTATE_CLOSE`
  * - `Events.DESTROY`
  */
-class ScriptableState extends TransitionState {
+class ScriptableState extends TransitionableState {
     /**
      * Method called by flixel to update the state.
      * @param elapsed Elapsed time between the last and current frame.

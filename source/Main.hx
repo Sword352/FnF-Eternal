@@ -89,6 +89,10 @@ class InitState extends ScriptableState {
         new DiscordRPC();
         #end
 
+        // Setup transition
+        FlxG.plugins.drawOnTop = true;
+        FlxG.plugins.addPlugin(new Transition());
+
         // Apply some changes to the game
         FlxG.fixedTimestep = false;
         FlxG.mouse.visible = false;
@@ -113,8 +117,6 @@ class InitState extends ScriptableState {
         // If no mods has been found, it automatically switch to an exception state, no need to go to the next screen
         if (Mods.mods.length == 0) return;
         */
-
-        Transition.skipNextTransOut = true;
 
         // Go to the script load screen
         FlxG.switchState(ScriptLoadScreen.new.bind(TitleScreen.new));

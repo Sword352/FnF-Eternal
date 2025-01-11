@@ -50,7 +50,6 @@
 - Complete all remaining TODOs from the code
 
 - Remake most of the menus
-- Implement a nicer transition system
 - Add a result screen
 
 - Add modding documentation

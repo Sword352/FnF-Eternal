@@ -30,7 +30,7 @@ import funkin.core.scripting.Events;
 
 import funkin.Conductor;
 import funkin.MusicBeatState;
-import funkin.Transition;
+import funkin.ui.Transition;
 import funkin.gameplay.PlayState;
 
 using funkin.utils.Tools;

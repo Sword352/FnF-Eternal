@@ -15,6 +15,9 @@ class ScriptLoadScreen extends ScriptLoadOverlay {
     var doneText:FlxText;
 
     override function create():Void {
+        // don't display the transition since this is the boot screen
+        Transition.skipNextTransIn = true;
+
         // no need for a background color
         bgColor.alphaFloat = 0;
 
@@ -137,7 +140,7 @@ class ScriptLoadOverlay extends ScriptableState.ScriptableSubState {
     function switchState():Void {
         if (this != FlxG.state) {
             // only set this flag to true if this substate hasn't been opened as a state
-            // since transitions can't be naturally opened on top of substates, yet
+            // since this is not a TransitionableState
             Transition.skipNextTransOut = true;
         }
 

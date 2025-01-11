@@ -337,15 +337,8 @@ class PlayState extends MusicBeatState {
         Tools.pauseEveryTimer();
         music?.pause();
 
-        if (subState is TransitionSubState && (cast subState:TransitionSubState).type == OUT)
-            Transition.noPersistentUpdate = true;
-
-        if (camSubState != null)
-            subState.camera = camSubState;
-
-        if (playField != null)
-            playField.inactiveInputs = true;
-
+        subState.camera = camSubState;
+        playField.inactiveInputs = true;
         super.onSubStateOpen(subState);
     }
 

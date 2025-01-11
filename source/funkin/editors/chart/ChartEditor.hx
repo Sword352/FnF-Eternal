@@ -478,18 +478,14 @@ class ChartEditor extends MusicBeatState {
     }
 
     override function openSubState(SubState:FlxSubState):Void {
-        if (SubState is TransitionSubState)
-            Transition.noPersistentUpdate = (cast(SubState, TransitionSubState).type == OUT);
-        else {
-            SubState.camera = substateCam;
-            pauseMusic();
-        }
+        SubState.camera = substateCam;
+        pauseMusic();
 
         super.openSubState(SubState);
     }
 
     override function closeSubState():Void {
-        if (!(subState is TransitionSubState) && awaitBPMReload) {
+        if (awaitBPMReload) {
             reloadGrid(false, !eventBPM);
             awaitBPMReload = false;
         }

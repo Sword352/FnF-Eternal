@@ -20,7 +20,7 @@ class MusicBeatState extends ScriptableState {
 
     override function onSubStateOpen(subState:FlxSubState):Void {
         if (conductor == null) return;
-        conductor.active = (subState is TransitionSubState && !Transition.noPersistentUpdate);
+        conductor.active = false;
     }
 
     override function onSubStateClose(subState:FlxSubState):Void {

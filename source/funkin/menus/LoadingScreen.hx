@@ -53,8 +53,8 @@ class LoadingScreen extends ScriptableState {
         _loadTime = Lib.getTimer();
         #end
 
-        Transition.skipNextTransOut = true;
         FlxG.autoPause = false;
+        Transition.skip();
 
         var circle:SpinningCircle = new SpinningCircle();
         add(circle);

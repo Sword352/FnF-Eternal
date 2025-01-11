@@ -175,16 +175,12 @@ class OptionsMenu extends MusicBeatState {
     }
 
     override function onSubStateOpen(subState:FlxSubState):Void {
-        if (uiGroup != null && !(subState is TransitionSubState))
-            uiGroup.visible = false;
-
+        uiGroup.visible = false;
         super.onSubStateOpen(subState);
     }
 
     override function onSubStateClose(subState:FlxSubState):Void {
-        if (subState is TransitionSubState) return;
         uiGroup.visible = allowInputs = true;
-
         super.onSubStateClose(subState);
     }
 
