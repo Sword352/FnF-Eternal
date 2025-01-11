@@ -192,9 +192,9 @@ class Conductor extends FlxBasic {
 
         /**
          * Using `music.time` directly is unreliable for our use case because it lacks of precision:
-         * - It changes each 20-30 milliseconds rather than each frame, causing visual stutters and delayed timing.
+         * - It changes each 20 milliseconds rather than each frame, resulting in visual stutters and slight innacuracies.
          * - Since music is playing linearly without relying on the update loop, this variable can change between frames.
-         * The code below workarounds that to give a more precise time value.
+         * The code below attemps to compute a more precise value for smoother results.
          */
 
         var frameDelta:Float = elapsed * 1000 * rate;
@@ -216,14 +216,23 @@ class Conductor extends FlxBasic {
             if (difference >= 0 && difference <= frameDelta)
                 rawTime += frameDelta;
             else {
-                /*
-                if (difference < 0)
-                    trace("late time: " + difference);
-                else if (difference > frameDelta)
-                    trace("early time: " + difference);
-                */
-                
-                rawTime = music.time;
+                if (difference < 0) {
+                    // it is safe to hard reset if the difference is negative
+                    // since `music.time - rawTime` is slightly higher than `frameDelta`
+                    // trace("late time: " + difference);
+                    rawTime = music.time;
+                }
+                else if (difference > frameDelta) {
+                    // trace("early time: " + difference);
+                    if (difference > 50) {
+                        // we can fairly assume the music has been restarted if the difference is unexceptedly huge
+                        rawTime = music.time;
+                    }
+                    else {
+                        // gradually resync instead of causing stutters to happen
+                        rawTime += frameDelta * 0.5;
+                    }
+                }
             }
 
             _lastMix = music.time;
