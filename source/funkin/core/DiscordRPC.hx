@@ -90,8 +90,8 @@ class DiscordRPC {
     public function new():Void {
         self = this;
 
-        _connectionEvents = DiscordEventHandlers.create();
-        _presenceData = DiscordRichPresence.create();
+        _connectionEvents = new DiscordEventHandlers();
+        _presenceData = new DiscordRichPresence();
 
         _connectionEvents.ready = cpp.Function.fromStaticFunction(onReady);
         _connectionEvents.errored = cpp.Function.fromStaticFunction(onError);
@@ -130,7 +130,7 @@ class DiscordRPC {
         // makes sure to shutdown any existing connection before connecting to the next app
         shutdown();
 
-        Discord.Initialize(appID, cpp.RawPointer.addressOf(_connectionEvents), 1, null);
+        Discord.Initialize(appID, cpp.RawPointer.addressOf(_connectionEvents), false, null);
         _currentAppID = appID;
         _presenceDirty = true;
     }
@@ -299,7 +299,7 @@ private class DiscordRPCButton {
     var id:Int;
 
     public function new(id:Int):Void {
-        DiscordRPC.self._presenceData.buttons[id] = DiscordButton.create();
+        DiscordRPC.self._presenceData.buttons[id] = new DiscordButton();
         this.id = id;
     }
 
