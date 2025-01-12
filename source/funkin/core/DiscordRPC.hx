@@ -3,8 +3,7 @@ package funkin.core;
 #if DISCORD_RPC
 import hxdiscord_rpc.Types;
 import hxdiscord_rpc.Discord;
-import sys.thread.Thread;
-import sys.thread.Mutex;
+import openfl.Lib;
 import haxe.Int64;
 
 /**
@@ -59,36 +58,31 @@ class DiscordRPC {
     public var button2(default, null):DiscordRPCButton;
 
     /**
-     * Internal object which stores methods to call whenever an event occurs.
+     * Object which holds references to functions the Discord API will call whenever an event occurs.
      */
     var _connectionEvents:DiscordEventHandlers;
 
     /**
-     * Internal object which stores data about the Rich Presence.
+     * Object which holds data about the Rich Presence.
      */
     @:allow(funkin.core.DiscordRPC)
     var _presenceData:DiscordRichPresence;
 
     /**
-     * Internal flag which determines whether the presence should be updated.
+     * Flag determining whether the presence should be updated.
      */
     @:allow(funkin.core.DiscordRPC)
     var _presenceDirty:Bool = false;
 
     /**
-     * Internal, stores the identifier of the application the Rich Presence should display.
+     * Object used to update the connection with Discord.
+     */
+    var _updateScheduler:DiscordUpdater;
+
+    /**
+     * Holds the identifier of the application the Rich Presence should display.
      */
     var _currentAppID:String = null;
-
-    /**
-     * Internal reference to the Discord update thread.
-     */
-    var _updateThread:Thread;
-
-    /**
-     * Internal mutex used to make `_presenceDirty` safe to access by the update thread.
-     */
-    var _presenceMutex:Mutex;
 
     /**
      * Creates a new `DiscordRPC`.
@@ -103,7 +97,7 @@ class DiscordRPC {
         _connectionEvents.errored = cpp.Function.fromStaticFunction(onError);
         _connectionEvents.disconnected = cpp.Function.fromStaticFunction(onDisconnect);
 
-        _presenceMutex = new Mutex();
+        _updateScheduler = new DiscordUpdater(this);
 
         largeImage = new LargeDiscordImage();
         smallImage = new SmallDiscordImage();
@@ -115,16 +109,14 @@ class DiscordRPC {
         largeImage.text = Tools.devState;
         largeImage.key = "logo";
         
-        FlxG.stage.application.onExit.add((_) -> shutdown());
+        FlxG.stage.application.onExit.add(onWindowClose);
 
         if (hidden) {
             _currentAppID = "1147408113792725012";
-            _updateThread = Thread.createWithEventLoop(() -> Sys.sleep(0.001)); // make the thread sleep so that we get the time to call promise()
-            _updateThread.events.promise();
             return;
         }
 
-        _updateThread = Thread.createWithEventLoop(threadLoop);
+        FlxG.plugins.addPlugin(_updateScheduler);
         connect("1147408113792725012");
     }
 
@@ -133,10 +125,9 @@ class DiscordRPC {
      * @param appID Application ID.
      */
     public function connect(appID:String):Void {
-        if (appID == null)
-            return;
+        if (appID == null) return;
 
-        // make sure to shutdown any connections in order to connect into another app
+        // makes sure to shutdown any existing connection before connecting to the next app
         shutdown();
 
         Discord.Initialize(appID, cpp.RawPointer.addressOf(_connectionEvents), 1, null);
@@ -151,37 +142,12 @@ class DiscordRPC {
         Discord.Shutdown();
     }
 
-    /**
-     * Update loop executed by the `_updateThread`, which updates the connection with Discord.
-     */
-    function threadLoop():Void {
-        while (!hidden) {
-            var updatePresence:Bool = false;
-
-            _presenceMutex.acquire();
-            if (_presenceDirty) {
-                _presenceDirty = false;
-                updatePresence = true;
-            }
-            _presenceMutex.release();
-
-            if (updatePresence)
-                Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_presenceData));
-
-            Discord.UpdateConnection();
-            Discord.RunCallbacks();
-            Sys.sleep(1);
-        }
+    function onWindowClose(_):Void {
+        shutdown();
     }
 
     function set_state(v:String):String {
         if (state != v) {
-            // state must be at least 2 characters long
-            if (v != null)
-                v = v.rpad(" ", 2);
-            else
-                v = "  ";
-
             _presenceData.state = v;
             _presenceDirty = true;
         }
@@ -204,11 +170,11 @@ class DiscordRPC {
 
         if (changed) {
             if (v) {
-                _updateThread.events.promise();
+                FlxG.plugins.remove(_updateScheduler);
                 shutdown();
             }
             else {
-                _updateThread.events.runPromised(threadLoop);
+                FlxG.plugins.addPlugin(_updateScheduler);
                 connect(_currentAppID);
             }
         }
@@ -235,6 +201,38 @@ class DiscordRPC {
      */
     static function onDisconnect(errorCode:Int, message:cpp.ConstCharStar):Void {
         Logging.warning('Connection has been lost! (message: ${message}, error code: ${errorCode})');
+    }
+}
+
+/**
+ * Object responsible of updating the Rich Presence each second.
+ */
+private class DiscordUpdater extends FlxBasic {
+    var _parent:DiscordRPC;
+    var _lastUpdate:Float;
+
+    public function new(parent:DiscordRPC):Void {
+        super();
+        _parent = parent;
+        visible = false;
+    }
+
+    override function update(_):Void {
+        var time:Float = Lib.getTimer();
+        if (time - _lastUpdate >= 1000) {
+            updatePresence();
+            _lastUpdate = time;
+        }
+    }
+
+    function updatePresence():Void {
+        if (_parent._presenceDirty) {
+            Discord.UpdatePresence(cpp.RawConstPointer.addressOf(_parent._presenceData));
+            _parent._presenceDirty = false;
+        }
+
+        Discord.UpdateConnection();
+        Discord.RunCallbacks();
     }
 }
 
@@ -323,7 +321,7 @@ private class DiscordRPCButton {
         return url = v;
     }
 
-    static function formatString(value:String):String {
+    function formatString(value:String):String {
         if (value == null)
             return value;
 
