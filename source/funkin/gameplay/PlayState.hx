@@ -284,9 +284,7 @@ class PlayState extends MusicBeatState {
         lossCounter = 0;
 
         if (validScore) {
-            var song:String = '${song.meta.folder}-${currentDifficulty}';
-            if (gameMode == STORY) song += "_story";
-            Scoring.self.registerGame(song, stats);
+            Transition.onComplete.add(saveScore);
         }
 
         switch (gameMode) {
@@ -307,6 +305,12 @@ class PlayState extends MusicBeatState {
             default:
                 FlxG.switchState(FreeplayMenu.new);
         }
+    }
+
+    function saveScore():Void {
+        var song:String = '${song.meta.folder}-${currentDifficulty}';
+        if (gameMode == STORY) song += "_story";
+        Scoring.self.registerGame(song, stats);
     }
 
     public function gameDance(beat:Int):Void {

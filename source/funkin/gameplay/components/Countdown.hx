@@ -18,11 +18,6 @@ class Countdown extends FlxBasic {
     public var sprite:FlxSprite;
 
     /**
-     * Current position in the song when this countdown started.
-     */
-    public var startTime:Float = -1;
-
-    /**
      * Current countdown tick.
      */
     public var currentTick:Int = 0;
@@ -48,6 +43,11 @@ class Countdown extends FlxBasic {
     public var onFinish:FlxSignal = new FlxSignal();
 
     /**
+     * Holds the position of the conductor at the time the `start` method is called.
+     */
+    var startTime:Float = -1;
+
+    /**
      * Parent state.
      */
     var parent:FlxState;
@@ -57,18 +57,15 @@ class Countdown extends FlxBasic {
      * @param parent Parent state.
      */
     public function new(?parent:FlxState):Void {
-        this.parent = parent ?? FlxG.state;
         super();
+        this.parent = parent ?? FlxG.state;
+        visible = false;
     }
 
-    /**
-     * Update behaviour.
-     */
     override function update(elapsed:Float):Void {
-        if (startTime == -1)
-            return;
+        if (startTime == -1) return;
 
-        while (Conductor.self.time - startTime >= Conductor.self.crotchet * (currentTick + 1))
+        while (Conductor.self.audioTime - startTime >= Conductor.self.crotchet * (currentTick + 1))
             tick(++currentTick);
 
         #if FLX_DEBUG
@@ -92,15 +89,10 @@ class Countdown extends FlxBasic {
         sprite.active = false;
         parent.add(sprite);
 
-        startTime = Conductor.self.time;
+        startTime = Conductor.self.audioTime;
         sprite.alpha = 0;
     }
-
-    /**
-     * Countdown tick behaviour.
-     * @param tick Current tick.
-     * @param totalTicks Total ticks.
-     */
+  
     function tick(tick:Int):Void {
         if (tick > totalTicks) {
             finish();
@@ -122,28 +114,32 @@ class Countdown extends FlxBasic {
 
         onTick.dispatch(tick);
 
-        if (PlayState.self != null)
-            PlayState.self.gameDance(tick - 1 + (totalTicks % 2));
-
-        if (spriteFrame != -1)
-            sprite.animation.frameIndex = spriteFrame;
-
         if (sound != null)
             FlxG.sound.play(Paths.sound(sound));
 
-        sprite.alpha = (spriteFrame == -1 ? 0 : 1);
-        sprite.screenCenter();
-
         if (spriteFrame != -1)
-            FlxTween.tween(sprite, {y: (sprite.y -= 50) + 100, alpha: 0}, Conductor.self.crotchet * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+            AudioSynchronizer.schedule(displaySprite.bind(spriteFrame));
     }
 
-    /**
-     * Countdown end behaviour.
-     */
+    function displaySprite(frame:Int):Void {
+        sprite.animation.frameIndex = frame;
+        sprite.alpha = 1;
+        
+        sprite.screenCenter();
+        sprite.y -= 50;
+
+        FlxTween.tween(sprite, {y: sprite.y + 100, alpha: 0}, Conductor.self.crotchet / Conductor.self.rate * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+    }
+
     function finish():Void {
         onFinish.dispatch();
+        AudioSynchronizer.schedule(removeSelf);
 
+        // prevents countdown from dispatching more ticks if the audio offset is high
+        active = false;
+    }
+
+    function removeSelf():Void {
         parent.remove(this, true);
         parent.remove(sprite, true);
 

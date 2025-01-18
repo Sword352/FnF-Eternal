@@ -312,7 +312,7 @@ class ChartPlayState extends MusicBeatSubState {
         conductor.onMeasure.add(parent.measureHit);
         conductor.onBeat.add(parent.beatHit);
 
-        parent.line.y = ChartEditor.getYFromTime(conductor.rawTime);
+        parent.line.y = ChartEditor.getYFromTime(conductor.time);
         parent = null;
 
         super.destroy();

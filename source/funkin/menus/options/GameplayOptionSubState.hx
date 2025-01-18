@@ -28,10 +28,6 @@ class GameplayOptionSubState extends BaseOptionSubState {
         option.description = "If enabled, no additional zero gets displayed at the start of the combo number.";
         addOption(option);
 
-        var option = new FloatOptionItem("Note Offset");
-        option.description = "Defines how much offset the notes are from the song, in milliseconds.";
-        addOption(option);
-
         super.create();
     }
 }

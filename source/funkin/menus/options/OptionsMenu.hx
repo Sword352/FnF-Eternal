@@ -4,7 +4,6 @@ import flixel.FlxSubState;
 import flixel.group.FlxSpriteGroup;
 
 import funkin.ui.Alphabet;
-import funkin.objects.CheckerboardBG;
 import funkin.menus.MainMenu;
 
 typedef OptionCategory = {
@@ -15,7 +14,6 @@ typedef OptionCategory = {
 
 class OptionsMenu extends MusicBeatState {
     public var background:FlxSprite;
-    var backdrop:CheckerboardBG;
     var uiGroup:FlxSpriteGroup;
 
     var categories:Array<OptionCategory>;
@@ -36,7 +34,7 @@ class OptionsMenu extends MusicBeatState {
         categories = [
             {name: "General", action: goToGeneral},
             {name: "Gameplay", action: goToGameplay},
-            {name: "Adjust offset", action: goToOffset},
+            {name: "Calibrate offset", action: goToOffset},
             {name: "Keybinds", action: goToKeybind},
             {name: "Debug", action: goToDebug},
             {name: "Exit", action: exit, noSound: true},
@@ -53,15 +51,9 @@ class OptionsMenu extends MusicBeatState {
         conductor.music = FlxG.sound.music;
 
         background = new FlxSprite(0, 0, Paths.image('menus/menuDesat'));
-        background.scale.set(1.15, 1.15);
-        background.color = 0x3E3E7A;
+        background.color = 0x2E2E96;
         background.screenCenter();
         add(background);
-
-        backdrop = new CheckerboardBG(200, 200, 0xFF120E7A, FlxColor.TRANSPARENT);
-        backdrop.velocity.x = 50;
-        backdrop.alpha = 0.4;
-        add(backdrop);
 
         uiGroup = new FlxSpriteGroup();
         add(uiGroup);
@@ -86,7 +78,6 @@ class OptionsMenu extends MusicBeatState {
             var icon:FlxSprite = new FlxSprite(0, categoryText.y, graphic);
             icon.scale.set(0.5, 0.5);
             icon.updateHitbox();
-            add(icon);
 
             icon.x = (left ? categoryText.x - (icon.width + 10) : categoryText.x + categoryText.width + 10);
             icon.offset.y += icon.height * 0.25;
@@ -101,8 +92,6 @@ class OptionsMenu extends MusicBeatState {
 
     override function update(elapsed:Float):Void {
         super.update(elapsed);
-
-        background.scale.set(Tools.lerp(background.scale.x, 1, 6), Tools.lerp(background.scale.y, 1, 6));
 
         if (allowInputs) {
             if (controls.anyJustPressed(["up", "down"])) changeSelection((controls.lastAction == "up") ? -2 : 2);
@@ -159,7 +148,7 @@ class OptionsMenu extends MusicBeatState {
     }
 
     inline function goToOffset():Void {
-        openSubState(new OffsetSubState());
+        openSubState(new OffsetCalibrationOverlay());
     }
 
     inline function goToDebug():Void {
@@ -185,12 +174,6 @@ class OptionsMenu extends MusicBeatState {
     }
 
     override function destroy():Void {
-        // removing the group ourselves because new flixel update broke options, not sure if it flixel's fault though...
-        // TODO: investigate on why this happens
-        remove(uiGroup, true);
-        uiGroup.destroy();
-        //
-
         categories = null;
         super.destroy();
     }

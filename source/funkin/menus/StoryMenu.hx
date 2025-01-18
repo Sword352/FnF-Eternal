@@ -188,9 +188,13 @@ class StoryMenu extends MusicBeatState {
     }
 
     override function beatHit(beat:Int):Void {
-        for (character in characters)
-            if (character.danceSteps.length > 0 && character.animation.name != "confirm")
-                character.dance(beat, true);
+        if (beat >= 0) {
+            for (character in characters) {
+                if (character.danceSteps.length > 0 && character.animation.name != "confirm") {
+                    character.dance(beat, true);
+                }
+            }
+        }
 
         super.beatHit(beat);
     }

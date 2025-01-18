@@ -89,8 +89,8 @@ class GameOverScreen extends MusicBeatSubState {
     }
 
     override function beatHit(beat:Int):Void {
-        if (character != null)
-            character.dance(beat, true);
+        if (beat >= 0)
+            character?.dance(beat, true);
 
         super.beatHit(beat);
     }

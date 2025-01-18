@@ -42,7 +42,6 @@
 - Implement animate atlas support?
 
 - Finish support for controller inputs
-- Finish support for the visual offset option
 - Finish the Friday Night Funkin' modpack
 - Finish the chart editor
 

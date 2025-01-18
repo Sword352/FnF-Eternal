@@ -17,6 +17,7 @@ import funkin.editors.UndoList;
 import funkin.ui.HealthIcon;
 import funkin.gameplay.notes.Note;
 import funkin.gameplay.notes.Receptor;
+import funkin.objects.Metronome;
 
 import funkin.data.ChartFormat;
 import funkin.data.CharacterData;
@@ -84,7 +85,7 @@ class ChartEditor extends MusicBeatState {
 
     public var hitsound:openfl.media.Sound;
     public var hitsoundVolume:Float = 0;
-    public var metronome:FlxSound;
+    public var metronome:Metronome;
 
     public var preferences(get, set):Dynamic; // for convenience
     public var lateAlphaOn:Bool;
@@ -153,8 +154,9 @@ class ChartEditor extends MusicBeatState {
         hitsound = Paths.sound("editors/hitsound");
         hitsoundVolume = hitsoundVol;
 
-        metronome = FlxG.sound.load(Paths.sound("editors/metronome"));
+        metronome = new Metronome();
         metronome.volume = metronomeVol;
+        add(metronome);
 
         // cache a small amount of note sprites
         for (i in 0...32) notes.add(new DebugNote()).kill();
@@ -276,12 +278,15 @@ class ChartEditor extends MusicBeatState {
         updateCurrentBPM();
 
         // reposition the follow line
-        if (music.playing || FlxG.keys.justPressed.SHIFT)
-            line.y = getYFromTime(conductor.rawTime);
-        else
-            line.y = Tools.lerp(line.y, getYFromTime(conductor.rawTime), 12);
+        var linePosition:Float = getYFromTime(Math.max(conductor.time, 0));
 
-        if (!music.playing && music.time >= music.instrumental.length) {
+        if (music.playing || FlxG.keys.justPressed.SHIFT) {
+            line.y = linePosition;
+        } else {
+            line.y = Tools.lerp(line.y, linePosition, 12);
+        }
+
+        if (!music.playing && conductor.time >= music.instrumental.length) {
             music.time = 0;
             line.y = 0;
         }
@@ -310,11 +315,6 @@ class ChartEditor extends MusicBeatState {
 
     override function beatHit(beat:Int):Void {
         if (music.playing) {
-            // sometimes it just mutes itself, and sometimes it proceeds to play hitsound instead of metronome
-            // TODO: fix this bug
-            if (metronome.volume > 0)
-                metronome.play(true);
-
             opponentIcon.bop();
             playerIcon.bop();
         }
@@ -585,7 +585,6 @@ class ChartEditor extends MusicBeatState {
     function pauseMusic():Void {
         music.pause();
         icons.forEach((icon) -> icon.resetBop());
-        metronome.stop();
     }
 
     function updateMusicText():Void {
@@ -621,7 +620,7 @@ class ChartEditor extends MusicBeatState {
         notes.forEachAlive((note) -> note.y = getYFromTime(note.data.time));
         events.forEachAlive((event) -> event.y = getYFromTime(event.data.time));
 
-        if (!music.playing) line.y = getYFromTime(conductor.rawTime);
+        if (!music.playing) line.y = getYFromTime(conductor.time);
         if (updateMeasure) checkerboard.refreshMeasureSep();
     }
 

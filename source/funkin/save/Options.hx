@@ -13,8 +13,9 @@ class Options {
     public static var noDiscordRpc(default, set):Bool = false;
     #end
 
-    public static var audioOffset:Float = 0;
-    public static var noteOffset:Float = 0;
+    // the average latency is around 50ms, so it makes sense to have the option be equal to 50ms by default
+    // https://github.com/kcat/openal-soft/issues/682#issuecomment-1094451659
+    public static var audioOffset:Float = 50;
 
     // GAMEPLAY SETTINGS
     public static var downscroll:Bool = false;

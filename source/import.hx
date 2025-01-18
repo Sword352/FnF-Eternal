@@ -34,5 +34,6 @@ import funkin.ui.Transition;
 import funkin.gameplay.PlayState;
 
 using funkin.utils.Tools;
+using funkin.utils.FlxObjectTools;
 using StringTools;
 #end

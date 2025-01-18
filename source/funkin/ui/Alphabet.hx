@@ -151,17 +151,20 @@ class AlphaGlyph extends FlxSprite {
         frames = Paths.atlas("ui/alphabet");
     }
 
-    public inline function refresh(bold:Bool):Void {
+    public function refresh(bold:Bool):Void {
         setup(lastChar, bold);
         updateHitbox();
     }
 
     public function setup(character:String, bold:Bool):Void {
+        static final letterRegex:EReg = ~/[a-zA-Z]/g;
+        static final numberRegex:EReg = ~/[0-9]/g;
+
         lastChar = character;
 
         var finalChar:String = character;
-        var let:Bool = ~/[a-zA-Z]/g.match(character);
-        var num:Bool = ~/[0-9]/g.match(character);
+        var let:Bool = letterRegex.match(character);
+        var num:Bool = numberRegex.match(character);
 
         if (let || num) {
             var upper:String = character.toUpperCase();
@@ -180,7 +183,8 @@ class AlphaGlyph extends FlxSprite {
         }
 
         var anim:String = resolvePrefix(finalChar);
-        if (!animation.exists(anim)) animation.addByPrefix(anim, anim, 24);
+        if (!animation.exists(anim))
+            animation.addByPrefix(anim, anim, 24);
         animation.play(anim, true);
     }
 

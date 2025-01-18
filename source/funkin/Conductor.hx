@@ -18,12 +18,18 @@ class Conductor extends FlxBasic {
     public var music:FlxSound;
 
     /**
-     * Current position in the song in milliseconds.
+     * Current position of the conductor in milliseconds.
      */
     public var time(get, set):Float;
 
     /**
-     * Current position in the song in milliseconds, unaffected by offsets applied to `time`.
+     * Current position of the conductor in milliseconds, unaffected by the audio offset preference.
+     * Use this value to play sounds at a specific point of the song (eg. metronome).
+     */
+    public var audioTime(get, never):Float;
+
+    /**
+     * Current position of the conductor in milliseconds, unaffected by offsets applied to `time`.
      */
     public var rawTime:Float;
 
@@ -121,16 +127,21 @@ class Conductor extends FlxBasic {
     public var beatOffset:BeatOffset = new BeatOffset();
 
     /**
-     * Internal, stores the song's last recorded timestamp.
+     * Holds the last audio timestamp `music` has given.
+     * Used in the time approximation algorithm to determine whether we should interpolate the position.
      */
     var _lastMix:Float = 0;
+
+    /**
+     * Factor used to slow down the conductor if we're ahead of the music timestamp.
+     */
+    var _resyncFactor:Float = 1;
 
     /**
      * Initializes the global conductor.
      */
     public static function init():Void {
-        self = new Conductor();
-        FlxG.plugins.addPlugin(self);
+        FlxG.plugins.addPlugin(self = new Conductor());
     }
 
     /**
@@ -139,6 +150,11 @@ class Conductor extends FlxBasic {
     public function new():Void {
         super();
         FlxG.signals.preStateCreate.add(onPreStateCreate);
+    }
+
+    public function getBeatAt(time:Float):Float {
+        // NOTE: this is just a placeholder for now, bpm changes are getting reworked very soon
+        return (time - beatOffset.time) / crotchet;
     }
 
     /**
@@ -153,10 +169,6 @@ class Conductor extends FlxBasic {
         // updates the current time which may change the current step as well
         updateTime(elapsed);
 
-        // no callbacks should be dispatched if the current step is negative
-        if (step < 0)
-            return;
-
         // dispatch callbacks
         if (previousStep != step)
             onStep.dispatch(step);
@@ -166,6 +178,10 @@ class Conductor extends FlxBasic {
 
         if (previousMeasure != measure)
             onMeasure.dispatch(measure);
+
+        #if FLX_DEBUG
+        FlxBasic.activeCount++;
+        #end
     }
 
     /**
@@ -180,8 +196,7 @@ class Conductor extends FlxBasic {
         }
 
         // no music has been defined yet
-        if (music == null)
-            return;
+        if (music == null) return;
 
         // the music isn't playing yet
         if (!music.playing) {
@@ -201,38 +216,25 @@ class Conductor extends FlxBasic {
 
         if (music.time == _lastMix) {
             // the music timestamp hasn't changed yet, so we approximate the current song position
-            rawTime += frameDelta;
-        }
-        else {
+            rawTime += frameDelta * _resyncFactor;
+        } else {
             var difference:Float = rawTime + frameDelta - music.time;
-
-            /**
-             * If this condition is true, it means the music time has updated between frames so we still need to approximate our time,
-             * otherwise we're going back to the past and get a delay equal or less than `frameDelta` (up to 16ms at 60fps).
-             * However if this condition is false, it means we're off from the music time so we must reset our time
-             * in order to stay synced with the music.
-             */
-
-            if (difference >= 0 && difference <= frameDelta)
-                rawTime += frameDelta;
-            else {
-                if (difference < 0) {
-                    // it is safe to hard reset if the difference is negative
-                    // since `music.time - rawTime` is slightly higher than `frameDelta`
-                    // trace("late time: " + difference);
-                    rawTime = music.time;
-                }
-                else if (difference > frameDelta) {
-                    // trace("early time: " + difference);
-                    if (difference > 50) {
-                        // we can fairly assume the music has been restarted if the difference is unexceptedly huge
-                        rawTime = music.time;
-                    }
-                    else {
-                        // gradually resync instead of causing stutters to happen
-                        rawTime += frameDelta * 0.5;
-                    }
-                }
+            
+            if (difference >= 0 && difference <= frameDelta) {
+                // the music time has updated between frames so it makes sense to continue approximating
+                // as the result might be more accurate than hard resetting to music.time
+                rawTime += frameDelta * _resyncFactor;
+            } else if (difference < 0 || difference > 50) {
+                // if the difference is negative, the difference between `music.time` and `rawTime` would be slightly higher than `frameDelta`
+                // meaning hard resetting to music.time would be smooth, unless something unexpected happened (such as lag)
+                // if the difference is unexpectedly huge, the music has most likely been forced to play at a specific point
+                // in both cases, it is safe to hard reset to music.time
+                _resyncFactor = 1;
+                rawTime = music.time;
+            } else if (difference > frameDelta) {
+                // gradually resync instead of causing stutters to happen
+                _resyncFactor = 0.5;
+                rawTime += frameDelta * _resyncFactor;
             }
 
             _lastMix = music.time;
@@ -258,6 +260,7 @@ class Conductor extends FlxBasic {
         stepsPerBeat = 4;
         bpm = 100;
 
+        _resyncFactor = 1;
         _lastMix = 0;
     }
 
@@ -301,60 +304,77 @@ class Conductor extends FlxBasic {
         return stepsPerBeat = v;
     }
 
-    function set_time(v:Float):Float
-        return rawTime = v;
+    function set_time(v:Float):Float {
+        rawTime = v;
+        return get_time();
+    }
 
-    function get_time():Float
+    function get_time():Float {
         return rawTime - Options.audioOffset - offset;
+    }
 
-    function get_rate():Float
+    function get_audioTime():Float {
+        return rawTime - offset;
+    }
+
+    function get_rate():Float {
         return music?.pitch ?? rate;
+    }
 
-    function get_measureLength():Int
+    function get_measureLength():Int {
         return stepsPerBeat * beatsPerMeasure;
+    }
 
     function get_decStep():Float {
         return ((time - beatOffset.time) / semiQuaver) + beatOffset.step;
     }
 
-    function get_decBeat():Float
+    function get_decBeat():Float {
         return decStep / stepsPerBeat;
+    }
 
-    function get_decMeasure():Float
+    function get_decMeasure():Float {
         return decBeat / beatsPerMeasure;
+    }
 
-    function get_step():Int
+    function get_step():Int {
         return Math.floor(decStep);
+    }
 
-    function get_beat():Int
+    function get_beat():Int {
         return Math.floor(decBeat);
+    }
 
-    function get_measure():Int
+    function get_measure():Int {
         return Math.floor(decMeasure);
+    }
 
     function set_decStep(v:Float):Float {
         rawTime = semiQuaver * v;
-        return v;
+        return get_decStep();
     }
 
     function set_decBeat(v:Float):Float {
         decStep = v * stepsPerBeat;
-        return v;
+        return get_decBeat();
     }
 
     function set_decMeasure(v:Float):Float {
         decBeat = v * beatsPerMeasure;
-        return v;
+        return get_decMeasure();
     }
 
-    function set_step(v:Int):Int
+    function set_step(v:Int):Int {
         return Math.floor(set_decStep(v));
+    }
 
-    function set_beat(v:Int):Int
+    function set_beat(v:Int):Int {
         return Math.floor(set_decBeat(v));
+    }
 
-    function set_measure(v:Int):Int
+    function set_measure(v:Int):Int {
         return Math.floor(set_decMeasure(v));
+    }
 }
 
 private class BeatOffset {

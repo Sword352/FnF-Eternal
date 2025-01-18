@@ -13,7 +13,7 @@ import funkin.data.ChartFormat.ChartNote;
 class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     public var lastSelectedNote:ChartNote = null;
     // public var forceRegen:Bool = false;
-    public var lastMeasure:Int = -1;
+    public var lastMeasure:Int = Conductor.self.measure - 1;
 
     var currentNotes:Array<ChartNote> = [];
     var aliveSprites:Array<DebugNote> = []; // less iterations for forEachAlive()
@@ -72,19 +72,28 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
                 object.draw();
     }
 
-    inline function noteBehaviour(note:DebugNote):Void {
-        var late:Bool = (note.data.time <= Conductor.self.time);
-        var hit:Bool = (late && note.data.time > parent.lastTime);
-
-        if (note.data.time == 0 && !hit)
-            hit = Conductor.self.time > 0 && parent.lastTime <= 0;
-
-        if (hit && parent.hitsoundVolume > 0)
+    function noteBehaviour(note:DebugNote):Void {
+        if (parent.hitsoundVolume > 0 && shouldPlayHitsound(note))
             FlxG.sound.play(parent.hitsound, parent.hitsoundVolume);
 
-        if (parent.receptors.visible && (hit || (late && note.data.length > 0 && note.data.time + note.data.length > Conductor.self.time
-            && parent.lastStep != Conductor.self.step)))
+        if (parent.receptors.visible && shouldPlayConfirm(note))
             parent.receptors.members[note.data.direction + 4 * note.data.strumline].playAnimation("confirm", true);
+    }
+
+    function shouldPlayHitsound(note:DebugNote):Bool {
+        return note.data.time <= Conductor.self.audioTime && note.data.time >= parent.lastTime + Options.audioOffset;
+    }
+
+    function shouldPlayConfirm(note:DebugNote):Bool {
+        if (note.data.time > Conductor.self.time) {
+            return false;
+        }
+
+        if (note.data.time >= parent.lastTime) {
+            return true;
+        }
+
+        return note.data.time + note.data.length >= Conductor.self.time && parent.lastStep != Conductor.self.step;
     }
 
     override function add(note:DebugNote):DebugNote {

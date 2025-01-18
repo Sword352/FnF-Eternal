@@ -127,13 +127,14 @@ class TitleScreen extends MusicBeatState {
     }
 
     override function beatHit(beat:Int):Void {
-        for (group in [spritesGroup, preRenderSprites, postRenderSprites]) {
-            if (group == null || group.length < 1)
-                continue;
-
-            for (spr in group)
-                if (spr is Bopper)
-                    (cast spr:Bopper).dance(beat, true);
+        if (beat >= 0) {
+            for (group in [spritesGroup, preRenderSprites, postRenderSprites]) {
+                if (group == null || group.length < 1) continue;
+    
+                for (spr in group)
+                    if (spr is Bopper)
+                        (cast spr:Bopper).dance(beat, true);
+            }
         }
 
         super.beatHit(beat);
