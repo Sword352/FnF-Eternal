@@ -102,15 +102,12 @@ class MetadataScreen extends UIRuntimeSubState {
     var bpmStepper:NumberStepper;
     var scrollSpeed:NumberStepper;
 
-    // time signature - beats per measure, steps per beat
+    // beats per measure
     var tsBpm:NumberStepper;
-    var tsSpb:NumberStepper;
 
     var storedBPM:Float;
     var currentBPM:Int;
-    var currentSPB:Int;
     var reloadBPM:Bool;
-    var reloadSPB:Bool;
     
     var vboxContainer:VBox;
 
@@ -135,13 +132,6 @@ class MetadataScreen extends UIRuntimeSubState {
         Conductor.self.beatsPerMeasure = parent.chart.gameplayInfo.beatsPerMeasure = Math.floor(tsBpm.pos);
         reloadBPM = (currentBPM != parent.chart.gameplayInfo.beatsPerMeasure);
     }
-
-    @:bind(tsSpb, UIEvent.CHANGE)
-    function tsSpb_change():Void {
-        if (!allowActions) return;
-        Conductor.self.stepsPerBeat = parent.chart.gameplayInfo.stepsPerBeat = Math.floor(tsSpb.pos);
-        reloadSPB = (currentSPB != parent.chart.gameplayInfo.stepsPerBeat);
-    }
     //
 
     override function onReady():Void {
@@ -149,10 +139,8 @@ class MetadataScreen extends UIRuntimeSubState {
         bpmStepper.pos = parent.chart.gameplayInfo.bpm;
 
         currentBPM = parent.chart.gameplayInfo.beatsPerMeasure ?? 4;
-        currentSPB = parent.chart.gameplayInfo.stepsPerBeat ?? 4;
         storedBPM = bpmStepper.pos;
         tsBpm.pos = currentBPM;
-        tsSpb.pos = currentSPB;
 
         allowActions = true;
 
@@ -261,11 +249,7 @@ class MetadataScreen extends UIRuntimeSubState {
     override function close():Void {
         // dont reload if the bpm is not the same, as it's done automatically
         if (storedBPM == parent.chart.gameplayInfo.bpm) {
-            if (reloadSPB) {
-                parent.checkerboard.refreshBeatSep();
-                parent.reloadGrid();
-            }
-            else if (reloadBPM)
+            if (reloadBPM) // beats per measure
                 parent.checkerboard.refreshMeasureSep();
         }
 

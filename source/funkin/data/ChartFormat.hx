@@ -2,6 +2,7 @@ package funkin.data;
 
 import funkin.data.GameOverData;
 import funkin.gameplay.notes.StrumLine.StrumLineOwner;
+using funkin.utils.TimingTools;
 
 @:structInit
 class Chart {
@@ -27,9 +28,20 @@ class Chart {
      * @param conductor Conductor instance.
      */
     public function prepareConductor(conductor:Conductor):Void {
-        conductor.beatsPerMeasure = gameplayInfo.beatsPerMeasure ?? 4;
-        conductor.stepsPerBeat = gameplayInfo.stepsPerBeat ?? 4;
+        conductor.beatsPerMeasure = gameplayInfo.beatsPerMeasure ?? TimingTools.BEATS_PER_MEASURE_COMMON;
         conductor.bpm = gameplayInfo.bpm;
+
+        for (event in events) {
+            if (event.type == "change bpm") {
+                conductor.timingPoints.push({
+                    time: event.time,
+                    bpm: event.arguments[0],
+                    beatsPerMeasure: event.arguments[1] ?? TimingTools.BEATS_PER_MEASURE_COMMON
+                });
+            }
+        }
+
+        conductor.timingPoints.prepareTimingPoints();
     }
 
     public inline function toStruct():ChartJson {
@@ -93,9 +105,7 @@ typedef GameplayInfo = {
 
     var bpm:Float;
     var scrollSpeed:Float;
-
     var ?beatsPerMeasure:Int;
-    var ?stepsPerBeat:Int;
 
     var ?player:String;
     var ?opponent:String;
@@ -106,7 +116,6 @@ typedef GameplayInfo = {
     var ?gameOverData:GameOverData;
 }
 
-// using it as dynamic somewhat makes the game crash, this anonymous structure fixes it
 typedef BaseGameChart = {
     var notes:Array<BaseGameSection>;
     var song:String;

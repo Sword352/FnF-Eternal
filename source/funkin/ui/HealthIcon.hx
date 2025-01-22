@@ -19,8 +19,8 @@ class HealthIcon extends OffsetSprite {
     public var healthAnim:Bool = true;
 
     public var bopSize:Float = 25;
-    public var bopDuration:Float = 1.5;
-    public var bopStep:Int = -1;
+    public var bopDuration:Float = 0.375;
+    public var bopStart:Null<Int> = null;
     
     var _character:String;
 
@@ -35,8 +35,8 @@ class HealthIcon extends OffsetSprite {
         if (healthAnim)
             updateState();
 
-        if (bopStep != -1) {
-            var ratio:Float = FlxEase.sineOut(Math.min(Conductor.self.decStep - bopStep, bopDuration) / bopDuration);
+        if (bopStart != null) {
+            var ratio:Float = FlxEase.sineOut(Math.min(Conductor.self.decBeat - bopStart, bopDuration) / bopDuration);
             setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio));
             updateHitbox();
         }
@@ -68,13 +68,13 @@ class HealthIcon extends OffsetSprite {
     }
 
     public inline function bop():Void {
-        bopStep = Conductor.self.step;
+        bopStart = Conductor.self.beat;
     }
 
     public function resetBop():Void {
+        bopStart = null;
         setGraphicSize(size.x, size.y);
         updateHitbox();
-        bopStep = -1;
     }
 
     override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint {

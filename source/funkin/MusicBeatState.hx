@@ -5,7 +5,6 @@ import funkin.core.scripting.ScriptableState;
 
 /**
  * This object dispatches the following event(s):
- * - `Events.STEP_HIT`
  * - `Events.BEAT_HIT`
  * - `Events.MEASURE_HIT`
  */
@@ -34,10 +33,6 @@ class MusicBeatState extends ScriptableState {
         super.destroy();
     }
 
-    public function stepHit(step:Int):Void {
-        dispatchEvent(Events.STEP_HIT, step);
-    }
-
     public function beatHit(beat:Int):Void {
         dispatchEvent(Events.BEAT_HIT, beat);
     }
@@ -48,7 +43,6 @@ class MusicBeatState extends ScriptableState {
 
     function set_conductor(v:Conductor):Conductor {
         if (conductor != null) {
-            conductor.onStep.remove(stepHit);
             conductor.onMeasure.remove(measureHit);
             conductor.onBeat.remove(beatHit);
 
@@ -60,7 +54,6 @@ class MusicBeatState extends ScriptableState {
         }
 
         if (v != null) {
-            v.onStep.add(stepHit);
             v.onMeasure.add(measureHit);
             v.onBeat.add(beatHit);
 
@@ -81,7 +74,6 @@ class MusicBeatState extends ScriptableState {
         FlxG.watch.add(conductor, "time", "C. Time");
         FlxG.watch.add(conductor, "bpm", "BPM");
         FlxG.watch.addFunction("Time Signature", conductor.getSignature);
-        FlxG.watch.add(conductor, "step", "Step");
         FlxG.watch.add(conductor, "beat", "Beat");
         FlxG.watch.add(conductor, "measure", "Measure");
     }
@@ -90,7 +82,6 @@ class MusicBeatState extends ScriptableState {
         FlxG.watch.remove(conductor, "time");
         FlxG.watch.remove(conductor, "bpm");
         FlxG.watch.removeFunction("Time Signature");
-        FlxG.watch.remove(conductor, "step");
         FlxG.watch.remove(conductor, "beat");
         FlxG.watch.remove(conductor, "measure");
     }
@@ -101,7 +92,6 @@ class MusicBeatState extends ScriptableState {
 
 /**
  * This object dispatches the following event(s):
- * - `Events.STEP_HIT`
  * - `Events.BEAT_HIT`
  * - `Events.MEASURE_HIT`
  */
@@ -112,10 +102,6 @@ class MusicBeatSubState extends ScriptableSubState {
     public function new():Void {
         super();
         conductor = Conductor.self;
-    }
-
-    public function stepHit(step:Int):Void {
-        dispatchEvent(Events.STEP_HIT, step);
     }
 
     public function beatHit(beat:Int):Void {
@@ -134,13 +120,11 @@ class MusicBeatSubState extends ScriptableSubState {
     
     function set_conductor(v:Conductor):Conductor {
         if (conductor != null) {
-            conductor.onStep.remove(stepHit);
             conductor.onMeasure.remove(measureHit);
             conductor.onBeat.remove(beatHit);
         }
 
         if (v != null) {
-            v.onStep.add(stepHit);
             v.onMeasure.add(measureHit);
             v.onBeat.add(beatHit);
         }

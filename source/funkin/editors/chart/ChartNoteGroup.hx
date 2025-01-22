@@ -93,7 +93,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
             return true;
         }
 
-        return note.data.time + note.data.length >= Conductor.self.time && parent.lastStep != Conductor.self.step;
+        return note.data.time + note.data.length >= Conductor.self.time && parent.lastStep != Math.floor(Conductor.self.decBeat * 4);
     }
 
     override function add(note:DebugNote):DebugNote {
@@ -123,7 +123,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     // - maybe remake the math for spawning iterations as it seems a bit overkill
 
     public function regenNotes(force:Bool = false):Void {
-        var iterations:Int = Math.floor(3 * (16 / Math.min(Conductor.self.measureLength, 16)));
+        var iterations:Int = Math.floor(3 * (16 / Math.min(Conductor.self.beatsPerMeasure * 4, 16)));
         var firstNoteIndex:Int = -1;
 
         killNotes(force, iterations - 1);
@@ -206,7 +206,7 @@ class ChartNoteGroup extends FlxTypedGroup<DebugNote> {
     }
 
     inline function measureTime(measure:Float):Float {
-        return Conductor.self.beatOffset.time + Conductor.self.semiQuaver * ((measure * Conductor.self.measureLength) - Conductor.self.beatOffset.step);
+        return Conductor.self.measureToMs(measure);
     }
 
     inline function inBounds(note:ChartNote, measureTime:Float, nextTime:Float) {
@@ -262,11 +262,11 @@ class DebugNote extends SelectableSprite {
 
         if (data.length != 0) {
             if (!FlxG.mouse.pressedRight || !FlxG.mouse.overlaps(sustain) || FlxG.mouse.y < sustain.y + height * 0.5) {
-                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / Conductor.self.semiQuaver) - 0.5));
+                sustain.scale.y = Math.max(ChartEditor.checkerSize, ChartEditor.checkerSize * ((data.length / (Conductor.self.beatLength / 4)) - 0.5));
             }
             else {
                 sustain.scale.y = FlxG.mouse.y - sustain.y + ChartEditor.checkerSize * 0.5;
-                data.length = Conductor.self.semiQuaver * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
+                data.length = Conductor.self.beatLength / 4 * ((sustain.scale.y / ChartEditor.checkerSize) + 0.5);
             }
 
             sustain.updateHitbox();

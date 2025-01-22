@@ -4,24 +4,15 @@ import funkin.data.ChartFormat.ChartEvent;
 
 /**
  * Change BPM event. Changes the BPM during playback.
- * 
- * TODO:
- * - make it be able to modify the time signature to
- * - rename this to "Timing Point"
  */
 @:build(funkin.core.macros.SongEventMacro.build({
     type: "change bpm",
     name: "Change BPM",
-    arguments: [{
-        name: "New BPM",
-        type: "Float",
-        tempValue: "100"
-    }]
+    arguments: [
+        {name: "New BPM", type: "Float", tempValue: "100"},
+        {name: "Beats per measure", type: "Int", tempValue: "4"}
+    ]
 }))
 class ChangeBpmEvent extends SongEvent {
-    override function execute(event:ChartEvent):Void {
-        game.conductor.beatOffset.step += (event.time - game.conductor.beatOffset.time) / game.conductor.semiQuaver;
-        game.conductor.beatOffset.time = event.time;
-        game.conductor.bpm = newBpm;
-    }
+    // handled by conductor, this class won't stay for long
 }

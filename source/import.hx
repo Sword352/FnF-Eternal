@@ -28,7 +28,7 @@ import funkin.core.scripting.*;
 import funkin.core.scripting.events.*;
 import funkin.core.scripting.Events;
 
-import funkin.Conductor;
+import funkin.music.Conductor;
 import funkin.MusicBeatState;
 import funkin.ui.Transition;
 import funkin.gameplay.PlayState;

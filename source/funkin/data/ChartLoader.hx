@@ -1,6 +1,7 @@
 package funkin.data;
 
 import funkin.data.ChartFormat;
+import funkin.utils.TimingTools;
 
 class ChartLoader {
     public static function getEmptyGameplay():GameplayInfo
@@ -130,8 +131,8 @@ class ChartLoader {
                     var startLength:Float = cast noteData[2];
 
                     if (startLength > 0) {
-                        // since hold notes starts a step later in legacy fnf, we have to compensate by adding a step's duration to the length
-                        data.length = startLength + ((60 / currentBPM) * 1000 / 4);
+                        // since hold notes starts 1/4th of a beat later in legacy fnf, we have to compensate by adding that same duration to the length
+                        data.length = startLength + TimingTools.computeBeatLength(currentBPM) / 4;
                     }
                 }
 
@@ -158,7 +159,8 @@ class ChartLoader {
                 currentBPM = intendedBPM;
             }
 
-            time += ((60 / currentBPM) * 1000) * 4;
+            // legacy fnf did not have the ability to change the amount of beats per measure, it instead always used 4
+            time += TimingTools.computeBeatLength(currentBPM) * TimingTools.BEATS_PER_MEASURE_COMMON;
         }
 
         return finalData;

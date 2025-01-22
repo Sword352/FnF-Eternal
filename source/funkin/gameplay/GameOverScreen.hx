@@ -53,7 +53,7 @@ class GameOverScreen extends MusicBeatSubState {
         conductor.bpm = data.bpm ?? 100;
         conductor.interpolate = false;
         conductor.active = true;
-        conductor.resetTime();
+        conductor.time = 0;
     }
 
     override function update(elapsed:Float):Void {
@@ -66,7 +66,7 @@ class GameOverScreen extends MusicBeatSubState {
             if (character.animation.curAnim.finished) {
                 FlxG.sound.playMusic(Paths.music(data.music ?? "gameover/gameOver"));
                 conductor.music = FlxG.sound.music;
-                conductor.time = -conductor.crotchet;
+                conductor.time = -conductor.beatLength;
                 started = true;
             }
         }

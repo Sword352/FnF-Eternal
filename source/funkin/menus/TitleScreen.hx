@@ -28,7 +28,6 @@ typedef TitleSprite = {
 }
 
 typedef TitleSequence = {
-    var ?step:Float;
     var ?beat:Float;
     var ?action:String;
     var ?arguments:Array<Dynamic>;
@@ -45,7 +44,6 @@ class TitleScreen extends MusicBeatState {
     var ngSprite:FlxSprite;
 
     var beatSequences:Array<TitleSequence>;
-    var stepSequences:Array<TitleSequence>;
     var randomText:Array<String>;
 
     var allowInputs:Bool = true;
@@ -114,10 +112,6 @@ class TitleScreen extends MusicBeatState {
     override function update(elapsed:Float):Void {
         super.update(elapsed);
 
-        if (stepSequences != null)
-            while (stepSequences.length > 0 && stepSequences[0].step <= conductor.decStep)
-                runSequence(stepSequences.shift());
-
         if (beatSequences != null)
             while (beatSequences.length > 0 && beatSequences[0].beat <= conductor.decBeat)
                 runSequence(beatSequences.shift());
@@ -157,7 +151,6 @@ class TitleScreen extends MusicBeatState {
 
     inline function clearSequences():Void {
         beatSequences?.splice(0, beatSequences.length);
-        stepSequences?.splice(0, stepSequences.length);
     }
 
     function runSequence(seq:TitleSequence):Void {
@@ -275,14 +268,8 @@ class TitleScreen extends MusicBeatState {
 
         for (seq in seqs) {
             // Not enough informations provided, skip this sequence
-            if ((seq.beat == null && seq.step == null) || seq.action == null)
+            if (seq.beat == null || seq.action == null)
                 continue;
-
-            if (seq.step != null) {
-                if (stepSequences == null)
-                    stepSequences = [];
-                stepSequences.push(seq);
-            }
 
             if (seq.beat != null) {
                 if (beatSequences == null)
@@ -291,8 +278,6 @@ class TitleScreen extends MusicBeatState {
             }
         }
 
-        if (stepSequences != null)
-            stepSequences.sort((s1, s2) -> Std.int(s1.step - s2.step));
         if (beatSequences != null)
             beatSequences.sort((s1, s2) -> Std.int(s1.beat - s2.beat));
     }

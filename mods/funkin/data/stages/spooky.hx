@@ -75,7 +75,7 @@ class SpookyStage extends Stage {
     function scareCharacter(character:Character):Void {
         if (character == null) return;
         if (character.animState != AnimationState.SINGING)
-            character.playSpecialAnim("scared", game.conductor.crotchet * 2);
+            character.playSpecialAnim("scared", game.conductor.beatLength * 2);
     }
 
     function onThunderSoundComplete():Void {

@@ -146,7 +146,6 @@ class ChartPlayState extends MusicBeatSubState {
         if (controls.justPressed("autoplay"))
             playerStrumline.cpu = !playerStrumline.cpu;
 
-        parent.updateCurrentBPM();
         super.update(elapsed);
         updateUI();
     }
@@ -203,7 +202,7 @@ class ChartPlayState extends MusicBeatSubState {
 
     inline function onHoldInvalidation(note:Note):Void {
         var remainingLength:Float = note.length - (conductor.time - note.time);
-        var fraction:Float = (remainingLength / (conductor.semiQuaver * 2)) + 1;
+        var fraction:Float = (remainingLength / (conductor.beatLength / 2)) + 1;
 
         health -= 0.0475 * fraction;
         accuracyNotes += Math.floor(fraction);
@@ -234,7 +233,7 @@ class ChartPlayState extends MusicBeatSubState {
             acc = FlxMath.roundDecimal(FlxMath.bound(accuracyMod / accuracyNotes, 0, 1) * 100, 2) + "%";
 
         infos.text = '${parent.getTimeInfo()} - ${parent.getBPMInfo()}\n'
-            + 'Step: ${conductor.step} - Beat: ${conductor.beat} - Measure: ${conductor.measure}\n'
+            + 'Beat: ${conductor.beat} - Measure: ${conductor.measure}\n'
             + 'Misses: ${missCount} - Accuracy: ${acc} - Botplay: ${(playerStrumline.cpu) ? 'ON' : 'OFF'}';
         infos.screenCenter(X);
 

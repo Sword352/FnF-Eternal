@@ -96,11 +96,11 @@ class ChartCheckerboard extends FlxSpriteGroup {
 
     public inline function refreshMeasureSep():Void {
         // without reducing by 1 makes the spacing somehow
-        measureSep.spacing.y = ChartEditor.checkerSize * Conductor.self.measureLength / measureSep.height - 1;
+        measureSep.spacing.y = ChartEditor.checkerSize * Conductor.self.beatsPerMeasure * 4 / measureSep.height - 1;
     }
 
     public inline function refreshBeatSep():Void {
-        beatSep.spacing.y = ChartEditor.checkerSize * Conductor.self.stepsPerBeat - 1;
+        beatSep.spacing.y = ChartEditor.checkerSize * 4 - 1;
     }
 
     /*

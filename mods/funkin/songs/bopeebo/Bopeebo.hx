@@ -20,8 +20,8 @@ class Bopeebo extends SongElement {
             return;
         }
 
-        game.spectator.playSpecialAnim("hey", game.conductor.crotchet);
-        game.player.playSpecialAnim("hey", game.conductor.crotchet);
+        game.spectator.playSpecialAnim("hey", game.conductor.beatLength);
+        game.player.playSpecialAnim("hey", game.conductor.beatLength);
 
         game.camGame.zoom += 0.12;
     }

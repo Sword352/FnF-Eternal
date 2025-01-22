@@ -326,7 +326,7 @@ private class BasicSprite extends OffsetSprite {
     function setProps():Void {
         scale.copyFrom(originalScale);
         startTime = Conductor.self.time;
-        delay = Conductor.self.crotchet;
+        delay = Conductor.self.beatLength;
         alpha = 1;
     }
 

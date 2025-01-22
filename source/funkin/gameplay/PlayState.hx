@@ -63,7 +63,6 @@ class PlayState extends MusicBeatState {
 
     public var gameBeatBump:Float = 0.03;
     public var hudBeatBump:Float = 0.025;
-    public var camBumpInterval:Float = 4;
     public var bumpSpeed:Float = 4;
 
     public var cameraFocus(default, set):Character;
@@ -115,7 +114,6 @@ class PlayState extends MusicBeatState {
         add(music);
 
         song.prepareConductor(conductor);
-        camBumpInterval = conductor.beatsPerMeasure;
 
         if (song.gameplayInfo.stage?.length > 0) {
             stage = Stage.create(song.gameplayInfo.stage);
@@ -210,15 +208,16 @@ class PlayState extends MusicBeatState {
     }
 
     override function beatHit(beat:Int):Void {
-        if (beat % camBumpInterval == 0) {
-            camGame.zoom += gameBeatBump;
-            camHUD.zoom += hudBeatBump;
-        }
-
         playField.iconBops();
         gameDance(beat);
 
         super.beatHit(beat);
+    }
+
+    override function measureHit(measure:Int):Void {
+        camGame.zoom += gameBeatBump;
+        camHUD.zoom += hudBeatBump;
+        super.measureHit(measure);
     }
 
     public inline function pause():Void {

@@ -128,9 +128,6 @@ class Stage extends FlxSpriteGroup implements IHScriptCustomBehaviour {
         if (data.hudBeatZoom != null)
             PlayState.self.hudBeatBump = data.hudBeatZoom;
 
-        if (data.camBeat != null)
-            PlayState.self.camBumpInterval = data.camBeat;
-
         playerPos = data.playerPos ?? playerPos;
         playerCam = data.playerCam ?? playerCam;
         

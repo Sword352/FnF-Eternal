@@ -87,15 +87,15 @@ class OffsetCalibrationOverlay extends MusicBeatSubState {
             inputLimiter = Math.max(inputLimiter - elapsed, 0);
         }
 
-        if (conductor.rawTime - lastBeat >= conductor.crotchet) {
-            lastBeat += conductor.crotchet;
+        if (conductor.rawTime - lastBeat >= conductor.beatLength) {
+            lastBeat += conductor.beatLength;
             // end the metronome early as audio shouldn't be affected by offset
-            if (lastBeat >= conductor.crotchet * 16) {
+            if (lastBeat >= conductor.beatLength * 16) {
                 metronome.active = false;
             }
         }
 
-        if (conductor.active && conductor.time >= conductor.crotchet * 16) {
+        if (conductor.active && conductor.time >= conductor.beatLength * 16) {
             stopCalibration();
         }
 

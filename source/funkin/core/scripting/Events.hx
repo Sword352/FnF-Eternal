@@ -32,12 +32,6 @@ enum abstract Events(String) from String to String {
     var DESTROY = "destroy";
 
     /**
-     * Event dispatched when the current song step changes.
-     * This event dispatches the current step in the song.
-     */
-    var STEP_HIT = "stepHit";
-
-    /**
      * Event dispatched when the current song beat changes.
      * This event dispatches the current beat in the song.
      */
@@ -85,7 +79,7 @@ enum abstract GameEvents(String) from String to String {
     var NOTE_MISS = "noteMiss";
 
     /**
-     * Event dispatched each steps when a sustain note is being held by a `StrumLine` in gameplay.
+     * Event dispatched each quarter beats when a sustain note is being held by a `StrumLine` in gameplay.
      * This event can be cancelled and dispatches an object holding informations about the note hold.
      */
     var NOTE_HOLD = "noteHold";

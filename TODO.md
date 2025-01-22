@@ -7,7 +7,6 @@
   - Find a better workaround to allow default dynamic argument values with the event macro (deprecate `tempValue`)
   - Better character preloading for the `ChangeCharacterEvent`
   - Rename the `ChangeCameraTargetEvent` to `CameraFocusEvent` and make it's "target" argument a string
-  - Rename the `ChangeBpmEvent` to `TimingPointEvent` and make it be able to change the time signature
   - Allow 2 events or more to have the same time value
 
 - Finish the modding support rework
@@ -26,11 +25,6 @@
   - Improve the ui style system so that individual assets can be changed
   - Remove the use of static variables
   - Continue the code cleanup
-
-- `Conductor` changes
-  - Implement a better structure for bpm changes
-  - Improve support for time signatures
-  - Add time signature changes
 
 - Rework the keybind system (and `Controls` class)
 

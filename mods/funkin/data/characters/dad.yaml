@@ -7,7 +7,7 @@ animations:
   - { name: "singUp",    prefix: "Dad Sing Note UP",    fps: 24, loop: false, offsets: [-6, 50]  }
   - { name: "singRight", prefix: "Dad Sing Note RIGHT", fps: 24, loop: false, offsets: [0, 27]   }
 
-singDuration: 6.1
+singDuration: 1.5
 globalOffsets: [150, 450]
 cameraOffsets: [-150, 75]
 

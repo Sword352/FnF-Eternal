@@ -45,9 +45,9 @@ class Character extends Bopper {
     public var animTime:Float = 0;
 
     /**
-     * Time in steps to wait before any sing animation stops.
+     * Time in beats to wait before any sing animation stops.
      */
-    public var singDuration:Float = 4;
+    public var singDuration:Float = 1;
 
     /**
      * Defines the pixel offsets to adjust the camera's scroll when focusing on this character.
@@ -142,7 +142,7 @@ class Character extends Bopper {
         animState = SINGING;
 
         // since hold notes have longer durations, we have to make sure they aren't overwritten (in case of double notes and such)
-        animDuration = Math.max(animDuration, Conductor.self.semiQuaver * singDuration);
+        animDuration = Math.max(animDuration, Conductor.self.beatLength * singDuration);
     }
 
     /**
@@ -151,7 +151,7 @@ class Character extends Bopper {
      */
     public function playMissAnim(direction:Int):Void {
         playAnimation(missAnimations[direction], true);
-        animDuration = Conductor.self.crotchet;
+        animDuration = Conductor.self.beatLength;
         animTime = Conductor.self.time;
         animState = SPECIAL;
     }
@@ -258,7 +258,7 @@ class Character extends Bopper {
             frames = Paths.buildAtlas(data.image);
             Tools.addYamlAnimations(this, data.animations);
     
-            singDuration = data.singDuration ?? 4;
+            singDuration = data.singDuration ?? 1;
             danceSteps = data.danceSteps ?? ["idle"];
             danceInterval = data.danceBeat ?? 2;
     

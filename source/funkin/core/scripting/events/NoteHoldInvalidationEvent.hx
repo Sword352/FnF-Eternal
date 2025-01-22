@@ -67,7 +67,7 @@ class NoteHoldInvalidationEvent extends ScriptEvent {
         this.note = note;
 
         var remainingLength:Float = note.length - (Conductor.self.time - note.time);
-        fraction = (remainingLength / (Conductor.self.semiQuaver * 2)) + 1;
+        fraction = (remainingLength / (Conductor.self.beatLength / 2)) + 1;
 
         scoreLoss = 10;
         healthLoss = 0.02375;

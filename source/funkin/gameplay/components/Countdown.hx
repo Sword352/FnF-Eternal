@@ -65,7 +65,7 @@ class Countdown extends FlxBasic {
     override function update(elapsed:Float):Void {
         if (startTime == -1) return;
 
-        while (Conductor.self.audioTime - startTime >= Conductor.self.crotchet * (currentTick + 1))
+        while (Conductor.self.audioTime - startTime >= Conductor.self.beatLength * (currentTick + 1))
             tick(++currentTick);
 
         #if FLX_DEBUG
@@ -128,7 +128,7 @@ class Countdown extends FlxBasic {
         sprite.screenCenter();
         sprite.y -= 50;
 
-        FlxTween.tween(sprite, {y: sprite.y + 100, alpha: 0}, Conductor.self.crotchet / Conductor.self.rate * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+        FlxTween.tween(sprite, {y: sprite.y + 100, alpha: 0}, Conductor.self.beatLength / Conductor.self.rate * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
     }
 
     function finish():Void {

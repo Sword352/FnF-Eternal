@@ -16,7 +16,7 @@ import funkin.gameplay.components.Character;
 class PlayHeyAnimEvent extends SongEvent {
     override function execute(_):Void {
         var target:Character = getCharacter(character);
-        target?.playSpecialAnim("hey", game.conductor.crotchet * duration);
+        target?.playSpecialAnim("hey", game.conductor.beatLength * duration);
     }
 
     inline function getCharacter(value:String):Character {

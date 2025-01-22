@@ -181,7 +181,7 @@ class StrumLine extends FlxSpriteGroup {
         while (_notesToRemove.length > 0)
             removeNote(_notesToRemove.pop());
 
-        _lastStep = Conductor.self.step;
+        _lastStep = currentStep();
     }
 
     /**
@@ -305,8 +305,13 @@ class StrumLine extends FlxSpriteGroup {
      * Method called to handle sustain note holding behaviour.
      */
     function holdSustainNote(note:Note):Void {
-        if (_lastStep != Conductor.self.step || !note.beenHit)
+        if (_lastStep != currentStep() || !note.beenHit)
             handleSustainNote(note);
+    }
+
+    inline function currentStep():Int {
+        // temporary function for backward compatibility, this will be removed later
+        return Math.floor(Conductor.self.decBeat * 4);
     }
 
     function handleSustainNote(note:Note):Void {
@@ -437,7 +442,7 @@ class StrumLine extends FlxSpriteGroup {
                 character.animState = HOLDING;
 
             if (note.isHoldable())
-                character.animDuration = note.length - Math.max(Conductor.self.time - note.time, 0) + Conductor.self.crotchet;
+                character.animDuration = note.length - Math.max(Conductor.self.time - note.time, 0) + Conductor.self.beatLength;
         }
     }
 

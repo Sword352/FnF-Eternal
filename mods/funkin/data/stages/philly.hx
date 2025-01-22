@@ -4,7 +4,7 @@ import flixel.sound.FlxSound;
 import flixel.addons.display.FlxRuntimeShader;
 import funkin.gameplay.components.Stage;
 import funkin.core.scripting.Events;
-import funkin.Conductor;
+import funkin.music.Conductor;
 
 class PhillyStage extends Stage {
     var lightColors:Array<FlxColor> = [0x30A2FC, 0x31FD8C, 0xFB32F4, 0xFD4430, 0xFAA733];
@@ -55,7 +55,7 @@ class PhillyStage extends Stage {
     function onUpdatePost(elapsed:Float):Void {
         if (!game.music.playing) return;
 
-        light.shader.setFloat("fadeMod", ((Conductor.self.time - lightTiming) / (Conductor.self.crotchet * Conductor.self.beatsPerMeasure)) * 1.25);
+        light.shader.setFloat("fadeMod", ((Conductor.self.time - lightTiming) / (Conductor.self.beatLength * Conductor.self.beatsPerMeasure)) * 1.25);
 
         // 24 fps movement
         if (trainEnabled) {

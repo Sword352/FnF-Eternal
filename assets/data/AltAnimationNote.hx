@@ -33,7 +33,7 @@ class AltAnimationNote extends NoteTypeElement {
                 character.animState = AnimationState.HOLDING;
 
             if (note.isHoldable())
-                character.animDuration = note.length - Math.max(game.conductor.time - note.time, 0) + game.conductor.crotchet;
+                character.animDuration = note.length - Math.max(game.conductor.time - note.time, 0) + game.conductor.beatLength;
         }
     }
 }
