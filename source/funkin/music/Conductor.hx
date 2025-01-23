@@ -269,26 +269,43 @@ class Conductor extends FlxBasic {
 
         var frameDelta:Float = elapsed * 1000 * rate;
 
+        if (_resyncFactor != 1) {
+            frameDelta *= _resyncFactor;
+            if (music.time == _lastMix) {
+                // gradually resync until the next timestamp
+                rawTime += frameDelta;
+                return;
+            }
+            if (music.time - rawTime >= frameDelta) {
+                // music managed to catch up, stop the resync
+                rawTime = music.time;
+                _resyncFactor = 1;
+            } else {
+                // music didn't catch up, so continue
+                rawTime += frameDelta;
+            }
+            _lastMix = music.time;
+            return;
+        }
+ 
         if (music.time == _lastMix) {
             // the music timestamp hasn't changed yet, so we approximate the current song position
-            rawTime += frameDelta * _resyncFactor;
+            rawTime += frameDelta;
         } else {
             var difference:Float = rawTime + frameDelta - music.time;
-            
             if (difference >= 0 && difference <= frameDelta) {
                 // the music time has updated between frames so it makes sense to continue approximating
                 // as the result might be more accurate than hard resetting to music.time
-                rawTime += frameDelta * _resyncFactor;
+                rawTime += frameDelta;
             } else if (difference < 0 || difference > 50) {
                 // if the difference is negative, the difference between `music.time` and `rawTime` would be slightly higher than `frameDelta`
                 // meaning hard resetting to music.time would be smooth, unless something unexpected happened (such as lag)
                 // if the difference is unexpectedly huge, the music has most likely been forced to play at a specific point
                 // in both cases, it is safe to hard reset to music.time
-                _resyncFactor = 1;
                 rawTime = music.time;
             } else if (difference > frameDelta) {
                 // gradually resync instead of causing stutters to happen
-                _resyncFactor = 0.5;
+                _resyncFactor = 0.85;
                 rawTime += frameDelta * _resyncFactor;
             }
 
