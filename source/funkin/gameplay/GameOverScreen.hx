@@ -35,9 +35,15 @@ class GameOverScreen extends MusicBeatSubState {
 
         character = Character.create(0, 0, characterStr);
         character.setPosition(position.x, position.y);
-        add(character);
+
+        conductor = new Conductor();
+        conductor.active = false;
 
         data = character.gameOverData ?? PlayState.song.gameplayInfo.gameOverData ?? {};
+        conductor.bpm = data.bpm ?? 100;
+
+        add(conductor);
+        add(character);
 
         cameraObject = new FlxObject(0, 0, 1, 1);
         cameraObject.visible = false;
@@ -49,11 +55,6 @@ class GameOverScreen extends MusicBeatSubState {
 
         FlxG.sound.play(Paths.sound(data.deathSound ?? "gameplay/fnf_loss_sfx"));
         character.playAnimation("firstDeath");
-
-        conductor.bpm = data.bpm ?? 100;
-        conductor.interpolate = false;
-        conductor.active = true;
-        conductor.time = 0;
     }
 
     override function update(elapsed:Float):Void {
@@ -64,10 +65,7 @@ class GameOverScreen extends MusicBeatSubState {
                 camera.follow(cameraObject, LOCKON, 0.06);
 
             if (character.animation.curAnim.finished) {
-                FlxG.sound.playMusic(Paths.music(data.music ?? "gameover/gameOver"));
-                conductor.music = FlxG.sound.music;
-                conductor.time = -conductor.beatLength;
-                started = true;
+                startMusic();
             }
         }
 
@@ -95,11 +93,18 @@ class GameOverScreen extends MusicBeatSubState {
         super.beatHit(beat);
     }
 
+    function startMusic():Void {
+        FlxG.sound.playMusic(Paths.music(data.music ?? "gameover/gameOver"));
+        conductor.music = FlxG.sound.music;
+        conductor.active = true;
+        started = true;
+    }
+
     function accept():Void {
         Assets.clearCache = Options.reloadAssets;
         allowInputs = false;
 
-        conductor.music = null;
+        conductor.active = false;
         BGM.stopMusic();
 
         FlxG.sound.play(Paths.sound(data.confirmSound ?? "gameplay/gameOverEnd"));
