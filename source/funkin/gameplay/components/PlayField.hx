@@ -42,9 +42,9 @@ class PlayField extends FlxGroup {
     public var opponentIcon:HealthIcon;
 
     /**
-     * Combo popup group for this playfield.
+     * Judgement display for this playfield.
      */
-    public var comboPopup:ComboPopup;
+    public var judgementDisplay:JudgementDisplay;
 
     /**
      * Notespawner object for this playfield.
@@ -92,13 +92,7 @@ class PlayField extends FlxGroup {
         var playerNoteSkin:String = game.player?.noteSkin ?? PlayState.song.getNoteskin(PLAYER);
         var opponentNoteSkin:String = game.opponent?.noteSkin ?? PlayState.song.getNoteskin(OPPONENT);
 
-        comboPopup = new ComboPopup(game.stats.ratings.length, game.stage?.uiStyle);
-        comboPopup.camera = game.camHUD;
-        add(comboPopup);
-
         strumLines = new FlxTypedGroup<StrumLine>();
-        strumLines.active = false;
-        add(strumLines);
 
         opponentStrumLine = new GameStrumLine(FlxG.width * 0.25, 50, true, opponentNoteSkin);
         opponentStrumLine.scrollSpeed = PlayState.song.gameplayInfo.scrollSpeed;
@@ -111,10 +105,6 @@ class PlayField extends FlxGroup {
         playerStrumLine.owner = PLAYER;
         strumLines.add(playerStrumLine);
 
-        noteSpawner = new NoteSpawner(strumLines.members, game.startTime);
-        noteSpawner.active = false;
-        add(noteSpawner);
-
         if (Options.downscroll)
             playerStrumLine.y = opponentStrumLine.y = FlxG.height * 0.8;
 
@@ -122,6 +112,13 @@ class PlayField extends FlxGroup {
             playerStrumLine.x = FlxG.width / 2;
             opponentStrumLine.visible = false;
         }
+
+        noteSpawner = new NoteSpawner(strumLines.members, game.startTime);
+        add(noteSpawner);
+        add(strumLines);
+
+        judgementDisplay = new JudgementDisplay(game.stage?.uiStyle);
+        add(judgementDisplay);
 
         healthBar = new HealthBar(game.player?.healthBarColor ?? 0xFF66FF33, game.opponent?.healthBarColor ?? 0xFFFF0000);
         healthBar.y = FlxG.height * (Options.downscroll ? 0.1 : 0.86);
@@ -175,9 +172,6 @@ class PlayField extends FlxGroup {
      * Update behaviour.
      */
     override function update(elapsed:Float):Void {
-        noteSpawner.update(elapsed);
-        strumLines.update(elapsed);
-
         displayedHealth = Tools.lerp(displayedHealth, PlayState.self.stats.health, 12);
 
         healthBar.percent = 1 - displayedHealth;
@@ -195,8 +189,8 @@ class PlayField extends FlxGroup {
      * Displays a rating sprite.
      * @param rating Rating to display.
      */
-    public inline function displayRating(rating:Rating):Void {
-        comboPopup.displayRating(rating);
+    public inline function displayJudgement(rating:Rating):Void {
+        judgementDisplay.displayJudgement(rating.name);
     }
 
     /**
@@ -204,7 +198,7 @@ class PlayField extends FlxGroup {
      * @param combo Combo amount.
      */
     public inline function displayCombo(combo:Int):Void {
-        comboPopup.displayCombo(combo);
+        judgementDisplay.displayCombo(combo);
     }
 
     /**

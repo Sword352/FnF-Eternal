@@ -7,7 +7,7 @@ import flixel.tweens.*;
 import funkin.gameplay.notes.*;
 import funkin.ui.HealthIcon;
 import funkin.gameplay.components.Rating;
-import funkin.gameplay.components.ComboPopup;
+import funkin.gameplay.components.JudgementDisplay;
 import funkin.data.ChartLoader;
 
 /**
@@ -28,7 +28,7 @@ class ChartPlayState extends MusicBeatSubState {
     var oppNoteCount:FlxText;
     var infos:FlxText;
 
-    var comboPopup:ComboPopup;
+    var judgementDisplay:JudgementDisplay;
     var icons:Array<HealthIcon> = [];
 
     var playAsOpponent:Bool = false;
@@ -70,12 +70,11 @@ class ChartPlayState extends MusicBeatSubState {
         background.alpha = 0.6;
         add(background);
 
-        comboPopup = new ComboPopup(ratings.length);
-        comboPopup.cameras = cameras; // TODO: remove this when sprite group cameras are fixed
-        add(comboPopup);
+        judgementDisplay = new JudgementDisplay();
+        add(judgementDisplay);
 
         Paths.image('game/combo-numbers');
-        Paths.image('game/ratings');
+        Paths.image('game/judgements');
 
         var noteSkinExists:Bool = parent.chart.gameplayInfo.noteSkins != null;
         var plrNoteSkin:String = (noteSkinExists ? parent.chart.gameplayInfo.noteSkins[1] : "default") ?? "default";
@@ -180,11 +179,11 @@ class ChartPlayState extends MusicBeatSubState {
         accuracyMod += rating.accuracyMod;
         accuracyNotes++;
 
-        comboPopup.displayRating(rating);
+        judgementDisplay.displayJudgement(rating.name);
 
         combo++;
         if (!rating.breakCombo && combo > 0)
-            comboPopup.displayCombo(combo);
+            judgementDisplay.displayCombo(combo);
 
         if (rating.displaySplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note);

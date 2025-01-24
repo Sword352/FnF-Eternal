@@ -21,9 +21,6 @@ class Options {
     public static var downscroll:Bool = false;
     public static var centeredStrumline:Bool = false;
     public static var ghostTapping:Bool = false;
-
-    public static var simplifyComboNum:Bool = false;
-    public static var noComboStack:Bool = false;
     public static var noNoteSplash:Bool = false;
 
     // DEBUG SETTINGS

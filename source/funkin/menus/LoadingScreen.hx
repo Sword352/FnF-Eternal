@@ -218,7 +218,7 @@ class LoadingScreen extends ScriptableState {
      */
     function loadCommonAssets(uiStyle:String):Void {
         Paths.image('game/combo-numbers' + uiStyle);
-        Paths.image('game/ratings' + uiStyle);
+        Paths.image('game/judgements' + uiStyle);
         Paths.image('game/healthBar');
         Paths.image("ui/alphabet");
 

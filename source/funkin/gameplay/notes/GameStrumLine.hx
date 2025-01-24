@@ -66,13 +66,13 @@ class GameStrumLine extends StrumLine {
 
         if (_noteHitEvent.rating != null) {
             _noteHitEvent.rating.hits++;
-            game.playField.displayRating(_noteHitEvent.rating);
+            game.playField.displayJudgement(_noteHitEvent.rating);
         }
 
         if (_noteHitEvent.accuracy != null)
             game.playField.incrementAccuracy(_noteHitEvent.accuracy);
 
-        if (game.stats.combo > prevCombo && game.stats.combo >= 10)
+        if (game.stats.combo > prevCombo)
             game.playField.displayCombo(game.stats.combo);
 
         if (_noteHitEvent.displaySplash)
