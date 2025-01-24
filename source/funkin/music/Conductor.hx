@@ -8,7 +8,7 @@ import flixel.util.FlxSignal.FlxTypedSignal;
  */
 class Conductor extends FlxBasic {
     /**
-     * Main conductor instance, used globally by most objects.
+     * A pre-made conductor instance most objects listens to by default.
      */
     public static var self:Conductor;
 
