@@ -73,7 +73,7 @@ class GameStats implements IFlxDestroyable {
      * @return Corresponding `Rating`.
      */
     public inline function evaluateNote(note:Note):Rating {
-        return evaluate(Math.abs(note.time - Conductor.self.time) / Conductor.self.rate);
+        return evaluate(Math.abs(note.time - note.strumLine.conductor.time) / note.strumLine.conductor.rate);
     }
 
     /**

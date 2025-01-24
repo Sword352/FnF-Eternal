@@ -269,7 +269,7 @@ class GameStrumLine extends StrumLine {
 
     function makeSpectatorSad():Void {
         if (PlayState.self.spectator?.animation.exists("sad"))
-            PlayState.self.spectator.playSpecialAnim("sad", Conductor.self.beatLength);
+            PlayState.self.spectator.playSpecialAnim("sad", conductor.beatLength);
     }
 
     inline function playMissSound():Void {

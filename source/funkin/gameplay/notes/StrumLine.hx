@@ -41,6 +41,11 @@ class StrumLine extends FlxSpriteGroup {
     public var owner:StrumLineOwner = OPPONENT;
 
     /**
+     * Conductor this strumline will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
+
+    /**
      * Directions held by the player.
      */
     public var heldKeys:Array<Bool> = [false, false, false, false];
@@ -243,7 +248,7 @@ class StrumLine extends FlxSpriteGroup {
             handleLateNote(note);
 
         // the note has to be late in order to kill it, else it won't be considered a miss
-        if (note.lateKill && note.isLate() && Conductor.self.time > note.time + note.length + (400 / (scrollSpeed / Conductor.self.rate)))
+        if (note.lateKill && note.isLate() && conductor.time > note.time + note.length + (400 / (scrollSpeed / conductor.rate)))
             queueNoteRemoval(note);
 
         if (note.isHoldable() && note.state != NONE && !note.finishedHold) {
@@ -258,7 +263,7 @@ class StrumLine extends FlxSpriteGroup {
                     invalidateHoldNote(note);
             }
 
-            if (Conductor.self.time >= note.time + note.length)
+            if (conductor.time >= note.time + note.length)
                 finishHoldNote(note);
         }
 
@@ -311,7 +316,7 @@ class StrumLine extends FlxSpriteGroup {
 
     inline function currentStep():Int {
         // temporary function for backward compatibility, this will be removed later
-        return Math.floor(Conductor.self.decBeat * 4);
+        return Math.floor(conductor.decBeat * 4);
     }
 
     function handleSustainNote(note:Note):Void {
@@ -372,7 +377,7 @@ class StrumLine extends FlxSpriteGroup {
      */
     inline function canHold(note:Note):Bool {
         // this also allows to release the sustain note a bit earlier to make inputs easier
-        return !note.isHoldWindowLate() && (cpu || heldKeys[note.direction] || (note.beenHit && Conductor.self.time >= note.time + note.length - releaseImmunityTime));
+        return !note.isHoldWindowLate() && (cpu || heldKeys[note.direction] || (note.beenHit && conductor.time >= note.time + note.length - releaseImmunityTime));
     }
 
     /**
@@ -426,8 +431,8 @@ class StrumLine extends FlxSpriteGroup {
      * Resizes the hold length of the passed note if the player has hit the note earlier or later.
      */
     function resizeLength(note:Note):Void {
-        note.length += (note.time - Conductor.self.time);
-        note.time = Conductor.self.time;
+        note.length += (note.time - conductor.time);
+        note.time = conductor.time;
     }
 
     /**
@@ -442,7 +447,7 @@ class StrumLine extends FlxSpriteGroup {
                 character.animState = HOLDING;
 
             if (note.isHoldable())
-                character.animDuration = note.length - Math.max(Conductor.self.time - note.time, 0) + Conductor.self.beatLength;
+                character.animDuration = note.length - Math.max(conductor.time - note.time, 0) + conductor.beatLength;
         }
     }
 
@@ -545,6 +550,7 @@ class StrumLine extends FlxSpriteGroup {
 
         _notesToRemove = null;
         characters = null;
+        conductor = null;
         heldKeys = null;
         skin = null;
 

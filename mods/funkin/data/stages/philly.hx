@@ -55,7 +55,7 @@ class PhillyStage extends Stage {
     function onUpdatePost(elapsed:Float):Void {
         if (!game.music.playing) return;
 
-        light.shader.setFloat("fadeMod", ((Conductor.self.time - lightTiming) / (Conductor.self.beatLength * Conductor.self.beatsPerMeasure)) * 1.25);
+        light.shader.setFloat("fadeMod", ((game.conductor.time - lightTiming) / game.conductor.measureLength) * 1.25);
 
         // 24 fps movement
         if (trainEnabled) {
@@ -79,7 +79,7 @@ class PhillyStage extends Stage {
     function onMeasureHit():Void {
         var color:Int = FlxG.random.int(0, lightColors.length - 1, [lastLight]);
         light.color = lightColors[color];
-        lightTiming = Conductor.self.time;
+        lightTiming = game.conductor.time;
         lastLight = color;
     }
 

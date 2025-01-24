@@ -50,6 +50,11 @@ class Character extends Bopper {
     public var singDuration:Float = 1;
 
     /**
+     * Conductor this character will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
+
+    /**
      * Defines the pixel offsets to adjust the camera's scroll when focusing on this character.
      */
     public var cameraOffsets:FlxPoint = FlxPoint.get();
@@ -118,7 +123,7 @@ class Character extends Bopper {
     override function update(elapsed:Float):Void {
         switch (animState) {
             case SINGING | SPECIAL:
-                if (animDuration != -1 && (Conductor.self.time - animTime) >= animDuration)
+                if (animDuration != -1 && (conductor?.time - animTime) >= animDuration)
                     stopAnim();
             
             case _:
@@ -138,11 +143,11 @@ class Character extends Bopper {
      */
     public function playSingAnim(direction:Int, suffix:String = ""):Void {
         playAnimation(singAnimations[direction] + (suffix ?? ""), true);
-        animTime = Conductor.self.time;
+        animTime = conductor?.time;
         animState = SINGING;
 
         // since hold notes have longer durations, we have to make sure they aren't overwritten (in case of double notes and such)
-        animDuration = Math.max(animDuration, Conductor.self.beatLength * singDuration);
+        animDuration = Math.max(animDuration, conductor?.beatLength * singDuration);
     }
 
     /**
@@ -151,8 +156,8 @@ class Character extends Bopper {
      */
     public function playMissAnim(direction:Int):Void {
         playAnimation(missAnimations[direction], true);
-        animDuration = Conductor.self.beatLength;
-        animTime = Conductor.self.time;
+        animDuration = conductor?.beatLength;
+        animTime = conductor?.time;
         animState = SPECIAL;
     }
 
@@ -163,7 +168,7 @@ class Character extends Bopper {
      */
     public function playSpecialAnim(animation:String, duration:Float = -1):Void {
         playAnimation(animation, true);
-        animTime = Conductor.self.time;
+        animTime = conductor?.time;
         animDuration = duration;
         animState = SPECIAL;
     }
@@ -186,7 +191,7 @@ class Character extends Bopper {
      * Stops the current singing or special animation and makes this character dance.
      */
     public function stopAnim():Void {
-        forceDance(Conductor.self.beat, true);
+        forceDance(conductor?.beat, true);
         animDuration = animTime = -1;
     }
 
@@ -241,6 +246,8 @@ class Character extends Bopper {
         noteSkin = null;
 
         character = null;
+        conductor = null;
+        
         super.destroy();
     }
 

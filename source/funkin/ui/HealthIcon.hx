@@ -21,6 +21,11 @@ class HealthIcon extends OffsetSprite {
     public var bopSize:Float = 25;
     public var bopDuration:Float = 0.375;
     public var bopStart:Null<Int> = null;
+
+    /**
+     * Conductor this health icon will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
     
     var _character:String;
 
@@ -36,7 +41,7 @@ class HealthIcon extends OffsetSprite {
             updateState();
 
         if (bopStart != null) {
-            var ratio:Float = FlxEase.sineOut(Math.min(Conductor.self.decBeat - bopStart, bopDuration) / bopDuration);
+            var ratio:Float = FlxEase.sineOut(Math.min(conductor.decBeat - bopStart, bopDuration) / bopDuration);
             setGraphicSize(FlxMath.lerp(size.x + bopSize, size.x, ratio));
             updateHitbox();
         }
@@ -45,8 +50,6 @@ class HealthIcon extends OffsetSprite {
     }
 
     function updateState():Void {
-        var currentState:HealthState = state;
-
         switch (state) {
             case WINNING:
                 if (health < 80)
@@ -60,15 +63,10 @@ class HealthIcon extends OffsetSprite {
                 if (health > 20)
                     state = NEUTRAL;
         }
-
-        if (currentState != state) {
-            // recursively calls this method to find the proper state
-            updateState();
-        }
     }
 
     public inline function bop():Void {
-        bopStart = Conductor.self.beat;
+        bopStart = conductor.beat;
     }
 
     public function resetBop():Void {
@@ -86,6 +84,7 @@ class HealthIcon extends OffsetSprite {
         size = FlxDestroyUtil.put(size);
 
         _character = null;
+        conductor = null;
         state = null;
 
         super.destroy();

@@ -1,6 +1,7 @@
 package funkin.gameplay.events;
 
 import funkin.data.ChartFormat.ChartEvent;
+import funkin.utils.TimingTools;
 
 /**
  * Event runner which executes song events during gameplay.
@@ -10,6 +11,11 @@ import funkin.data.ChartFormat.ChartEvent;
  */
 @:build(funkin.core.macros.ScriptMacros.buildEventDispatcher())
 class SongEventExecutor extends FlxBasic {
+    /**
+     * Conductor this object will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
+
     /**
      * Stored event executors.
      */
@@ -38,7 +44,7 @@ class SongEventExecutor extends FlxBasic {
         visible = false;
 
         _events = PlayState.song.events;
-        _events.sort((a, b) -> Std.int(a.time - b.time));
+        TimingTools.sort(_events);
 
         _executors = [];
 
@@ -71,7 +77,7 @@ class SongEventExecutor extends FlxBasic {
     override function update(elapsed:Float):Void {
         while (_currentEvent < _events.length) {
             var relevantEvent:ChartEvent = _events[_currentEvent];
-            if (relevantEvent.time > Conductor.self.time) break;
+            if (relevantEvent.time > conductor.time) break;
 
             executeEvent(relevantEvent);
             _currentEvent++;
@@ -137,6 +143,7 @@ class SongEventExecutor extends FlxBasic {
             executor?.destroy();
         
         _executors = null;
+        conductor = null;
         _events = null;
         
         super.destroy();

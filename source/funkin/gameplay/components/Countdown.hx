@@ -33,6 +33,11 @@ class Countdown extends FlxBasic {
     public var asset:String = null;
 
     /**
+     * Conductor this countdown will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
+
+    /**
      * Signal dispatched when a countdown tick starts.
      */
     public var onTick:FlxTypedSignal<Int->Void> = new FlxTypedSignal();
@@ -65,7 +70,7 @@ class Countdown extends FlxBasic {
     override function update(elapsed:Float):Void {
         if (startTime == -1) return;
 
-        while (Conductor.self.audioTime - startTime >= Conductor.self.beatLength * (currentTick + 1))
+        while (conductor.audioTime - startTime >= conductor.beatLength * (currentTick + 1))
             tick(++currentTick);
 
         #if FLX_DEBUG
@@ -89,7 +94,7 @@ class Countdown extends FlxBasic {
         sprite.active = false;
         parent.add(sprite);
 
-        startTime = Conductor.self.audioTime;
+        startTime = conductor.audioTime;
         sprite.alpha = 0;
     }
   
@@ -128,7 +133,7 @@ class Countdown extends FlxBasic {
         sprite.screenCenter();
         sprite.y -= 50;
 
-        FlxTween.tween(sprite, {y: sprite.y + 100, alpha: 0}, Conductor.self.beatLength / Conductor.self.rate * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
+        FlxTween.tween(sprite, {y: sprite.y + 100, alpha: 0}, conductor.beatLength / conductor.rate * 0.95 / 1000, {ease: FlxEase.smootherStepInOut});
     }
 
     function finish():Void {
@@ -154,6 +159,7 @@ class Countdown extends FlxBasic {
         onFinish = cast FlxDestroyUtil.destroy(onFinish);
         onTick = cast FlxDestroyUtil.destroy(onTick);
 
+        conductor = null;
         sprite = null;
         parent = null;
         asset = null;

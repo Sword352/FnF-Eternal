@@ -15,22 +15,6 @@ class Note extends OffsetSprite {
     public static final directions:Array<String> = ["left", "down", "up", "right"];
 
     /**
-     * Determines how much early or late a note can be hit.
-     */
-    public static var hitRegion(get, never):Float;
-
-    /**
-     * Determines how much pixels a millisecond represents.
-     */
-    public static var pixelPerMs(get, never):Float;
-
-    static function get_hitRegion():Float
-        return 180 * Conductor.self.rate;
-
-    static function get_pixelPerMs():Float
-        return 0.45 / Conductor.self.rate;
-
-    /**
      * Position of this note in the song.
      */
     public var time:Float = 0;
@@ -168,23 +152,24 @@ class Note extends OffsetSprite {
      * Returns whether the note is valid to be hit.
      * @return Bool
      */
-    public inline function isHittable():Bool {
-        return state == NONE && ((strumLine.cpu && time <= Conductor.self.time) || (!strumLine.cpu && Math.abs(time - Conductor.self.time) <= hitRegion));
+    public function isHittable():Bool {
+        var hitRegion:Float = TimingTools.hitRegion(strumLine.conductor.rate);
+        return state == NONE && ((strumLine.cpu && time <= strumLine.conductor.time) || (!strumLine.cpu && Math.abs(time - strumLine.conductor.time) <= hitRegion));
     }
 
     /**
      * Returns whether the note is late.
      * @return Bool
      */
-    public inline function isLate():Bool {
-        return Conductor.self.time > (time + hitRegion);
+    public function isLate():Bool {
+        return strumLine.conductor.time > (time + TimingTools.hitRegion(strumLine.conductor.rate));
     }
 
     /**
      * Returns whether this note can be held.
      * @return Bool
      */
-    public inline function isHoldable():Bool {
+    public function isHoldable():Bool {
         return length > 0;
     }
 
@@ -200,7 +185,8 @@ class Note extends OffsetSprite {
      * Update behaviour.
      */
     override function update(elapsed:Float):Void {
-        this.y = targetReceptor.y + (time - Conductor.self.time) * (strumLine.downscroll ? -1 : 1) * strumLine.scrollSpeed * pixelPerMs;
+        var pixelPerMs:Float = TimingTools.pixelPerMs(strumLine.conductor.rate);
+        this.y = targetReceptor.y + (time - strumLine.conductor.time) * (strumLine.downscroll ? -1 : 1) * strumLine.scrollSpeed * pixelPerMs;
 
         if (isHoldable() && sustain.exists && sustain.active)
             sustain.update(elapsed);

@@ -1,6 +1,7 @@
 package funkin.gameplay.notes;
 
 import funkin.objects.TiledSprite;
+import funkin.utils.TimingTools;
 
 /**
  * Object which displays a hold trail behind a sustain note.
@@ -24,7 +25,7 @@ class Sustain extends TiledSprite {
         var receptor:Receptor = parent.targetReceptor;
 
         // we're making the sustain a bit longer here so it ends properly when it's about to be behind the receptor.
-        height = (parent.length * Note.pixelPerMs * parent.strumLine.scrollSpeed) + (receptor.height * 0.5);
+        height = (parent.length * TimingTools.pixelPerMs(parent.strumLine.conductor.rate) * parent.strumLine.scrollSpeed) + (receptor.height * 0.5);
         this.y = parent.y + parent.height * 0.5;
 
         if (parent.strumLine.downscroll)

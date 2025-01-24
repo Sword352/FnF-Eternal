@@ -66,8 +66,8 @@ class NoteHoldInvalidationEvent extends ScriptEvent {
     public function reset(note:Note):NoteHoldInvalidationEvent {
         this.note = note;
 
-        var remainingLength:Float = note.length - (Conductor.self.time - note.time);
-        fraction = (remainingLength / (Conductor.self.beatLength / 2)) + 1;
+        var remainingLength:Float = note.length - (note.strumLine.conductor.time - note.time);
+        fraction = (remainingLength / (note.strumLine.conductor.beatLength / 2)) + 1;
 
         scoreLoss = 10;
         healthLoss = 0.02375;

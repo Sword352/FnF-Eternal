@@ -12,6 +12,16 @@ class TimingTools {
     public static final BEATS_PER_MEASURE_COMMON:Int = 4;
 
     /**
+     * The amount of pixels per millisecond.
+     */
+    public static final PIXEL_PER_MS:Float = 0.45;
+
+    /**
+     * The maximum range allowed to hit a note, in milliseconds.
+     */
+    public static final HIT_REGION:Float = 180;
+
+    /**
      * Sorts a set of timing points and applies an offset to each for consistent playback.
      * @param timingPoints Array of timing points.
      */
@@ -73,6 +83,24 @@ class TimingTools {
      */
     public static function computeBeatLength(bpm:Float):Float {
         return 60 / bpm * 1000;
+    }
+
+    /**
+     * Returns the amount of pixels per millisecond affected by the given acceleration rate.
+     * @param rate Acceleration rate.
+     * @return Float
+     */
+     public static function pixelPerMs(rate:Float):Float {
+        return PIXEL_PER_MS / rate;
+    }
+
+    /**
+     * Returns the note hit region affected by the given acceleration rate.
+     * @param rate Acceleration rate.
+     * @return Float
+     */
+    public static function hitRegion(rate:Float):Float {
+        return HIT_REGION * rate;
     }
 }
 

@@ -1,5 +1,6 @@
 package funkin.gameplay.notes;
 
+import funkin.utils.TimingTools;
 import funkin.gameplay.notes.Sustain;
 import funkin.data.ChartFormat.ChartNote;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -28,6 +29,11 @@ class NoteSpawner extends FlxBasic {
     public var strumLines:Array<StrumLine>;
 
     /**
+     * Conductor this note spawner will listen to.
+     */
+    public var conductor:Conductor = Conductor.self;
+
+    /**
      * Counter which tracks the next note to spawn.
      */
     public var currentNote:Int = 0;
@@ -53,7 +59,7 @@ class NoteSpawner extends FlxBasic {
         visible = false;
 
         // make sure notes are sorted
-        PlayState.song.notes.sort((a, b) -> Std.int(a.time - b.time));
+        TimingTools.sort(PlayState.song.notes);
 
         // skip notes with a time value lower than the start time
         if (startTime != 0 && PlayState.song.notes.length > 0) {
@@ -89,7 +95,7 @@ class NoteSpawner extends FlxBasic {
             var note:ChartNote = PlayState.song.notes[currentNote];
             var strumLine:StrumLine = strumLines[note.strumline];
 
-            if ((note.time - Conductor.self.time) > (1800 / (strumLine.scrollSpeed / Conductor.self.rate)))
+            if ((note.time - conductor.time) > (1800 / (strumLine.scrollSpeed / conductor.rate)))
                 break;
 
             // if this is a ghost note, just skip it.
@@ -126,6 +132,7 @@ class NoteSpawner extends FlxBasic {
         notes = FlxDestroyUtil.destroy(notes);
 
         strumLines = null;
+        conductor = null;
         _lastNote = null;
 
         super.destroy();
@@ -137,7 +144,7 @@ class NoteSpawner extends FlxBasic {
      * @return A `Note` instance
      */
     function getNote(event:NoteIncomingEvent):Note {
-        var note:Note = notes.recycle(Note, noteConstructor);
+        var note:Note = notes.recycle(noteConstructor);
         note.setup(event.time, event.direction, event.length, event.type);
         note.strumLine = event.strumLine;
 
@@ -146,7 +153,7 @@ class NoteSpawner extends FlxBasic {
             note.skin = event.skin;
 
         if (note.isHoldable())
-            note.sustain = sustains.recycle(Sustain);
+            note.sustain = sustains.recycle();
 
         return note;
     }
