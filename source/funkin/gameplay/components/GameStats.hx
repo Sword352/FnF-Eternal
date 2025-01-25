@@ -93,9 +93,6 @@ class GameStats implements IFlxDestroyable {
      * Returns the most relevant `Rank`.
      */
     public function getRank():Rank {
-        if (PlayState.self.playField.botplay)
-            return null;
-
         var output:Rank = null;
 
         for (rating in ratings) {
@@ -139,7 +136,6 @@ class GameStats implements IFlxDestroyable {
     }
 
     function set_health(v:Float):Float {
-        PlayState.self._checkGameOver = (v < health && v <= 0);
         return health = FlxMath.bound(v, 0, 1);
     }
 

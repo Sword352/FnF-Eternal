@@ -4,12 +4,7 @@ import funkin.core.assets.Paths.AtlasAsset;
 
 typedef StageData = {
     var ?cameraSpeed:Float;
-    var ?camBeatZoom:Float;
-    var ?hudBeatZoom:Float;
-    var ?camBeat:Float;
-
     var ?cameraZoom:Float;
-    var ?hudZoom:Float;
 
     var ?playerPos:Array<Float>;
     var ?spectatorPos:Array<Float>;

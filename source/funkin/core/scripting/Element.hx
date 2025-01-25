@@ -74,7 +74,7 @@ class GameplayElement extends Element {
      * @return Bool
      */
     override function validate():Bool {
-        if (PlayState.self == null) return false;
+        if (!(FlxG.state is PlayState)) return false;
         onGameplayStart();
         return true;
     }
@@ -111,7 +111,7 @@ class SongElement extends GameplayElement {
      * @return Bool
      */
     override function validate():Bool {
-        if (PlayState.self == null || PlayState.song.meta.folder != _song) return false;
+        if (!(FlxG.state is PlayState) || PlayState.song.meta.folder != _song) return false;
         onGameplayStart();
         return true;
     }
@@ -141,9 +141,8 @@ class NoteTypeElement extends GameplayElement {
      * @return Bool
      */
     override function validate():Bool {
-        if (PlayState.self == null) return false;
+        if (!(FlxG.state is PlayState)) return false;
 
-        // TODO: can this be more efficient?
         for (note in PlayState.song.notes) {
             if (note.type == _type) {
                 onGameplayStart();

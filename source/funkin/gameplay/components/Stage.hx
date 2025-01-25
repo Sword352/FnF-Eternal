@@ -26,6 +26,16 @@ class Stage extends FlxSpriteGroup implements IHScriptCustomBehaviour {
      * UI style for this stage.
      */
     public var uiStyle:String = "";
+
+    /**
+     * Camera speed for this stage.
+     */
+    public var cameraSpeed:Float = 1;
+
+    /**
+     * Camera zoom for this stage.
+     */
+    public var cameraZoom:Float = 1;
     
     /**
      * Array containing sprites reacting to the beat.
@@ -114,19 +124,10 @@ class Stage extends FlxSpriteGroup implements IHScriptCustomBehaviour {
             uiStyle = "-" + data.uiStyle;
 
         if (data.cameraSpeed != null)
-            PlayState.self.cameraSpeed = data.cameraSpeed;
+            cameraSpeed = data.cameraSpeed;
         
         if (data.cameraZoom != null)
-            PlayState.self.cameraZoom = PlayState.self.camGame.zoom = data.cameraZoom;
-
-        if (data.hudZoom != null)
-            PlayState.self.hudZoom = PlayState.self.camHUD.zoom = data.hudZoom;
-
-        if (data.camBeatZoom != null)
-            PlayState.self.gameBeatBump = data.camBeatZoom;
-        
-        if (data.hudBeatZoom != null)
-            PlayState.self.hudBeatBump = data.hudBeatZoom;
+            cameraZoom = data.cameraZoom;
 
         playerPos = data.playerPos ?? playerPos;
         playerCam = data.playerCam ?? playerCam;

@@ -73,10 +73,10 @@ class PlayState extends MusicBeatState {
     public var startTime:Float;
 
     /**
-     * Flag used to prevent the game over event from being repeatedly dispatched.
+     * Stores the last health value so we don't have to repeatedly dispatch game over events
+     * when the health is below or equal to 0.
      */
-    @:allow(funkin.gameplay.components.GameStats)
-    var _checkGameOver:Bool = false;
+    var _lastHealth:Float;
 
     public function new(startTime:Float = 0):Void {
         this.startTime = startTime;
@@ -117,6 +117,8 @@ class PlayState extends MusicBeatState {
 
         if (song.gameplayInfo.stage?.length > 0) {
             stage = Stage.create(song.gameplayInfo.stage);
+            cameraZoom = camGame.zoom = stage.cameraZoom;
+            cameraSpeed = stage.cameraSpeed;
             add(stage);
         }
 
@@ -172,6 +174,9 @@ class PlayState extends MusicBeatState {
         countdown.camera = camHUD;
         add(countdown);
 
+        if (stage?.uiStyle != null)
+            countdown.soundSuffix = stage.uiStyle;
+
         countdown.onFinish.add(startSong.bind(0));
         conductor.beat = -event.totalTicks - 1;
         countdown.start();
@@ -180,7 +185,7 @@ class PlayState extends MusicBeatState {
     override function update(elapsed:Float):Void {
         super.update(elapsed);
 
-        if (_checkGameOver)
+        if (_lastHealth != stats.health)
             _performGameOverCheck();
 
         camGame.zoom = Tools.lerp(camGame.zoom, cameraZoom, bumpSpeed);
@@ -247,7 +252,7 @@ class PlayState extends MusicBeatState {
     function _performGameOverCheck():Void {
         if (stats.health <= 0)
             gameOver();
-        _checkGameOver = false;
+        _lastHealth = stats.health;
     }
 
     inline public function openChartEditor():Void {

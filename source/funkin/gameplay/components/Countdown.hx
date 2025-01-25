@@ -33,6 +33,11 @@ class Countdown extends FlxBasic {
     public var asset:String = null;
 
     /**
+     * Suffix for sound assets.
+     */
+    public var soundSuffix:String = null;
+
+    /**
      * Conductor this countdown will listen to.
      */
     public var conductor:Conductor = Conductor.self;
@@ -108,8 +113,8 @@ class Countdown extends FlxBasic {
         var sound:String = 'gameplay/intro${suffix}';
         var spriteFrame:Int = tick - 2;
 
-        if (PlayState.self != null)
-            sound += PlayState.self.stage?.uiStyle ?? "";
+        if (soundSuffix != null)
+            sound += soundSuffix;
 
         var event:CountdownTickEvent = dispatchEvent(GameEvents.COUNTDOWN_TICK, new CountdownTickEvent(tick, sound, spriteFrame));
         if (event.cancelled) return;
@@ -159,6 +164,7 @@ class Countdown extends FlxBasic {
         onFinish = cast FlxDestroyUtil.destroy(onFinish);
         onTick = cast FlxDestroyUtil.destroy(onTick);
 
+        soundSuffix = null;
         conductor = null;
         sprite = null;
         parent = null;
