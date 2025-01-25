@@ -60,9 +60,6 @@ class Tools {
     public static inline function parseYAML(content:String):Dynamic
         return Yaml.parse(content, Parser.options().useObjects());
 
-    public static inline function convertLimeKey(key:Int):Int
-        return @:privateAccess openfl.ui.Keyboard.__convertKeyCode(key);
-
     // used to avoid a flixel warning
     public static function changeFramerateCap(newFramerate:Int):Void {
         if (newFramerate > FlxG.updateFramerate) {

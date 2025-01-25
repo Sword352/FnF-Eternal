@@ -4,6 +4,7 @@ import flixel.util.FlxSignal;
 import flixel.group.FlxSpriteGroup;
 import funkin.gameplay.notes.Sustain;
 import funkin.gameplay.components.Character;
+import openfl.events.KeyboardEvent;
 import funkin.data.NoteSkin;
 
 /**
@@ -383,12 +384,9 @@ class StrumLine extends FlxSpriteGroup {
     /**
      * Method called when a key is pressed.
      */
-    function onKeyDown(rawKey:Int, _):Void {
-        var key:Int = Tools.convertLimeKey(rawKey);
-        var dir:Int = getDirFromKey(key);
-
-        if (dir == -1 || heldKeys[dir] || inactiveInputs) 
-            return;
+    function onKeyDown(event:KeyboardEvent):Void {
+        var dir:Int = getDirFromKey(event.keyCode);
+        if (dir == -1 || heldKeys[dir] || inactiveInputs) return;
 
         heldKeys[dir] = true;
 
@@ -403,12 +401,9 @@ class StrumLine extends FlxSpriteGroup {
     /**
      * Method called when a key is released.
      */
-    function onKeyUp(rawKey:Int, _):Void {
-        var key:Int = Tools.convertLimeKey(rawKey);
-        var dir:Int = getDirFromKey(key);
-
-        if (dir == -1) 
-            return;
+    function onKeyUp(event:KeyboardEvent):Void {
+        var dir:Int = getDirFromKey(event.keyCode);
+        if (dir == -1) return;
 
         heldKeys[dir] = false;
         playStatic(dir);
@@ -423,7 +418,7 @@ class StrumLine extends FlxSpriteGroup {
     /**
      * Finds the corresponding direction for the passed key.
      */
-    inline function getDirFromKey(key:Int):Int {
+    function getDirFromKey(key:Int):Int {
         return keys[key] ?? -1;
     }
 
@@ -514,8 +509,8 @@ class StrumLine extends FlxSpriteGroup {
         if (keys != null) return;
 
         // register key listeners
-        FlxG.stage.application.window.onKeyDown.add(onKeyDown);
-        FlxG.stage.application.window.onKeyUp.add(onKeyUp);
+        FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+        FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 
         // and map the keys
         keys = [
@@ -530,8 +525,8 @@ class StrumLine extends FlxSpriteGroup {
         if (keys == null) return;
 
         // remove the key listeners
-        FlxG.stage.application.window.onKeyDown.remove(onKeyDown);
-        FlxG.stage.application.window.onKeyUp.remove(onKeyUp);
+        FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+        FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 
         // and clear the keys
         keys = null;

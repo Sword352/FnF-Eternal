@@ -1,5 +1,7 @@
 package funkin.gameplay.notes;
 
+import openfl.events.KeyboardEvent;
+
 /**
  * Special `StrumLine` which handles extra gameplay logic for `PlayState`.
  * This object dispatches the following event(s):
@@ -197,13 +199,11 @@ class GameStrumLine extends StrumLine {
         super.holdSustainNote(note);
     }
 
-    override function onKeyDown(rawKey:Int, _):Void {
-        var key:Int = Tools.convertLimeKey(rawKey);
-        var dir:Int = getDirFromKey(key);
-
+    override function onKeyDown(event:KeyboardEvent):Void {
+        var dir:Int = getDirFromKey(event.keyCode);
         if (dir == -1 || pressedKeys[dir] || inactiveInputs) return;
 
-        dispatchEvent(GameEvents.NOTE_KEY_PRESS, _inputEvent.reset(key, dir));
+        dispatchEvent(GameEvents.NOTE_KEY_PRESS, _inputEvent.reset(event.keyCode, dir));
         if (_inputEvent.cancelled) return;
 
         pressedKeys[dir] = true;
@@ -218,12 +218,11 @@ class GameStrumLine extends StrumLine {
             ghostPress(dir);
     }
 
-    override function onKeyUp(rawKey:Int, _):Void {
-        var key:Int = Tools.convertLimeKey(rawKey);
-        var dir:Int = getDirFromKey(key);
+    override function onKeyUp(event:KeyboardEvent):Void {
+        var dir:Int = getDirFromKey(event.keyCode);
         if (dir == -1) return;
 
-        dispatchEvent(GameEvents.NOTE_KEY_RELEASE, _inputEvent.reset(key, dir));
+        dispatchEvent(GameEvents.NOTE_KEY_RELEASE, _inputEvent.reset(event.keyCode, dir));
         if (_inputEvent.cancelled) return;
 
         pressedKeys[dir] = false;
