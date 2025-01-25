@@ -6,8 +6,9 @@ import flixel.tweens.*;
 
 import funkin.gameplay.notes.*;
 import funkin.ui.HealthIcon;
-import funkin.gameplay.components.Rating;
+import funkin.gameplay.components.Judgement;
 import funkin.gameplay.components.JudgementDisplay;
+import funkin.utils.ScoringTools;
 import funkin.data.ChartLoader;
 
 /**
@@ -21,8 +22,6 @@ class ChartPlayState extends MusicBeatSubState {
     var opponentStrumline:StrumLine;
     var playerStrumline:StrumLine;
     var noteSpawner:NoteSpawner;
-
-    var ratings:Array<Rating> = Rating.getDefault();
 
     var playerNoteCount:FlxText;
     var oppNoteCount:FlxText;
@@ -166,26 +165,19 @@ class ChartPlayState extends MusicBeatSubState {
         note.ID = -1;
         totalPlayerNotes++;
 
-        var rating:Rating = ratings[ratings.length - 1];
+        var judgement:Judgement = ScoringTools.judgeNote(note);
 
-        for (entry in ratings) {
-            if ((Math.abs(note.time - Conductor.self.time) / Conductor.self.rate) <= entry.hitWindow) {
-                rating = entry;
-                break;
-            }
-        }
-
-        health += rating.health;
-        accuracyMod += rating.accuracyMod;
+        health += judgement.health;
+        accuracyMod += judgement.accuracyMod;
         accuracyNotes++;
 
-        judgementDisplay.displayJudgement(rating.name);
+        judgementDisplay.displayJudgement(judgement.name);
 
         combo++;
-        if (!rating.breakCombo && combo > 0)
+        if (!judgement.breakCombo && combo > 0)
             judgementDisplay.displayCombo(combo);
 
-        if (rating.displaySplash && !Options.noNoteSplash)
+        if (judgement.displaySplash && !Options.noNoteSplash)
             playerStrumline.popSplash(note);
     }
 
@@ -292,10 +284,8 @@ class ChartPlayState extends MusicBeatSubState {
     }
 
     override function destroy():Void {
-        ratings = FlxDestroyUtil.destroyArray(ratings);
         strumLines = null;
         startTimer = null;
-        ratings = null;
         icons = null;
 
         FlxG.mouse.visible = true;

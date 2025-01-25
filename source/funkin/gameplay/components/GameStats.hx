@@ -1,7 +1,7 @@
 package funkin.gameplay.components;
 
 import funkin.gameplay.notes.Note;
-import funkin.gameplay.components.Rating.Rank;
+import funkin.gameplay.components.Rank;
 
 /**
  * Object which holds gameplay statistics such as the score.
@@ -48,11 +48,6 @@ class GameStats implements IFlxDestroyable {
     public var accuracyMod:Float = 0;
 
     /**
-     * Ratings list.
-     */
-    public var ratings:Array<Rating> = Rating.getDefault();
-
-    /**
      * Rank representing a neutral full combo.
      */
     public var rankFC:Rank = new Rank("FC", 0xFF70BD44);
@@ -63,30 +58,21 @@ class GameStats implements IFlxDestroyable {
     public var rankSDCB:Rank = new Rank("SDCB", FlxColor.YELLOW);
 
     /**
-     * Creates a `GameStats` instance.
+     * Holds how many time each judgement has been hit.
+     */
+    var judgementHits:Map<String, Int> = [for (entry in Judgement.list) entry.name => 0];
+
+    /**
+     * Creates a new `GameStats` instance.
      */
     public function new():Void {}
 
     /**
-     * Returns a `Rating` with a hit window matching the note's timestamp.
-     * @param note Note to evaluate.
-     * @return Corresponding `Rating`.
+     * Registers a judgement hit.
+     * @param judgement Judgement that has been hit.
      */
-    public inline function evaluateNote(note:Note):Rating {
-        return evaluate(Math.abs(note.time - note.strumLine.conductor.time) / note.strumLine.conductor.rate);
-    }
-
-    /**
-     * Returns a `Rating` with a hit window matching a timestamp.
-     * @param timestamp Timestamp to evaluate.
-     * @return Corresponding `Rating`.
-     */
-    public function evaluate(timestamp:Float):Rating {
-        for (rating in ratings)
-            if (timestamp <= rating.hitWindow)
-                return rating;
-
-        return ratings[ratings.length - 1];
+    public function addHit(judgement:Judgement):Void {
+        judgementHits[judgement.name]++;
     }
 
     /**
@@ -95,14 +81,14 @@ class GameStats implements IFlxDestroyable {
     public function getRank():Rank {
         var output:Rank = null;
 
-        for (rating in ratings) {
-            if (rating.hits < 1) continue;
+        for (judgement in Judgement.list) {
+            if (judgementHits[judgement.name] < 1) continue;
 
-            if (rating.rank != null) {
-                if (misses < rating.missThreshold)
-                    output = rating.rank;
+            if (judgement.rank != null) {
+                if (misses < judgement.missThreshold)
+                    output = judgement.rank;
             }
-            else if (rating.invalidateRank)
+            else if (judgement.invalidateRank)
                 output = null;
         }
 
@@ -130,9 +116,9 @@ class GameStats implements IFlxDestroyable {
      * Clean up memory.
      */
     public function destroy():Void {
-        ratings = FlxDestroyUtil.destroyArray(ratings);
         rankSDCB = FlxDestroyUtil.destroy(rankSDCB);
         rankFC = FlxDestroyUtil.destroy(rankFC);
+        judgementHits = null;
     }
 
     function set_health(v:Float):Float {

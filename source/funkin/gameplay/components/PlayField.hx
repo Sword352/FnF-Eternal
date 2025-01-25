@@ -5,7 +5,7 @@ import funkin.ui.HealthBar;
 import funkin.ui.HealthIcon;
 import flixel.group.FlxGroup;
 import funkin.gameplay.notes.*;
-import funkin.gameplay.components.Rating.Rank;
+import funkin.gameplay.components.Rank;
 
 /**
  * Group containing the notefield and each UI elements present in gameplay.
@@ -186,11 +186,11 @@ class PlayField extends FlxGroup {
     }
 
     /**
-     * Displays a rating sprite.
-     * @param rating Rating to display.
+     * Displays a judgement sprite.
+     * @param judgement Judgement to display.
      */
-    public inline function displayJudgement(rating:Rating):Void {
-        judgementDisplay.displayJudgement(rating.name);
+    public inline function displayJudgement(judgement:Judgement):Void {
+        judgementDisplay.displayJudgement(judgement.name);
     }
 
     /**

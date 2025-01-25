@@ -1,7 +1,8 @@
 package funkin.core.scripting.events;
 
 import funkin.gameplay.notes.Note;
-import funkin.gameplay.components.Rating;
+import funkin.gameplay.components.Judgement;
+import funkin.utils.ScoringTools;
 
 /**
  * Event dispatched when a `StrumLine` hits a note, typically during gameplay.
@@ -13,9 +14,9 @@ class NoteHitEvent extends ScriptEvent {
     public var note(default, null):Note;
 
     /**
-     * Rating for this note hit.
+     * Judgement for this note hit.
      */
-    public var rating:Rating;
+    public var judgement:Judgement;
 
     /**
      * Score gain.
@@ -85,27 +86,27 @@ class NoteHitEvent extends ScriptEvent {
         score = 0;
         health = 0;
         accuracy = null;
-        rating = null;
+        judgement = null;
 
         if (!note.strumLine.cpu) {
-            rating = PlayState.self.stats.evaluateNote(note);
+            judgement = ScoringTools.judgeNote(note);
 
-            score = rating.score;
-            accuracy = rating.accuracyMod;
-            health = rating.health;
+            score = judgement.score;
+            accuracy = judgement.accuracyMod;
+            health = judgement.health;
 
-            if (rating.breakCombo)
+            if (judgement.breakCombo)
                 this.combo = 0;
             else
                 this.combo++;
         }
         else if (note.strumLine.owner == PLAYER) {
-            health = PlayState.self.stats.ratings[0].health;
+            health = Judgement.list[0].health;
         }
 
         holdHealth = Math.max(health * 10, 0);
 
-        displaySplash = (!note.strumLine.cpu && rating.displaySplash && !Options.noNoteSplash);
+        displaySplash = (!note.strumLine.cpu && judgement.displaySplash && !Options.noNoteSplash);
         unmutePlayer = (note.strumLine.owner != OPPONENT || PlayState.self.music.voices?.length == 1);
 
         playConfirm = true;
@@ -121,7 +122,7 @@ class NoteHitEvent extends ScriptEvent {
      * Clean up memory.
      */
     override function destroy():Void {
-        rating = null;
+        judgement = null;
         note = null;
     }
 }

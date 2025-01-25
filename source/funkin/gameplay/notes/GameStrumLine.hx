@@ -64,9 +64,9 @@ class GameStrumLine extends StrumLine {
         game.stats.health += _noteHitEvent.health;
         game.stats.combo = _noteHitEvent.combo;
 
-        if (_noteHitEvent.rating != null) {
-            _noteHitEvent.rating.hits++;
-            game.playField.displayJudgement(_noteHitEvent.rating);
+        if (_noteHitEvent.judgement != null) {
+            game.stats.addHit(_noteHitEvent.judgement);
+            game.playField.displayJudgement(_noteHitEvent.judgement);
         }
 
         if (_noteHitEvent.accuracy != null)
